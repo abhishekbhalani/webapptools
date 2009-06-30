@@ -1,5 +1,5 @@
 /* XPM */
-static char *btnDel[] = {
+static char *btnDel_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 16 52 1",
 "  c #5c0000",

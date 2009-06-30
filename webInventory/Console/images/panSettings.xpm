@@ -1,5 +1,5 @@
 /* XPM */
-static char *panSettings[] = {
+static char *panSettings_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "48 48 64 1",
 ". c #18110e",

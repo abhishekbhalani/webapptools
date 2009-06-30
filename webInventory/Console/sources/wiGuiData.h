@@ -8,6 +8,8 @@
 #ifndef __wiGuiData__
 #define __wiGuiData__
 
+#include <wx/intl.h>
+
 class wiStatBar;
 
 #include <wx/string.h>
@@ -43,29 +45,42 @@ class MainForm : public wxFrame
 	protected:
 		wxAuiNotebook* m_mainnb;
 		wxPanel* m_pTasks;
-		wxStaticText* m_staticText1;
+		wxStaticText* m_stActiveTasks;
 		
-		wxBitmapButton* m_bpButton51;
-		wxBitmapButton* m_bpButton511;
-		wxBitmapButton* m_bpButton2;
-		wxStaticText* m_staticText2;
+		wxBitmapButton* m_bpStartTask;
+		wxBitmapButton* m_bpPauseTask;
+		wxBitmapButton* m_bpCancelTask;
+		wxStaticText* m_stTaskLog;
 		
-		wxStaticText* m_staticText4;
-		wxChoice* m_choice1;
-		wxListCtrl* m_listCtrl2;
-		wxRichTextCtrl* m_richText1;
-		wxStaticText* m_staticText3;
+		wxStaticText* m_stLogLevel;
+		wxChoice* m_chLogLevel;
+		wxListCtrl* m_lstActiveTask;
+		wxRichTextCtrl* m_rtTask;
+		wxStaticText* m_stTaskList;
 		
-		wxBitmapButton* m_bpButton5;
-		wxBitmapButton* m_bpButton11;
-		wxBitmapButton* m_bpButton21;
-		wxListCtrl* m_listCtrl21;
+		wxBitmapButton* m_bpTaskGo;
+		wxBitmapButton* m_bpTaskNew;
+		wxBitmapButton* m_bpTaskDel;
+		wxListCtrl* m_lstTaskList;
 		wxPanel* m_pReports;
 		wxPanel* m_pSettings;
+		wxStaticText* m_stServer;
+		wxChoice* m_chServers;
+		wxBitmapButton* m_bpConnect;
+		wxBitmapButton* m_bpServerNew;
+		wxBitmapButton* m_bpServerDel;
+		wxStaticText* m_stLang;
+		wxChoice* m_chLangs;
+		wxBitmapButton* m_bpLangApply;
 		wiStatBar* m_statusBar1;
+		
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
+		virtual void OnLangChange( wxCommandEvent& event ){ event.Skip(); }
+		
 	
 	public:
-		MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("WebInventory"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1070,660 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("WebInventory"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1070,660 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~MainForm();
 	
 };

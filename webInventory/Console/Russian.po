@@ -1,0 +1,115 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webInventory 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-06-30 18:02+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Andrew Abramov <stinger@lab18.net>\n"
+"Language-Team: http://code.google.com/p/webapptools/ <stinger911@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: iso-8859-1\n"
+"X-Poedit-Language: Russian\n"
+"X-Poedit-Country: RUSSIAN FEDERATION\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: C:\\Work\\Projects\\webapptools\\webInventory\\Console\\sources\n"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:42
+msgid "Active tasks"
+msgstr "Астивные задачи"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:77
+msgid "Task execution log"
+msgstr "Журнал выполнения"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:86
+msgid "Log level"
+msgstr "Уровень журналирования"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:90
+msgid "Trace"
+msgstr "Trace"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:90
+msgid "Info"
+msgstr "Info"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:90
+msgid "Warnings"
+msgstr "Warnings"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:90
+msgid "Errors"
+msgstr "Errors"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:90
+msgid "Fatal"
+msgstr "Fatal"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:111
+msgid "Task List"
+msgstr "Список задач"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:154
+msgid "Tasks"
+msgstr "Задачи"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:156
+msgid "Reports"
+msgstr "Отчеты"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:163
+msgid "Scanner address:"
+msgstr "Адрес сканера:"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:170
+msgid "hostname[:port]"
+msgstr "hostname[:port]"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:177
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:179
+msgid "Connect"
+msgstr "Соединиться"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:184
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:186
+msgid "Add new connection"
+msgstr "Добавить соединение"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:191
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:193
+msgid "Delete connection"
+msgstr "Удалить соединение"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:199
+msgid "Interface Language:"
+msgstr "Язык интерфейса:"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:206
+msgid "English (default)"
+msgstr "English (default)"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:215
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:217
+msgid "Apply (need restart)"
+msgstr "Применить (требуется перезапуск)"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:226
+msgid "Settings"
+msgstr "Настройки"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:34
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:38
+msgid "Task name"
+msgstr "Название задачи"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:35
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:39
+msgid "Status"
+msgstr "Статус"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.h:83
+msgid "WebInventory"
+msgstr "WebInventory"
+
