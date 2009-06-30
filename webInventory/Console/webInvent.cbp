@@ -197,6 +197,7 @@
 		<Unit filename="sources\Crypto.cpp" />
 		<Unit filename="sources\Crypto.h" />
 		<Unit filename="sources\Sha1.hpp" />
+		<Unit filename="sources\version.h" />
 		<Unit filename="sources\wiApp.cpp" />
 		<Unit filename="sources\wiApp.h" />
 		<Unit filename="sources\wiGuiData.cpp" />
@@ -217,6 +218,11 @@
 		<Extensions>
 			<code_completion />
 			<debugger />
+			<AutoVersioning>
+				<Scheme minor_max="99" build_max="999" rev_max="999" rev_rand_max="10" build_times_to_increment_minor="1" />
+				<Settings autoincrement="0" date_declarations="1" do_auto_increment="1" ask_to_increment="1" language="C++" svn="0" svn_directory="." header_path="sources\version.h" />
+				<Changes_Log generate_log="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
+			</AutoVersioning>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

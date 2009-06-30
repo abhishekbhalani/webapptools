@@ -25,6 +25,7 @@
  **************************************************************/
 #include <wx/filename.h>
 #include "wiMainForm.h"
+#include "version.h"
 #include "../images/webInventory.xpm"
 
 wiMainForm::wiMainForm( wxWindow* parent ) :
