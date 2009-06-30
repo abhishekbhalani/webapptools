@@ -1,5 +1,5 @@
 /* XPM */
-static char *panReports[] = {
+static char *panReports_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "48 48 65 1",
 "  c #020000",

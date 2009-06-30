@@ -1,5 +1,5 @@
 /* XPM */
-static char *panTasks[] = {
+static char *panTasks_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "48 48 33 1",
 "  c #010101",

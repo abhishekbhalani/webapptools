@@ -6,7 +6,7 @@
 		<Option pch_mode="2" />
 		<Option compiler="msvc8" />
 		<Build>
-			<Target title="Debug Win32">
+			<Target title="Debug MSVC 2005">
 				<Option output="Debug\webInvent" prefix_auto="1" extension_auto="1" />
 				<Option object_output="Debug\obj\" />
 				<Option type="0" />
@@ -40,12 +40,13 @@
 					<Add library="wxbase28ud.lib" />
 					<Add library="wxpngd.lib" />
 					<Add library="wxjpegd.lib" />
+					<Add library="wxtiffd.lib" />
 					<Add library="wxzlibd.lib" />
 					<Add library="wxbase28ud_net.lib" />
 					<Add directory="${WXWIN}\lib\vc_lib" />
 				</Linker>
 			</Target>
-			<Target title="Release Win32">
+			<Target title="Release MSVC 2005">
 				<Option output="Release\webInvent" prefix_auto="1" extension_auto="1" />
 				<Option object_output="Release\obj\" />
 				<Option type="0" />
@@ -67,6 +68,75 @@
 				<Linker>
 					<Add option="/NODEFAULTLIB:libcpmt.lib" />
 					<Add option="/NODEFAULTLIB:libcmt.lib" />
+					<Add library="msvcprt.lib" />
+					<Add library="msvcrt.lib" />
+					<Add library="wxmsw28u_richtext.lib" />
+					<Add library="wxmsw28u_aui.lib" />
+					<Add library="wxbase28u_xml.lib" />
+					<Add library="wxmsw28u_adv.lib" />
+					<Add library="wxmsw28u_html.lib" />
+					<Add library="wxmsw28u_core.lib" />
+					<Add library="wxbase28u.lib" />
+					<Add library="wxpng.lib" />
+					<Add library="wxjpeg.lib" />
+					<Add library="wxtiff.lib" />
+					<Add library="wxzlib.lib" />
+					<Add library="wxbase28u_net.lib" />
+					<Add directory="${WXWIN}\lib\vc_lib" />
+				</Linker>
+			</Target>
+			<Target title="Debug GCC">
+				<Option output="Debug\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug\obj\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-g" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D__WXDEBUG__" />
+					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
+				</ResourceCompiler>
+				<Linker>
+					<Add library="wxmsw28ud_richtext.lib" />
+					<Add library="wxmsw28ud_aui.lib" />
+					<Add library="wxbase28ud_xml.lib" />
+					<Add library="wxmsw28ud_adv.lib" />
+					<Add library="wxmsw28ud_html.lib" />
+					<Add library="wxmsw28ud_core.lib" />
+					<Add library="wxbase28ud.lib" />
+					<Add library="wxpngd.lib" />
+					<Add library="wxjpegd.lib" />
+					<Add library="wxzlibd.lib" />
+					<Add library="wxbase28ud_net.lib" />
+					<Add directory="${WXWIN}\lib\vc_lib" />
+				</Linker>
+			</Target>
+			<Target title="Release GCC">
+				<Option output="Release\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release\obj\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-Os" />
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-DNDEBUG" />
+					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
 					<Add library="msvcprt.lib" />
 					<Add library="msvcrt.lib" />
 					<Add library="wxmsw28u_richtext.lib" />
@@ -122,6 +192,11 @@
 			<Add library="wsock32.lib" />
 			<Add library="odbc32.lib" />
 		</Linker>
+		<Unit filename="sources\Config.cpp" />
+		<Unit filename="sources\Config.h" />
+		<Unit filename="sources\Crypto.cpp" />
+		<Unit filename="sources\Crypto.h" />
+		<Unit filename="sources\Sha1.hpp" />
 		<Unit filename="sources\wiApp.cpp" />
 		<Unit filename="sources\wiApp.h" />
 		<Unit filename="sources\wiGuiData.cpp" />
@@ -130,6 +205,15 @@
 		<Unit filename="sources\wiMainForm.h" />
 		<Unit filename="sources\wiStatBar.cpp" />
 		<Unit filename="sources\wiStatBar.h" />
+		<Unit filename="sources\win32res.h">
+			<Option target="Debug MSVC 2005" />
+			<Option target="Release MSVC 2005" />
+		</Unit>
+		<Unit filename="sources\win32res.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="Debug MSVC 2005" />
+			<Option target="Release MSVC 2005" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<debugger />
