@@ -1,0 +1,4 @@
+Libraries for your environment may be taken from http://code.google.com/p/wxdcmult/downloads/list
+You can build them from sources, if no suitable library fount.
+Necessary libraries:
+	wxScintilla (U - unicode release, UD - unicode Debug)
