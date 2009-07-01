@@ -1,0 +1,2 @@
+this directory contains dependecy libs: boost and curl
+or you may use your own instalation of the boost-devel and libcurl-devel

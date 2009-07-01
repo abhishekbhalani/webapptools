@@ -39,9 +39,15 @@ public:
 	/** Constructor */
 	wiMainForm( wxWindow* parent );
 
+	void LoadConnections();
+
 protected:
     // Virtual event handlers, overide them in your derived class
     virtual void OnClose( wxCloseEvent& event );
+    virtual void OnConnect( wxCommandEvent& event );
+    virtual void OnAddServer( wxCommandEvent& event );
+    virtual void OnEditServer( wxCommandEvent& event );
+    virtual void OnDelServer( wxCommandEvent& event );
     virtual void OnLangChange( wxCommandEvent& event );
 
     CConfigEngine m_cfgEngine;

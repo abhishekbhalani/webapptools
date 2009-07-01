@@ -12,6 +12,7 @@
 #include "../images/btnAdd.xpm"
 #include "../images/btnApply16.xpm"
 #include "../images/btnDel.xpm"
+#include "../images/btnEdit.xpm"
 #include "../images/panReports.xpm"
 #include "../images/panSettings.xpm"
 #include "../images/panTasks.xpm"
@@ -50,22 +51,28 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	m_bpStartTask = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( start_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpStartTask->Enable( false );
+	m_bpStartTask->SetToolTip( _("Continue task") );
 
 	m_bpStartTask->Enable( false );
+	m_bpStartTask->SetToolTip( _("Continue task") );
 
 	bSizer4->Add( m_bpStartTask, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
 	m_bpPauseTask = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( pause_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpPauseTask->Enable( false );
+	m_bpPauseTask->SetToolTip( _("Pause task") );
 
 	m_bpPauseTask->Enable( false );
+	m_bpPauseTask->SetToolTip( _("Pause task") );
 
 	bSizer4->Add( m_bpPauseTask, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
 	m_bpCancelTask = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpCancelTask->Enable( false );
+	m_bpCancelTask->SetToolTip( _("Cancel task") );
 
 	m_bpCancelTask->Enable( false );
+	m_bpCancelTask->SetToolTip( _("Cancel task") );
 
 	bSizer4->Add( m_bpCancelTask, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -119,22 +126,28 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	m_bpTaskGo = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( start_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpTaskGo->Enable( false );
+	m_bpTaskGo->SetToolTip( _("Start task") );
 
 	m_bpTaskGo->Enable( false );
+	m_bpTaskGo->SetToolTip( _("Start task") );
 
 	bSizer5->Add( m_bpTaskGo, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
 	m_bpTaskNew = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( btnAdd_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpTaskNew->Enable( false );
+	m_bpTaskNew->SetToolTip( _("Add new task") );
 
 	m_bpTaskNew->Enable( false );
+	m_bpTaskNew->SetToolTip( _("Add new task") );
 
 	bSizer5->Add( m_bpTaskNew, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
 	m_bpTaskDel = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpTaskDel->Enable( false );
+	m_bpTaskDel->SetToolTip( _("Delete task") );
 
 	m_bpTaskDel->Enable( false );
+	m_bpTaskDel->SetToolTip( _("Delete task") );
 
 	bSizer5->Add( m_bpTaskDel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -143,10 +156,30 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxBoxSizer* bSizer3;
 	bSizer3 = new wxBoxSizer( wxHORIZONTAL );
 
+	m_stProfile = new wxStaticText( m_pTasks, wxID_ANY, _("Task settings"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stProfile->Wrap( -1 );
+	m_stProfile->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+
+	bSizer3->Add( m_stProfile, 0, wxALIGN_BOTTOM|wxALL, 5 );
+
 	fgSizer1->Add( bSizer3, 1, wxEXPAND, 5 );
 
 	m_lstTaskList = new wxListCtrl( m_pTasks, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT );
 	fgSizer1->Add( m_lstTaskList, 0, wxBOTTOM|wxEXPAND|wxLEFT, 5 );
+
+	wxGridBagSizer* gbSizer1;
+	gbSizer1 = new wxGridBagSizer( 0, 0 );
+	gbSizer1->SetFlexibleDirection( wxBOTH );
+	gbSizer1->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_stBaseUrl = new wxStaticText( m_pTasks, wxID_ANY, _("Base URL"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stBaseUrl->Wrap( -1 );
+	gbSizer1->Add( m_stBaseUrl, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_txtBaseURL = new wxTextCtrl( m_pTasks, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 350,-1 ), 0 );
+	gbSizer1->Add( m_txtBaseURL, wxGBPosition( 0, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+
+	fgSizer1->Add( gbSizer1, 1, wxEXPAND, 5 );
 
 	m_pTasks->SetSizer( fgSizer1 );
 	m_pTasks->Layout();
@@ -159,6 +192,14 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	fgSizer2 = new wxFlexGridSizer( 2, 2, 0, 0 );
 	fgSizer2->SetFlexibleDirection( wxBOTH );
 	fgSizer2->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_stConVers = new wxStaticText( m_pSettings, wxID_ANY, _("Console version:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stConVers->Wrap( -1 );
+	fgSizer2->Add( m_stConVers, 0, wxALL, 5 );
+
+	m_stConVersData = new wxStaticText( m_pSettings, wxID_ANY, _("unknown"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stConVersData->Wrap( -1 );
+	fgSizer2->Add( m_stConVersData, 0, wxALL, 5 );
 
 	m_stServer = new wxStaticText( m_pSettings, wxID_ANY, _("Scanner address:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stServer->Wrap( -1 );
@@ -187,6 +228,13 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSizer6->Add( m_bpServerNew, 0, wxBOTTOM|wxTOP, 5 );
 
+	m_bpSrvEdit = new wxBitmapButton( m_pSettings, wxID_ANY, wxBitmap( btnEdit_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpSrvEdit->SetToolTip( _("Edit connection") );
+
+	m_bpSrvEdit->SetToolTip( _("Edit connection") );
+
+	bSizer6->Add( m_bpSrvEdit, 0, wxBOTTOM|wxTOP, 5 );
+
 	m_bpServerDel = new wxBitmapButton( m_pSettings, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpServerDel->SetToolTip( _("Delete connection") );
 
@@ -195,6 +243,14 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	bSizer6->Add( m_bpServerDel, 0, wxBOTTOM|wxTOP, 5 );
 
 	fgSizer2->Add( bSizer6, 1, wxEXPAND, 5 );
+
+	m_stSrvVers = new wxStaticText( m_pSettings, wxID_ANY, _("Scanner version:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stSrvVers->Wrap( -1 );
+	fgSizer2->Add( m_stSrvVers, 0, wxALL, 5 );
+
+	m_stSrvVersData = new wxStaticText( m_pSettings, wxID_ANY, _("unknown"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stSrvVersData->Wrap( -1 );
+	fgSizer2->Add( m_stSrvVersData, 0, wxALL, 5 );
 
 	m_stLang = new wxStaticText( m_pSettings, wxID_ANY, _("Interface Language:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stLang->Wrap( -1 );
@@ -218,6 +274,14 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSizer7->Add( m_bpLangApply, 0, wxBOTTOM|wxTOP, 5 );
 
+	m_stLangRestart = new wxStaticText( m_pSettings, wxID_ANY, _("Need to restart to apply changes"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stLangRestart->Wrap( -1 );
+	m_stLangRestart->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	m_stLangRestart->SetForegroundColour( wxColour( 255, 70, 70 ) );
+	m_stLangRestart->Hide();
+
+	bSizer7->Add( m_stLangRestart, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
 	fgSizer2->Add( bSizer7, 1, wxEXPAND, 5 );
 
 	m_pSettings->SetSizer( fgSizer2 );
@@ -229,17 +293,80 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	this->SetSizer( bSizer1 );
 	this->Layout();
-    m_statusBar1 = new wiStatBar( this );
-    SetStatusBar(m_statusBar1);
+    m_statusBar = new wiStatBar( this );
+    SetStatusBar(m_statusBar);
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
-	m_chLangs->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainForm::OnLangChange ), NULL, this );
+	m_bpConnect->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnConnect ), NULL, this );
+	m_bpServerNew->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ), NULL, this );
+	m_bpSrvEdit->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnEditServer ), NULL, this );
+	m_bpServerDel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelServer ), NULL, this );
+	m_bpLangApply->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnLangChange ), NULL, this );
 }
 
 MainForm::~MainForm()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
-	m_chLangs->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainForm::OnLangChange ), NULL, this );
+	m_bpConnect->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnConnect ), NULL, this );
+	m_bpServerNew->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ), NULL, this );
+	m_bpSrvEdit->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnEditServer ), NULL, this );
+	m_bpServerDel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelServer ), NULL, this );
+	m_bpLangApply->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnLangChange ), NULL, this );
+}
+
+wiServDialog::wiServDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+
+	wxBoxSizer* bSizer8;
+	bSizer8 = new wxBoxSizer( wxVERTICAL );
+
+	wxFlexGridSizer* fgSizer3;
+	fgSizer3 = new wxFlexGridSizer( 2, 2, 0, 0 );
+	fgSizer3->SetFlexibleDirection( wxBOTH );
+	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_stServName = new wxStaticText( this, wxID_ANY, _("Scanner host:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stServName->Wrap( -1 );
+	fgSizer3->Add( m_stServName, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_txtHostname = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_txtHostname->SetMinSize( wxSize( 200,-1 ) );
+
+	fgSizer3->Add( m_txtHostname, 0, wxALL, 5 );
+
+	m_stPort = new wxStaticText( this, wxID_ANY, _("Scanner port:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stPort->Wrap( -1 );
+	fgSizer3->Add( m_stPort, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_txtSrvPort = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_txtSrvPort->SetMinSize( wxSize( 200,-1 ) );
+
+	fgSizer3->Add( m_txtSrvPort, 0, wxALL, 5 );
+
+	bSizer8->Add( fgSizer3, 1, wxEXPAND, 5 );
+
+	m_sdbSizer1 = new wxStdDialogButtonSizer();
+	m_sdbSizer1OK = new wxButton( this, wxID_OK );
+	m_sdbSizer1->AddButton( m_sdbSizer1OK );
+	m_sdbSizer1Cancel = new wxButton( this, wxID_CANCEL );
+	m_sdbSizer1->AddButton( m_sdbSizer1Cancel );
+	m_sdbSizer1->Realize();
+	bSizer8->Add( m_sdbSizer1, 0, wxALL|wxEXPAND, 5 );
+
+	this->SetSizer( bSizer8 );
+	this->Layout();
+
+	this->Centre( wxBOTH );
+
+	// Connect Events
+	m_sdbSizer1OK->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( wiServDialog::OnOK ), NULL, this );
+}
+
+wiServDialog::~wiServDialog()
+{
+	// Disconnect Events
+	m_sdbSizer1OK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( wiServDialog::OnOK ), NULL, this );
 }
