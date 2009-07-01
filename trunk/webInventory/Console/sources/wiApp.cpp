@@ -16,8 +16,7 @@
 
     You should have received a copy of the GNU General Public License
     along with webInventory.  If not, see <http://www.gnu.org/licenses/>.
-*/
-/***************************************************************
+*//************************************************************
  * @file      wiApp.cpp
  * @brief     Code for Application Class
  * @author    Andrew "Stinger" Abramov (stinger911@gmail.com)
@@ -40,9 +39,9 @@
 
 IMPLEMENT_APP(webInventApp);
 
-//    m_statusBar1 = new wiStatBar( this );
-//    SetStatusBar(m_statusBar1);
-
+//    m_statusBar = new wiStatBar( this );
+//    SetStatusBar(m_statusBar);
+//EndModal(wxOK);
 bool webInventApp::OnInit()
 {
     wxSocketBase::Initialize();

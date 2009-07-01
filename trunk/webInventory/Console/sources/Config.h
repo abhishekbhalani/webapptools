@@ -28,6 +28,7 @@ class CConfigEngine {
         wxConfigBase *config;
         wxString m_dirSlash;
         wxString m_localDir;
+        wxString m_appName;
 
     public:
         CConfigEngine(const wxString& appName);

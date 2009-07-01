@@ -31,18 +31,19 @@
 
 CConfigEngine::CConfigEngine(const wxString& appName)
 {
-    wxTheApp->SetAppName(appName);
+    m_appName = appName;
+    wxTheApp->SetAppName(m_appName);
     wxTheApp->SetVendorName(wxT("[Lab18]"));
 #if defined(__WXMSW__)
     wxGetEnv(wxT("APPDATA"), &m_localDir);
-    config = new wxConfig(appName);
+    config = new wxConfig(m_appName);
     m_dirSlash = wxT("\\");
 #else
     wxGetEnv(wxT("HOME"), &m_localDir);
     config = new wxConfig();
     m_dirSlash = wxT("/");
 #endif
-    m_localDir += m_dirSlash + wxT(".") + appName + wxT(".cfg") + m_dirSlash;
+    m_localDir += m_dirSlash + wxT(".") + m_appName + wxT(".cfg") + m_dirSlash;
 	if (!wxDirExists(m_localDir))
 	{
 		wxMkdir(m_localDir, 0755);
@@ -68,7 +69,7 @@ void CConfigEngine::Refresh()
     if (config) {
         cfg = config;
     #if defined(__WXMSW__)
-        config = new wxConfig(wxT("WebInvent"));
+        config = new wxConfig(m_appName);
     #else
         config = new wxConfig();
     #endif
@@ -129,7 +130,7 @@ wxString CConfigEngine::GetAccountName(int idx)
     res.Empty();
     if (idx > -1){
         wxString data;
-        if (Read(wxString::Format(wxT("User%d/Login"), idx), &data)) {
+        if (Read(wxString::Format(wxT("Connection%d/Host"), idx), &data)) {
             res = data;
         }
     }
@@ -142,7 +143,7 @@ int CConfigEngine::GetAccountIndex(wxString name)
     int idx = 0;
     wxString data;
 
-    while (Read(wxString::Format(wxT("User%d/Login"), idx), &data)) {
+    while (Read(wxString::Format(wxT("Connection%d/Host"), idx), &data)) {
         if (data == name) {
             res = idx;
             break;
@@ -155,13 +156,11 @@ int CConfigEngine::GetAccountIndex(wxString name)
 void CConfigEngine::CopyAccount(int from, int to)
 {
     wxString data;
+    int number;
 
-    Read(wxString::Format(wxT("User%d/Login"), from), &data);
-    Write(wxString::Format(wxT("User%d/Login"), to), data);
-    if (Read(wxString::Format(wxT("User%d/Passwd"), from), &data)) {
-        Write(wxString::Format(wxT("User%d/Passwd"), to), data);
-    }
-    if (Read(wxString::Format(wxT("User%d/UserName"), from), &data)) {
-        Write(wxString::Format(wxT("User%d/UserName"), to), data);
+    Read(wxString::Format(wxT("Connection%d/Host"), from), &data);
+    Write(wxString::Format(wxT("Connection%d/Host"), to), data);
+    if (Read(wxString::Format(wxT("Connection%d/Port"), from), &number)) {
+        Write(wxString::Format(wxT("Connection%d/Port"), to), number);
     }
 }
