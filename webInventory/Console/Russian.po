@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webInventory 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-01 12:37+0300\n"
+"POT-Creation-Date: 2009-07-02 16:21+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Andrew Abramov <stinger@lab18.net>\n"
 "Language-Team: http://code.google.com/p/webapptools/ <stinger911@gmail.com>\n"
@@ -85,122 +85,147 @@ msgstr "Удалить задачу"
 msgid "Task settings"
 msgstr "Настройки задачи"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:173
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:175
+msgid "Base URL"
+msgstr "Базовый URL"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:187
 msgid "Tasks"
 msgstr "Задачи"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:175
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:189
 msgid "Reports"
 msgstr "Отчеты"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:182
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:196
 msgid "Console version:"
 msgstr "Версия консоли:"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:186
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:237
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:79
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:200
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:251
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:88
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:116
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:153
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:183
 msgid "unknown"
 msgstr "нет данных"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:190
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:204
 msgid "Scanner address:"
 msgstr "Адрес сканера:"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:197
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:211
 msgid "hostname[:port]"
 msgstr "hostname[:port]"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:204
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:206
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:218
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:220
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:154
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:185
 msgid "Connect"
 msgstr "Соединиться"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:211
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:213
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:225
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:227
 msgid "Add new connection"
 msgstr "Добавить соединение"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:218
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:220
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:232
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:234
 msgid "Edit connection"
 msgstr "Изменить соединение"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:225
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:227
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:239
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:241
 msgid "Delete connection"
 msgstr "Удалить соединение"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:233
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:247
 msgid "Scanner version:"
 msgstr "Версия сканера:"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:241
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:255
 msgid "Interface Language:"
 msgstr "Язык интерфейса:"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:248
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:262
 msgid "English (default)"
 msgstr "English (default)"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:257
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:259
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:271
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:273
 msgid "Apply (need restart)"
 msgstr "Применить (требуется перезапуск)"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:263
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:277
 msgid "Need to restart to apply changes"
 msgstr "Требуется перезапуск"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:276
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:290
 msgid "Settings"
 msgstr "Настройки"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:317
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:331
+msgid "Scanner name:"
+msgstr "Название сканера:"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:340
 msgid "Scanner host:"
 msgstr "Хост сканера:"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:326
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.cpp:349
 msgid "Scanner port:"
 msgstr "Порт сканера:"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:60
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:64
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:69
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:73
 msgid "Task name"
 msgstr "Название задачи"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:61
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:65
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:70
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:74
 msgid "Status"
 msgstr "Статус"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:78
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:87
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:114
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:152
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:182
 msgid "Disconnected"
 msgstr "Нет соединения"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:124
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:156
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:101
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:174
+msgid "Connected"
+msgstr "Соединен"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:177
+msgid "Disconnect"
+msgstr "Разорвать соединение"
+
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:213
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:249
 msgid "Port value is out of range"
 msgstr "Недопустимый номер порта"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:128
-msgid "Connection to the same host already exist"
-msgstr "Соединение с таким хостом уже существует"
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:217
+msgid "Connection with the same name already exist"
+msgstr "Соединение с таким сканером уже существует"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:173
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:266
 #, c-format
-msgid "Are you shure to delete the connection to %s?"
-msgstr "Вы действительно хотите удалить соединение с %s?"
+msgid "Are you shure to delete the connection '%s'?"
+msgstr "Вы действительно хотите удалить соединение '%s'?"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:174
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiMainForm.cpp:267
 msgid "Confirm"
 msgstr "Подтверждение"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.h:96
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.h:99
 msgid "WebInventory"
 msgstr "WebInventory"
 
-#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.h:122
+#: C:\Work\Projects\webapptools\webInventory\Console\sources/wiGuiData.h:127
 msgid "Connection"
 msgstr "Соединение"
 

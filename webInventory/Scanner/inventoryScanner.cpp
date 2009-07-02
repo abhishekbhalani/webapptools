@@ -23,6 +23,7 @@
 #include <iostream>
 #include <string>
 #include <boost/program_options.hpp>
+#include "version.h"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -31,12 +32,11 @@ int main(int argc, char* argv[])
 {
     try
     {
-        WeLibInit(); // for initialize logging
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Application started");
         // Declare the supported options.
         po::options_description desc("Allowed options");
         desc.add_options()
             ("help", "produce help message")
+            ("version", "prints version and exit")
             ("config", po::value<string>(), "configuration file")
             ;
         po::positional_options_description p;
@@ -44,18 +44,30 @@ int main(int argc, char* argv[])
 
         po::variables_map vm;
         po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-        po::notify(vm);    
+        po::notify(vm);
 
         if (vm.count("help")) {
             cout << desc << "\n";
             return 1;
         }
+        if (vm.count("version")) {
+            cout << "webInventory scanner " << AutoVersion::FULLVERSION_STRING
+                << " " << AutoVersion::STATUS
+#ifdef _WIN32_WINNT
+                << " (Windows)";
+#else
+                << " (Linux)";
+#endif
+            return 1;
+        }
 
+        WeLibInit(); // for initialize logging
+        LOG4CXX_INFO(WeLogger::GetLogger(), "Application started");
         if (vm.count("config")) {
-            cout << "Config file is " 
-                << vm["config"].as<string>() << ".\n";
+            LOG4CXX_INFO(WeLogger::GetLogger(), "Config file is "
+                << vm["config"].as<string>());
         } else {
-            cout << "Config file is default.\n";
+            LOG4CXX_INFO(WeLogger::GetLogger(), "Config file is default");
         }
         boost::asio::io_service io_service;
 
@@ -68,25 +80,6 @@ int main(int argc, char* argv[])
     {
         cerr << "Exception: " << e.what() << "\n";
     }
-//     try
-//     {
-//         if (argc != 2)
-//         {
-//             std::cerr << "Usage: server [<config >]\n";
-//             return 1;
-//         }
-// 
-//         boost::asio::io_service io_service;
-// 
-//         using namespace std; // For atoi.
-//         server s(io_service, atoi(argv[1]));
-// 
-//         io_service.run();
-//     }
-//     catch (std::exception& e)
-//     {
-//         std::cerr << "Exception: " << e.what() << "\n";
-//     }
 
     LOG4CXX_INFO(WeLogger::GetLogger(), "Application finished");
     WeLibClose();

@@ -18,44 +18,35 @@
     along with webInventory.  If not, see <http://www.gnu.org/licenses/>.
 */
 /***************************************************************
- * @file      wiMainForm.h
- * @brief     Declaration of the MainForm class
+ * @file      wiTcpClient.h
+ * @brief     Declaration of the wiTcpClient class
  * @author    Andrew "Stinger" Abramov (stinger911@gmail.com)
- * @date      30.06.2009
+ * @date      02.07.2009
  **************************************************************/
-#ifndef __wiMainForm__
-#define __wiMainForm__
+#ifndef __WITCPCLIENT_H__
+#define __WITCPCLIENT_H__
 
-#include "wiGuiData.h"
-#include "Config.h"
-#include "wiTcpClient.h"
+#include <wx/string.h>
 
-/**
- * @class   wiMainForm
- * @brief   Implementing MainForm
- */
-class wiMainForm : public MainForm
+class wiInternalTcp;
+
+class wiTcpClient
 {
 public:
-	/** Constructor */
-	wiMainForm( wxWindow* parent );
+    wiTcpClient(const char* host, const char* port);
+    ~wiTcpClient();
 
-	void LoadConnections();
+    bool Connect();
+    bool Ping();
+    wxString GetScannerVersion();
+    wxString DoCmd(const wxString& cmd, const wxString& payload);
+    const wxString& GetLastError() { return lastError; };
 
 protected:
-    // Virtual event handlers, overide them in your derived class
-    virtual void OnTimer( wxTimerEvent& event );
-    virtual void OnClose( wxCloseEvent& event );
-    virtual void OnConnect( wxCommandEvent& event );
-    virtual void OnAddServer( wxCommandEvent& event );
-    virtual void OnEditServer( wxCommandEvent& event );
-    virtual void OnDelServer( wxCommandEvent& event );
-    virtual void OnLangChange( wxCommandEvent& event );
+    wiInternalTcp* client;
+    wxString lastError;
 
-    CConfigEngine m_cfgEngine;
-    wiTcpClient* m_client;
-    wxTimer m_timer;
-    bool connStatus;
+private:
 };
 
-#endif // __wiMainForm__
+#endif // __WITCPCLIENT_H__

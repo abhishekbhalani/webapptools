@@ -29,6 +29,9 @@
 #include <wx/statusbr.h>
 #include <wx/statbmp.h>
 
+#define wiSTATUS_BAR_NO     1
+#define wiSTATUS_BAR_YES    2
+#define wiSTATUS_BAR_UNK    0
 /**
  * @class   wiStatBar
  * @brief   A custom status bar which contains controls, icons &c
@@ -39,6 +42,7 @@ public:
     wiStatBar(wxWindow *parent);
     virtual ~wiStatBar();
     void OnSize(wxSizeEvent& event);
+    void SetImage(int status);
 
 private:
     wxStaticBitmap *m_statbmp;

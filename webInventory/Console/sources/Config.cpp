@@ -130,7 +130,7 @@ wxString CConfigEngine::GetAccountName(int idx)
     res.Empty();
     if (idx > -1){
         wxString data;
-        if (Read(wxString::Format(wxT("Connection%d/Host"), idx), &data)) {
+        if (Read(wxString::Format(wxT("Connection%d/Name"), idx), &data)) {
             res = data;
         }
     }
@@ -143,7 +143,7 @@ int CConfigEngine::GetAccountIndex(wxString name)
     int idx = 0;
     wxString data;
 
-    while (Read(wxString::Format(wxT("Connection%d/Host"), idx), &data)) {
+    while (Read(wxString::Format(wxT("Connection%d/Name"), idx), &data)) {
         if (data == name) {
             res = idx;
             break;
@@ -158,8 +158,11 @@ void CConfigEngine::CopyAccount(int from, int to)
     wxString data;
     int number;
 
-    Read(wxString::Format(wxT("Connection%d/Host"), from), &data);
-    Write(wxString::Format(wxT("Connection%d/Host"), to), data);
+    Read(wxString::Format(wxT("Connection%d/Name"), from), &data);
+    Write(wxString::Format(wxT("Connection%d/Name"), to), data);
+    if (Read(wxString::Format(wxT("Connection%d/Host"), from), &data)) {
+        Write(wxString::Format(wxT("Connection%d/Host"), to), data);
+    }
     if (Read(wxString::Format(wxT("Connection%d/Port"), from), &number)) {
         Write(wxString::Format(wxT("Connection%d/Port"), to), number);
     }

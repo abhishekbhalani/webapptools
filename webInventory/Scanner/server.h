@@ -24,6 +24,8 @@
 #include <iostream>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <weBlob.h>
 
 using namespace boost;
 using namespace boost::asio;
@@ -34,7 +36,8 @@ class session
 {
 public:
     session(boost::asio::io_service& io_service)
-        : socket_(io_service)
+        : socket_(io_service),
+          last(posix_time::second_clock::local_time())
     {
     }
 
@@ -48,10 +51,11 @@ public:
         size_t bytes_transferred);
     void handle_write(const boost::system::error_code& error);
 
+    posix_time::ptime last;
+
 private:
     tcp::socket socket_;
-    enum { max_length = 4096 };
-    char data_[max_length];
+    boost::asio::streambuf data_;
 };
 
 class server
@@ -75,6 +79,6 @@ private:
     tcp::acceptor acceptor_;
 };
 
-extern int ProcessMessage(char* buff, size_t bufSize, session* sess);
+extern int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess);
 
 #endif //__SERVER_H__
