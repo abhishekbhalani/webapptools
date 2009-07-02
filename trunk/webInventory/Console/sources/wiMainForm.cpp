@@ -24,14 +24,23 @@
  **************************************************************/
 #include <wx/filename.h>
 #include "wiStatBar.h"
+#include "wiServDialog.h"
 #include "wiMainForm.h"
 #include "version.h"
 #include "../images/webInventory.xpm"
+#include "../images/btnStop.xpm"
+#include "../images/start.xpm"
+
+#define wxPING_TIMER    999
+#define wxPING_INTERVAL 10000
 
 wiMainForm::wiMainForm( wxWindow* parent ) :
         MainForm( parent ),
-        m_cfgEngine(wxT("WebInvent"))
+        m_cfgEngine(wxT("WebInvent")),
+        m_client(NULL),
+        m_timer(this, 1)
 {
+    connStatus = true;
     wxInitAllImageHandlers();
     SetIcon(wxICON(mainicon));
 
@@ -78,6 +87,41 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_statusBar->SetStatusText(_("Disconnected"), 1);
     m_statusBar->SetStatusText(_("unknown"), 2);
     LoadConnections();
+    m_timer.SetOwner(this, wxPING_TIMER);
+    this->Connect(wxEVT_TIMER, wxTimerEventHandler(wiMainForm::OnTimer));
+    m_timer.Start(wxPING_INTERVAL);
+}
+
+void wiMainForm::OnTimer( wxTimerEvent& event )
+{
+    /// @todo set status text
+    if (m_client != NULL) {
+        if (m_client->Ping()) {
+            m_statusBar->SetImage(wiSTATUS_BAR_YES);
+            m_statusBar->SetStatusText(_("Connected"), 1);
+            m_statusBar->SetStatusText(wxT(""), 3);
+            if (connStatus == false) {
+                wxString vers;
+                vers = m_client->GetScannerVersion();
+                if (!vers.IsEmpty()) {
+                    m_stSrvVersData->SetLabel(vers);
+                }
+            }
+            connStatus = true;
+        }
+        else {
+            m_statusBar->SetImage(wiSTATUS_BAR_NO);
+            m_statusBar->SetStatusText(_("Disconnected"), 1);
+            m_statusBar->SetStatusText(m_client->GetLastError(), 3);
+            m_stSrvVersData->SetLabel(_("unknown"));
+            connStatus = false;
+        }
+    }
+    else {
+        m_statusBar->SetImage(wiSTATUS_BAR_UNK);
+        m_statusBar->SetStatusText(wxT(""), 3);
+        connStatus = false;
+    }
 }
 
 void wiMainForm::OnClose( wxCloseEvent& event )
@@ -98,25 +142,70 @@ void wiMainForm::OnLangChange( wxCommandEvent& event )
 
 void wiMainForm::OnConnect( wxCommandEvent& event )
 {
-    wxString label = m_chServers->GetString(m_chServers->GetSelection());
-    if (label != wxT("hostname[:port]")) {
-        /// @todo try to connect
+    wxString host, port;
+    int idx;
+    long idt;
+
+    if (m_client != NULL) {
+        // close current connection
+        m_statusBar->SetImage(wiSTATUS_BAR_UNK);
+        m_statusBar->SetStatusText(_("Disconnected"), 1);
+        m_statusBar->SetStatusText(_("unknown"), 2);
+        m_bpConnect->SetToolTip(_("Connect"));
+        m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
+        delete m_client;
+        m_client = NULL;
+        return;
+    }
+    idx = m_chServers->GetSelection();
+    if (idx > -1) {
+        wxString label = m_chServers->GetString(idx);
+        if (label != wxT("hostname[:port]")) {
+            m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Host"), idx), &host);
+            m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Port"), idx), (int*)&idt);
+            port = wxString::Format(wxT("%d"), idt);
+
+            m_client = new wiTcpClient(host.ToAscii().data(), port.ToAscii().data());
+            m_client->Connect();
+            host = m_client->GetScannerVersion();
+            if (!host.IsEmpty()) {
+                m_stSrvVersData->SetLabel(host);
+                m_statusBar->SetImage(wiSTATUS_BAR_YES);
+                m_statusBar->SetStatusText(_("Connected"), 1);
+                m_statusBar->SetStatusText(label, 2);
+                m_statusBar->SetStatusText(wxT(""), 3);
+                m_bpConnect->SetToolTip(_("Disconnect"));
+                m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
+            }
+            else {
+                m_statusBar->SetImage(wiSTATUS_BAR_NO);
+                m_statusBar->SetStatusText(_("Disconnected"), 1);
+                m_statusBar->SetStatusText(_("unknown"), 2);
+                m_statusBar->SetStatusText(m_client->GetLastError(), 3);
+                m_bpConnect->SetToolTip(_("Connect"));
+                m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
+                delete m_client;
+                m_client = NULL;
+            }
+        }
     }
 }
 
 void wiMainForm::OnAddServer( wxCommandEvent& event )
 {
     wiServDialog srvDlg(this);
-    wxString host, port;
+    wxString name, host, port;
     int idx;
     long idt;
 
     if (srvDlg.ShowModal() == wxOK) {
+        name = srvDlg.m_txtName->GetValue();
         host = srvDlg.m_txtHostname->GetValue();
         port = srvDlg.m_txtSrvPort->GetValue();
-        if (m_cfgEngine.GetAccountIndex(host) == -1) {
+        if (m_cfgEngine.GetAccountIndex(name) == -1) {
             if (port.ToLong(&idt) && (idt > 0 && idt < 65536)) {
-                idx = m_chServers->Append(wxString::Format(wxT("%s:%d"), host.c_str(), idt));
+                idx = m_chServers->Append(name);
+                m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Name"), idx), name);
                 m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Host"), idx), host);
                 m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Port"), idx), idt);
             }
@@ -125,7 +214,7 @@ void wiMainForm::OnAddServer( wxCommandEvent& event )
             }
         }
         else {
-            wxMessageBox(_("Connection to the same host already exist"), wxT("WebInvent"), wxICON_ERROR | wxOK, this);
+            wxMessageBox(_("Connection with the same name already exist"), wxT("WebInvent"), wxICON_ERROR | wxOK, this);
         }
     }
 }
@@ -133,22 +222,26 @@ void wiMainForm::OnAddServer( wxCommandEvent& event )
 void wiMainForm::OnEditServer( wxCommandEvent& event )
 {
     wiServDialog srvDlg(this);
-    wxString host, port;
+    wxString name, host, port;
     int idx;
     long idt;
 
     idx = m_chServers->GetSelection();
     if (idx > -1) {
+        m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Name"), idx), &name);
         m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Host"), idx), &host);
         m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Port"), idx), (int*)&idt);
         port = wxString::Format(wxT("%d"), idt);
+        srvDlg.m_txtName->SetValue(name);
         srvDlg.m_txtHostname->SetValue(host);
         srvDlg.m_txtSrvPort->SetValue(port);
         if (srvDlg.ShowModal() == wxOK) {
+            name = srvDlg.m_txtName->GetValue();
             host = srvDlg.m_txtHostname->GetValue();
             port = srvDlg.m_txtSrvPort->GetValue();
             if (port.ToLong(&idt) && (idt > 0 && idt < 65536)) {
-                m_chServers->SetString(idx, wxString::Format(wxT("%s:%d"), host.c_str(), idt));
+                m_chServers->SetString(idx, name);
+                m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Name"), idx), name);
                 m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Host"), idx), host);
                 m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Port"), idx), idt);
             }
@@ -170,11 +263,11 @@ void wiMainForm::OnDelServer( wxCommandEvent& event )
         /// @todo check connection state and disconnect if needed
         wxString label = m_chServers->GetString(m_chServers->GetSelection());
         if (label != wxT("hostname[:port]")) {
-            wxString msg = wxString::Format(_("Are you shure to delete the connection to %s?"), label.c_str());
+            wxString msg = wxString::Format(_("Are you shure to delete the connection '%s'?"), label.c_str());
             res = wxMessageBox(msg, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
             if (res == wxYES) {
                 m_chServers->Delete(idx);
-                while (m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Host"), (idx+1)), &data)) {
+                while (m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Name"), (idx+1)), &data)) {
                     m_cfgEngine.CopyAccount(idx+1, idx);
                     idx++;
                 }
@@ -188,15 +281,12 @@ void wiMainForm::OnDelServer( wxCommandEvent& event )
 void wiMainForm::LoadConnections()
 {
     int res = 0;
-    int port;
     wxString data;
 
     m_chServers->Clear();
-    while (m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Host"), res), &data)) {
-        port = 8080;
-        m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Port"), res), &port);
+    while (m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Name"), res), &data)) {
         res++;
-        m_chServers->Append(wxString::Format(wxT("%s:%d"), data.c_str(), port));
+        m_chServers->Append(data);
     }
     m_chServers->SetSelection(-1);
 }

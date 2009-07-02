@@ -19,6 +19,7 @@
 					<Add option='/Fp&quot;Debug\obj\webInvent.pch&quot;' />
 					<Add option="/D_DEBUG" />
 					<Add option="/D__WXDEBUG__" />
+					<Add option="/D_WIN32_WINNT=0x0501" />
 					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
 				</Compiler>
 				<ResourceCompiler>
@@ -44,6 +45,7 @@
 					<Add library="wxzlibd.lib" />
 					<Add library="wxbase28ud_net.lib" />
 					<Add directory="${WXWIN}\lib\vc_lib" />
+					<Add directory="..\..\webEngine\libs\debug" />
 				</Linker>
 			</Target>
 			<Target title="Release MSVC 2005">
@@ -60,6 +62,7 @@
 					<Add option='/Fp&quot;Release\obj\webInvent.pch&quot;' />
 					<Add option="/Ob1" />
 					<Add option="/DNDEBUG" />
+					<Add option="/D_WIN32_WINNT=0x0501" />
 					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
 				</Compiler>
 				<ResourceCompiler>
@@ -83,6 +86,7 @@
 					<Add library="wxzlib.lib" />
 					<Add library="wxbase28u_net.lib" />
 					<Add directory="${WXWIN}\lib\vc_lib" />
+					<Add directory="..\..\webEngine\libs\release" />
 				</Linker>
 			</Target>
 			<Target title="Debug GCC">
@@ -169,6 +173,7 @@
 			<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
 			<Add directory="${WXBASE}\include" />
 			<Add directory="${WXBASE}\contrib\include" />
+			<Add directory="..\..\webEngine\include" />
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="${WXWIN}\include" />
@@ -197,6 +202,7 @@
 		<Unit filename="sources\Crypto.cpp" />
 		<Unit filename="sources\Crypto.h" />
 		<Unit filename="sources\Sha1.hpp" />
+		<Unit filename="sources\messages.h" />
 		<Unit filename="sources\version.h" />
 		<Unit filename="sources\wiApp.cpp" />
 		<Unit filename="sources\wiApp.h" />
@@ -204,8 +210,12 @@
 		<Unit filename="sources\wiGuiData.h" />
 		<Unit filename="sources\wiMainForm.cpp" />
 		<Unit filename="sources\wiMainForm.h" />
+		<Unit filename="sources\wiServDialog.cpp" />
+		<Unit filename="sources\wiServDialog.h" />
 		<Unit filename="sources\wiStatBar.cpp" />
 		<Unit filename="sources\wiStatBar.h" />
+		<Unit filename="sources\wiTcpClient.cpp" />
+		<Unit filename="sources\wiTcpClient.h" />
 		<Unit filename="sources\win32res.h">
 			<Option target="Debug MSVC 2005" />
 			<Option target="Release MSVC 2005" />

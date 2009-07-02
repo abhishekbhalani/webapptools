@@ -19,36 +19,10 @@
 */
 
 #include "server.h"
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <strstream>
+// #include <boost/algorithm/string/predicate.hpp>
+// #include <boost/archive/xml_iarchive.hpp>#include <strstream>
 #include <weLogger.h>
-#include "messages.h"
-
-int ProcessMessage(char* buff, size_t bufSize, session* sess)
-{
-    int retval = 0; // close connection
-    Message msg;
-
-    try
-    {
-        istrstream data(buff, bufSize);
-        boost::archive::xml_iarchive ia(data);
-        ia >> BOOST_SERIALIZATION_NVP(msg);
-        LOG4CXX_INFO(WeLogger::GetLogger(), "ProcessMessage: " <<  msg.cmd);
-        retval = 1;
-        if (iequals(msg.cmd, "exit")) {
-            retval = -1;
-        }
-    }
-    catch (std::exception &e)
-    {
-    	LOG4CXX_ERROR(WeLogger::GetLogger(), "ProcessMessage failed: " <<  e.what());
-        retval = 0;
-    }
-
-    return retval;
-}
+// #include "messages.h"
 
 void server::handle_accept(session* new_session,
                    const boost::system::error_code& error)
@@ -73,7 +47,8 @@ void session::start()
 {
     LOG4CXX_INFO(WeLogger::GetLogger(), "Session: connection accepted - " << socket_.remote_endpoint().address());
 
-    socket_.async_read_some(boost::asio::buffer(data_, max_length),
+    boost::asio::async_read_until(socket_, data_, "\0",
+        //boost::asio::transfer_at_least(1),
         boost::bind(&session::handle_read, this,
         boost::asio::placeholders::error,
         boost::asio::placeholders::bytes_transferred));
@@ -84,11 +59,10 @@ void session::handle_read(const boost::system::error_code& error,
 {
     if (!error)
     {
-        int res = ProcessMessage(data_, bytes_transferred, this);
+        int res = ProcessMessage(&data_, bytes_transferred, this);
         if (res == 1)
         {
-            boost::asio::async_write(socket_,
-                boost::asio::buffer(data_, bytes_transferred),
+            boost::asio::async_write(socket_, data_,
                 boost::bind(&session::handle_write, this,
                 boost::asio::placeholders::error));
         }
@@ -115,8 +89,14 @@ void session::handle_write(const boost::system::error_code& error)
 {
     if (!error)
     {
-        //std::cout << "message write" << std::endl;
-        socket_.async_read_some(boost::asio::buffer(data_, max_length),
+        // finalize message
+        short nul = 0;
+        boost::asio::write(socket_, boost::asio::buffer(&nul, sizeof(nul)));
+        // clear buffer
+        data_.consume(data_.size());
+        // Start reading remaining data until EOF.
+        boost::asio::async_read_until(socket_, data_, "\0",
+            //boost::asio::transfer_at_least(1),
             boost::bind(&session::handle_read, this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred));

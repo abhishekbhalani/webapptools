@@ -92,6 +92,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="perl autoversion.pl"
 			/>
 		</Configuration>
 		<Configuration
@@ -167,6 +168,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="perl autoversion.pl build"
 			/>
 		</Configuration>
 	</Configurations>
@@ -178,6 +180,10 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath=".\cmdprocessor.cpp"
+				>
+			</File>
 			<File
 				RelativePath=".\inventoryScanner.cpp"
 				>
@@ -198,6 +204,10 @@
 			</File>
 			<File
 				RelativePath=".\server.h"
+				>
+			</File>
+			<File
+				RelativePath=".\version.h"
 				>
 			</File>
 		</Filter>

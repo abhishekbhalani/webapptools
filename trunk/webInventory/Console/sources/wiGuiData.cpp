@@ -316,7 +316,7 @@ MainForm::~MainForm()
 	m_bpLangApply->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnLangChange ), NULL, this );
 }
 
-wiServDialog::wiServDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+ServDialog::ServDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 
@@ -327,6 +327,15 @@ wiServDialog::wiServDialog( wxWindow* parent, wxWindowID id, const wxString& tit
 	fgSizer3 = new wxFlexGridSizer( 2, 2, 0, 0 );
 	fgSizer3->SetFlexibleDirection( wxBOTH );
 	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_stName = new wxStaticText( this, wxID_ANY, _("Scanner name:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stName->Wrap( -1 );
+	fgSizer3->Add( m_stName, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_txtName = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_txtName->SetMinSize( wxSize( 200,-1 ) );
+
+	fgSizer3->Add( m_txtName, 0, wxALL, 5 );
 
 	m_stServName = new wxStaticText( this, wxID_ANY, _("Scanner host:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stServName->Wrap( -1 );
@@ -362,11 +371,11 @@ wiServDialog::wiServDialog( wxWindow* parent, wxWindowID id, const wxString& tit
 	this->Centre( wxBOTH );
 
 	// Connect Events
-	m_sdbSizer1OK->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( wiServDialog::OnOK ), NULL, this );
+	m_sdbSizer1OK->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ServDialog::OnOK ), NULL, this );
 }
 
-wiServDialog::~wiServDialog()
+ServDialog::~ServDialog()
 {
 	// Disconnect Events
-	m_sdbSizer1OK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( wiServDialog::OnOK ), NULL, this );
+	m_sdbSizer1OK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ServDialog::OnOK ), NULL, this );
 }

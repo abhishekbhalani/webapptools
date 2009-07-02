@@ -45,6 +45,23 @@ wiStatBar::~wiStatBar()
 {
 }
 
+void wiStatBar::SetImage(int status)
+{
+    delete m_statbmp;
+    switch(status) {
+        case wiSTATUS_BAR_NO:
+            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_no));
+            break;
+        case wiSTATUS_BAR_YES:
+            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_yes));
+            break;
+        default:
+            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_unk));
+            break;
+    };
+    SetMinHeight(16);
+}
+
 void wiStatBar::OnSize(wxSizeEvent& event)
 {
     wxRect rect;
