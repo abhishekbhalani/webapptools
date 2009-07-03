@@ -31,8 +31,6 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 
-#include "messages.h"
-
 using namespace std;
 using namespace boost;
 using boost::asio::ip::tcp;
@@ -126,16 +124,48 @@ wxString wiTcpClient::DoCmd(const wxString& cmd, const wxString& payload)
     }
     catch (std::exception& e)
     {
-        lastError = wxString::FromAscii(e.what());
-        result = wxT("");
-        // try to reconnect
-        try {
-            client->sock.close();
-            client->sock.connect(*(client->tcpIterator));
-        } catch (std::exception& e2) {
-            lastError = wxString::FromAscii(e2.what());
+        if (cmd != wxT("close") && cmd != wxT("exit")) {
+            lastError = wxString::FromAscii(e.what());
             result = wxT("");
+            // try to reconnect
+            try {
+                client->sock.close();
+                client->sock.connect(*(client->tcpIterator));
+            } catch (std::exception& e2) {
+                lastError = wxString::FromAscii(e2.what());
+                result = wxT("");
+            }
         }
     }
     return result;
+}
+
+TaskList* wiTcpClient::GetTaskList(const wxString& criteria/* = wxT("")*/)
+{
+    TaskList* lst = NULL;
+    wxString reply;
+    char* data;
+    try
+    {
+        reply = DoCmd(wxT("tasks"), criteria);
+        if (!reply.IsEmpty()) {
+            lst = new TaskList;
+            data = strdup((char*)reply.ToAscii().data());
+            istrstream iss(data);
+            {
+                boost::archive::xml_iarchive ia(iss);
+                ia >> BOOST_SERIALIZATION_NVP(*lst);
+            }
+            delete data;
+        }
+    }
+    catch (std::exception& e)
+    {
+        lastError = wxString::FromAscii(e.what());
+        if (lst != NULL) {
+            delete lst;
+        }
+        lst = NULL;
+    }
+    return lst;
 }

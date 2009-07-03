@@ -171,9 +171,11 @@
 			<Add option="/D_WINDOWS" />
 			<Add option="/D_CRT_SECURE_DEPRECATE" />
 			<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
+			<Add directory="." />
+			<Add directory="..\..\webEngine\include" />
+			<Add directory="..\Common" />
 			<Add directory="${WXBASE}\include" />
 			<Add directory="${WXBASE}\contrib\include" />
-			<Add directory="..\..\webEngine\include" />
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="${WXWIN}\include" />
@@ -225,6 +227,19 @@
 			<Option target="Debug MSVC 2005" />
 			<Option target="Release MSVC 2005" />
 		</Unit>
+		<Unit filename="sources\wxThings.h" />
+		<Unit filename="sources\wxThings\block.cpp" />
+		<Unit filename="sources\wxThings\bmpcombo.cpp" />
+		<Unit filename="sources\wxThings\dropdown.cpp" />
+		<Unit filename="sources\wxThings\filedlgg.cpp" />
+		<Unit filename="sources\wxThings\genergdi.cpp" />
+		<Unit filename="sources\wxThings\geometry.cpp" />
+		<Unit filename="sources\wxThings\matrix2d.cpp" />
+		<Unit filename="sources\wxThings\menubtn.cpp" />
+		<Unit filename="sources\wxThings\optvalue.cpp" />
+		<Unit filename="sources\wxThings\range.cpp" />
+		<Unit filename="sources\wxThings\spinctld.cpp" />
+		<Unit filename="sources\wxThings\toggle.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />

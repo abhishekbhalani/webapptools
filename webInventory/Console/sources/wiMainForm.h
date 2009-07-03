@@ -51,10 +51,16 @@ protected:
     virtual void OnEditServer( wxCommandEvent& event );
     virtual void OnDelServer( wxCommandEvent& event );
     virtual void OnLangChange( wxCommandEvent& event );
+    virtual void OnAddTask( wxCommandEvent& event );
+
+    void ProcessTaskList(const wxString& criteria = wxT(""));
+    void Disconnected(bool mode = true);
+    void Connected(bool mode = true);
 
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;
     wxTimer m_timer;
+    wxImageList m_lstImages;
     bool connStatus;
 };
 
