@@ -6,9 +6,11 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "wiStatBar.h"
+#include "wxThings.h"
 
 #include "wiGuiData.h"
 
+#include "../images/apply.xpm"
 #include "../images/btnAdd.xpm"
 #include "../images/btnApply16.xpm"
 #include "../images/btnDel.xpm"
@@ -167,24 +169,55 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_lstTaskList = new wxListCtrl( m_pTasks, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT );
 	fgSizer1->Add( m_lstTaskList, 0, wxBOTTOM|wxEXPAND|wxLEFT, 5 );
 
-	wxGridBagSizer* gbSizer1;
-	gbSizer1 = new wxGridBagSizer( 0, 0 );
-	gbSizer1->SetFlexibleDirection( wxBOTH );
-	gbSizer1->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	bSizerTaskOpts = new wxBoxSizer( wxVERTICAL );
 
-	m_stBaseUrl = new wxStaticText( m_pTasks, wxID_ANY, _("Base URL"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_stBaseUrl->Wrap( -1 );
-	gbSizer1->Add( m_stBaseUrl, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	bSizerTaskTools = new wxBoxSizer( wxHORIZONTAL );
 
-	m_txtBaseURL = new wxTextCtrl( m_pTasks, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 350,-1 ), 0 );
-	gbSizer1->Add( m_txtBaseURL, wxGBPosition( 0, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
-	fgSizer1->Add( gbSizer1, 1, wxEXPAND, 5 );
+	bSizerTaskTools->Add( 0, 0, 1, wxEXPAND, 5 );
+
+    m_btnApply = new wxCustomButton( m_pTasks, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
+	bSizerTaskTools->Add( m_btnApply, 0, wxALL, 5 );
+
+	bSizerTaskOpts->Add( bSizerTaskTools, 0, wxEXPAND, 5 );
+
+	wxGridBagSizer* gbSizer2;
+	gbSizer2 = new wxGridBagSizer( 0, 0 );
+	gbSizer2->AddGrowableCol( 5 );
+	gbSizer2->AddGrowableRow( 10 );
+	gbSizer2->SetFlexibleDirection( wxBOTH );
+	gbSizer2->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_stBaseURL = new wxStaticText( m_pTasks, wxID_ANY, _("Base URL"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stBaseURL->Wrap( -1 );
+	gbSizer2->Add( m_stBaseURL, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+	m_txtBaseURL = new wxTextCtrl( m_pTasks, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_txtBaseURL->SetMinSize( wxSize( 200,-1 ) );
+
+	gbSizer2->Add( m_txtBaseURL, wxGBPosition( 0, 1 ), wxGBSpan( 1, 2 ), wxALL|wxEXPAND, 5 );
+
+	wxString m_rbDepthChoices[] = { _("Stay in dir"), _("Stay in host"), _("Stay in domain") };
+	int m_rbDepthNChoices = sizeof( m_rbDepthChoices ) / sizeof( wxString );
+	m_rbDepth = new wxRadioBox( m_pTasks, wxID_ANY, _("Depth mode"), wxDefaultPosition, wxDefaultSize, m_rbDepthNChoices, m_rbDepthChoices, 1, wxRA_SPECIFY_COLS );
+	m_rbDepth->SetSelection( 1 );
+	gbSizer2->Add( m_rbDepth, wxGBPosition( 1, 0 ), wxGBSpan( 3, 2 ), wxALL|wxEXPAND, 5 );
+
+	m_stDepth = new wxStaticText( m_pTasks, wxID_ANY, _("Scan depth"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stDepth->Wrap( -1 );
+	gbSizer2->Add( m_stDepth, wxGBPosition( 1, 2 ), wxGBSpan( 1, 1 ), wxALIGN_BOTTOM|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
+
+	m_textCtrl7 = new wxTextCtrl( m_pTasks, wxID_ANY, _("-1"), wxDefaultPosition, wxDefaultSize, 0 );
+	gbSizer2->Add( m_textCtrl7, wxGBPosition( 2, 2 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
+
+	bSizerTaskOpts->Add( gbSizer2, 1, wxEXPAND, 0 );
+
+	fgSizer1->Add( bSizerTaskOpts, 1, wxEXPAND, 5 );
 
 	m_pTasks->SetSizer( fgSizer1 );
 	m_pTasks->Layout();
 	fgSizer1->Fit( m_pTasks );
-	m_mainnb->AddPage( m_pTasks, _("Tasks"), false, wxBitmap( panTasks_xpm ) );
+	m_mainnb->AddPage( m_pTasks, _("Tasks"), true, wxBitmap( panTasks_xpm ) );
 	m_pReports = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_mainnb->AddPage( m_pReports, _("Reports"), false, wxBitmap( panReports_xpm ) );
 	m_pSettings = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -287,7 +320,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_pSettings->SetSizer( fgSizer2 );
 	m_pSettings->Layout();
 	fgSizer2->Fit( m_pSettings );
-	m_mainnb->AddPage( m_pSettings, _("Settings"), true, wxBitmap( panSettings_xpm ) );
+	m_mainnb->AddPage( m_pSettings, _("Settings"), false, wxBitmap( panSettings_xpm ) );
 
 	bSizer1->Add( m_mainnb, 1, wxEXPAND | wxALL, 0 );
 

@@ -26,6 +26,7 @@
 #include "wiStatBar.h"
 #include "wiServDialog.h"
 #include "wiMainForm.h"
+#include "wxThings.h"
 #include "version.h"
 #include "../images/webInventory.xpm"
 #include "../images/btnStop.xpm"
@@ -33,6 +34,10 @@
 
 #define wxPING_TIMER    999
 #define wxPING_INTERVAL 10000
+
+//    m_statusBar = new wiStatBar( this );
+//    SetStatusBar(m_statusBar);
+//    m_btnApply = new wxCustomButton( m_pTasks, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
 
 wiMainForm::wiMainForm( wxWindow* parent ) :
         MainForm( parent ),
@@ -90,6 +95,8 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_timer.SetOwner(this, wxPING_TIMER);
     this->Connect(wxEVT_TIMER, wxTimerEventHandler(wiMainForm::OnTimer));
     m_timer.Start(wxPING_INTERVAL);
+
+
 }
 
 void wiMainForm::OnTimer( wxTimerEvent& event )
@@ -129,6 +136,10 @@ void wiMainForm::OnClose( wxCloseEvent& event )
     // @todo disconnect from server and save state
     m_cfgEngine.Write(wxT("language"), m_chLangs->GetString(m_chLangs->GetSelection()));
 
+    if (m_client != NULL) {
+        m_client->DoCmd(wxT("close"), wxT(""));
+    }
+
     m_cfgEngine.Flush();
     Destroy();
 }
@@ -148,6 +159,7 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
 
     if (m_client != NULL) {
         // close current connection
+        m_client->DoCmd(wxT("close"), wxT(""));
         m_statusBar->SetImage(wiSTATUS_BAR_UNK);
         m_statusBar->SetStatusText(_("Disconnected"), 1);
         m_statusBar->SetStatusText(_("unknown"), 2);

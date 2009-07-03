@@ -30,6 +30,7 @@
 int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
 {
     int retval = 0; // close connection
+    bool processed = false;
     Message msg;
 
     try
@@ -38,15 +39,22 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         istream data(buff);
         boost::archive::xml_iarchive ia(data);
         ia >> BOOST_SERIALIZATION_NVP(msg);
-        LOG4CXX_INFO(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] ProcessMessage: " <<  msg.cmd);
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] ProcessMessage: " <<  msg.cmd);
         retval = 0;
         sess->last = posix_time::second_clock::local_time();
         if (iequals(msg.cmd, "exit"))
         {
             retval = -1;
+            processed = true;
+        }
+        if (iequals(msg.cmd, "close"))
+        {
+            retval = 0;
+            processed = true;
         }
         if (iequals(msg.cmd, "version"))
         {
+            LOG4CXX_INFO(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] version requested");
             msg.data = AutoVersion::FULLVERSION_STRING;
             msg.data += " ";
             msg.data += AutoVersion::STATUS;
@@ -56,12 +64,19 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             msg.data += " (Linux)";
 #endif
             retval = 1;
+            processed = true;
         }
         if (iequals(msg.cmd, "ping"))
         {
             msg.cmd = "pong";
             msg.data = posix_time::to_simple_string(sess->last);
             retval = 1;
+            processed = true;
+        }
+
+        if (!processed)
+        {
+            LOG4CXX_WARN(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] unknown command: " <<  msg.cmd);
         }
         buff->consume(bufSize);
         {
