@@ -20,6 +20,7 @@
 #ifndef __MESSAGES_H__
 #define __MESSAGES_H__
 #include <string>
+#include <boost/serialization/vector.hpp>
 
 using namespace std;
 using namespace boost;
@@ -36,6 +37,42 @@ private:
     {
         ar & BOOST_SERIALIZATION_NVP(cmd);
         ar & BOOST_SERIALIZATION_NVP(data);
+    };
+};
+
+class TaskRecord
+{
+public:
+    string name;
+    int status;
+    int completion;
+    string id;
+private:
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & BOOST_SERIALIZATION_NVP(name);
+        ar & BOOST_SERIALIZATION_NVP(status);
+        ar & BOOST_SERIALIZATION_NVP(completion);
+        ar & BOOST_SERIALIZATION_NVP(id);
+    };
+};
+
+#define WI_TSK_IDLE     0
+#define WI_TSK_RUN      1
+#define WI_TSK_PAUSED   2
+
+class TaskList
+{
+public:
+    vector<TaskRecord>  task;
+private:
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & BOOST_SERIALIZATION_NVP(task);
     };
 };
 

@@ -51,15 +51,6 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSizer4->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_bpStartTask = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( start_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpStartTask->Enable( false );
-	m_bpStartTask->SetToolTip( _("Continue task") );
-
-	m_bpStartTask->Enable( false );
-	m_bpStartTask->SetToolTip( _("Continue task") );
-
-	bSizer4->Add( m_bpStartTask, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
 	m_bpPauseTask = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( pause_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpPauseTask->Enable( false );
 	m_bpPauseTask->SetToolTip( _("Pause task") );
@@ -171,15 +162,11 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSizerTaskOpts = new wxBoxSizer( wxVERTICAL );
 
-	bSizerTaskTools = new wxBoxSizer( wxHORIZONTAL );
+	m_panTaskOpts = new wxPanel( m_pTasks, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panTaskOpts->Enable( false );
 
-
-	bSizerTaskTools->Add( 0, 0, 1, wxEXPAND, 5 );
-
-    m_btnApply = new wxCustomButton( m_pTasks, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
-	bSizerTaskTools->Add( m_btnApply, 0, wxALL, 5 );
-
-	bSizerTaskOpts->Add( bSizerTaskTools, 0, wxEXPAND, 5 );
+	wxBoxSizer* bSizer11;
+	bSizer11 = new wxBoxSizer( wxVERTICAL );
 
 	wxGridBagSizer* gbSizer2;
 	gbSizer2 = new wxGridBagSizer( 0, 0 );
@@ -188,36 +175,44 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	gbSizer2->SetFlexibleDirection( wxBOTH );
 	gbSizer2->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 
-	m_stBaseURL = new wxStaticText( m_pTasks, wxID_ANY, _("Base URL"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stBaseURL = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Base URL"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stBaseURL->Wrap( -1 );
 	gbSizer2->Add( m_stBaseURL, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-	m_txtBaseURL = new wxTextCtrl( m_pTasks, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_txtBaseURL = new wxTextCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	m_txtBaseURL->SetMinSize( wxSize( 200,-1 ) );
 
 	gbSizer2->Add( m_txtBaseURL, wxGBPosition( 0, 1 ), wxGBSpan( 1, 2 ), wxALL|wxEXPAND, 5 );
 
 	wxString m_rbDepthChoices[] = { _("Stay in dir"), _("Stay in host"), _("Stay in domain") };
 	int m_rbDepthNChoices = sizeof( m_rbDepthChoices ) / sizeof( wxString );
-	m_rbDepth = new wxRadioBox( m_pTasks, wxID_ANY, _("Depth mode"), wxDefaultPosition, wxDefaultSize, m_rbDepthNChoices, m_rbDepthChoices, 1, wxRA_SPECIFY_COLS );
+	m_rbDepth = new wxRadioBox( m_panTaskOpts, wxID_ANY, _("Depth mode"), wxDefaultPosition, wxDefaultSize, m_rbDepthNChoices, m_rbDepthChoices, 1, wxRA_SPECIFY_COLS );
 	m_rbDepth->SetSelection( 1 );
 	gbSizer2->Add( m_rbDepth, wxGBPosition( 1, 0 ), wxGBSpan( 3, 2 ), wxALL|wxEXPAND, 5 );
 
-	m_stDepth = new wxStaticText( m_pTasks, wxID_ANY, _("Scan depth"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stDepth = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Scan depth"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stDepth->Wrap( -1 );
 	gbSizer2->Add( m_stDepth, wxGBPosition( 1, 2 ), wxGBSpan( 1, 1 ), wxALIGN_BOTTOM|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
 
-	m_textCtrl7 = new wxTextCtrl( m_pTasks, wxID_ANY, _("-1"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_textCtrl7 = new wxTextCtrl( m_panTaskOpts, wxID_ANY, _("-1"), wxDefaultPosition, wxDefaultSize, 0 );
 	gbSizer2->Add( m_textCtrl7, wxGBPosition( 2, 2 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
 
-	bSizerTaskOpts->Add( gbSizer2, 1, wxEXPAND, 0 );
+    m_btnApply = new wxCustomButton( m_panTaskOpts, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
+	gbSizer2->Add( m_btnApply, wxGBPosition( 0, 5 ), wxGBSpan( 1, 1 ), wxALIGN_RIGHT|wxALL, 5 );
+
+	bSizer11->Add( gbSizer2, 1, wxEXPAND, 0 );
+
+	m_panTaskOpts->SetSizer( bSizer11 );
+	m_panTaskOpts->Layout();
+	bSizer11->Fit( m_panTaskOpts );
+	bSizerTaskOpts->Add( m_panTaskOpts, 1, wxEXPAND | wxALL, 5 );
 
 	fgSizer1->Add( bSizerTaskOpts, 1, wxEXPAND, 5 );
 
 	m_pTasks->SetSizer( fgSizer1 );
 	m_pTasks->Layout();
 	fgSizer1->Fit( m_pTasks );
-	m_mainnb->AddPage( m_pTasks, _("Tasks"), true, wxBitmap( panTasks_xpm ) );
+	m_mainnb->AddPage( m_pTasks, _("Tasks"), false, wxBitmap( panTasks_xpm ) );
 	m_pReports = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_mainnb->AddPage( m_pReports, _("Reports"), false, wxBitmap( panReports_xpm ) );
 	m_pSettings = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
@@ -320,7 +315,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_pSettings->SetSizer( fgSizer2 );
 	m_pSettings->Layout();
 	fgSizer2->Fit( m_pSettings );
-	m_mainnb->AddPage( m_pSettings, _("Settings"), false, wxBitmap( panSettings_xpm ) );
+	m_mainnb->AddPage( m_pSettings, _("Settings"), true, wxBitmap( panSettings_xpm ) );
 
 	bSizer1->Add( m_mainnb, 1, wxEXPAND | wxALL, 0 );
 
@@ -331,6 +326,13 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
+	m_bpPauseTask->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnPauseTask ), NULL, this );
+	m_bpCancelTask->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ), NULL, this );
+	m_lstActiveTask->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnRunningTaskSelected ), NULL, this );
+	m_bpTaskGo->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ), NULL, this );
+	m_bpTaskNew->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ), NULL, this );
+	m_bpTaskDel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ), NULL, this );
+	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
 	m_bpConnect->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnConnect ), NULL, this );
 	m_bpServerNew->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ), NULL, this );
 	m_bpSrvEdit->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnEditServer ), NULL, this );
@@ -342,6 +344,13 @@ MainForm::~MainForm()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
+	m_bpPauseTask->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnPauseTask ), NULL, this );
+	m_bpCancelTask->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ), NULL, this );
+	m_lstActiveTask->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnRunningTaskSelected ), NULL, this );
+	m_bpTaskGo->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ), NULL, this );
+	m_bpTaskNew->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ), NULL, this );
+	m_bpTaskDel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ), NULL, this );
+	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
 	m_bpConnect->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnConnect ), NULL, this );
 	m_bpServerNew->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ), NULL, this );
 	m_bpSrvEdit->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnEditServer ), NULL, this );

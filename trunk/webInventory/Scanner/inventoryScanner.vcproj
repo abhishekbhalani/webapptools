@@ -24,6 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="perl autoversion.pl"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -40,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\webEngine\include"
+				AdditionalIncludeDirectories="..\..\webEngine\include;..\Common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x0501"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -92,7 +93,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="perl autoversion.pl"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -105,6 +106,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="perl autoversion.pl build"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -168,7 +170,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="perl autoversion.pl build"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
@@ -192,6 +194,10 @@
 				RelativePath=".\server.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\taskOperations.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -199,11 +205,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\messages.h"
+				RelativePath="..\Common\messages.h"
 				>
 			</File>
 			<File
 				RelativePath=".\server.h"
+				>
+			</File>
+			<File
+				RelativePath=".\taskOperations.h"
 				>
 			</File>
 			<File

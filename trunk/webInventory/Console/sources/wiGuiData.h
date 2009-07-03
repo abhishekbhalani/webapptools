@@ -52,7 +52,6 @@ class MainForm : public wxFrame
 		wxPanel* m_pTasks;
 		wxStaticText* m_stActiveTasks;
 		
-		wxBitmapButton* m_bpStartTask;
 		wxBitmapButton* m_bpPauseTask;
 		wxBitmapButton* m_bpCancelTask;
 		wxStaticText* m_stTaskLog;
@@ -69,14 +68,13 @@ class MainForm : public wxFrame
 		wxStaticText* m_stProfile;
 		wxListCtrl* m_lstTaskList;
 		wxBoxSizer* bSizerTaskOpts;
-		wxBoxSizer* bSizerTaskTools;
-		
-		wxCustomButton* m_btnApply;
+		wxPanel* m_panTaskOpts;
 		wxStaticText* m_stBaseURL;
 		wxTextCtrl* m_txtBaseURL;
 		wxRadioBox* m_rbDepth;
 		wxStaticText* m_stDepth;
 		wxTextCtrl* m_textCtrl7;
+		wxCustomButton* m_btnApply;
 		wxPanel* m_pReports;
 		wxPanel* m_pSettings;
 		wxStaticText* m_stConVers;
@@ -97,6 +95,13 @@ class MainForm : public wxFrame
 		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
+		virtual void OnPauseTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnRunningTaskSelected( wxListEvent& event ){ event.Skip(); }
+		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnAddTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnDelTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnTaskSelected( wxListEvent& event ){ event.Skip(); }
 		virtual void OnConnect( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddServer( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnEditServer( wxCommandEvent& event ){ event.Skip(); }

@@ -32,18 +32,24 @@
 #include "../images/btnStop.xpm"
 #include "../images/start.xpm"
 
+/// @todo change this
+#include "../images/tree_no.xpm"
+#include "../images/tree_unk.xpm"
+#include "../images/tree_yes.xpm"
+
 #define wxPING_TIMER    999
 #define wxPING_INTERVAL 10000
 
 //    m_statusBar = new wiStatBar( this );
 //    SetStatusBar(m_statusBar);
-//    m_btnApply = new wxCustomButton( m_pTasks, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
+//    m_btnApply = new wxCustomButton( m_panTaskOpts, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
 
 wiMainForm::wiMainForm( wxWindow* parent ) :
         MainForm( parent ),
         m_cfgEngine(wxT("WebInvent")),
         m_client(NULL),
-        m_timer(this, 1)
+        m_timer(this, 1),
+        m_lstImages(16, 16)
 {
     connStatus = true;
     wxInitAllImageHandlers();
@@ -70,13 +76,19 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     }
     m_chLangs->SetSelection(iData);
 
-    m_lstActiveTask->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, 18);
-    m_lstActiveTask->InsertColumn(1, _("Task name"), wxLIST_FORMAT_LEFT, 300);
-    m_lstActiveTask->InsertColumn(2, _("Status"), wxLIST_FORMAT_LEFT, 77);
+    m_lstImages.Add(wxIcon(tree_unk));
+    m_lstImages.Add(wxIcon(tree_yes));
+    m_lstImages.Add(wxIcon(tree_no));
 
-    m_lstTaskList->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, 18);
+    m_lstActiveTask->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, 20);
+    m_lstActiveTask->InsertColumn(1, _("Task name"), wxLIST_FORMAT_LEFT, 300);
+    m_lstActiveTask->InsertColumn(2, _("Status"), wxLIST_FORMAT_LEFT, 76);
+    m_lstActiveTask->SetImageList(&m_lstImages, wxIMAGE_LIST_SMALL);
+
+    m_lstTaskList->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, 20);
     m_lstTaskList->InsertColumn(1, _("Task name"), wxLIST_FORMAT_LEFT, 300);
-    m_lstTaskList->InsertColumn(2, _("Status"), wxLIST_FORMAT_LEFT, 77);
+    m_lstTaskList->InsertColumn(2, _("Status"), wxLIST_FORMAT_LEFT, 76);
+    m_lstTaskList->SetImageList(&m_lstImages, wxIMAGE_LIST_SMALL);
 
     wxString label;
     label = wxString::FromAscii(AutoVersion::FULLVERSION_STRING) + wxT(" ");
@@ -95,8 +107,8 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_timer.SetOwner(this, wxPING_TIMER);
     this->Connect(wxEVT_TIMER, wxTimerEventHandler(wiMainForm::OnTimer));
     m_timer.Start(wxPING_INTERVAL);
-
-
+    m_panTaskOpts->Hide();
+    Layout();
 }
 
 void wiMainForm::OnTimer( wxTimerEvent& event )
@@ -104,9 +116,7 @@ void wiMainForm::OnTimer( wxTimerEvent& event )
     /// @todo set status text
     if (m_client != NULL) {
         if (m_client->Ping()) {
-            m_statusBar->SetImage(wiSTATUS_BAR_YES);
-            m_statusBar->SetStatusText(_("Connected"), 1);
-            m_statusBar->SetStatusText(wxT(""), 3);
+            Connected(false);
             if (connStatus == false) {
                 wxString vers;
                 vers = m_client->GetScannerVersion();
@@ -117,9 +127,8 @@ void wiMainForm::OnTimer( wxTimerEvent& event )
             connStatus = true;
         }
         else {
+            Disconnected(false);
             m_statusBar->SetImage(wiSTATUS_BAR_NO);
-            m_statusBar->SetStatusText(_("Disconnected"), 1);
-            m_statusBar->SetStatusText(m_client->GetLastError(), 3);
             m_stSrvVersData->SetLabel(_("unknown"));
             connStatus = false;
         }
@@ -160,11 +169,7 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
     if (m_client != NULL) {
         // close current connection
         m_client->DoCmd(wxT("close"), wxT(""));
-        m_statusBar->SetImage(wiSTATUS_BAR_UNK);
-        m_statusBar->SetStatusText(_("Disconnected"), 1);
-        m_statusBar->SetStatusText(_("unknown"), 2);
-        m_bpConnect->SetToolTip(_("Connect"));
-        m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
+        Disconnected();
         delete m_client;
         m_client = NULL;
         return;
@@ -181,21 +186,12 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
             m_client->Connect();
             host = m_client->GetScannerVersion();
             if (!host.IsEmpty()) {
+                Connected();
                 m_stSrvVersData->SetLabel(host);
-                m_statusBar->SetImage(wiSTATUS_BAR_YES);
-                m_statusBar->SetStatusText(_("Connected"), 1);
                 m_statusBar->SetStatusText(label, 2);
-                m_statusBar->SetStatusText(wxT(""), 3);
-                m_bpConnect->SetToolTip(_("Disconnect"));
-                m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
             }
             else {
-                m_statusBar->SetImage(wiSTATUS_BAR_NO);
-                m_statusBar->SetStatusText(_("Disconnected"), 1);
-                m_statusBar->SetStatusText(_("unknown"), 2);
-                m_statusBar->SetStatusText(m_client->GetLastError(), 3);
-                m_bpConnect->SetToolTip(_("Connect"));
-                m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
+                Disconnected();
                 delete m_client;
                 m_client = NULL;
             }
@@ -303,3 +299,69 @@ void wiMainForm::LoadConnections()
     m_chServers->SetSelection(-1);
 }
 
+void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
+{
+    TaskList* lst;
+    wxListItem* info;
+    size_t lstSize;
+    int idx = 0;
+    int aidx = 0;
+
+    if(m_client != NULL) {
+        lst = m_client->GetTaskList(criteria);
+        if (lst != NULL) {
+            m_lstActiveTask->DeleteAllItems();
+            m_lstTaskList->DeleteAllItems();
+            for (lstSize = 0; lstSize < lst->task.size(); lstSize++) {
+                m_lstTaskList->InsertItem(idx, lst->task[lstSize].status);
+                m_lstTaskList->SetItem(idx, 1, wxString::FromAscii(lst->task[lstSize].name.c_str()));
+                idx++;
+                if (lst->task[lstSize].status > WI_TSK_IDLE) {
+                    m_lstActiveTask->InsertItem(aidx, lst->task[lstSize].status);
+                    m_lstActiveTask->SetItem(aidx, 1, wxString::FromAscii(lst->task[lstSize].name.c_str()));
+                    aidx++;
+                }
+            }
+        }
+        else {
+            m_statusBar->SetImage(wiSTATUS_BAR_NO);
+            m_statusBar->SetStatusText(m_client->GetLastError(), 3);
+        }
+    }
+}
+
+void wiMainForm::Disconnected(bool mode)
+{
+    m_bpTaskNew->Disable();
+    m_statusBar->SetImage(wiSTATUS_BAR_NO);
+    m_statusBar->SetStatusText(_("Disconnected"), 1);
+    m_statusBar->SetStatusText(_("unknown"), 2);
+    m_statusBar->SetStatusText(m_client->GetLastError(), 3);
+    if (mode) {
+        m_bpConnect->SetToolTip(_("Connect"));
+        m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
+    }
+}
+
+void wiMainForm::Connected(bool mode)
+{
+    m_bpTaskNew->Enable();
+    m_statusBar->SetImage(wiSTATUS_BAR_YES);
+    m_statusBar->SetStatusText(_("Connected"), 1);
+    m_statusBar->SetStatusText(wxT(""), 3);
+    if (mode) {
+        m_bpConnect->SetToolTip(_("Disconnect"));
+        m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
+        ProcessTaskList();
+    }
+}
+
+void wiMainForm::OnAddTask( wxCommandEvent& event )
+{
+    wxString name;
+
+    name = wxGetTextFromUser(_("Input new task name"), _("Query"), _(""), this);
+    if (!name.IsEmpty() && m_client != NULL) {
+        name = m_client->DoCmd(wxT("addtask"), name);
+    }
+}

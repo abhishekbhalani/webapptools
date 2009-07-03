@@ -28,6 +28,8 @@
 
 #include <wx/string.h>
 
+#include "messages.h"
+
 class wiInternalTcp;
 
 class wiTcpClient
@@ -41,6 +43,7 @@ public:
     wxString GetScannerVersion();
     wxString DoCmd(const wxString& cmd, const wxString& payload);
     const wxString& GetLastError() { return lastError; };
+    TaskList* GetTaskList(const wxString& criteria = wxT(""));
 
 protected:
     wiInternalTcp* client;

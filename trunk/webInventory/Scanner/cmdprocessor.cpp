@@ -21,11 +21,15 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/serialization/vector.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/lexical_cast.hpp>
 #include <iostream>
+#include <strstream>
 #include <weLogger.h>
 #include "messages.h"
 #include "version.h"
+#include "taskOperations.h"
 
 int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
 {
@@ -42,16 +46,25 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         LOG4CXX_TRACE(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] ProcessMessage: " <<  msg.cmd);
         retval = 0;
         sess->last = posix_time::second_clock::local_time();
+        //////////////////////////////////////////////////////////////////////////
+        // EXIT command processing
+        //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "exit"))
         {
             retval = -1;
             processed = true;
         }
+        //////////////////////////////////////////////////////////////////////////
+        // CLOSE command processing
+        //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "close"))
         {
             retval = 0;
             processed = true;
         }
+        //////////////////////////////////////////////////////////////////////////
+        // VERSION command processing
+        //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "version"))
         {
             LOG4CXX_INFO(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] version requested");
@@ -66,6 +79,9 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             retval = 1;
             processed = true;
         }
+        //////////////////////////////////////////////////////////////////////////
+        // PING command processing
+        //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "ping"))
         {
             msg.cmd = "pong";
@@ -73,7 +89,56 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             retval = 1;
             processed = true;
         }
+        //////////////////////////////////////////////////////////////////////////
+        // TASKS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "tasks"))
+        {
+            msg.cmd = "tasks";
+            TaskList *lst;
 
+            lst = GetTaskList(msg.data);
+
+            if (lst != NULL)
+            {
+                { // auto-destroy block for output stream
+                    ostrstream oss;
+                    { // auto-destroy block for xml_oarchive
+                        boost::archive::xml_oarchive oa(oss);
+                        oa << BOOST_SERIALIZATION_NVP(lst);
+                    }
+                    msg.data = string(oss.str(), oss.rdbuf()->pcount());
+                    delete lst;
+                }
+            }
+            else {
+                msg.data = "";
+            }
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // ADDTASKS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "addtask"))
+        {
+            msg.data = AddTask(msg.data);
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // DELTASKS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "deltask"))
+        {
+            msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            retval = 1;
+            processed = true;
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+        // finalization
+        //////////////////////////////////////////////////////////////////////////
         if (!processed)
         {
             LOG4CXX_WARN(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] unknown command: " <<  msg.cmd);
@@ -89,7 +154,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
     }
     catch (std::exception &e)
     {
-        LOG4CXX_ERROR(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "ProcessMessage failed: " <<  e.what());
+        LOG4CXX_ERROR(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] ProcessMessage failed: " <<  e.what());
         retval = 0;
     }
 

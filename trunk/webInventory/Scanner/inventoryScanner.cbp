@@ -32,12 +32,15 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 			<Add directory="..\..\webEngine\include" />
+			<Add directory="..\Common" />
 		</Compiler>
+		<Unit filename="..\Common\messages.h" />
 		<Unit filename="cmdprocessor.cpp" />
 		<Unit filename="inventoryScanner.cpp" />
-		<Unit filename="messages.h" />
 		<Unit filename="server.cpp" />
 		<Unit filename="server.h" />
+		<Unit filename="taskOperations.cpp" />
+		<Unit filename="taskOperations.h" />
 		<Unit filename="version.h" />
 		<Extensions>
 			<AutoVersioning>
