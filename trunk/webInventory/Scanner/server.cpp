@@ -68,7 +68,7 @@ void session::handle_read(const boost::system::error_code& error,
         }
         else if (res == 0)
         {
-            LOG4CXX_WARN(WeLogger::GetLogger(), "Session: processing failed");
+            LOG4CXX_WARN(WeLogger::GetLogger(), "Session: close session");
             delete this;
         }
         else // res == -1

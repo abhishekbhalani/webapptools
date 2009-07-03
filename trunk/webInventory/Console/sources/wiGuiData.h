@@ -11,6 +11,7 @@
 #include <wx/intl.h>
 
 class wiStatBar;
+class wxCustomButton;
 
 #include <wx/string.h>
 #include <wx/stattext.h>
@@ -28,6 +29,7 @@ class wiStatBar;
 #include <wx/listctrl.h>
 #include <wx/richtext/richtextctrl.h>
 #include <wx/textctrl.h>
+#include <wx/radiobox.h>
 #include <wx/gbsizer.h>
 #include <wx/panel.h>
 #include <wx/aui/auibook.h>
@@ -66,8 +68,15 @@ class MainForm : public wxFrame
 		wxBitmapButton* m_bpTaskDel;
 		wxStaticText* m_stProfile;
 		wxListCtrl* m_lstTaskList;
-		wxStaticText* m_stBaseUrl;
+		wxBoxSizer* bSizerTaskOpts;
+		wxBoxSizer* bSizerTaskTools;
+		
+		wxCustomButton* m_btnApply;
+		wxStaticText* m_stBaseURL;
 		wxTextCtrl* m_txtBaseURL;
+		wxRadioBox* m_rbDepth;
+		wxStaticText* m_stDepth;
+		wxTextCtrl* m_textCtrl7;
 		wxPanel* m_pReports;
 		wxPanel* m_pSettings;
 		wxStaticText* m_stConVers;
