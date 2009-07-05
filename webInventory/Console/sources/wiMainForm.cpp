@@ -215,7 +215,7 @@ void wiMainForm::OnAddServer( wxCommandEvent& event )
                 idx = m_chServers->Append(name);
                 m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Name"), idx), name);
                 m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Host"), idx), host);
-                m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Port"), idx), idt);
+                m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Port"), idx), (int)idt);
             }
             else {
                 wxMessageBox(_("Port value is out of range"), wxT("WebInvent"), wxICON_ERROR | wxOK, this);
@@ -251,7 +251,7 @@ void wiMainForm::OnEditServer( wxCommandEvent& event )
                 m_chServers->SetString(idx, name);
                 m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Name"), idx), name);
                 m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Host"), idx), host);
-                m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Port"), idx), idt);
+                m_cfgEngine.Write(wxString::Format(wxT("Connection%d/Port"), idx), (int)idt);
             }
             else {
                 wxMessageBox(_("Port value is out of range"), wxT("WebInvent"), wxICON_ERROR | wxOK, this);

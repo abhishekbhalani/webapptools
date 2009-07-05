@@ -34,11 +34,17 @@ END_EVENT_TABLE()
 
 wiStatBar::wiStatBar(wxWindow *parent) : wxStatusBar(parent, wxID_ANY)
 {
-    static const int widths[4] = { 16,  100, 200, -1 };
+#if defined(__WXMSW__)
+    static const int widths[4] = { 16,  120, 220, -1 };
+#elif defined(__UNIX__)
+    static const int widths[4] = { 22,  120, 220, -1 };
+#else
+    static const int widths[4] = { 16,  120, 220, -1 };
+#endif
     SetFieldsCount(4);
     SetStatusWidths(4, widths);
-    m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_unk));
-    SetMinHeight(16);
+    m_statbmp = NULL;
+    SetImage(wiSTATUS_BAR_UNK);
 }
 
 wiStatBar::~wiStatBar()
@@ -47,7 +53,9 @@ wiStatBar::~wiStatBar()
 
 void wiStatBar::SetImage(int status)
 {
-    delete m_statbmp;
+    if (m_statbmp) {
+        delete m_statbmp;
+    }
     switch(status) {
         case wiSTATUS_BAR_NO:
             m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_no));
@@ -60,6 +68,13 @@ void wiStatBar::SetImage(int status)
             break;
     };
     SetMinHeight(16);
+
+    wxRect rect;
+    GetFieldRect(0, rect);
+    wxSize size = m_statbmp->GetSize();
+
+    m_statbmp->Move(rect.x + (rect.width - size.x) / 2,
+        rect.y + (rect.height - size.y) / 2);
 }
 
 void wiStatBar::OnSize(wxSizeEvent& event)
