@@ -27,6 +27,7 @@
 #define __wiMainForm__
 
 #include "wiGuiData.h"
+#include <wx/imaglist.h>
 #include "Config.h"
 #include "wiTcpClient.h"
 
