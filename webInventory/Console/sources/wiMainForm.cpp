@@ -23,6 +23,7 @@
  * @date      30.06.2009
  **************************************************************/
 #include <wx/filename.h>
+#include <wx/wupdlock.h>
 #include "wiStatBar.h"
 #include "wiServDialog.h"
 #include "wiMainForm.h"
@@ -43,6 +44,10 @@
 //    m_statusBar = new wiStatBar( this );
 //    SetStatusBar(m_statusBar);
 //    m_btnApply = new wxCustomButton( m_panTaskOpts, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
+
+static const wxChar* gTaskStatus[] = {_("idle"),
+                                      _("run"),
+                                      _("paused")};
 
 wiMainForm::wiMainForm( wxWindow* parent ) :
         MainForm( parent ),
@@ -89,6 +94,12 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_lstTaskList->InsertColumn(1, _("Task name"), wxLIST_FORMAT_LEFT, 300);
     m_lstTaskList->InsertColumn(2, _("Status"), wxLIST_FORMAT_LEFT, 76);
     m_lstTaskList->SetImageList(&m_lstImages, wxIMAGE_LIST_SMALL);
+
+    m_lstActiveTask->DeleteAllItems();
+    m_lstTaskList->DeleteAllItems();
+    m_selectedTask = -1;
+    m_selectedActive = -1;
+
 
     wxString label;
     label = wxString::FromAscii(AutoVersion::FULLVERSION_STRING) + wxT(" ");
@@ -302,26 +313,45 @@ void wiMainForm::LoadConnections()
 void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
 {
     TaskList* lst;
-    wxListItem* info;
     size_t lstSize;
     int idx = 0;
-    int aidx = 0;
+    long idLong, itIdx;
 
     if(m_client != NULL) {
         lst = m_client->GetTaskList(criteria);
         if (lst != NULL) {
-            m_lstActiveTask->DeleteAllItems();
+            wxWindowUpdateLocker taskList(m_lstTaskList);
+            wxWindowUpdateLocker activeList(m_lstActiveTask);
+
             m_lstTaskList->DeleteAllItems();
+            m_lstActiveTask->DeleteAllItems();
             for (lstSize = 0; lstSize < lst->task.size(); lstSize++) {
+                wxString idStr = wxString::FromAscii(lst->task[lstSize].id.c_str());
+                idStr.ToLong(&idLong, 16);
+                idx = m_lstTaskList->GetItemCount();
                 m_lstTaskList->InsertItem(idx, lst->task[lstSize].status);
                 m_lstTaskList->SetItem(idx, 1, wxString::FromAscii(lst->task[lstSize].name.c_str()));
-                idx++;
+                if (lst->task[lstSize].status >= 0 && lst->task[lstSize].status < WI_TSK_MAX) {
+                    m_lstTaskList->SetItem(idx, 2, gTaskStatus[lst->task[lstSize].status]);
+                }
+                m_lstTaskList->SetItemData(idx, idLong);
                 if (lst->task[lstSize].status > WI_TSK_IDLE) {
-                    m_lstActiveTask->InsertItem(aidx, lst->task[lstSize].status);
-                    m_lstActiveTask->SetItem(aidx, 1, wxString::FromAscii(lst->task[lstSize].name.c_str()));
-                    aidx++;
+                    itIdx = m_lstActiveTask->FindItem(-1, idLong);
+                    idx = m_lstActiveTask->GetItemCount();
+                    m_lstActiveTask->InsertItem(idx, lst->task[lstSize].status);
+                    m_lstActiveTask->SetItem(idx, 1, wxString::FromAscii(lst->task[lstSize].name.c_str()));
+                    m_lstActiveTask->SetItem(idx, 2, wxString::Format(wxT("%d%%"), lst->task[lstSize].completion));
+                    m_lstActiveTask->SetItemData(idx, idLong);
                 }
             }
+            if (m_selectedTask >= m_lstTaskList->GetItemCount()) {
+                m_selectedTask = m_lstTaskList->GetItemCount() - 1;
+            }
+            SelectTask(m_selectedTask);
+            if (m_selectedActive >= m_lstActiveTask->GetItemCount()) {
+                m_selectedActive = m_lstActiveTask->GetItemCount() - 1;
+            }
+            SelectActTask(m_selectedActive);
         }
         else {
             m_statusBar->SetImage(wiSTATUS_BAR_NO);
@@ -364,4 +394,49 @@ void wiMainForm::OnAddTask( wxCommandEvent& event )
     if (!name.IsEmpty() && m_client != NULL) {
         name = m_client->DoCmd(wxT("addtask"), name);
     }
+    ProcessTaskList();
+}
+
+void wiMainForm::OnTaskSelected( wxListEvent& event )
+{
+    SelectTask(event.GetIndex());
+}
+
+void wiMainForm::OnRunningTaskSelected( wxListEvent& event )
+{
+    SelectActTask(event.GetIndex());
+}
+
+void wiMainForm::SelectTask(int id/* = -1*/)
+{
+    m_selectedTask = id;
+    wxListItem info;
+
+    if (m_selectedTask > -1) {
+        info.SetId(m_selectedTask);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_IMAGE);
+        m_lstTaskList->GetItem(info);
+        m_panTaskOpts->Show();
+        if (info.GetImage() == WI_TSK_IDLE) {
+            m_bpTaskGo->Enable();
+            m_bpTaskDel->Enable();
+            m_panTaskOpts->Enable();
+        }
+        else {
+            m_bpTaskGo->Disable();
+            m_bpTaskDel->Disable();
+            m_panTaskOpts->Disable();
+        }
+    }
+    else {
+        m_bpTaskGo->Disable();
+        m_bpTaskDel->Disable();
+        m_panTaskOpts->Hide();
+    }
+}
+
+void wiMainForm::SelectActTask(int id/* = -1*/)
+{
+    m_selectedActive = id;
 }
