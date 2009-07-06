@@ -62,6 +62,7 @@ private:
 #define WI_TSK_IDLE     0
 #define WI_TSK_RUN      1
 #define WI_TSK_PAUSED   2
+#define WI_TSK_MAX      3
 
 class TaskList
 {
