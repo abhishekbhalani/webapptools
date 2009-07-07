@@ -32,6 +32,7 @@
 #include "../images/webInventory.xpm"
 #include "../images/btnStop.xpm"
 #include "../images/start.xpm"
+#include "../images/pause.xpm"
 
 /// @todo change this
 #include "../images/tree_no.xpm"
@@ -46,8 +47,8 @@
 //    m_btnApply = new wxCustomButton( m_panTaskOpts, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
 
 static const wxChar* gTaskStatus[] = {_("idle"),
-                                      _("run"),
-                                      _("paused")};
+                                      _("run (%d%%)"),
+                                      _("paused (%d%%)")};
 
 wiMainForm::wiMainForm( wxWindow* parent ) :
         MainForm( parent ),
@@ -85,21 +86,12 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_lstImages.Add(wxIcon(tree_yes));
     m_lstImages.Add(wxIcon(tree_no));
 
-    m_lstActiveTask->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, 20);
-    m_lstActiveTask->InsertColumn(1, _("Task name"), wxLIST_FORMAT_LEFT, 300);
-    m_lstActiveTask->InsertColumn(2, _("Status"), wxLIST_FORMAT_LEFT, 76);
-    m_lstActiveTask->SetImageList(&m_lstImages, wxIMAGE_LIST_SMALL);
-
     m_lstTaskList->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, 20);
-    m_lstTaskList->InsertColumn(1, _("Task name"), wxLIST_FORMAT_LEFT, 300);
-    m_lstTaskList->InsertColumn(2, _("Status"), wxLIST_FORMAT_LEFT, 76);
+    m_lstTaskList->InsertColumn(1, _("Task name"), wxLIST_FORMAT_LEFT, 180);
+    m_lstTaskList->InsertColumn(2, _("Status"), wxLIST_FORMAT_LEFT, 96);
     m_lstTaskList->SetImageList(&m_lstImages, wxIMAGE_LIST_SMALL);
 
-    m_lstActiveTask->DeleteAllItems();
     m_lstTaskList->DeleteAllItems();
-    m_selectedTask = -1;
-    m_selectedActive = -1;
-
 
     wxString label;
     label = wxString::FromAscii(AutoVersion::FULLVERSION_STRING) + wxT(" ");
@@ -118,7 +110,8 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_timer.SetOwner(this, wxPING_TIMER);
     this->Connect(wxEVT_TIMER, wxTimerEventHandler(wiMainForm::OnTimer));
     m_timer.Start(wxPING_INTERVAL);
-    m_panTaskOpts->Hide();
+    m_panTaskOpts->Disable();
+    SelectTask( -1 );
     Layout();
 }
 
@@ -183,6 +176,8 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
         Disconnected();
         delete m_client;
         m_client = NULL;
+        m_lstTaskList->DeleteAllItems();
+        SelectTask( -1 );
         return;
     }
     idx = m_chServers->GetSelection();
@@ -315,16 +310,14 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
     TaskList* lst;
     size_t lstSize;
     int idx = 0;
-    long idLong, itIdx;
+    long idLong;
 
     if(m_client != NULL) {
         lst = m_client->GetTaskList(criteria);
         if (lst != NULL) {
             wxWindowUpdateLocker taskList(m_lstTaskList);
-            wxWindowUpdateLocker activeList(m_lstActiveTask);
 
             m_lstTaskList->DeleteAllItems();
-            m_lstActiveTask->DeleteAllItems();
             for (lstSize = 0; lstSize < lst->task.size(); lstSize++) {
                 wxString idStr = wxString::FromAscii(lst->task[lstSize].id.c_str());
                 idStr.ToLong(&idLong, 16);
@@ -332,26 +325,14 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
                 m_lstTaskList->InsertItem(idx, lst->task[lstSize].status);
                 m_lstTaskList->SetItem(idx, 1, wxString::FromAscii(lst->task[lstSize].name.c_str()));
                 if (lst->task[lstSize].status >= 0 && lst->task[lstSize].status < WI_TSK_MAX) {
-                    m_lstTaskList->SetItem(idx, 2, gTaskStatus[lst->task[lstSize].status]);
+                    m_lstTaskList->SetItem(idx, 2, wxString::Format(gTaskStatus[lst->task[lstSize].status], lst->task[lstSize].completion));
                 }
                 m_lstTaskList->SetItemData(idx, idLong);
-                if (lst->task[lstSize].status > WI_TSK_IDLE) {
-                    itIdx = m_lstActiveTask->FindItem(-1, idLong);
-                    idx = m_lstActiveTask->GetItemCount();
-                    m_lstActiveTask->InsertItem(idx, lst->task[lstSize].status);
-                    m_lstActiveTask->SetItem(idx, 1, wxString::FromAscii(lst->task[lstSize].name.c_str()));
-                    m_lstActiveTask->SetItem(idx, 2, wxString::Format(wxT("%d%%"), lst->task[lstSize].completion));
-                    m_lstActiveTask->SetItemData(idx, idLong);
-                }
             }
             if (m_selectedTask >= m_lstTaskList->GetItemCount()) {
                 m_selectedTask = m_lstTaskList->GetItemCount() - 1;
             }
             SelectTask(m_selectedTask);
-            if (m_selectedActive >= m_lstActiveTask->GetItemCount()) {
-                m_selectedActive = m_lstActiveTask->GetItemCount() - 1;
-            }
-            SelectActTask(m_selectedActive);
         }
         else {
             m_statusBar->SetImage(wiSTATUS_BAR_NO);
@@ -402,11 +383,6 @@ void wiMainForm::OnTaskSelected( wxListEvent& event )
     SelectTask(event.GetIndex());
 }
 
-void wiMainForm::OnRunningTaskSelected( wxListEvent& event )
-{
-    SelectActTask(event.GetIndex());
-}
-
 void wiMainForm::SelectTask(int id/* = -1*/)
 {
     m_selectedTask = id;
@@ -417,26 +393,35 @@ void wiMainForm::SelectTask(int id/* = -1*/)
         info.SetColumn(0);
         info.SetMask(wxLIST_MASK_IMAGE);
         m_lstTaskList->GetItem(info);
-        m_panTaskOpts->Show();
         if (info.GetImage() == WI_TSK_IDLE) {
             m_bpTaskGo->Enable();
+            m_bpTaskGo->SetBitmapLabel( wxBitmap(start_xpm) );
+            m_bpCancelTask->Disable();
             m_bpTaskDel->Enable();
             m_panTaskOpts->Enable();
         }
-        else {
-            m_bpTaskGo->Disable();
+        else if (info.GetImage() == WI_TSK_RUN) {
+            m_bpTaskGo->Enable();
+            m_bpTaskGo->SetBitmapLabel( wxBitmap(pause_xpm) );
+            m_bpCancelTask->Enable();
+            m_bpTaskDel->Disable();
+            m_panTaskOpts->Disable();
+        }
+        else if (info.GetImage() == WI_TSK_PAUSED) {
+            m_bpTaskGo->Enable();
+            m_bpTaskGo->SetBitmapLabel( wxBitmap(start_xpm) );
+            m_bpCancelTask->Enable();
             m_bpTaskDel->Disable();
             m_panTaskOpts->Disable();
         }
     }
     else {
         m_bpTaskGo->Disable();
+        m_bpCancelTask->Disable();
         m_bpTaskDel->Disable();
-        m_panTaskOpts->Hide();
+        //m_panTaskOpts->Hide();
+        m_panTaskOpts->Enable();
+        m_panTaskOpts->Disable();
     }
-}
-
-void wiMainForm::SelectActTask(int id/* = -1*/)
-{
-    m_selectedActive = id;
+    Layout();
 }

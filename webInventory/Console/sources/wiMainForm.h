@@ -54,13 +54,11 @@ protected:
     virtual void OnLangChange( wxCommandEvent& event );
     virtual void OnAddTask( wxCommandEvent& event );
     virtual void OnTaskSelected( wxListEvent& event );
-    virtual void OnRunningTaskSelected( wxListEvent& event );
 
     void ProcessTaskList(const wxString& criteria = wxT(""));
     void Disconnected(bool mode = true);
     void Connected(bool mode = true);
     void SelectTask(int id = -1);
-    void SelectActTask(int id = -1);
 
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;
