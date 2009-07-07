@@ -25,13 +25,14 @@ class wxCustomButton;
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/sizer.h>
-#include <wx/choice.h>
 #include <wx/listctrl.h>
-#include <wx/richtext/richtextctrl.h>
 #include <wx/textctrl.h>
 #include <wx/radiobox.h>
 #include <wx/gbsizer.h>
 #include <wx/panel.h>
+#include <wx/statline.h>
+#include <wx/choice.h>
+#include <wx/richtext/richtextctrl.h>
 #include <wx/aui/auibook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
@@ -50,31 +51,30 @@ class MainForm : public wxFrame
 	protected:
 		wxAuiNotebook* m_mainnb;
 		wxPanel* m_pTasks;
-		wxStaticText* m_stActiveTasks;
-		
-		wxBitmapButton* m_bpPauseTask;
-		wxBitmapButton* m_bpCancelTask;
-		wxStaticText* m_stTaskLog;
-		
-		wxStaticText* m_stLogLevel;
-		wxChoice* m_chLogLevel;
-		wxListCtrl* m_lstActiveTask;
-		wxRichTextCtrl* m_rtTask;
 		wxStaticText* m_stTaskList;
 		
 		wxBitmapButton* m_bpTaskGo;
+		wxBitmapButton* m_bpCancelTask;
+		
 		wxBitmapButton* m_bpTaskNew;
 		wxBitmapButton* m_bpTaskDel;
-		wxStaticText* m_stProfile;
 		wxListCtrl* m_lstTaskList;
-		wxBoxSizer* bSizerTaskOpts;
 		wxPanel* m_panTaskOpts;
+		wxStaticText* m_stProfile;
+		wxStaticText* m_stTaskName;
+		wxTextCtrl* m_txtTaskName;
 		wxStaticText* m_stBaseURL;
 		wxTextCtrl* m_txtBaseURL;
 		wxRadioBox* m_rbDepth;
 		wxStaticText* m_stDepth;
 		wxTextCtrl* m_textCtrl7;
 		wxCustomButton* m_btnApply;
+		wxStaticLine* m_staticline1;
+		wxStaticText* m_stTaskLog;
+		
+		wxStaticText* m_stLogLevel;
+		wxChoice* m_chLogLevel;
+		wxRichTextCtrl* m_rtTask;
 		wxPanel* m_pReports;
 		wxPanel* m_pSettings;
 		wxStaticText* m_stConVers;
@@ -95,10 +95,8 @@ class MainForm : public wxFrame
 		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
-		virtual void OnPauseTask( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnRunningTaskSelected( wxListEvent& event ){ event.Skip(); }
 		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnDelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnTaskSelected( wxListEvent& event ){ event.Skip(); }
