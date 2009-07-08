@@ -50,6 +50,56 @@ static const wxChar* gTaskStatus[] = {_("idle"),
                                       _("run (%d%%)"),
                                       _("paused (%d%%)")};
 
+static int sortOrder = 0; // for now - the boolean order: 0 - normal, -1 - reverse
+static int wxCALLBACK SortItemFunc(long item1, long item2, long ctrlPtr)
+{
+    wxListCtrl* ctrl = (wxListCtrl*)ctrlPtr;
+    wxListItem info1;
+    wxListItem info2;
+    long idx1, idx2;
+    int retVal;
+
+    retVal = 0;
+    if (ctrl) {
+        idx1 = ctrl->FindItem(-1, item1);
+        idx2 = ctrl->FindItem(-1, item2);
+        if (idx1 == -1) {
+            return 1;
+        }
+        if (idx2 == -1) {
+            return -1;
+        }
+        info1.SetId(idx1);
+        info1.SetColumn(0);
+        info1.SetMask(wxLIST_MASK_IMAGE);
+        ctrl->GetItem(info1);
+        idx1 = info1.GetImage();
+        if ( idx1 == 0) {
+            idx1 = 0xFFFFFF;
+        }
+
+        info2.SetId(idx2);
+        info2.SetColumn(0);
+        info2.SetMask(wxLIST_MASK_IMAGE);
+        ctrl->GetItem(info2);
+        idx2 = info2.GetImage();
+        if ( idx2 == 0) {
+            idx2 = 0xFFFFFF;
+        }
+
+        if ( idx1 < idx2 ) {
+            retVal = -1;
+        }
+        if ( idx1 > idx2 ) {
+            retVal = 1;
+        }
+        if ( sortOrder ) {
+            retVal *= -1;
+        }
+    }
+    return retVal;
+}
+
 wiMainForm::wiMainForm( wxWindow* parent ) :
         MainForm( parent ),
         m_cfgEngine(wxT("WebInvent")),
@@ -97,12 +147,15 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     label = wxString::FromAscii(AutoVersion::FULLVERSION_STRING) + wxT(" ");
     label += wxString::FromAscii(AutoVersion::STATUS);
 #if defined(__WXMSW__)
-        label << _T(" (Windows)");
+    label += _T(" (Windows)");
 #elif defined(__WXMAC__)
-        label << _T(" (Mac)");
+    label += _T(" (Mac)");
 #elif defined(__UNIX__)
-        label << _T(" (Linux)");
+    label += _T(" (Linux)");
 #endif
+#ifdef __WXDEBUG__
+    label += wxString::Format(wxT(" SVN build #%d"), AutoVersion::BUILDS_COUNT);
+#endif //__WXDEBUG__
     m_stConVersData->SetLabel(label);
     m_statusBar->SetStatusText(_("Disconnected"), 1);
     m_statusBar->SetStatusText(_("unknown"), 2);
@@ -333,6 +386,7 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
                 m_selectedTask = m_lstTaskList->GetItemCount() - 1;
             }
             SelectTask(m_selectedTask);
+            m_lstTaskList->SortItems(SortItemFunc, (long)m_lstTaskList);
         }
         else {
             m_statusBar->SetImage(wiSTATUS_BAR_NO);
@@ -378,6 +432,69 @@ void wiMainForm::OnAddTask( wxCommandEvent& event )
     ProcessTaskList();
 }
 
+void wiMainForm::OnDelTask( wxCommandEvent& event )
+{
+    wxString name;
+    wxListItem info;
+
+    if (m_selectedTask > -1)
+    {
+        info.SetId(m_selectedTask);
+        info.SetColumn(1);
+        info.SetMask(wxLIST_MASK_TEXT);
+        m_lstTaskList->GetItem(info);
+        name = wxString::Format(_("Are you sure to delete task '%s'?"), info.GetText());
+        int res = wxMessageBox(name, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
+        if (res == wxYES) {
+            int id = m_lstTaskList->GetItemData(m_selectedTask);
+            name = wxString::Format(wxT("%X"), id);
+            m_client->DoCmd(wxT("deltask"), name);
+
+            ProcessTaskList();
+        }
+    }
+}
+
+void wiMainForm::OnRunTask( wxCommandEvent& event )
+{
+    wxListItem info;
+
+    if (m_selectedTask > -1)
+    {
+        int id = m_lstTaskList->GetItemData(m_selectedTask);
+        wxString name = wxString::Format(wxT("%X"), id);
+        info.SetId(m_selectedTask);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_IMAGE);
+        m_lstTaskList->GetItem(info);
+        if (info.GetImage() == WI_TSK_IDLE) {
+            m_client->DoCmd(wxT("runtask"), name);
+        }
+        else if (info.GetImage() == WI_TSK_RUN) {
+            m_client->DoCmd(wxT("pausetask"), name);
+        }
+        else if (info.GetImage() == WI_TSK_PAUSED) {
+            m_client->DoCmd(wxT("resumetask"), name);
+        }
+
+        ProcessTaskList();
+    }
+}
+
+void wiMainForm::OnCancelTask( wxCommandEvent& event )
+{
+    wxListItem info;
+
+    if (m_selectedTask > -1)
+    {
+        int id = m_lstTaskList->GetItemData(m_selectedTask);
+        wxString name = wxString::Format(wxT("%X"), id);
+        m_client->DoCmd(wxT("canceltask"), name);
+
+        ProcessTaskList();
+    }
+}
+
 void wiMainForm::OnTaskSelected( wxListEvent& event )
 {
     SelectTask(event.GetIndex());
@@ -399,6 +516,7 @@ void wiMainForm::SelectTask(int id/* = -1*/)
             m_bpCancelTask->Disable();
             m_bpTaskDel->Enable();
             m_panTaskOpts->Enable();
+            m_cbInvent->Disable();
         }
         else if (info.GetImage() == WI_TSK_RUN) {
             m_bpTaskGo->Enable();
@@ -424,4 +542,10 @@ void wiMainForm::SelectTask(int id/* = -1*/)
         m_panTaskOpts->Disable();
     }
     Layout();
+}
+
+void wiMainForm::OnSortItems( wxListEvent& event )
+{
+    sortOrder = ~sortOrder;
+    m_lstTaskList->SortItems(SortItemFunc, (long)m_lstTaskList);
 }

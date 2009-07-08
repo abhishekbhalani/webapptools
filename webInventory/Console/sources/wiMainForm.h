@@ -53,7 +53,11 @@ protected:
     virtual void OnDelServer( wxCommandEvent& event );
     virtual void OnLangChange( wxCommandEvent& event );
     virtual void OnAddTask( wxCommandEvent& event );
+    virtual void OnDelTask( wxCommandEvent& event );
+    virtual void OnRunTask( wxCommandEvent& event );
+    virtual void OnCancelTask( wxCommandEvent& event );
     virtual void OnTaskSelected( wxListEvent& event );
+    virtual void OnSortItems( wxListEvent& event );
 
     void ProcessTaskList(const wxString& criteria = wxT(""));
     void Disconnected(bool mode = true);
