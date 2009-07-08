@@ -118,7 +118,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             processed = true;
         }
         //////////////////////////////////////////////////////////////////////////
-        // ADDTASKS command processing
+        // ADDTASK command processing
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "addtask"))
         {
@@ -127,11 +127,51 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             processed = true;
         }
         //////////////////////////////////////////////////////////////////////////
-        // DELTASKS command processing
+        // DELTASK command processing
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "deltask"))
         {
             msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            retval = 1;
+            processed = true;
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+        // CANCELTASK command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "canceltask"))
+        {
+            //msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            retval = 1;
+            processed = true;
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+        // RUNTASK command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "runtask"))
+        {
+            //msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            retval = 1;
+            processed = true;
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+        // PAUSETASK command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "pausetask"))
+        {
+            //msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            retval = 1;
+            processed = true;
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+        // RESUMETASK command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "resumetask"))
+        {
+            //msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
             retval = 1;
             processed = true;
         }

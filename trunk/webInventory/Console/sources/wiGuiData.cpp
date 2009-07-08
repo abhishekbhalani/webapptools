@@ -133,7 +133,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_txtTaskName = new wxTextCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	m_txtTaskName->SetMinSize( wxSize( 200,-1 ) );
 
-	gbSizer2->Add( m_txtTaskName, wxGBPosition( 0, 1 ), wxGBSpan( 1, 2 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	gbSizer2->Add( m_txtTaskName, wxGBPosition( 0, 1 ), wxGBSpan( 1, 2 ), wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND, 5 );
 
 	m_stBaseURL = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Base URL"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stBaseURL->Wrap( -1 );
@@ -147,7 +147,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxString m_rbDepthChoices[] = { _("Stay in dir"), _("Stay in host"), _("Stay in domain") };
 	int m_rbDepthNChoices = sizeof( m_rbDepthChoices ) / sizeof( wxString );
 	m_rbDepth = new wxRadioBox( m_panTaskOpts, wxID_ANY, _("Depth mode"), wxDefaultPosition, wxDefaultSize, m_rbDepthNChoices, m_rbDepthChoices, 1, wxRA_SPECIFY_COLS );
-	m_rbDepth->SetSelection( 1 );
+	m_rbDepth->SetSelection( 0 );
 	gbSizer2->Add( m_rbDepth, wxGBPosition( 2, 0 ), wxGBSpan( 3, 2 ), wxALL|wxEXPAND, 5 );
 
 	m_stDepth = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Scan depth"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -158,7 +158,14 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	gbSizer2->Add( m_textCtrl7, wxGBPosition( 3, 2 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
 
 	m_btnApply = new wxCustomButton( m_panTaskOpts, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
-	gbSizer2->Add( m_btnApply, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALIGN_RIGHT|wxALL, 5 );
+	gbSizer2->Add( m_btnApply, wxGBPosition( 0, 3 ), wxGBSpan( 2, 1 ), wxALIGN_RIGHT|wxALL, 5 );
+
+	m_cbInvent = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Inventory only"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_cbInvent->SetValue(true);
+
+	m_cbInvent->Enable( false );
+
+	gbSizer2->Add( m_cbInvent, wxGBPosition( 4, 2 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	bSizer11->Add( gbSizer2, 1, wxEXPAND, 0 );
 
@@ -322,6 +329,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_bpCancelTask->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ), NULL, this );
 	m_bpTaskNew->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ), NULL, this );
 	m_bpTaskDel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ), NULL, this );
+	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
 	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
 	m_bpConnect->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnConnect ), NULL, this );
 	m_bpServerNew->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ), NULL, this );
@@ -338,6 +346,7 @@ MainForm::~MainForm()
 	m_bpCancelTask->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ), NULL, this );
 	m_bpTaskNew->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ), NULL, this );
 	m_bpTaskDel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ), NULL, this );
+	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
 	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
 	m_bpConnect->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnConnect ), NULL, this );
 	m_bpServerNew->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ), NULL, this );

@@ -28,6 +28,7 @@ class wxCustomButton;
 #include <wx/listctrl.h>
 #include <wx/textctrl.h>
 #include <wx/radiobox.h>
+#include <wx/checkbox.h>
 #include <wx/gbsizer.h>
 #include <wx/panel.h>
 #include <wx/statline.h>
@@ -69,6 +70,7 @@ class MainForm : public wxFrame
 		wxStaticText* m_stDepth;
 		wxTextCtrl* m_textCtrl7;
 		wxCustomButton* m_btnApply;
+		wxCheckBox* m_cbInvent;
 		wxStaticLine* m_staticline1;
 		wxStaticText* m_stTaskLog;
 		
@@ -99,6 +101,7 @@ class MainForm : public wxFrame
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnDelTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnSortItems( wxListEvent& event ){ event.Skip(); }
 		virtual void OnTaskSelected( wxListEvent& event ){ event.Skip(); }
 		virtual void OnConnect( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddServer( wxCommandEvent& event ){ event.Skip(); }
