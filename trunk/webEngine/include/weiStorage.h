@@ -1,0 +1,75 @@
+/*
+    webEngine is the HTML processing library
+    Copyright (C) 2009 Andrew Abramov aabramov@ptsecurity.ru
+
+    This file is part of webEngine
+
+    webEngineis free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    webEngineis distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#ifndef __IWESTORAGE_H__
+#define __IWESTORAGE_H__
+
+#pragma once
+#include "weiPlugin.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @interface  iweStorage
+///
+/// @brief  Interface for storage subsystem.
+///
+/// @author A. Abramov, A. Yudin
+/// @date	14.07.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class iweStorage :
+    public iwePlugin
+{
+public:
+    iweStorage(void* handle = NULL);
+    virtual ~iweStorage(void);
+
+    // iwePlugin functions
+    virtual void* GetInterface(const string& ifName);
+    virtual char** GetIcon();
+    virtual const string InterfaceName();
+    virtual WeStringList InterfaceList();
+
+    // iweStorage functions
+    typedef enum { mask = 0xff} Operation;
+    static const Operation insert = (Operation)0x01;
+    static const Operation update = (Operation)0x02;
+    static const Operation remove = (Operation)0x03;
+    static const Operation autoop = (Operation)0xff;
+
+    virtual string GenerateID(string objType = "");
+
+    virtual int Query(const string& objType, Operation op, const string& xmlData);
+    virtual int Report(const string& repType, const string& xmlData, string& result);
+
+    virtual int Delete(const string& objType, const string& xmlData);
+
+    virtual int TaskSave(const string& xmlData, Operation op = iweStorage::autoop);
+    virtual int DictionarySave(const string& xmlData, Operation op = iweStorage::autoop);
+    virtual int AuthorizationSave(const string& xmlData, Operation op = iweStorage::autoop);
+    virtual int SystemOptionsSave(const string& xmlData, Operation op = iweStorage::autoop);
+
+    virtual int TaskReport(const string& xmlData, string& result);
+    virtual int DictionaryReport(const string& xmlData, string& result);
+    virtual int AuthorizationReport(const string& xmlData, string& result);
+    virtual int SystemOptionsReport(const string& xmlData, string& result);
+
+protected:
+    static int lastId;
+};
+
+#endif //__IWESTORAGE_H__
