@@ -20,6 +20,7 @@
 
 #include "server.h"
 #include <weHelper.h>
+#include <weDispatch.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -33,6 +34,8 @@
 
 using namespace std;
 namespace po = boost::program_options;
+
+WeDispatch* globalDispatcher = NULL;
 
 class ProgramConfig
 {
@@ -146,9 +149,14 @@ int main(int argc, char* argv[])
         LOG4CXX_INFO(WeLogger::GetLogger(), "Listener port is " << configuration.port);
         boost::asio::io_service io_service;
 
-        server s(io_service, configuration.port);
+        globalDispatcher = new WeDispatch;
+        if (globalDispatcher != NULL)
+        {
+            LOG4CXX_INFO(WeLogger::GetLogger(), "Dispatcher created successfully");
 
-        io_service.run();
+            server s(io_service, configuration.port);
+            io_service.run();
+        }
     }
     catch (std::exception& e)
     {

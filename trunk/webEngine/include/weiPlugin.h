@@ -4,12 +4,12 @@
 
     This file is part of webEngine
 
-    webEngineis free software: you can redistribute it and/or modify
+    webEngine is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    webEngineis distributed in the hope that it will be useful,
+    webEngine is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
@@ -19,12 +19,23 @@
 */
 #ifndef __WEIPLUGIN_H__
 #define __WEIPLUGIN_H__
+#include "weiBase.h"
 #include <string>
 #include <boost/shared_ptr.hpp>
 #include "weStrings.h"
 
 using namespace boost;
 using namespace std;
+
+struct WePluginInfo
+{
+    string  PluginId;
+    string  PluginDesc;
+    string  IfaceName;
+    WeStringList IfaceList;
+    char**  PluginIcon;
+    int     PluginStatus;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  iwePlugin
@@ -52,7 +63,7 @@ public:
     ///
     /// @param  handle - The handle to the contained library.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    iwePlugin(void* handle = NULL) { usageCount = 0; libHandle = handle; };
+    iwePlugin(void* handle = NULL);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual ~iwePlugin()
@@ -60,15 +71,6 @@ public:
     /// @brief  Finaliser.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual ~iwePlugin() {};
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual shared_ptr<iwePlugin> GetRef()
-    ///
-    /// @brief  Adds  reference
-    ///
-    /// Must be used instead the copying the object
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual shared_ptr<iwePlugin>& GetRef() { return (* new shared_ptr<iwePlugin>(this)); };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual void* GetInterface(const string& ifName)
@@ -82,7 +84,16 @@ public:
     ///
     /// @retval	null if it fails, else the interface.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void* GetInterface(const string& ifName) = 0;
+    virtual void* GetInterface(const string& ifName);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn virtual void Release()
+    ///
+    /// @brief  Releases this object.
+    ///
+    /// Decrease usage counter and destroy object if counter is NULL
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void Release();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual const string InterfaceName()
@@ -109,7 +120,7 @@ public:
     ///
     /// @retval	The description.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string GetDesc() = 0;
+    virtual const string GetDesc();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn	virtual const string& GetID() = 0
@@ -120,7 +131,7 @@ public:
     ///
     /// @retval	The identifier.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string GetID() = 0;
+    virtual const string GetID();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual char* GetIcon() = 0
@@ -132,18 +143,30 @@ public:
     ///
     /// @retval null if no icon, else the icon.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual char** GetIcon() = 0;
+    virtual char** GetIcon();
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn	const WePluginInfo* Info(void)
+    ///
+    /// @brief	Returns information about this object. 
+    ///
+    /// @retval	null if it fails, WePluginInfo else. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    const WePluginInfo* Info(void) { return &pluginInfo; };
 
 #ifndef __DOXYGEN__
 protected:
     int usageCount;
     void* libHandle;
+    WePluginInfo pluginInfo;
 
 private:
     iwePlugin(iwePlugin&) {};               ///< Avoid object copying
     iwePlugin& operator=(iwePlugin&) { return *this; };    ///< Avoid object copying
 #endif // __DOXYGEN__
 };
+
+typedef vector<WePluginInfo> WePluginList;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @typedef    void* (*fnWePluginFactory)(void)
@@ -172,6 +195,6 @@ typedef void* (*fnWePluginFactory)(void);
 ///
 /// @retval null if it fails, the iwePlugin interface else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-extern shared_ptr<iwePlugin>& weLoadPlugin(const string& libName);
+extern iwePlugin* weLoadPlugin(const string& libName);
 
 #endif //__WEIPLUGIN_H__
