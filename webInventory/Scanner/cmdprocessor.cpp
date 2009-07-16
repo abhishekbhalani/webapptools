@@ -175,6 +175,24 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             retval = 1;
             processed = true;
         }
+        //////////////////////////////////////////////////////////////////////////
+        // TRANSPORTS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "transports"))
+        {
+            //msg.data = AddTask(msg.data);
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // PLUGINS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "plugins"))
+        {
+            //msg.data = AddTask(msg.data);
+            retval = 1;
+            processed = true;
+        }
 
         //////////////////////////////////////////////////////////////////////////
         // finalization

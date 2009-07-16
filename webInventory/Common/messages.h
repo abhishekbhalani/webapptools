@@ -77,4 +77,29 @@ private:
     };
 };
 
+class PluginInfo
+{
+public:
+    string  PluginId;
+    string  PluginDesc;
+    string  IfaceName;
+    vector<string> IfaceList;
+    char**  PluginIcon;
+    int     PluginStatus;
+private:
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & BOOST_SERIALIZATION_NVP(PluginId);
+        ar & BOOST_SERIALIZATION_NVP(PluginDesc);
+        ar & BOOST_SERIALIZATION_NVP(IfaceName);
+        ar & BOOST_SERIALIZATION_NVP(IfaceList);
+        ar & BOOST_SERIALIZATION_NVP(PluginIcon);
+        ar & BOOST_SERIALIZATION_NVP(PluginStatus);
+    };
+};
+
+typedef vector<PluginInfo> PluginList;
+
 #endif //__MESSAGES_H__

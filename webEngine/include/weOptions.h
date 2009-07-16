@@ -4,12 +4,12 @@
 
     This file is part of webEngine
 
-    webEngineis free software: you can redistribute it and/or modify
+    webEngine is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    webEngineis distributed in the hope that it will be useful,
+    webEngine is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
@@ -141,19 +141,30 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // Define options names
 //////////////////////////////////////////////////////////////////////////
-extern string weoTransport;
-extern string weoParser;
-extern string weoFollowLinks;       ///< put all founded links into the processing queue
-extern string weoLoadImages;        ///< automatically load images as WeRefrenceObject
-extern string weoLoadScripts;       ///< automatically load scripts as WeRefrenceObject
-extern string weoLoadFrames;        ///< automatically load frames as WeRefrenceObject
-extern string weoLoadIframes;       ///< automatically load iframes as WeRefrenceObject
-extern string weoCollapseSpaces;    ///< collapse multiple spaces into one then HTML parse
-extern string weoStayInDomain;      ///< do not leave domain of the request (second-level or higher)
-extern string weoStayInHost;        ///< includes weoStayInDomain
-extern string weoStayInDir;         ///< includes woeStayInHost & weoStayInDomain
-extern string weoAutoProcess;       ///< start response processing automatically
-extern string weoCheckForLoops;     ///< controls the relocation loops and duplicates
+#define weoTransport         ("TransportName")
+#define weoParser            ("ParserName")
+/// put all founded links into the processing queue
+#define weoFollowLinks       ("FollowLinks")
+/// automatically load images as WeRefrenceObject
+#define weoLoadImages        ("LoadImages")
+/// automatically load scripts as WeRefrenceObject
+#define weoLoadScripts       ("LoadScripts")
+/// automatically load frames as WeRefrenceObject
+#define weoLoadFrames        ("LoadFrames")
+/// collapse multiple spaces into one then HTML parse
+#define weoLoadIframes       ("LoadIframes")
+/// collapse multiple spaces into one then HTML parse
+#define weoCollapseSpaces    ("CollapseSpaces")
+/// do not leave domain of the request (second-level or higher)
+#define weoStayInDomain      ("StayInDomain")
+/// includes weoStayInDomain
+#define weoStayInHost        ("StayInHost")
+/// includes woeStayInHost & weoStayInDomain
+#define weoStayInDir         ("StayInDir")
+/// start response processing automatically
+#define weoAutoProcess       ("AutoProcess")
+/// controls the relocation loops and duplicates
+#define weoCheckForLoops     ("CheckForLoops")
 //////////////////////////////////////////////////////////////////////////
 
 #endif //__WEOPTIONS_H__

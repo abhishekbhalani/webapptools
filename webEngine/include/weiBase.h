@@ -4,12 +4,12 @@
 
     This file is part of webEngine
 
-    webEngineis free software: you can redistribute it and/or modify
+    webEngine is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    webEngineis distributed in the hope that it will be useful,
+    webEngine is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <map>
 #include <vector>
+#include <stdexcept>
 #include "weLogger.h"
 
 using namespace std;
@@ -133,8 +134,6 @@ private:
     BOOST_SERIALIZATION_SPLIT_MEMBER();
 };
 
-template <typename _Key, typename _Val>
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  WeLinkedList
 ///
@@ -143,6 +142,7 @@ template <typename _Key, typename _Val>
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+template <typename _Key, typename _Val>
 class WeLinkedList
 {
 public:
@@ -256,7 +256,7 @@ public:
         }
     };
 
-    WeLinkedListElem<_Key, _Val>* First()     { return (data);    };
+    WeLinkedListElem<_Key, _Val>* First() { curr = data; return (curr); };
     WeLinkedListElem<_Key, _Val>* Last()
     {
         if (curr == NULL) {
@@ -267,7 +267,7 @@ public:
         }
         return curr;
     };
-    WeLinkedListElem<_Key, _Val>* Current()   { return curr;  };
+    WeLinkedListElem<_Key, _Val>* Current() { return curr;  };
     void Erase()
     {
         WeLinkedListElem<_Key, _Val>* obj;
