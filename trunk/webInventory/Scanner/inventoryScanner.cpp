@@ -24,6 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
@@ -33,6 +34,7 @@
 #include "taskOperations.h"
 
 using namespace std;
+using namespace boost::filesystem;
 namespace po = boost::program_options;
 
 WeDispatch* globalDispatcher = NULL;
@@ -42,6 +44,8 @@ class ProgramConfig
 public:
     short   port;
     string  dbDir;
+    string  storageIface;
+    string  fileDB;
 private:
     friend class boost::serialization::access;
     template<class Archive>
@@ -49,6 +53,8 @@ private:
     {
         ar & BOOST_SERIALIZATION_NVP(port);
         ar & BOOST_SERIALIZATION_NVP(dbDir);
+        ar & BOOST_SERIALIZATION_NVP(storageIface);
+        ar & BOOST_SERIALIZATION_NVP(fileDB);
     };
 };
 
@@ -61,6 +67,8 @@ int main(int argc, char* argv[])
         // initialization
         configuration.port = 8080;
         configuration.dbDir = ".";
+        configuration.storageIface = "D82B31419339";
+        configuration.fileDB = "sample.db";
 
         // Declare the supported options.
         po::options_description desc("Allowed options");
@@ -96,7 +104,6 @@ int main(int argc, char* argv[])
             return 1;
         }
         if (vm.count("generate")) {
-
             // save data to archive
             try
             {
@@ -153,9 +160,29 @@ int main(int argc, char* argv[])
         if (globalDispatcher != NULL)
         {
             LOG4CXX_INFO(WeLogger::GetLogger(), "Dispatcher created successfully");
+            iwePlugin* plugin = globalDispatcher->LoadPlugin(configuration.storageIface);
 
-            server s(io_service, configuration.port);
-            io_service.run();
+            if (plugin != NULL) {
+                LOG4CXX_INFO(WeLogger::GetLogger(), "Storage plugin loaded successfully.");
+                LOG4CXX_INFO(WeLogger::GetLogger(), "Plugin ID=" << plugin->GetID() << "; Description: " << plugin->GetDesc());
+                iweStorage* storage = (iweStorage*)plugin->GetInterface("iweStorage");
+
+                if (storage != NULL)
+                {
+                    path cfgPath( configuration.dbDir );
+                    cfgPath /= configuration.fileDB;
+                    storage->InitStorage(cfgPath.string());
+                    globalDispatcher->Storage(storage);
+                    server s(io_service, configuration.port);
+                    io_service.run();
+                }
+                else {
+                    LOG4CXX_FATAL(WeLogger::GetLogger(), "No iweStorage interface in the plugin " << plugin->GetID());
+                }
+            }
+            else {
+                LOG4CXX_FATAL(WeLogger::GetLogger(), "Can't load the plugin " << configuration.storageIface);
+            }
         }
     }
     catch (std::exception& e)

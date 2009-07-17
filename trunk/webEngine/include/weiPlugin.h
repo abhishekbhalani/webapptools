@@ -35,6 +35,7 @@ struct WePluginInfo
     WeStringList IfaceList;
     char**  PluginIcon;
     int     PluginStatus;
+    string  PluginPath;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
