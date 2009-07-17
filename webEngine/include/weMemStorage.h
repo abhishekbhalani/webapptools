@@ -43,6 +43,7 @@ public:
     virtual void* GetInterface(const string& ifName);
 
     // iweStorage functions
+    virtual bool InitStorage(const string& params);
     virtual int Query(const string& objType, Operation op, const string& xmlData);
     virtual int Report(const string& repType, const string& xmlData, string& result);
 
@@ -53,6 +54,7 @@ public:
     void Load(const string& fileName);
 
 protected:
+    string fileName;
     WeStringMap tasks;
     WeStringMap dicts;
     WeStringMap auths;
