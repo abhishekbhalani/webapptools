@@ -198,7 +198,7 @@ protected:
 class WeHTTP : public iweTransport
 {
 public:
-    WeHTTP();
+    WeHTTP(WeDispatch* krnl, void* handle = NULL);
     ~WeHTTP();
 
     virtual void* GetInterface( const string& ifName );
@@ -224,8 +224,6 @@ protected:
 
 private:
     static string   protoName;
-    WeHTTP(WeHTTP&) {};             ///< Avoid object coping
-    WeHTTP& operator=(WeHTTP&) { return *this; };  ///< Avoid object coping
 #endif //__DOXYGEN__
 };
 

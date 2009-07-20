@@ -72,7 +72,7 @@
             <event name="OnUpdateUI"></event>
             <object class="wxBoxSizer" expanded="1">
                 <property name="minimum_size"></property>
-                <property name="name">bSizer9</property>
+                <property name="name">bSizer1</property>
                 <property name="orient">wxVERTICAL</property>
                 <property name="permission">none</property>
                 <object class="sizeritem" expanded="1">
@@ -108,7 +108,7 @@
                                 <property name="label">Parameter</property>
                                 <property name="maximum_size"></property>
                                 <property name="minimum_size"></property>
-                                <property name="name">m_staticText18</property>
+                                <property name="name">m_staticText1</property>
                                 <property name="permission">public</property>
                                 <property name="pos"></property>
                                 <property name="size"></property>
@@ -162,7 +162,7 @@
                                 <property name="maximum_size"></property>
                                 <property name="maxlength">0</property>
                                 <property name="minimum_size"></property>
-                                <property name="name">m_textCtrl7</property>
+                                <property name="name">m_textCtrl1</property>
                                 <property name="permission">public</property>
                                 <property name="pos"></property>
                                 <property name="size"></property>
@@ -275,7 +275,7 @@
                                 <property name="label">Parameter</property>
                                 <property name="maximum_size"></property>
                                 <property name="minimum_size"></property>
-                                <property name="name">m_staticText181</property>
+                                <property name="name">m_staticText3</property>
                                 <property name="permission">public</property>
                                 <property name="pos"></property>
                                 <property name="size"></property>
@@ -329,7 +329,7 @@
                                 <property name="id">wxID_ANY</property>
                                 <property name="maximum_size"></property>
                                 <property name="minimum_size"></property>
-                                <property name="name">m_choice4</property>
+                                <property name="name">m_choice3</property>
                                 <property name="permission">public</property>
                                 <property name="pos"></property>
                                 <property name="selection">0</property>
@@ -385,7 +385,7 @@
                                 <property name="majorDimension">1</property>
                                 <property name="maximum_size"></property>
                                 <property name="minimum_size"></property>
-                                <property name="name">m_radioBox2</property>
+                                <property name="name">m_radioBox4</property>
                                 <property name="permission">protected</property>
                                 <property name="pos"></property>
                                 <property name="selection">0</property>
@@ -438,7 +438,7 @@
                         <property name="Save">0</property>
                         <property name="Yes">0</property>
                         <property name="minimum_size"></property>
-                        <property name="name">m_sdbSizer2</property>
+                        <property name="name">m_sdbSizer1</property>
                         <property name="permission">public</property>
                         <event name="OnApplyButtonClick"></event>
                         <event name="OnCancelButtonClick"></event>

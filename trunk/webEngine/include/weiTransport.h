@@ -180,10 +180,10 @@ class WeTransportFactory;
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class iweTransport : virtual public iweOptionsProvider,
-    virtual public iwePlugin
+    public iwePlugin
 {
 public:
-    iweTransport(void* handle = NULL );
+    iweTransport(WeDispatch* krnl, void* handle = NULL );
     virtual ~iweTransport() {};
 
     virtual iweResponse* Request(string url, iweResponse *resp = NULL) = 0;
@@ -240,11 +240,6 @@ protected:
     iweOptionsProvider* parent;
 
 private:
-    //@{
-    /// @brief Avoid object coping
-    iweTransport(iweTransport & source) {};
-    iweTransport & operator=(iweTransport & source) { return *this; };
-    //@}
 #endif //__DOXYGEN__
 };
 

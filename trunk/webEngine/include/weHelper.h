@@ -38,7 +38,7 @@ also presented in this module.
 #include "weHtmlEntity.h"
 
 typedef WeHtmlEntity* (*EntityFactory)(iweEntity* prnt);
-typedef iweTransport* (*TransportFactory)();
+typedef iweTransport* (*TransportFactory)(WeDispatch* krnl);
 
 // typedef WeLinkedListElem<string, EntityFactory> WeHtmlFuncList;
 // typedef WeLinkedListElem<string, TransportFactory> WeTranspFuncList;
@@ -74,7 +74,7 @@ public:
     WeTransportFactory();
     void Init();
     void Add(string name, TransportFactory func);
-    iweTransport* CreateTransport(string tagName);
+    iweTransport* CreateTransport(string tagName, WeDispatch* krnl);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

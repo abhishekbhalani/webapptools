@@ -173,6 +173,9 @@ int main(int argc, char* argv[])
                     cfgPath /= configuration.fileDB;
                     storage->InitStorage(cfgPath.string());
                     globalDispatcher->Storage(storage);
+                    cfgPath = argv[0];
+                    cfgPath = cfgPath.remove_filename();
+                    globalDispatcher->RefreshPluginList(cfgPath);
                     server s(io_service, configuration.port);
                     io_service.run();
                 }

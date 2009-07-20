@@ -20,6 +20,7 @@
 #ifndef __WEDISPATCH_H__
 #define __WEDISPATCH_H__
 #pragma once
+#include <boost/filesystem.hpp>
 #include "weoptions.h"
 #include "weiPlugin.h"
 #include "weMemStorage.h"
@@ -43,7 +44,7 @@ public:
 
     // Access the PluginList
     const WePluginList &PluginList(void) const  { return(pluginList); };
-    void RefreshPluginList(void);
+    void RefreshPluginList(boost::filesystem::path& baseDir);
 
     iwePlugin* LoadPlugin(string id);
     

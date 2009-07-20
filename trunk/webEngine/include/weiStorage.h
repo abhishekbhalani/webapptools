@@ -35,7 +35,7 @@ class iweStorage :
     public iwePlugin
 {
 public:
-    iweStorage(void* handle = NULL);
+    iweStorage(WeDispatch* krnl, void* handle = NULL);
     virtual ~iweStorage(void);
 
     // iwePlugin functions
