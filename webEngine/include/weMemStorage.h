@@ -36,7 +36,7 @@ class WeMemStorage :
     public iweStorage
 {
 public:
-    WeMemStorage(void* handle = NULL);
+    WeMemStorage(WeDispatch* krnl, void* handle = NULL);
     ~WeMemStorage(void);
 
     // iwePlugin functions

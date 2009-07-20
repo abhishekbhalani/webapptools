@@ -26,10 +26,15 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <strstream>
+#include <weiBase.h>
 #include <weLogger.h>
+#include <weDispatch.h>
 #include "messages.h"
 #include "version.h"
 #include "taskOperations.h"
+
+extern WeDispatch* globalDispatcher;
+string GetPluginList(string filter);
 
 int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
 {
@@ -189,7 +194,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "plugins"))
         {
-            //msg.data = AddTask(msg.data);
+            msg.data = GetPluginList(msg.data);
             retval = 1;
             processed = true;
         }
@@ -219,3 +224,33 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
     return retval;
 }
 
+string GetPluginList(string filter)
+{
+    filter = ""; // not used
+    string retval = "";
+    WePluginList lst = globalDispatcher->PluginList();
+    PluginList respList;
+    PluginInfo *info;
+    WePluginList::iterator plugs;
+    
+    for(plugs = lst.begin(); plugs != lst.end(); plugs++)
+    {
+        info = new PluginInfo();
+        info->PluginId = (*plugs).PluginId;
+        info->PluginDesc = (*plugs).PluginDesc;
+        info->IfaceName = (*plugs).IfaceName;
+        info->IfaceList.assign((*plugs).IfaceList.begin(), (*plugs).IfaceList.end());
+        info->PluginIcon = (*plugs).PluginIcon;
+        info->PluginStatus = (*plugs).PluginStatus;
+        respList.push_back(*info);
+    }
+    { // auto-destroy block for output stream
+        ostrstream oss;
+        { // auto-destroy block for xml_oarchive
+            boost::archive::xml_oarchive oa(oss);
+            oa << BOOST_SERIALIZATION_NVP(respList);
+        }
+        retval = string(oss.str(), oss.rdbuf()->pcount());
+    }
+    return retval;
+}

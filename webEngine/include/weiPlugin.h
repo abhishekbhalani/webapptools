@@ -33,10 +33,13 @@ struct WePluginInfo
     string  PluginDesc;
     string  IfaceName;
     WeStringList IfaceList;
-    char**  PluginIcon;
+    WeStringList PluginIcon;
     int     PluginStatus;
     string  PluginPath;
 };
+
+// forward declaration
+class WeDispatch;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  iwePlugin
@@ -64,12 +67,22 @@ public:
     ///
     /// @param  handle - The handle to the contained library.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    iwePlugin(void* handle = NULL);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn iwePlugin(WeDispatch* krnl,
+    /// 	void* handle = NULL)
+    ///
+    /// @brief  Constructor. 
+    ///
+    /// @param  krnl   - Back link to the kernel
+    /// @param  handle - The handle to the contained library. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    iwePlugin(WeDispatch* krnl, void* handle = NULL);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual ~iwePlugin()
     ///
-    /// @brief  Finaliser.
+    /// @brief  Destructor.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual ~iwePlugin() {};
 
@@ -135,7 +148,7 @@ public:
     virtual const string GetID();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual char* GetIcon() = 0
+    /// @fn virtual char* GetIcon()
     ///
     /// @brief  Gets the icon.
     ///
@@ -144,7 +157,7 @@ public:
     ///
     /// @retval null if no icon, else the icon.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual char** GetIcon();
+    virtual WeStringList GetIcon();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn	const WePluginInfo* Info(void)
@@ -155,11 +168,30 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     const WePluginInfo* Info(void) { return &pluginInfo; };
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn virtual const string GetSetupUI( void )
+    ///
+    /// @brief  Gets the user interface for the setup dialog. 
+    ///
+    /// @retval The user interface in the XRC format (wxWidgets) or empty string if no setup dialog. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual const string GetSetupUI( void ) { return ""; };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn virtual void ApplySettings( const string& xmlData )
+    ///
+    /// @brief  Applies the settings described by xmlData.
+    ///
+    /// @param  xmlData	 - Plugin settings describing the XML. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void ApplySettings( const string& xmlData ) {};
+
 #ifndef __DOXYGEN__
 protected:
     int usageCount;
     void* libHandle;
     WePluginInfo pluginInfo;
+    WeDispatch* kernel;
 
 private:
     iwePlugin(iwePlugin&) {};               ///< Avoid object copying
@@ -177,25 +209,22 @@ typedef vector<WePluginInfo> WePluginList;
 /// @author A. Abramov
 /// @date   19.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef void* (*fnWePluginFactory)(void);
+typedef void* (*fnWePluginFactory)(void* kernel, void* handle);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn shared_ptr<iwePlugin> weLoadPlugin(const string& libName)
+/// @fn WeStringList WeXpmToStringList(char** xpm,
+/// 	int lines)
 ///
-/// @brief  Load plugin library.
-///
-/// This function performs the platform-specific actions to load dynamic library and obtain the
-/// iwePlugin interface.@n
-/// The library must provide undecorated function (extern "C" specification) named @b WePluginFactory
-/// to create the new instance of the contained plugin. Each library contains only one plugin.@n
+/// @brief  Convetrs XPM to string list. 
 ///
 /// @author A. Abramov
-/// @date   19.06.2009
+/// @date   20.07.2009
 ///
-/// @param  libName	 - Name of the library.
+/// @param  xpm   - The XPM image. 
+/// @param  lines - The number of lines in the XPM. 
 ///
-/// @retval null if it fails, the iwePlugin interface else.
+/// @retval	. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-extern iwePlugin* weLoadPlugin(const string& libName);
+WeStringList WeXpmToStringList(char** xpm, int lines);
 
 #endif //__WEIPLUGIN_H__

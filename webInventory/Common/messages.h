@@ -20,7 +20,9 @@
 #ifndef __MESSAGES_H__
 #define __MESSAGES_H__
 #include <string>
+#include <list>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/list.hpp>
 
 using namespace std;
 using namespace boost;
@@ -84,7 +86,7 @@ public:
     string  PluginDesc;
     string  IfaceName;
     vector<string> IfaceList;
-    char**  PluginIcon;
+    list<string>  PluginIcon;
     int     PluginStatus;
 private:
     friend class boost::serialization::access;
