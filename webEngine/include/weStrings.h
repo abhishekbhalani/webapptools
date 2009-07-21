@@ -29,7 +29,7 @@ using namespace std;
 
 typedef map<string, string> WeStringMap;
 typedef orderedmap<string, string> WeAttrMap;
-typedef list<string> WeStringList;
+typedef vector<string> WeStringList;
 typedef WeLinkedListElem<string, string> WeLinkedString;
 typedef WeLinkedList<string, string> WeLinkedListStr;
 

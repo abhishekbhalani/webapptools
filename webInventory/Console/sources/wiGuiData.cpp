@@ -311,6 +311,43 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	fgSizer2->Add( bSizer7, 1, wxEXPAND, 5 );
 
+	m_staticText18 = new wxStaticText( m_pSettings, wxID_ANY, _("Scanner plugins:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText18->Wrap( -1 );
+	fgSizer2->Add( m_staticText18, 0, wxALL, 5 );
+
+	m_pluginsDock = new wxScrolledWindow( m_pSettings, wxID_ANY, wxDefaultPosition, wxSize( 520,300 ), wxHSCROLL|wxVSCROLL );
+	m_pluginsDock->SetScrollRate( 5, 5 );
+	m_pluginsDock->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_INFOBK ) );
+	m_pluginsDock->SetMinSize( wxSize( 520,300 ) );
+
+	wxBoxSizer* bSizer9;
+	bSizer9 = new wxBoxSizer( wxVERTICAL );
+
+	bSizer9->SetMinSize( wxSize( 500,300 ) );
+	m_gbPluginsGrid = new wxGridBagSizer( 0, 0 );
+	m_gbPluginsGrid->AddGrowableCol( 1 );
+	m_gbPluginsGrid->SetFlexibleDirection( wxBOTH );
+	m_gbPluginsGrid->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_gbPluginsGrid->SetMinSize( wxSize( 500,-1 ) );
+	m_btPluginIcon = new wxButton( m_pluginsDock, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 24,-1 ), wxNO_BORDER );
+	m_gbPluginsGrid->Add( m_btPluginIcon, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL|wxEXPAND, 0 );
+
+	m_btPluginDesc = new wxButton( m_pluginsDock, wxID_ANY, _("Description"), wxDefaultPosition, wxDefaultSize, wxNO_BORDER );
+	m_gbPluginsGrid->Add( m_btPluginDesc, wxGBPosition( 0, 1 ), wxGBSpan( 1, 1 ), wxALL|wxEXPAND, 0 );
+
+	m_btPluginIface = new wxButton( m_pluginsDock, wxID_ANY, _("Interface"), wxDefaultPosition, wxSize( 120,-1 ), wxNO_BORDER );
+	m_gbPluginsGrid->Add( m_btPluginIface, wxGBPosition( 0, 2 ), wxGBSpan( 1, 1 ), wxALL|wxEXPAND, 0 );
+
+	m_btPluginSetup = new wxButton( m_pluginsDock, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER );
+	m_gbPluginsGrid->Add( m_btPluginSetup, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALL|wxEXPAND, 0 );
+
+	bSizer9->Add( m_gbPluginsGrid, 1, wxEXPAND, 5 );
+
+	m_pluginsDock->SetSizer( bSizer9 );
+	m_pluginsDock->Layout();
+	fgSizer2->Add( m_pluginsDock, 1, wxEXPAND|wxLEFT, 5 );
+
 	m_pSettings->SetSizer( fgSizer2 );
 	m_pSettings->Layout();
 	fgSizer2->Fit( m_pSettings );

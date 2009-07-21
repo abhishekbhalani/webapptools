@@ -44,10 +44,9 @@ public:
 
     // iweStorage functions
     virtual bool InitStorage(const string& params);
-    virtual int Query(const string& objType, Operation op, const string& xmlData);
-    virtual int Report(const string& repType, const string& xmlData, string& result);
-
-    virtual int Delete(const string& objType, const string& xmlData);
+    virtual void Flush(const string& params = "");
+    virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData);
+    virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result);
 
     // WeMemStorage functions
     void Save(const string& fileName);

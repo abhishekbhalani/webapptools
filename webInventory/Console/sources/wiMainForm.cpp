@@ -24,6 +24,8 @@
  **************************************************************/
 #include <wx/filename.h>
 #include <wx/wupdlock.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/fs_mem.h>
 #include "wiStatBar.h"
 #include "wiServDialog.h"
 #include "wiMainForm.h"
@@ -100,6 +102,19 @@ static int wxCALLBACK SortItemFunc(long item1, long item2, long ctrlPtr)
     return retVal;
 }
 
+static char** StringListToXpm(vector<string>& data)
+{
+    size_t lstSize = data.size();
+    size_t i = 0;
+    char** retval = new char*[lstSize];
+    vector<string>::iterator line;
+
+    for (line = data.begin(); line != data.end(); line++) {
+        retval[i++] = strdup((*line).c_str());
+    }
+    return retval;
+}
+
 wiMainForm::wiMainForm( wxWindow* parent ) :
         MainForm( parent ),
         m_cfgEngine(wxT("WebInvent")),
@@ -109,6 +124,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
 {
     connStatus = true;
     wxInitAllImageHandlers();
+    wxFileSystem::AddHandler(new wxMemoryFSHandler);
+    wxXmlResource::Get()->InitAllHandlers();
+
     SetIcon(wxICON(mainicon));
 
     wxString fname;
@@ -142,6 +160,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_lstTaskList->SetImageList(&m_lstImages, wxIMAGE_LIST_SMALL);
 
     m_lstTaskList->DeleteAllItems();
+
+    m_plugins = 0;
+    m_plugList = NULL;
 
     wxString label;
     label = wxString::FromAscii(AutoVersion::FULLVERSION_STRING) + wxT(" ");
@@ -246,6 +267,7 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
             host = m_client->GetScannerVersion();
             if (!host.IsEmpty()) {
                 Connected();
+                GetPluginList();
                 m_stSrvVersData->SetLabel(host);
                 m_statusBar->SetStatusText(label, 2);
             }
@@ -371,14 +393,14 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
             wxWindowUpdateLocker taskList(m_lstTaskList);
 
             m_lstTaskList->DeleteAllItems();
-            for (lstSize = 0; lstSize < lst->task.size(); lstSize++) {
-                wxString idStr = wxString::FromAscii(lst->task[lstSize].id.c_str());
+            for (lstSize = 0; lstSize < lst->size(); lstSize++) {
+                wxString idStr = wxString::FromAscii((*lst)[lstSize].id.c_str());
                 idStr.ToLong(&idLong, 16);
                 idx = m_lstTaskList->GetItemCount();
-                m_lstTaskList->InsertItem(idx, lst->task[lstSize].status);
-                m_lstTaskList->SetItem(idx, 1, wxString::FromAscii(lst->task[lstSize].name.c_str()));
-                if (lst->task[lstSize].status >= 0 && lst->task[lstSize].status < WI_TSK_MAX) {
-                    m_lstTaskList->SetItem(idx, 2, wxString::Format(gTaskStatus[lst->task[lstSize].status], lst->task[lstSize].completion));
+                m_lstTaskList->InsertItem(idx, (*lst)[lstSize].status);
+                m_lstTaskList->SetItem(idx, 1, wxString::FromAscii((*lst)[lstSize].name.c_str()));
+                if ((*lst)[lstSize].status >= 0 && (*lst)[lstSize].status < WI_TSK_MAX) {
+                    m_lstTaskList->SetItem(idx, 2, wxString::Format(gTaskStatus[(*lst)[lstSize].status], (*lst)[lstSize].completion));
                 }
                 m_lstTaskList->SetItemData(idx, idLong);
             }
@@ -548,4 +570,91 @@ void wiMainForm::OnSortItems( wxListEvent& event )
 {
     sortOrder = ~sortOrder;
     m_lstTaskList->SortItems(SortItemFunc, (long)m_lstTaskList);
+}
+
+void wiMainForm::GetPluginList()
+{
+    int i;
+    wxGBSizerItem* item;
+    size_t lstSize;
+
+    m_pluginsDock->Freeze();
+    for(i = 0; i < m_plugins; i++) {
+        item = m_gbPluginsGrid->FindItemAtPosition(wxGBPosition(i+1, 0));
+        if (item != NULL) {
+            m_gbPluginsGrid->Remove(item->GetWindow());
+            delete item;
+        }
+    }
+    if (m_plugList != NULL) {
+        delete m_plugList;
+    }
+    if(m_client != NULL) {
+        m_plugList = m_client->GetPluginList();
+        if (m_plugList != NULL) {
+            m_plugins = 0;
+            for (lstSize = 0; lstSize < m_plugList->size(); lstSize++) {
+                wxString label;
+
+                label = wxString::FromAscii((*m_plugList)[lstSize].PluginDesc.c_str());
+
+                wxStaticText *txt = new wxStaticText( m_pluginsDock, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, 0 );
+                m_gbPluginsGrid->Add(txt, wxGBPosition(m_plugins+1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+
+                wxChoice *cho = new wxChoice( m_pluginsDock, wxID_ANY, wxDefaultPosition, wxSize(120, -1), 0, NULL, 0 );
+                for (i = 0; i < (*m_plugList)[lstSize].IfaceList.size(); i++)
+                {
+                    cho->Append(wxString::FromAscii((*m_plugList)[lstSize].IfaceList[i].c_str()));
+                }
+                if (cho->GetCount() > 0) {
+                    cho->SetSelection(cho->GetCount() - 1);
+                }
+                m_gbPluginsGrid->Add(cho, wxGBPosition(m_plugins+1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+
+                wxButton *btn = new wxButton( m_pluginsDock, wxPluginsData + m_plugins, _("Settings"), wxDefaultPosition, wxDefaultSize);
+                btn->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( wiMainForm::OnPluginSettings ), NULL, this );
+                m_gbPluginsGrid->Add(btn, wxGBPosition(m_plugins+1, 3), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+
+                char** xpm = StringListToXpm((*m_plugList)[lstSize].PluginIcon);
+                wxStaticBitmap *ico = new wxStaticBitmap( m_pluginsDock, wxID_ANY, wxBitmap(xpm));
+                m_gbPluginsGrid->Add(ico, wxGBPosition(m_plugins+1, 0), wxDefaultSpan, wxALIGN_CENTER);
+
+                m_plugins++;
+            }
+            m_gbPluginsGrid->Layout();
+        }
+    }
+    m_pluginsDock->Thaw();
+}
+
+void wiMainForm::OnPluginSettings( wxCommandEvent& event )
+{
+    int id = event.GetId();
+    id -= wxPluginsData;
+
+    if (m_client != NULL && (id >= 0 && id < m_plugList->size())) {
+        wxString str = wxString::FromAscii((*m_plugList)[id].PluginId.c_str());
+        wxString xrc = m_client->DoCmd(wxT("plgui"), str);
+        if (xrc.IsEmpty()) {
+            wxMessageBox(_("This plugin doesn't provide any settings"), wxT("WebInvent"), wxICON_WARNING | wxOK, this);
+        }
+        else {
+            str += wxT(".xrc");
+            wxMemoryFSHandler::AddFile(str, xrc);
+            wxString fname = wxT("memory:") + str;
+            if ( wxXmlResource::Get()->Load(fname) ) {
+                wxDialog dlg;
+                if ( wxXmlResource::Get()->LoadDialog(&dlg, this, wxT("SettingsDialog")) ) {
+                    dlg.ShowModal();
+                    /// @todo Get the controls values, pack them to the XML and sends back
+                    // m_client->DoCmd("applysettings", xmlData);
+                }
+                wxXmlResource::Get()->Unload(fname);
+            }
+            else {
+                wxMessageBox(_("Can't load given UI"), wxT("WebInvent"), wxICON_STOP | wxOK, this);
+            }
+            wxMemoryFSHandler::RemoveFile(str);
+        }
+    }
 }

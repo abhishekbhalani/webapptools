@@ -35,6 +35,7 @@
 
 extern WeDispatch* globalDispatcher;
 string GetPluginList(string filter);
+string GetPluginUI(string filter);
 
 int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
 {
@@ -56,6 +57,10 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "exit"))
         {
+            if (globalDispatcher->Storage() != NULL)
+            {
+                globalDispatcher->Storage()->Flush();
+            }
             retval = -1;
             processed = true;
         }
@@ -64,6 +69,10 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "close"))
         {
+            if (globalDispatcher->Storage() != NULL)
+            {
+                globalDispatcher->Storage()->Flush();
+            }
             retval = 0;
             processed = true;
         }
@@ -198,6 +207,15 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             retval = 1;
             processed = true;
         }
+        //////////////////////////////////////////////////////////////////////////
+        // PLGUI command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "plgui"))
+        {
+            msg.data = GetPluginUI(msg.data);
+            retval = 1;
+            processed = true;
+        }
 
         //////////////////////////////////////////////////////////////////////////
         // finalization
@@ -251,6 +269,18 @@ string GetPluginList(string filter)
             oa << BOOST_SERIALIZATION_NVP(respList);
         }
         retval = string(oss.str(), oss.rdbuf()->pcount());
+    }
+    return retval;
+}
+
+string GetPluginUI(string filter)
+{
+    string retval = "";
+
+    iwePlugin* plg = globalDispatcher->LoadPlugin(filter);
+    if (plg != NULL) {
+        retval = plg->GetSetupUI();
+        plg->Release();
     }
     return retval;
 }

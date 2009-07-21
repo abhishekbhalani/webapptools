@@ -42,6 +42,7 @@ public:
 	wiMainForm( wxWindow* parent );
 
 	void LoadConnections();
+	enum { wxPluginsData = 10000 };
 
 protected:
     // Virtual event handlers, overide them in your derived class
@@ -59,18 +60,22 @@ protected:
     virtual void OnTaskSelected( wxListEvent& event );
     virtual void OnSortItems( wxListEvent& event );
 
+    void OnPluginSettings( wxCommandEvent& event );
     void ProcessTaskList(const wxString& criteria = wxT(""));
     void Disconnected(bool mode = true);
     void Connected(bool mode = true);
+    void GetPluginList();
     void SelectTask(int id = -1);
 
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;
     wxTimer m_timer;
     wxImageList m_lstImages;
+    PluginList* m_plugList;
     bool connStatus;
     int m_selectedTask;
     int m_selectedActive;
+    int m_plugins;
 };
 
 #endif // __wiMainForm__
