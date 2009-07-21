@@ -49,10 +49,11 @@ public:
     static const Operation autoop = (Operation)0xff;
 
     virtual bool InitStorage(const string& params) = 0;
+    virtual void Flush(const string& params = "") = 0;
     virtual string GenerateID(string objType = "");
 
-    virtual int Query(const string& objType, Operation op, const string& xmlData);
-    virtual int Report(const string& repType, const string& xmlData, string& result);
+    virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData);
+    virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result);
 
     virtual int Delete(const string& objType, const string& xmlData);
 

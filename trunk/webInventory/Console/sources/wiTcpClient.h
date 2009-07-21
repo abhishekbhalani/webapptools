@@ -44,6 +44,7 @@ public:
     wxString DoCmd(const wxString& cmd, const wxString& payload);
     const wxString& GetLastError() { return lastError; };
     TaskList* GetTaskList(const wxString& criteria = wxT(""));
+    PluginList* GetPluginList(const wxString& criteria = wxT(""));
 
 protected:
     wiInternalTcp* client;

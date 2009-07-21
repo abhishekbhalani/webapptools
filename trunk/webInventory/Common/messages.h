@@ -66,18 +66,7 @@ private:
 #define WI_TSK_PAUSED   2
 #define WI_TSK_MAX      3
 
-class TaskList
-{
-public:
-    vector<TaskRecord>  task;
-private:
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & BOOST_SERIALIZATION_NVP(task);
-    };
-};
+typedef vector<TaskRecord> TaskList;
 
 class PluginInfo
 {
@@ -86,7 +75,7 @@ public:
     string  PluginDesc;
     string  IfaceName;
     vector<string> IfaceList;
-    list<string>  PluginIcon;
+    vector<string> PluginIcon;
     int     PluginStatus;
 private:
     friend class boost::serialization::access;

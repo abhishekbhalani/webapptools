@@ -39,7 +39,7 @@ public:
 
     // WeDispatch
     // Access the Storage
-    const iweStorage* Storage(void) const  { return(storage);  };
+    iweStorage* Storage(void) const  { return(storage);  };
     void Storage(const iweStorage* store)  { storage = (iweStorage*)store;  };
 
     // Access the PluginList

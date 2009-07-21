@@ -34,6 +34,7 @@ class wxCustomButton;
 #include <wx/statline.h>
 #include <wx/choice.h>
 #include <wx/richtext/richtextctrl.h>
+#include <wx/scrolwin.h>
 #include <wx/aui/auibook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
@@ -93,6 +94,13 @@ class MainForm : public wxFrame
 		wxChoice* m_chLangs;
 		wxBitmapButton* m_bpLangApply;
 		wxStaticText* m_stLangRestart;
+		wxStaticText* m_staticText18;
+		wxScrolledWindow* m_pluginsDock;
+		wxGridBagSizer* m_gbPluginsGrid;
+		wxButton* m_btPluginIcon;
+		wxButton* m_btPluginDesc;
+		wxButton* m_btPluginIface;
+		wxButton* m_btPluginSetup;
 		wiStatBar* m_statusBar;
 		
 		// Virtual event handlers, overide them in your derived class
