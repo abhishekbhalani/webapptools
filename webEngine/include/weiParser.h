@@ -24,13 +24,15 @@
 /// @brief  Processing subsystem declaration
 
 #include <stdexcept>
-#include "weiTransport.h"
 #include "weStrings.h"
 #include "weTagScanner.h"
 #include "weBlob.h"
 #include "weDiffLib.h"
 
 using namespace std;
+
+class iweTransport;
+class iweResponse;
 
 class iweEntity;
 class iweDocument;

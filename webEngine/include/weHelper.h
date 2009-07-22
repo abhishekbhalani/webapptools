@@ -103,12 +103,12 @@ public:
     }
 };
 
-
-
 extern WeHtmlFactory  weHtmlFactory;
 extern WeTransportFactory weTransportFactory;
 
 void WeLibInit(void);
 void WeLibClose(void);
+string WeScreenXML(const string& xml);
+string WeUnscreenXML(const string& xml);
 
 #endif //__WEHELPER_H__

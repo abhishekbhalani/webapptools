@@ -24,6 +24,7 @@
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/variant.hpp>
 #include <boost/serialization/variant.hpp>
+#include "weiParser.h"
 
 using namespace std;
 
@@ -72,6 +73,7 @@ public:
     bool IsEmpty(void)                          { return empty;   };            ///< Is the value empty
     string GetTypeName(void)                    { return val.type().name();};   ///< Gets the value type name
     const std::type_info& GetType(void) const   { return val.type();  };        ///< Gets the value type
+    const int Which(void) const                 { return val.which();  };       ///< Gets the internal type
 
     /// @brief Assignment operator
     WeOption& operator=(WeOption& cpy)
@@ -100,6 +102,7 @@ BOOST_CLASS_TRACKING(WeOption, boost::serialization::track_never)
 
 typedef map<string, WeOption*> WeOptions;
 
+#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (...) { (var) = (def); };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  iweOptionsProvider
 ///
@@ -126,6 +129,9 @@ public:
         }
     };
 
+    string ToXml( void );
+    void FromXml( string input );
+    void FromXml( WeTagScanner& sc );
 #ifndef __DOXYGEN__
 protected:
     WeOptions       options;
@@ -141,6 +147,14 @@ private:
 //////////////////////////////////////////////////////////////////////////
 // Define options names
 //////////////////////////////////////////////////////////////////////////
+/// object's human readable name or description (string)
+#define weoName              ("name")
+/// object's identifier (string)
+#define weoID                ("id")
+/// task status (idle, run, etc) (integer)
+#define weoTaskStatus        ("status")
+/// task completion (percents) (integer)
+#define weoTaskCompletion    ("completion")
 #define weoTransport         ("TransportName")
 #define weoParser            ("ParserName")
 /// put all founded links into the processing queue
