@@ -148,6 +148,7 @@ public:
       ////////////////////////////////////////////////////////////////////////////////////////////////////
       virtual char   ResolveEntity(const char* buf, int buf_size) { return 0; }
       virtual int    GetPos() { return input.GetPos(); };
+      void           PushBack(char c);
 
 private:
     /* types */
@@ -177,8 +178,6 @@ private:
     WeScannerToken  ScanEntityDecl();
 
     char            SkipWhitespace();
-    void            PushBack(char c);
-
     char            GetChar();
     char            ScanEntity();
 

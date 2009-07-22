@@ -26,7 +26,6 @@
 #include "weiBase.h"
 #include "weOptions.h"
 #include "weiTransport.h"
-#include "weiParser.h"
 
 using boost::any_cast;
 using namespace boost;
@@ -59,6 +58,10 @@ public:
     bool IsReady();
     iweResponse* GetRequest(iweRequest* req);
     iweResponse* GetRequestAsync(iweRequest* req);
+
+    string ToXml( void );
+    void FromXml( string input );
+    void FromXml( WeTagScanner& sc );
 
 #ifndef __DOXYGEN__
 protected:

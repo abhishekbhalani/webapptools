@@ -243,6 +243,6 @@ private:
 #endif //__DOXYGEN__
 };
 
-iweTransport* WeCreateNamedTransport(string name);
+iweTransport* WeCreateNamedTransport(string name, WeDispatch* krnl);
 
 #endif // __WEITRANSPORT_H__
