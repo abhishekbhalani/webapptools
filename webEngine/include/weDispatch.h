@@ -25,6 +25,39 @@
 #include "weiPlugin.h"
 #include "weMemStorage.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  WeNullStorage
+///
+/// @brief  null storage for the iweStorage placeholder. 
+///
+/// @author A. Abramov
+/// @date   23.07.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class WeNullStorage :
+    public iweStorage
+{
+public:
+    WeNullStorage(WeDispatch* krnl, void* handle = NULL);
+    ~WeNullStorage(void);
+
+    // iwePlugin functions
+    virtual void* GetInterface(const string& ifName);
+
+    // iweStorage functions
+    virtual bool InitStorage(const string& params) { return true; };
+    virtual void Flush(const string& params = "") { return; };
+    virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData) { return 0; };
+    virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result) { return 0; };
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  WeDispatch
+///
+/// @brief  Dispatcher for tasks processing and system options storage. 
+///
+/// @author A. Abramov
+/// @date   16.07.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class WeDispatch :
     public iweOptionsProvider
 {
@@ -40,7 +73,9 @@ public:
     // WeDispatch
     // Access the Storage
     iweStorage* Storage(void) const  { return(storage);  };
-    void Storage(const iweStorage* store)  { storage = (iweStorage*)store;  };
+    void Storage(const iweStorage* store);
+
+    void Flush();
 
     // Access the PluginList
     const WePluginList &PluginList(void) const  { return(pluginList); };

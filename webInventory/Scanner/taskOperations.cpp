@@ -36,6 +36,7 @@
 #include <weiBase.h>
 #include <weLogger.h>
 #include <weDispatch.h>
+#include <weTask.h>
 #include <weTagScanner.h>
 #ifdef WIN32
 #define NOGDI
@@ -45,189 +46,144 @@
 extern WeDispatch* globalDispatcher;
 string taskDbDir = ".";
 
-void SaveTaskList(TaskList* lst)
-{
-    string taskRep;
-    TaskList::iterator tsk;
+static vector<WeTask*>  task_list;
 
-    for (tsk = lst->begin(); tsk != lst->end(); tsk++)
-    {
-        taskRep = "";
-        taskRep += "<task id='" + tsk->id + "'>\n";
-        taskRep += " <name>" + tsk->name + "</name>\n";
-        taskRep += " <status>" + boost::lexical_cast<std::string>(tsk->status) + "</status>\n";
-        taskRep += " <completion>" + boost::lexical_cast<std::string>(tsk->completion) + "</completion>\n";
-        taskRep += "</task>";
-        globalDispatcher->Storage()->TaskSave(taskRep);
-    }
-}
-
-TaskList* GetTaskList(const string& criteria/* = ""*/)
+void load_task_list( void )
 {
-    TaskList    *lst = NULL;
-    TaskRecord  *tsk = NULL;
     string report = "";
     int tasks = 0;
 
-    /// @todo process filters
     tasks = globalDispatcher->Storage()->TaskReport("<taskreport><id value='*' /></taskreport>", report);
     if (tasks > 0)
     {   // parse the response
-        bool inTask = false;
-        bool inReport = false;
-        bool inParsing = true;
-        bool inName = false;
-        bool inStatus = false;
-        bool inCompletion = false;
+        bool in_parsing = true;
+        int parsing_level = 0;
+        int xml_pos;
         WeStrStream st(report.c_str());
         WeTagScanner sc(st);
-        string id;
+        WeTask* tsk;
         string tag;
 
-        while(inParsing) {
+        while(in_parsing) {
+            xml_pos = sc.GetPos();
             int t = sc.GetToken();
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "GetTaskList - parsing error");
-                inParsing = false;
+                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task_list - parsing error");
+                in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "GetTaskList - parsing EOF");
-                inParsing = false;
+                LOG4CXX_TRACE(WeLogger::GetLogger(), "load_task_list - parsing EOF");
+                in_parsing = false;
                 break;
             case wstTagStart:
                 tag = sc.GetTagName();
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "GetTaskList - tagStart: " << tag);
-                if (!inReport)
+                if (parsing_level == 0)
                 {
                     if (iequals(tag, "taskreport")) {
-                        inReport = true;
-                        lst = new TaskList;
+                        task_list.clear();
+                        parsing_level++;
+                        break;
                     }
-                    break;
                 }
-                if (!inTask && inReport) {
+                if (parsing_level == 1) {
                     if (iequals(tag, "task")) {
-                        inTask = true;
-                        tsk = new TaskRecord();
+                        tsk = new WeTask();
+                        // go back to the start of the TAG
+                        tsk->FromXml(sc, t);
+                        task_list.push_back(tsk);
+                        break;
                     }
-                    else {
-                        LOG4CXX_WARN(WeLogger::GetLogger(), "GetTaskList - not a task");
-                        inParsing = false;
-                    }
-                    break;
                 }
-                if (inTask && inReport)
-                {
-                    if (iequals(tag, "name")) {
-                        inName = true;
-                        id = "";
-                    }
-                    if (iequals(tag, "status")) {
-                        inStatus = true;
-                        id = "";
-                    }
-                    if (iequals(tag, "completion")) {
-                        inCompletion = true;
-                        id = "";
-                    }
-                    break;
-                }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "GetTaskList - unexpected tag: " << tag);
-                inParsing = false;
+                LOG4CXX_WARN(WeLogger::GetLogger(), "get_task_list - unexpected tag: " << tag);
+                in_parsing = false;
                 break;
             case wstTagEnd:
                 tag = sc.GetTagName();
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "GetTaskList - tagEnd: " << tag);
-                if (inTask) {
-                    if (iequals(tag, "task")) {
-                        inTask = false;
-                        lst->push_back(*tsk);
-                    }
-                    if (iequals(tag, "name")) {
-                        inName = false;
-                        tsk->name = id;
-                    }
-                    if (iequals(tag, "status")) {
-                        inStatus = false;
-                        tsk->status = boost::lexical_cast<int>(id);
-                    }
-                    if (iequals(tag, "completion")) {
-                        inCompletion = false;
-                        tsk->completion = boost::lexical_cast<int>(id);
-                    }
-                }
-                if (inReport) {
+                if (parsing_level == 0)
+                {
                     if (iequals(tag, "taskreport")) {
-                        inReport = false;
-                        inParsing = false; // not need to parse rest of data
+                        in_parsing = false;
                     }
                 }
                 break;
-            case wstAttr:
-                if (inTask) {
-                    tag = sc.GetAttrName();
-                    if (iequals(tag, "id")) {
-                        tsk->id = sc.GetValue();
-                    }
-                }
-                break;
-            case wstWord: 
-            case wstSpace:
-                id += sc.GetValue();
-                break;
-            default:
-                //LOG4CXX_WARN("iweStorage::TaskSave - unexpected token: " << t);
-                break;
-            };
-        };
+            }
+        }
     }
-//     try
-//     {
-//         string fName = taskDbDir + "\\taskList.config";
-//         std::ifstream itfs(fName.c_str());
-//         {
-//             boost::archive::xml_iarchive ia(itfs);
-//             lst = new TaskList;
-//             ia >> BOOST_SERIALIZATION_NVP(*lst);
-//         }
-//     }
-//     catch (std::exception& e)
-//     {
-//         LOG4CXX_ERROR(WeLogger::GetLogger(), "Can't get task list: " << e.what());
-//         if (lst != NULL)
-//         {
-//             delete lst;
-//         }
-//         lst = NULL;
-//     }
+}
+
+void save_task_list( void )
+{
+    string taskRep;
+    int t;
+
+    for (t = 0; t < task_list.size(); t++)
+    {
+        taskRep = task_list[t]->ToXml();
+        globalDispatcher->Storage()->TaskSave(taskRep);
+    }
+    globalDispatcher->Storage()->Flush();
+}
+
+TaskList* get_task_list(const string& criteria/* = ""*/)
+{
+    TaskList    *lst = NULL;
+    TaskRecord  *tsk = NULL;
+    WeOption    opt;
+    string sdata;
+    int idata;
+    int t;
+
+    if (task_list.empty())
+    {
+        load_task_list();
+    }
+    lst = new TaskList;
+    for(t = 0; t < task_list.size(); t++)
+    {
+        tsk = new TaskRecord;
+
+        opt = task_list[t]->Option(weoName);
+        SAFE_GET_OPTION_VAL(opt, sdata, "");
+        tsk->name = sdata;
+
+        opt = task_list[t]->Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, sdata, "");
+        tsk->id = sdata;
+
+        opt = task_list[t]->Option(weoTaskCompletion);
+        SAFE_GET_OPTION_VAL(opt, idata, 0);
+        tsk->completion = idata;
+
+        opt = task_list[t]->Option(weoTaskStatus);
+        SAFE_GET_OPTION_VAL(opt, idata, 0);
+        tsk->status = idata;
+
+        lst->push_back(*tsk);
+    }
     return lst;
 }
 
-string AddTask(const string& name)
+string add_task(const string& name)
 {
     string retval;
     string fName;
     TaskList    *lst = NULL;
-    TaskRecord  *tsk = NULL;
+    WeTask *tsk = NULL;
 
-    lst = GetTaskList("");
-    if (lst == NULL)
-    {
-        lst = new TaskList;
-    }
-    tsk = new TaskRecord;
-    tsk->name = name;
-    tsk->id = globalDispatcher->Storage()->GenerateID("task");
-    tsk->completion = 0;
-    tsk->status = 0;
-    lst->push_back(*tsk);
-    SaveTaskList(lst);
-    return tsk->id;
+    tsk = new WeTask;
+    retval = globalDispatcher->Storage()->GenerateID("task");
+    tsk->Option(weoID, retval);
+    tsk->Option(weoName, name);
+    tsk->Option(weoTaskCompletion, 0);
+    tsk->Option(weoTaskStatus, 0);
+    task_list.push_back(tsk);
+    save_task_list();
+    return retval;
 }
 
-bool DelTask(const string& id)
+bool del_task(const string& id)
 {
     bool retval;
     string fName;
@@ -238,5 +194,117 @@ bool DelTask(const string& id)
     if (globalDispatcher->Storage()->Delete("task", fName) != 0) {
         retval = true;
     }
+    load_task_list();
     return retval;
+}
+
+bool run_task(const string& id)
+{
+    bool retval = false;
+    WeOption opt;
+    string sdata;
+    int idata;
+    int t;
+
+    for (t = 0; t < task_list.size(); t++)
+    {
+        opt = task_list[t]->Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, sdata, "");
+
+        if (sdata == id) {
+            opt = task_list[t]->Option(weoTaskStatus);
+            SAFE_GET_OPTION_VAL(opt, idata, 0);
+            if (idata == WI_TSK_IDLE || idata == WI_TSK_PAUSED)
+            {
+                task_list[t]->Option(weoTaskStatus, WI_TSK_RUN);
+                retval = true;
+                // @todo Run process to execute task
+                save_task_list();
+            }
+        }
+    }
+    return retval;
+}
+
+bool pause_task(const string& id)
+{
+    bool retval = false;
+    WeOption opt;
+    string sdata;
+    int idata;
+    int t;
+
+    for (t = 0; t < task_list.size(); t++)
+    {
+        opt = task_list[t]->Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, sdata, "");
+
+        if (sdata == id) {
+            opt = task_list[t]->Option(weoTaskStatus);
+            SAFE_GET_OPTION_VAL(opt, idata, 0);
+            if (idata == WI_TSK_RUN)
+            {
+                task_list[t]->Option(weoTaskStatus, WI_TSK_PAUSED);
+                retval = true;
+                // @todo Pause process which executes this task
+                save_task_list();
+            }
+        }
+    }
+    return retval;
+}
+
+bool cancel_task(const string& id)
+{
+    bool retval = false;
+    WeOption opt;
+    string sdata;
+    int idata;
+    int t;
+
+    for (t = 0; t < task_list.size(); t++)
+    {
+        opt = task_list[t]->Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, sdata, "");
+
+        if (sdata == id) {
+            opt = task_list[t]->Option(weoTaskStatus);
+            SAFE_GET_OPTION_VAL(opt, idata, 0);
+            if (idata == WI_TSK_RUN)
+            {
+                task_list[t]->Option(weoTaskStatus, WI_TSK_IDLE);
+                retval = true;
+                // @todo Cancel process which executes this task
+                save_task_list();
+            }
+        }
+    }
+    return retval;
+}
+
+void fake_task_processing( void )
+{
+    WeOption opt;
+    string sdata;
+    int idata;
+    int t;
+
+    for (t = 0; t < task_list.size(); t++)
+    {
+        opt = task_list[t]->Option(weoTaskStatus);
+        SAFE_GET_OPTION_VAL(opt, idata, 0);
+        if (idata == WI_TSK_RUN)
+        {
+            opt = task_list[t]->Option(weoTaskCompletion);
+            SAFE_GET_OPTION_VAL(opt, idata, 0);
+            idata++;
+            if (idata == 100)
+            {
+                task_list[t]->Option(weoTaskStatus, WI_TSK_IDLE);
+                idata = 0;
+            }
+            task_list[t]->Option(weoTaskCompletion, idata);
+        }
+    }
+    save_task_list();
 }

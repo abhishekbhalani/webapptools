@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include "weiPlugin.h"
+#include <weiPlugin.h>
 
 class DemoPlugin :
     public iwePlugin
@@ -45,9 +45,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual const string GetSetupUI( void )
     ///
-    /// @brief  Gets the user interface for the setup dialog. 
+    /// @brief  Gets the user interface for the setup dialog.
     ///
-    /// @retval The user interface in the XRC format (wxWidgets) or empty string if no setup dialog. 
+    /// @retval The user interface in the XRC format (wxWidgets) or empty string if no setup dialog.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual const string GetSetupUI( void );
 
@@ -56,7 +56,7 @@ public:
     ///
     /// @brief  Applies the settings described by xmlData.
     ///
-    /// @param  xmlData	 - Plugin settings describing the XML. 
+    /// @param  xmlData	 - Plugin settings describing the XML.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void ApplySettings( const string& xmlData );
 };

@@ -59,7 +59,7 @@ void session::handle_read(const boost::system::error_code& error,
 {
     if (!error)
     {
-        int res = ProcessMessage(&data_, bytes_transferred, this);
+        int res = process_message(&data_, bytes_transferred, this);
         if (res == 1)
         {
             boost::asio::async_write(socket_, data_,

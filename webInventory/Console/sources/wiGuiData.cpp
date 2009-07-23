@@ -95,7 +95,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSizer121->Add( bSizer4, 0, wxEXPAND, 5 );
 
-	m_lstTaskList = new wxListCtrl( m_pTasks, wxID_ANY, wxDefaultPosition, wxSize( 300,-1 ), wxLC_REPORT );
+	m_lstTaskList = new wxListCtrl( m_pTasks, wxID_ANY, wxDefaultPosition, wxSize( 300,-1 ), wxLC_HRULES|wxLC_REPORT|wxLC_SINGLE_SEL );
 	bSizer121->Add( m_lstTaskList, 1, wxBOTTOM|wxLEFT, 5 );
 
 	fgSizer1->Add( bSizer121, 1, wxEXPAND, 5 );
@@ -366,6 +366,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_bpCancelTask->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ), NULL, this );
 	m_bpTaskNew->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ), NULL, this );
 	m_bpTaskDel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ), NULL, this );
+	m_lstTaskList->Connect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MainForm::OnTaskKillFocus ), NULL, this );
 	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
 	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
 	m_bpConnect->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnConnect ), NULL, this );
@@ -383,6 +384,7 @@ MainForm::~MainForm()
 	m_bpCancelTask->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ), NULL, this );
 	m_bpTaskNew->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ), NULL, this );
 	m_bpTaskDel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ), NULL, this );
+	m_lstTaskList->Disconnect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MainForm::OnTaskKillFocus ), NULL, this );
 	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
 	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
 	m_bpConnect->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnConnect ), NULL, this );

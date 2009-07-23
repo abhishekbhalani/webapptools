@@ -109,6 +109,7 @@ class MainForm : public wxFrame
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnDelTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnTaskKillFocus( wxFocusEvent& event ){ event.Skip(); }
 		virtual void OnSortItems( wxListEvent& event ){ event.Skip(); }
 		virtual void OnTaskSelected( wxListEvent& event ){ event.Skip(); }
 		virtual void OnConnect( wxCommandEvent& event ){ event.Skip(); }

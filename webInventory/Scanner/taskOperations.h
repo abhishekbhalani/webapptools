@@ -31,8 +31,13 @@
 
 extern string taskDbDir;
 
-extern TaskList* GetTaskList(const string& criteria = "");
-extern string AddTask(const string& name);
-extern bool DelTask(const string& id);
+extern TaskList* get_task_list(const string& criteria = "");
+extern string add_task(const string& name);
+extern bool del_task(const string& id);
+extern bool run_task(const string& id);
+extern bool pause_task(const string& id);
+extern bool cancel_task(const string& id);
+
+extern void fake_task_processing( void );
 
 #endif //__TASKOPERATIONS_H__
