@@ -34,10 +34,10 @@
 #include "taskOperations.h"
 
 extern WeDispatch* globalDispatcher;
-string GetPluginList(string filter);
-string GetPluginUI(string filter);
+string get_plugin_list(string filter);
+string get_plugin_ui(string filter);
 
-int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
+int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
 {
     int retval = 0; // close connection
     bool processed = false;
@@ -49,9 +49,13 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         istream data(buff);
         boost::archive::xml_iarchive ia(data);
         ia >> BOOST_SERIALIZATION_NVP(msg);
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] ProcessMessage: " <<  msg.cmd);
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] process_message: " <<  msg.cmd);
         retval = 0;
         sess->last = posix_time::second_clock::local_time();
+
+        // !!! DEBUG fake_task_processing 
+        fake_task_processing();
+
         //////////////////////////////////////////////////////////////////////////
         // EXIT command processing
         //////////////////////////////////////////////////////////////////////////
@@ -111,7 +115,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             msg.cmd = "tasks";
             TaskList *lst;
 
-            lst = GetTaskList(msg.data);
+            lst = get_task_list(msg.data);
 
             if (lst != NULL)
             {
@@ -136,7 +140,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "addtask"))
         {
-            msg.data = AddTask(msg.data);
+            msg.data = add_task(msg.data);
             retval = 1;
             processed = true;
         }
@@ -145,7 +149,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "deltask"))
         {
-            msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            msg.data = boost::lexical_cast<std::string>(del_task(msg.data));
             retval = 1;
             processed = true;
         }
@@ -155,7 +159,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "canceltask"))
         {
-            //msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            msg.data = boost::lexical_cast<std::string>(cancel_task(msg.data));
             retval = 1;
             processed = true;
         }
@@ -165,7 +169,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "runtask"))
         {
-            //msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            msg.data = boost::lexical_cast<std::string>(run_task(msg.data));
             retval = 1;
             processed = true;
         }
@@ -175,26 +179,17 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "pausetask"))
         {
-            //msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
+            msg.data = boost::lexical_cast<std::string>(pause_task(msg.data));
             retval = 1;
             processed = true;
         }
 
         //////////////////////////////////////////////////////////////////////////
-        // RESUMETASK command processing
-        //////////////////////////////////////////////////////////////////////////
-        if (iequals(msg.cmd, "resumetask"))
-        {
-            //msg.data = boost::lexical_cast<std::string>(DelTask(msg.data));
-            retval = 1;
-            processed = true;
-        }
-        //////////////////////////////////////////////////////////////////////////
         // TRANSPORTS command processing
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "transports"))
         {
-            //msg.data = AddTask(msg.data);
+            //msg.data = add_task(msg.data);
             retval = 1;
             processed = true;
         }
@@ -203,7 +198,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "plugins"))
         {
-            msg.data = GetPluginList(msg.data);
+            msg.data = get_plugin_list(msg.data);
             retval = 1;
             processed = true;
         }
@@ -212,7 +207,7 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "plgui"))
         {
-            msg.data = GetPluginUI(msg.data);
+            msg.data = get_plugin_ui(msg.data);
             retval = 1;
             processed = true;
         }
@@ -235,14 +230,14 @@ int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess)
     }
     catch (std::exception &e)
     {
-        LOG4CXX_ERROR(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] ProcessMessage failed: " <<  e.what());
+        LOG4CXX_ERROR(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] process_message failed: " <<  e.what());
         retval = 0;
     }
 
     return retval;
 }
 
-string GetPluginList(string filter)
+string get_plugin_list(string filter)
 {
     filter = ""; // not used
     string retval = "";
@@ -273,7 +268,7 @@ string GetPluginList(string filter)
     return retval;
 }
 
-string GetPluginUI(string filter)
+string get_plugin_ui(string filter)
 {
     string retval = "";
 

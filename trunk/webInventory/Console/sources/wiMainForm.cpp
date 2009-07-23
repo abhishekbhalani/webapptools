@@ -202,6 +202,7 @@ void wiMainForm::OnTimer( wxTimerEvent& event )
                     m_stSrvVersData->SetLabel(vers);
                 }
             }
+            ProcessTaskList(wxT(""));
             connStatus = true;
         }
         else {
@@ -407,7 +408,8 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
             if (m_selectedTask >= m_lstTaskList->GetItemCount()) {
                 m_selectedTask = m_lstTaskList->GetItemCount() - 1;
             }
-            SelectTask(m_selectedTask);
+            m_lstTaskList->SetItemState(m_selectedTask, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+            //SelectTask(m_selectedTask);
             m_lstTaskList->SortItems(SortItemFunc, (long)m_lstTaskList);
         }
         else {
@@ -489,14 +491,11 @@ void wiMainForm::OnRunTask( wxCommandEvent& event )
         info.SetColumn(0);
         info.SetMask(wxLIST_MASK_IMAGE);
         m_lstTaskList->GetItem(info);
-        if (info.GetImage() == WI_TSK_IDLE) {
+        if (info.GetImage() == WI_TSK_IDLE || info.GetImage() == WI_TSK_PAUSED) {
             m_client->DoCmd(wxT("runtask"), name);
         }
         else if (info.GetImage() == WI_TSK_RUN) {
             m_client->DoCmd(wxT("pausetask"), name);
-        }
-        else if (info.GetImage() == WI_TSK_PAUSED) {
-            m_client->DoCmd(wxT("resumetask"), name);
         }
 
         ProcessTaskList();

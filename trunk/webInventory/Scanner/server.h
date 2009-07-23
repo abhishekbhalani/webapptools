@@ -79,6 +79,6 @@ private:
     tcp::acceptor acceptor_;
 };
 
-extern int ProcessMessage(boost::asio::streambuf* buff, size_t bufSize, session* sess);
+extern int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess);
 
 #endif //__SERVER_H__

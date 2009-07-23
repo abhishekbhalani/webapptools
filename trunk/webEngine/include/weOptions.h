@@ -131,7 +131,7 @@ public:
 
     string ToXml( void );
     void FromXml( string input );
-    void FromXml( WeTagScanner& sc );
+    void FromXml( WeTagScanner& sc, int token = -1 );
 #ifndef __DOXYGEN__
 protected:
     WeOptions       options;
