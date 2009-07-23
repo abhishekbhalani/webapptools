@@ -186,6 +186,7 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_timer.Start(wxPING_INTERVAL);
     m_panTaskOpts->Disable();
     SelectTask( -1 );
+    m_pnServer->Hide();
     Layout();
 }
 
@@ -408,9 +409,8 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
             if (m_selectedTask >= m_lstTaskList->GetItemCount()) {
                 m_selectedTask = m_lstTaskList->GetItemCount() - 1;
             }
-            m_lstTaskList->SetItemState(m_selectedTask, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-            //SelectTask(m_selectedTask);
             m_lstTaskList->SortItems(SortItemFunc, (long)m_lstTaskList);
+            m_lstTaskList->SetItemState(m_selectedTask, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         }
         else {
             m_statusBar->SetImage(wiSTATUS_BAR_NO);
@@ -422,6 +422,7 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
 void wiMainForm::Disconnected(bool mode)
 {
     m_bpTaskNew->Disable();
+    m_pnServer->Disable();
     m_statusBar->SetImage(wiSTATUS_BAR_NO);
     m_statusBar->SetStatusText(_("Disconnected"), 1);
     m_statusBar->SetStatusText(_("unknown"), 2);
@@ -429,12 +430,15 @@ void wiMainForm::Disconnected(bool mode)
     if (mode) {
         m_bpConnect->SetToolTip(_("Connect"));
         m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
+        m_pnServer->Hide();
+        Layout();
     }
 }
 
 void wiMainForm::Connected(bool mode)
 {
     m_bpTaskNew->Enable();
+    m_pnServer->Enable();
     m_statusBar->SetImage(wiSTATUS_BAR_YES);
     m_statusBar->SetStatusText(_("Connected"), 1);
     m_statusBar->SetStatusText(wxT(""), 3);
@@ -442,6 +446,8 @@ void wiMainForm::Connected(bool mode)
         m_bpConnect->SetToolTip(_("Disconnect"));
         m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
         ProcessTaskList();
+        m_pnServer->Show();
+        Layout();
     }
 }
 
@@ -449,7 +455,7 @@ void wiMainForm::OnAddTask( wxCommandEvent& event )
 {
     wxString name;
 
-    name = wxGetTextFromUser(_("Input new task name"), _("Query"), _(""), this);
+    name = wxGetTextFromUser(_("Input new task name"), _("Query"), wxT(""), this);
     if (!name.IsEmpty() && m_client != NULL) {
         name = m_client->DoCmd(wxT("addtask"), name);
     }
@@ -523,9 +529,13 @@ void wiMainForm::OnTaskSelected( wxListEvent& event )
 
 void wiMainForm::SelectTask(int id/* = -1*/)
 {
-    m_selectedTask = id;
     wxListItem info;
 
+    if (m_selectedTask != id) {
+        // check options changing and ask for save them
+        // refresh task options
+    }
+    m_selectedTask = id;
     if (m_selectedTask > -1) {
         info.SetId(m_selectedTask);
         info.SetColumn(0);
@@ -582,7 +592,22 @@ void wiMainForm::GetPluginList()
         item = m_gbPluginsGrid->FindItemAtPosition(wxGBPosition(i+1, 0));
         if (item != NULL) {
             m_gbPluginsGrid->Remove(item->GetWindow());
-            delete item;
+            //delete item;
+        }
+        item = m_gbPluginsGrid->FindItemAtPosition(wxGBPosition(i+1, 1));
+        if (item != NULL) {
+            m_gbPluginsGrid->Remove(item->GetWindow());
+            //delete item;
+        }
+        item = m_gbPluginsGrid->FindItemAtPosition(wxGBPosition(i+1, 2));
+        if (item != NULL) {
+            m_gbPluginsGrid->Remove(item->GetWindow());
+            //delete item;
+        }
+        item = m_gbPluginsGrid->FindItemAtPosition(wxGBPosition(i+1, 3));
+        if (item != NULL) {
+            m_gbPluginsGrid->Remove(item->GetWindow());
+            //delete item;
         }
     }
     if (m_plugList != NULL) {
