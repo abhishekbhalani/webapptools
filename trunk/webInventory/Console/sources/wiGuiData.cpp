@@ -215,6 +215,9 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_pReports = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_mainnb->AddPage( m_pReports, _("Reports"), false, wxBitmap( panReports_xpm ) );
 	m_pSettings = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer10;
+	bSizer10 = new wxBoxSizer( wxVERTICAL );
+
 	wxFlexGridSizer* fgSizer2;
 	fgSizer2 = new wxFlexGridSizer( 2, 2, 0, 0 );
 	fgSizer2->SetFlexibleDirection( wxBOTH );
@@ -311,11 +314,36 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	fgSizer2->Add( bSizer7, 1, wxEXPAND, 5 );
 
-	m_staticText18 = new wxStaticText( m_pSettings, wxID_ANY, _("Scanner plugins:"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText18->Wrap( -1 );
-	fgSizer2->Add( m_staticText18, 0, wxALL, 5 );
 
-	m_pluginsDock = new wxScrolledWindow( m_pSettings, wxID_ANY, wxDefaultPosition, wxSize( 520,300 ), wxHSCROLL|wxVSCROLL );
+	fgSizer2->Add( 120, 0, 1, wxEXPAND, 5 );
+
+	bSizer10->Add( fgSizer2, 0, wxEXPAND, 5 );
+
+	m_staticline2 = new wxStaticLine( m_pSettings, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+	bSizer10->Add( m_staticline2, 0, wxEXPAND | wxALL, 5 );
+
+	m_pnServer = new wxPanel( m_pSettings, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxFlexGridSizer* fgSizer61;
+	fgSizer61 = new wxFlexGridSizer( 2, 2, 0, 0 );
+	fgSizer61->SetFlexibleDirection( wxBOTH );
+	fgSizer61->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+	m_staticText18 = new wxStaticText( m_pnServer, wxID_ANY, _("Scanner storage:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText18->Wrap( -1 );
+	fgSizer61->Add( m_staticText18, 0, wxALL, 5 );
+
+	wxArrayString m_chStorageChoices;
+	m_chStorage = new wxChoice( m_pnServer, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), m_chStorageChoices, 0 );
+	m_chStorage->SetSelection( 0 );
+	m_chStorage->SetMinSize( wxSize( 250,-1 ) );
+
+	fgSizer61->Add( m_chStorage, 0, wxALL, 5 );
+
+	m_staticText19 = new wxStaticText( m_pnServer, wxID_ANY, _("Scanner plugins:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText19->Wrap( -1 );
+	fgSizer61->Add( m_staticText19, 0, wxALL, 5 );
+
+	m_pluginsDock = new wxScrolledWindow( m_pnServer, wxID_ANY, wxDefaultPosition, wxSize( 520,300 ), wxHSCROLL|wxVSCROLL );
 	m_pluginsDock->SetScrollRate( 5, 5 );
 	m_pluginsDock->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_INFOBK ) );
 	m_pluginsDock->SetMinSize( wxSize( 520,300 ) );
@@ -346,11 +374,19 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	m_pluginsDock->SetSizer( bSizer9 );
 	m_pluginsDock->Layout();
-	fgSizer2->Add( m_pluginsDock, 1, wxEXPAND|wxLEFT, 5 );
+	fgSizer61->Add( m_pluginsDock, 1, wxEXPAND|wxLEFT, 5 );
 
-	m_pSettings->SetSizer( fgSizer2 );
+
+	fgSizer61->Add( 120, 0, 1, wxEXPAND, 5 );
+
+	m_pnServer->SetSizer( fgSizer61 );
+	m_pnServer->Layout();
+	fgSizer61->Fit( m_pnServer );
+	bSizer10->Add( m_pnServer, 1, wxEXPAND | wxALL, 0 );
+
+	m_pSettings->SetSizer( bSizer10 );
 	m_pSettings->Layout();
-	fgSizer2->Fit( m_pSettings );
+	bSizer10->Fit( m_pSettings );
 	m_mainnb->AddPage( m_pSettings, _("Settings"), true, wxBitmap( panSettings_xpm ) );
 
 	bSizer1->Add( m_mainnb, 1, wxEXPAND | wxALL, 0 );

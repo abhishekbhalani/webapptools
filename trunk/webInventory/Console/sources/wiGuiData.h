@@ -94,13 +94,19 @@ class MainForm : public wxFrame
 		wxChoice* m_chLangs;
 		wxBitmapButton* m_bpLangApply;
 		wxStaticText* m_stLangRestart;
+		
+		wxStaticLine* m_staticline2;
+		wxPanel* m_pnServer;
 		wxStaticText* m_staticText18;
+		wxChoice* m_chStorage;
+		wxStaticText* m_staticText19;
 		wxScrolledWindow* m_pluginsDock;
 		wxGridBagSizer* m_gbPluginsGrid;
 		wxButton* m_btPluginIcon;
 		wxButton* m_btPluginDesc;
 		wxButton* m_btPluginIface;
 		wxButton* m_btPluginSetup;
+		
 		wiStatBar* m_statusBar;
 		
 		// Virtual event handlers, overide them in your derived class
