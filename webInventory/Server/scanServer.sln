@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "inventoryScanner", "inventoryScanner.vcproj", "{887500AB-C9E1-49B0-B154-4857F3B56C1B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scanServer", "scanServer.vcproj", "{887500AB-C9E1-49B0-B154-4857F3B56C1B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demo", "..\Plugins\Demo\Demo.vcproj", "{495D9177-21BE-498C-8F8D-CEC7482C4569}"
 EndProject

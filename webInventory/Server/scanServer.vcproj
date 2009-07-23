@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="inventoryScanner"
+	Name="scanServer"
 	ProjectGUID="{887500AB-C9E1-49B0-B154-4857F3B56C1B}"
-	RootNamespace="inventoryScanner"
+	RootNamespace="scanServer"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -187,7 +187,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\inventoryScanner.cpp"
+				RelativePath=".\scanServer.cpp"
 				>
 			</File>
 			<File
