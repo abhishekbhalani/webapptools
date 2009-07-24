@@ -48,28 +48,28 @@ class wxCustomButton;
 #define wxID_TLNEW 1001
 #define wxID_TLEDIT 1002
 #define wxID_TLDELETE 1003
-#define wxID_TLLANGAPPLY 1003
+#define wxID_TLLANGAPPLY 1004
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
 ///////////////////////////////////////////////////////////////////////////////
-class MainForm : public wxFrame
+class MainForm : public wxFrame 
 {
 	private:
-
+	
 	protected:
 		wxAuiNotebook* m_mainnb;
 		wxPanel* m_pTasks;
 		wxStaticText* m_stTaskList;
-
+		
 		wxBitmapButton* m_bpTaskGo;
 		wxBitmapButton* m_bpCancelTask;
-
+		
 		wxBitmapButton* m_bpTaskNew;
 		wxBitmapButton* m_bpTaskDel;
 		wxListCtrl* m_lstTaskList;
 		wxStaticText* m_stProfile;
-
+		
 		wxCustomButton* m_btnApply;
 		wxScrolledWindow* m_panTaskOpts;
 		wxStaticText* m_stTaskName;
@@ -83,13 +83,13 @@ class MainForm : public wxFrame
 		wxStaticText* m_stLogLevel;
 		wxChoice* m_chLogLevel;
 		wxCheckBox* m_checkBox2;
-
+		
 		wxStaticText* m_staticText20;
 		wxStaticText* m_staticText21;
 		wxTextCtrl* m_textCtrl7;
 		wxStaticLine* m_staticline1;
 		wxStaticText* m_stTaskLog;
-
+		
 		wxRichTextCtrl* m_rtTask;
 		wxPanel* m_pReports;
 		wxPanel* m_pSettings;
@@ -104,13 +104,13 @@ class MainForm : public wxFrame
 		wxChoice* m_chLangs;
 		wxToolBar* m_toolBarLang;
 		wxStaticText* m_stLangRestart;
-
+		
 		wxStaticLine* m_staticline2;
 		wxPanel* m_pnServer;
 		wxStaticText* m_staticText18;
 		wxChoice* m_chStorage;
 		wxBitmapButton* m_bpStorageApply;
-
+		
 		wxBitmapButton* m_bpPlgRefresh;
 		wxStaticText* m_staticText19;
 		wxScrolledWindow* m_pluginsDock;
@@ -119,9 +119,9 @@ class MainForm : public wxFrame
 		wxButton* m_btPluginDesc;
 		wxButton* m_btPluginIface;
 		wxButton* m_btPluginSetup;
-
+		
 		wiStatBar* m_statusBar;
-
+		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
 		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
@@ -139,21 +139,21 @@ class MainForm : public wxFrame
 		virtual void OnLangChange( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnStorageChange( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnPlgRefresh( wxCommandEvent& event ){ event.Skip(); }
-
-
+		
+	
 	public:
 		MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("WebInventory"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1070,660 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~MainForm();
-
+	
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ServDialog
 ///////////////////////////////////////////////////////////////////////////////
-class ServDialog : public wxDialog
+class ServDialog : public wxDialog 
 {
 	private:
-
+	
 	protected:
 		wxStaticText* m_stName;
 		wxStaticText* m_stServName;
@@ -161,18 +161,18 @@ class ServDialog : public wxDialog
 		wxStdDialogButtonSizer* m_sdbSizer1;
 		wxButton* m_sdbSizer1OK;
 		wxButton* m_sdbSizer1Cancel;
-
+		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnOK( wxCommandEvent& event ){ event.Skip(); }
-
-
+		
+	
 	public:
 		wxTextCtrl* m_txtName;
 		wxTextCtrl* m_txtHostname;
 		wxTextCtrl* m_txtSrvPort;
 		ServDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Connection"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 296,156 ), long style = wxDEFAULT_DIALOG_STYLE );
 		~ServDialog();
-
+	
 };
 
 #endif //__wiGuiData__

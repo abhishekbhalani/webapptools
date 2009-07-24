@@ -276,12 +276,12 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_chServers->SetSelection( 0 );
 	bSizer6->Add( m_chServers, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-	m_toolBarSrv = new wxToolBar( m_pSettings, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL );
+	m_toolBarSrv = new wxToolBar( m_pSettings, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
 	m_toolBarSrv->SetToolBitmapSize( wxSize( 20,20 ) );
 	m_toolBarSrv->AddTool( wxID_TLCONNECT, wxEmptyString, wxBitmap( start_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Connect"), wxEmptyString );
 	m_toolBarSrv->AddTool( wxID_TLNEW, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new connection"), wxEmptyString );
-	m_toolBarSrv->AddTool( wxID_TLEDIT, wxEmptyString, wxBitmap( btnEdit_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Edit connection"), wxEmptyString );
-	m_toolBarSrv->AddTool( wxID_TLDELETE, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete connection"), wxEmptyString );
+	m_toolBarSrv->AddTool( wxID_TLEDIT, _("tool"), wxBitmap( btnEdit_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Edit connection"), wxEmptyString );
+	m_toolBarSrv->AddTool( wxID_TLDELETE, _("tool"), wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete connection"), wxEmptyString );
 	m_toolBarSrv->Realize();
 
 	bSizer6->Add( m_toolBarSrv, 0, wxALIGN_CENTER_VERTICAL, 5 );
@@ -311,9 +311,9 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSizer7->Add( m_chLangs, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-	m_toolBarLang = new wxToolBar( m_pSettings, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL );
+	m_toolBarLang = new wxToolBar( m_pSettings, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
 	m_toolBarLang->SetToolBitmapSize( wxSize( 20,20 ) );
-	m_toolBarLang->AddTool( wxID_TLLANGAPPLY, wxEmptyString, wxBitmap( btnApply16_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Apply (need restart)"), wxEmptyString );
+	m_toolBarLang->AddTool( wxID_TLLANGAPPLY, _("tool"), wxBitmap( btnApply16_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Apply (need restart)"), wxEmptyString );
 	m_toolBarLang->Realize();
 
 	bSizer7->Add( m_toolBarLang, 0, wxALIGN_CENTER_VERTICAL, 5 );
@@ -467,7 +467,7 @@ MainForm::~MainForm()
 	this->Disconnect( wxID_TLNEW, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ) );
 	this->Disconnect( wxID_TLEDIT, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnEditServer ) );
 	this->Disconnect( wxID_TLDELETE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelServer ) );
-	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnLangChange ) );
+	this->Disconnect( wxID_TLLANGAPPLY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnLangChange ) );
 	m_bpStorageApply->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnStorageChange ), NULL, this );
 	m_bpPlgRefresh->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnPlgRefresh ), NULL, this );
 }
