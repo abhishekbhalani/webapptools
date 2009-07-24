@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\Work\Projects\webapptools\webEngine\include"
+				AdditionalIncludeDirectories="..\..\webEngine\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WIN32_WINNT=0x0501"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libeay32.lib ssleay32.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\Work\Projects\webapptools\webEngine\libs\debug"
+				AdditionalLibraryDirectories="..\..\webEngine\libs\debug"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
