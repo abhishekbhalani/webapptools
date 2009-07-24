@@ -26,6 +26,7 @@
 #include <wx/wupdlock.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/fs_mem.h>
+#include <wx/mstream.h>
 #include "wiStatBar.h"
 #include "wiServDialog.h"
 #include "wiMainForm.h"
@@ -35,6 +36,7 @@
 #include "../images/btnStop.xpm"
 #include "../images/start.xpm"
 #include "../images/pause.xpm"
+#include "optionnames.h"
 
 /// @todo change this
 #include "../images/tree_no.xpm"
@@ -46,7 +48,7 @@
 
 //    m_statusBar = new wiStatBar( this );
 //    SetStatusBar(m_statusBar);
-//    m_btnApply = new wxCustomButton( m_panTaskOpts, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
+//    m_btnApply = new wxCustomButton( m_pTasks, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
 
 static const wxChar* gTaskStatus[] = {_("idle"),
                                       _("run (%d%%)"),
@@ -428,8 +430,10 @@ void wiMainForm::Disconnected(bool mode)
     m_statusBar->SetStatusText(_("unknown"), 2);
     m_statusBar->SetStatusText(m_client->GetLastError(), 3);
     if (mode) {
-        m_bpConnect->SetToolTip(_("Connect"));
-        m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
+        m_toolBarSrv->SetToolShortHelp(wxID_TLCONNECT, _("Connect"));
+        m_toolBarSrv->SetToolNormalBitmap(wxID_TLCONNECT, wxBitmap(start_xpm));
+//        m_bpConnect->SetToolTip(_("Connect"));
+//        m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
         m_pnServer->Hide();
         Layout();
     }
@@ -443,8 +447,10 @@ void wiMainForm::Connected(bool mode)
     m_statusBar->SetStatusText(_("Connected"), 1);
     m_statusBar->SetStatusText(wxT(""), 3);
     if (mode) {
-        m_bpConnect->SetToolTip(_("Disconnect"));
-        m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
+        m_toolBarSrv->SetToolShortHelp(wxID_TLCONNECT, _("Disconnect"));
+        m_toolBarSrv->SetToolNormalBitmap(wxID_TLCONNECT, wxBitmap(btnStop_xpm));
+//        m_bpConnect->SetToolTip(_("Disconnect"));
+//        m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
         ProcessTaskList();
         m_pnServer->Show();
         Layout();
@@ -530,26 +536,33 @@ void wiMainForm::OnTaskSelected( wxListEvent& event )
 void wiMainForm::SelectTask(int id/* = -1*/)
 {
     wxListItem info;
+    int prevID = m_selectedTask;
 
-    if (m_selectedTask != id) {
+    if (m_selectedTask != id && m_selectedTask > -1) {
+        info.SetId(m_selectedTask);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_DATA);
+        m_lstTaskList->GetItem(info);
         // check options changing and ask for save them
-        // refresh task options
     }
     m_selectedTask = id;
     if (m_selectedTask > -1) {
         info.SetId(m_selectedTask);
         info.SetColumn(0);
-        info.SetMask(wxLIST_MASK_IMAGE);
+        info.SetMask(wxLIST_MASK_IMAGE | wxLIST_MASK_DATA);
         m_lstTaskList->GetItem(info);
         if (info.GetImage() == WI_TSK_IDLE) {
+            m_btnApply->Enable();
             m_bpTaskGo->Enable();
             m_bpTaskGo->SetBitmapLabel( wxBitmap(start_xpm) );
             m_bpCancelTask->Disable();
             m_bpTaskDel->Enable();
             m_panTaskOpts->Enable();
             m_cbInvent->Disable();
+
         }
         else if (info.GetImage() == WI_TSK_RUN) {
+            m_btnApply->Disable();
             m_bpTaskGo->Enable();
             m_bpTaskGo->SetBitmapLabel( wxBitmap(pause_xpm) );
             m_bpCancelTask->Enable();
@@ -557,14 +570,20 @@ void wiMainForm::SelectTask(int id/* = -1*/)
             m_panTaskOpts->Disable();
         }
         else if (info.GetImage() == WI_TSK_PAUSED) {
+            m_btnApply->Disable();
             m_bpTaskGo->Enable();
             m_bpTaskGo->SetBitmapLabel( wxBitmap(start_xpm) );
             m_bpCancelTask->Enable();
             m_bpTaskDel->Disable();
             m_panTaskOpts->Disable();
         }
+        // refresh task options
+        if (m_selectedTask != prevID) {
+            GetTaskOptions(info.GetData());
+        }
     }
     else {
+        m_btnApply->Enable();
         m_bpTaskGo->Disable();
         m_bpCancelTask->Disable();
         m_bpTaskDel->Disable();
@@ -679,6 +698,64 @@ void wiMainForm::OnPluginSettings( wxCommandEvent& event )
                 wxMessageBox(_("Can't load given UI"), wxT("WebInvent"), wxICON_STOP | wxOK, this);
             }
             wxMemoryFSHandler::RemoveFile(str);
+        }
+    }
+}
+
+void wiMainForm::GetTaskOptions(int taskID)
+{
+    wxString id = wxString::Format(wxT("%X"), taskID);
+    wxString optsstr;
+
+    if (m_client != NULL) {
+        wxLogMessage(wxT("%s"), id.c_str());
+        optsstr = m_client->DoCmd(wxT("gettaskopts"), id);
+        //optsstr = wxString(wxT("<?xml version=\"1.0\"?>")) + optsstr;
+        wxLogMessage(wxT("%s"), optsstr.c_str());
+        wxCharBuffer buff = optsstr.utf8_str();
+        int buffLen = strlen(buff.data());
+        wxMemoryInputStream xmlStream(buff.data(), buffLen);
+        wxXmlDocument opt;
+        if(opt.Load(xmlStream)) {
+            wxXmlNode *root = opt.GetRoot();
+            if (root && root->GetName().CmpNoCase(wxT("options")) == 0) {
+                wxXmlNode *child = root->GetChildren();
+                while (child != NULL) {
+                    if (child->GetType() == wxXML_ELEMENT_NODE && child->GetName().CmpNoCase(wxT("option")) == 0) {
+                        wxString name = child->GetPropVal(wxT("name"), wxT(""));
+                        wxString type = child->GetPropVal(wxT("type"), wxT(""));
+                        wxString text = child->GetNodeContent();
+                        // fill the data controls
+                        if (name.CmpNoCase(wxT(weoName)) == 0) {
+                            m_txtTaskName->SetValue(text);
+                        }
+                        if (name.CmpNoCase(wxT(weoBaseURL)) == 0) {
+                            m_txtBaseURL->SetValue(text);
+                        }
+                        if (name.CmpNoCase(wxT(weoStayInDir)) == 0 && text == wxT("1")) {
+                            m_rbDepth->SetSelection(0);
+                        }
+                        if (name.CmpNoCase(wxT(weoStayInHost)) == 0 && text == wxT("1")) {
+                            m_rbDepth->SetSelection(1);
+                        }
+                        if (name.CmpNoCase(wxT(weoStayInDomain)) == 0 && text == wxT("1")) {
+                            m_rbDepth->SetSelection(2);
+                        }
+                        if (name.CmpNoCase(wxT(weoScanDepth)) == 0) {
+                            m_txtDepth->SetValue(text);
+                        }
+                        if (name.CmpNoCase(wxT(weoLogLevel)) == 0) {
+                            long idx;
+                            text.ToLong(&idx);
+                            if (idx >= 0 && idx < m_chLogLevel->GetCount()) {
+                                m_chLogLevel->Select(idx);
+                            }
+                        }
+                    }
+
+                    child = child->GetNext();
+                }
+            }
         }
     }
 }

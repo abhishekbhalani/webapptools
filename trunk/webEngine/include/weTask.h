@@ -65,7 +65,6 @@ public:
 
 #ifndef __DOXYGEN__
 protected:
-    WeOptions       options;
     iweTransport*   transport;
 #endif //__DOXYGEN__
 

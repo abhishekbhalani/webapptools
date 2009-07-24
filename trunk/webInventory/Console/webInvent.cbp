@@ -45,7 +45,6 @@
 					<Add library="wxzlibd.lib" />
 					<Add library="wxbase28ud_net.lib" />
 					<Add library="wxmsw28ud_xrc.lib" />
-					<Add library="wxbase28ud_xml.lib" />
 					<Add library="wxexpatd.lib" />
 					<Add directory="${WXWIN}\lib\vc_lib" />
 					<Add directory="..\..\webEngine\libs\debug" />
@@ -89,7 +88,6 @@
 					<Add library="wxzlib.lib" />
 					<Add library="wxbase28u_net.lib" />
 					<Add library="wxmsw28u_xrc.lib" />
-					<Add library="wxbase28u_xml.lib" />
 					<Add library="wxexpat.lib" />
 					<Add directory="${WXWIN}\lib\vc_lib" />
 					<Add directory="..\..\webEngine\libs\release" />
