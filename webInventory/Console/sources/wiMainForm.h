@@ -67,6 +67,8 @@ protected:
     void GetPluginList();
     void SelectTask(int id = -1);
 
+    void GetTaskOptions(int taskID);
+
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;
     wxTimer m_timer;

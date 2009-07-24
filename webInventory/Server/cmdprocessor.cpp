@@ -53,9 +53,6 @@ int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         retval = 0;
         sess->last = posix_time::second_clock::local_time();
 
-        // !!! DEBUG fake_task_processing 
-        fake_task_processing();
-
         //////////////////////////////////////////////////////////////////////////
         // EXIT command processing
         //////////////////////////////////////////////////////////////////////////
@@ -102,6 +99,9 @@ int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "ping"))
         {
+            // !!! DEBUG fake_task_processing 
+            fake_task_processing();
+
             msg.cmd = "pong";
             msg.data = posix_time::to_simple_string(sess->last);
             retval = 1;
@@ -183,13 +183,21 @@ int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
             retval = 1;
             processed = true;
         }
-
         //////////////////////////////////////////////////////////////////////////
-        // TRANSPORTS command processing
+        // GETTASKOPTS command processing
         //////////////////////////////////////////////////////////////////////////
-        if (iequals(msg.cmd, "transports"))
+        if (iequals(msg.cmd, "gettaskopts"))
         {
-            //msg.data = add_task(msg.data);
+            msg.data = get_task_opts(msg.data);
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // SETTASKOPTS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "settaskopts"))
+        {
+            msg.data = set_task_opts(msg.data);
             retval = 1;
             processed = true;
         }
@@ -208,6 +216,36 @@ int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         if (iequals(msg.cmd, "plgui"))
         {
             msg.data = get_plugin_ui(msg.data);
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // GETSTORAGE command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "getstorage"))
+        {
+            msg.data = globalDispatcher->Storage()->GetID();
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // SETSTORAGE command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "setstorage"))
+        {
+            LOG4CXX_INFO(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] request storage change to " << msg.data);
+            iwePlugin* newStorage = globalDispatcher->LoadPlugin(msg.data);
+            msg.data = "0";
+            if (newStorage != NULL)
+            {
+                iweStorage* store = (iweStorage*)newStorage->GetInterface("iweStorage");
+                if (store != NULL)
+                {
+                    globalDispatcher->Storage(store);
+                    msg.data = "1";
+                    LOG4CXX_INFO(WeLogger::GetLogger(), "storage changed to " << store->GetDesc());
+                }
+            }
             retval = 1;
             processed = true;
         }

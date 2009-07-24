@@ -148,37 +148,41 @@ private:
 // Define options names
 //////////////////////////////////////////////////////////////////////////
 /// object's human readable name or description (string)
-#define weoName              ("name")
+#define weoName              "name"
 /// object's identifier (string)
-#define weoID                ("id")
+#define weoID                "id"
 /// task status (idle, run, etc) (integer)
-#define weoTaskStatus        ("status")
+#define weoTaskStatus        "status"
 /// task completion (percents) (integer)
-#define weoTaskCompletion    ("completion")
-#define weoTransport         ("TransportName")
-#define weoParser            ("ParserName")
+#define weoTaskCompletion    "completion"
+#define weoTransport         "TransportName"
+#define weoParser            "ParserName"
 /// put all founded links into the processing queue
-#define weoFollowLinks       ("FollowLinks")
+#define weoFollowLinks       "FollowLinks"
 /// automatically load images as WeRefrenceObject
-#define weoLoadImages        ("LoadImages")
+#define weoLoadImages        "LoadImages"
 /// automatically load scripts as WeRefrenceObject
-#define weoLoadScripts       ("LoadScripts")
+#define weoLoadScripts       "LoadScripts"
 /// automatically load frames as WeRefrenceObject
-#define weoLoadFrames        ("LoadFrames")
+#define weoLoadFrames        "LoadFrames"
 /// collapse multiple spaces into one then HTML parse
-#define weoLoadIframes       ("LoadIframes")
+#define weoLoadIframes       "LoadIframes"
 /// collapse multiple spaces into one then HTML parse
-#define weoCollapseSpaces    ("CollapseSpaces")
+#define weoCollapseSpaces    "CollapseSpaces"
 /// do not leave domain of the request (second-level or higher)
-#define weoStayInDomain      ("StayInDomain")
+#define weoStayInDomain      "StayInDomain"
 /// includes weoStayInDomain
-#define weoStayInHost        ("StayInHost")
+#define weoStayInHost        "StayInHost"
 /// includes woeStayInHost & weoStayInDomain
-#define weoStayInDir         ("StayInDir")
+#define weoStayInDir         "StayInDir"
 /// start response processing automatically
-#define weoAutoProcess       ("AutoProcess")
+#define weoAutoProcess       "AutoProcess"
 /// controls the relocation loops and duplicates
-#define weoCheckForLoops     ("CheckForLoops")
+#define weoCheckForLoops     "CheckForLoops"
+/// base URL for processing
+#define weoBaseURL           "BaseURL"
+/// base URL for processing
+#define weoScanDepth         "ScanDepth"
 //////////////////////////////////////////////////////////////////////////
 
 #endif //__WEOPTIONS_H__

@@ -282,6 +282,60 @@ bool cancel_task(const string& id)
     return retval;
 }
 
+string get_task_opts (const string& id)
+{
+    string retval = "";
+    WeOption opt;
+    string sdata;
+    int t;
+
+    for (t = 0; t < task_list.size(); t++)
+    {
+        opt = task_list[t]->Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, sdata, "");
+
+        if (sdata == id) {
+            // need to call exactly iweOptionsProvider::ToXml()
+            // 'cause it gets all options in the one pack in difference
+            // of structured output of WeTask::ToXml()
+            retval = ((iweOptionsProvider*)task_list[t])->ToXml();
+            break;
+        }
+    }
+    return retval;
+}
+
+bool set_task_opts (const string& dat)
+{
+    bool retval = false;
+    string id;
+    string xml;
+    WeOption opt;
+    string sdata;
+    int t;
+
+    t = dat.find(';');
+    if (t != string::npos) {
+        id = dat.substr(0, t);
+        xml = dat.substr(t+1);
+        for (t = 0; t < task_list.size(); t++)
+        {
+            opt = task_list[t]->Option(weoID);
+            SAFE_GET_OPTION_VAL(opt, sdata, "");
+
+            if (sdata == id) {
+                // need to call exactly iweOptionsProvider::FromXml()
+                // 'cause it gets all options in the one pack in difference
+                // of structured processing of WeTask::FromXml()
+                ((iweOptionsProvider*)task_list[t])->FromXml(xml);
+                retval = true;
+                break;
+            }
+        }
+    }
+    return retval;
+}
+
 void fake_task_processing( void )
 {
     WeOption opt;
