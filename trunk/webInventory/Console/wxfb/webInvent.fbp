@@ -2495,7 +2495,7 @@
                                                             <event name="OnUpdateUI"></event>
                                                             <object class="tool" expanded="1">
                                                                 <property name="bitmap">../images/btnApply16.xpm; Load From File</property>
-                                                                <property name="id">wxID_ANY</property>
+                                                                <property name="id">wxID_TLLANGAPPLY</property>
                                                                 <property name="kind">wxITEM_NORMAL</property>
                                                                 <property name="label">tool</property>
                                                                 <property name="name">m_bpLangApply</property>
