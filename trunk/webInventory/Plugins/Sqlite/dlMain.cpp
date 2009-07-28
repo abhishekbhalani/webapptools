@@ -17,11 +17,11 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "DemoPlugin.h"
+#include "storageSqlite.h"
 
 extern "C"
 void* WePluginFactory(void* krnl)
 {
     WeDispatch* kernel = (WeDispatch*)krnl;
-    return (void*)(new DemoPlugin(kernel));
+    return (void*)(new SqliteStorage(kernel));
 }

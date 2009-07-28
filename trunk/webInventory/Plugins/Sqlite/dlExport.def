@@ -1,2 +1,2 @@
-LIBRARY	"Demo.plg"
+LIBRARY	"Sqlite.plg"
 EXPORTS WePluginFactory
