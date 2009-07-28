@@ -48,8 +48,9 @@ public:
     static const Operation remove = (Operation)0x03;
     static const Operation autoop = (Operation)0xff;
 
-    virtual bool InitStorage(const string& params) = 0;
-    virtual void Flush(const string& params = "") = 0;
+    virtual bool InitStorage(const string& params) {return false;};
+    virtual void Flush(const string& params = "") {};
+    virtual void Refresh(const string& params = "") {};
     virtual string GenerateID(string objType = "");
 
     virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData);

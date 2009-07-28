@@ -54,44 +54,16 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSizer4->Add( 0, 0, 10, wxEXPAND, 5 );
 
-	m_bpTaskGo = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( start_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpTaskGo->Enable( false );
-	m_bpTaskGo->SetToolTip( _("Start task") );
+	m_toolBarTask = new wxToolBar( m_pTasks, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
+	m_toolBarTask->SetToolBitmapSize( wxSize( 20,20 ) );
+	m_toolBarTask->AddTool( wxID_TOOLGO, wxEmptyString, wxBitmap( start_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Start task"), wxEmptyString );
+	m_toolBarTask->AddTool( wxID_TOOLSTOP, wxEmptyString, wxBitmap( btnStop_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Cancel task"), wxEmptyString );
+	m_toolBarTask->AddSeparator();
+	m_toolBarTask->AddTool( wxID_TOOLNEW, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new task"), wxEmptyString );
+	m_toolBarTask->AddTool( wxID_TOOLDEL, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete task"), wxEmptyString );
+	m_toolBarTask->Realize();
 
-	m_bpTaskGo->Enable( false );
-	m_bpTaskGo->SetToolTip( _("Start task") );
-
-	bSizer4->Add( m_bpTaskGo, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-	m_bpCancelTask = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( btnStop_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpCancelTask->Enable( false );
-	m_bpCancelTask->SetToolTip( _("Cancel task") );
-
-	m_bpCancelTask->Enable( false );
-	m_bpCancelTask->SetToolTip( _("Cancel task") );
-
-	bSizer4->Add( m_bpCancelTask, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-
-	bSizer4->Add( 0, 0, 1, wxEXPAND, 5 );
-
-	m_bpTaskNew = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( btnAdd_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpTaskNew->Enable( false );
-	m_bpTaskNew->SetToolTip( _("Add new task") );
-
-	m_bpTaskNew->Enable( false );
-	m_bpTaskNew->SetToolTip( _("Add new task") );
-
-	bSizer4->Add( m_bpTaskNew, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-	m_bpTaskDel = new wxBitmapButton( m_pTasks, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpTaskDel->Enable( false );
-	m_bpTaskDel->SetToolTip( _("Delete task") );
-
-	m_bpTaskDel->Enable( false );
-	m_bpTaskDel->SetToolTip( _("Delete task") );
-
-	bSizer4->Add( m_bpTaskDel, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+	bSizer4->Add( m_toolBarTask, 0, wxEXPAND, 0 );
 
 	bSizer121->Add( bSizer4, 0, wxEXPAND, 5 );
 
@@ -434,10 +406,10 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
-	m_bpTaskGo->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ), NULL, this );
-	m_bpCancelTask->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ), NULL, this );
-	m_bpTaskNew->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ), NULL, this );
-	m_bpTaskDel->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ), NULL, this );
+	this->Connect( wxID_TOOLGO, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
+	this->Connect( wxID_TOOLSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ) );
+	this->Connect( wxID_TOOLNEW, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ) );
+	this->Connect( wxID_TOOLDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ) );
 	m_lstTaskList->Connect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MainForm::OnTaskKillFocus ), NULL, this );
 	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
 	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
@@ -455,10 +427,10 @@ MainForm::~MainForm()
 {
 	// Disconnect Events
 	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
-	m_bpTaskGo->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ), NULL, this );
-	m_bpCancelTask->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ), NULL, this );
-	m_bpTaskNew->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ), NULL, this );
-	m_bpTaskDel->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ), NULL, this );
+	this->Disconnect( wxID_TOOLGO, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
+	this->Disconnect( wxID_TOOLSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ) );
+	this->Disconnect( wxID_TOOLNEW, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnAddTask ) );
+	this->Disconnect( wxID_TOOLDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelTask ) );
 	m_lstTaskList->Disconnect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MainForm::OnTaskKillFocus ), NULL, this );
 	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
 	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );

@@ -74,16 +74,20 @@ int main(int argc, char* argv[])
         }
         plain = string(oss.str(), oss.pcount());
         size_t request_length = plain.length();
+        boost::asio::write(s, boost::asio::buffer(&request_length, sizeof(request_length)));
         boost::asio::write(s, boost::asio::buffer(plain.c_str(), request_length));
         boost::asio::streambuf reply;
-        size_t reply_length = boost::asio::read_until(s, reply, '\0');
-        delete request;
-        request = new char[reply_length + 10];
-        istream is(&reply);
-        is.read(request, reply_length);
-        std::cout << "Reply is: ";
-        std::cout << request;
-        std::cout << "\n";
+        s.read_some(boost::asio::buffer(&request_length, sizeof(request_length)));
+        if (request_length > 0)
+        {
+            delete request;
+            request = new char[request_length + 10];
+            s.read_some(boost::asio::buffer(request, request_length));
+            request[request_length] = '\0';
+            std::cout << "Reply is: ";
+            std::cout << request;
+            std::cout << "\n";
+        }
     }
     catch (std::exception& e)
     {

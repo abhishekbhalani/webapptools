@@ -37,7 +37,7 @@ extern WeDispatch* globalDispatcher;
 string get_plugin_list(string filter);
 string get_plugin_ui(string filter);
 
-int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
+int process_message(char* buff, size_t buffSz, session* sess)
 {
     int retval = 0; // close connection
     bool processed = false;
@@ -45,10 +45,12 @@ int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
 
     try
     {
-        buff->commit(bufSize);
-        istream data(buff);
-        boost::archive::xml_iarchive ia(data);
-        ia >> BOOST_SERIALIZATION_NVP(msg);
+        //buff->commit(bufSize);
+        {// auto-destroy block for streams
+            istrstream data(buff, buffSz);
+            boost::archive::xml_iarchive ia(data);
+            ia >> BOOST_SERIALIZATION_NVP(msg);
+        }
         LOG4CXX_TRACE(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] process_message: " <<  msg.cmd);
         retval = 0;
         sess->last = posix_time::second_clock::local_time();
@@ -99,9 +101,6 @@ int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "ping"))
         {
-            // !!! DEBUG fake_task_processing 
-            fake_task_processing();
-
             msg.cmd = "pong";
             msg.data = posix_time::to_simple_string(sess->last);
             retval = 1;
@@ -257,14 +256,12 @@ int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess)
         {
             LOG4CXX_WARN(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] unknown command: " <<  msg.cmd);
         }
-        buff->consume(bufSize);
-        {
-            ostream oss(buff);
+        {// auto-destroy block for streams
+            ostrstream oss;
             boost::archive::xml_oarchive oa(oss);
             oa << BOOST_SERIALIZATION_NVP(msg);
+            sess->assign_buffer(oss.rdbuf()->pcount(), oss.rdbuf()->str());
         }
-        size_t how = buff->size();
-//        buff->assign((unsigned char *)(oss.rdbuf()->str()), oss.rdbuf()->pcount());
     }
     catch (std::exception &e)
     {

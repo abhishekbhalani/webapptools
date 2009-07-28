@@ -183,6 +183,15 @@ private:
 #define weoBaseURL           "BaseURL"
 /// base URL for processing
 #define weoScanDepth         "ScanDepth"
+/// logging level (integer)
+#define weoLogLevel          "LogLevel"
+//////////////////////////////////////////////////////////////////////////
+// Define options typenames
+//////////////////////////////////////////////////////////////////////////
+#define weoTypeInt           "2"
+#define weoTypeUInt          "3"
+#define weoTypeBool          "6"
+#define weoTypeString        "8"
 //////////////////////////////////////////////////////////////////////////
 
 #endif //__WEOPTIONS_H__

@@ -1,0 +1,39 @@
+/** @mainpage WebEngine Documentation
+<hr>
+<h2>STATIC LIBRARY : webEngine</h2>
+<hr>
+
+webEngine is the set of tools for performing black-box web-sites testing and other similar tasks. It provides tools means for reception of documents from a web-server, parse HTML pages, their comparisons, search through pages sources and DOM-structure, sandboxed execution of the java- and vb-scripts. Tools for authorized access to web-servers are provided, with different authorisation mechanisms. Some formal checks can be performed by embedded checking engine without creation of the new machine code.
+
+<h2>ToDo list:</h2>
+- @ref todo
+
+<h2>Authors:</h2>
+- Andrew "Stinger" Abramov (<a href="http://en.securitylab.ru/lab/">Positive Technologies Research Team</a>)
+- Alex Yudin (<a href="http://en.securitylab.ru/lab/">Positive Technologies Research Team</a>)
+
+<h2>Links:</h2>
+- <a class="el" href="http://www.boost.org/">boost library</a> The 1.33 version of the boost is used in this project.
+- <a class="el" href="http://curl.haxx.se/libcurl/">cURL library</a> Web operations are performed through the cURL library.
+- <a class="el" href="http://code.google.com/p/dtl-cpp/">dtl - Diff Template Library</a>. Copyright &copy; 2008-2009 Tatsuhiko Kubo <cubicdaiya@gmail.com> 
+- <a class="el" href="http://logging.apache.org/log4cxx/index.html">log4cxx library</a> used for logging operations.
+- <a class="el" href="https://sourceforge.net/forum/forum.php?forum_id=961284">Developers forum</a> for the @b webEngine project.
+<a class="el" href="https://sourceforge.net/forum/forum.php?forum_id=955506">Open Discussion</a> and
+general <a class="el" href="https://sourceforge.net/forum/forum.php?forum_id=955508">Developers</a> forums are also available.
+- Project's <a class="el" href="https://sourceforge.net/pm/task.php?group_project_id=59127&group_id=262825">Task List</a>
+- Project's <a class="el" href="https://sourceforge.net/tracker/?group_id=262825&atid=1127705">Bug Tracking system</a>.
+
+<!-- dl><dt>webEngine.vcproj
+<dd>This is the main project file for VC++ projects generated using an Application Wizard. 
+It contains information about the version of Visual C++ that generated the file, and 
+information about the platforms, configurations, and project features selected with the
+Application Wizard.
+</dl -->
+<hr>
+Other notes:
+
+Doxygen system is used for creating documentation for this project. Some special issues may be documented in the external files such as schemas and images.
+
+@file README
+@brief Project documentation mainpage. @ref index
+*/

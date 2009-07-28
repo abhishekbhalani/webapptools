@@ -38,6 +38,7 @@ using namespace boost::filesystem;
 namespace po = boost::program_options;
 
 WeDispatch* globalDispatcher = NULL;
+string cfgFile;
 
 class ProgramConfig
 {
@@ -133,12 +134,12 @@ int main(int argc, char* argv[])
 
         LOG4CXX_INFO(WeLogger::GetLogger(), "Version is " << vers);
         if (vm.count("config")) {
-            string cfgName = vm["config"].as<string>();
+            cfgFile = vm["config"].as<string>();
             LOG4CXX_INFO(WeLogger::GetLogger(), "Config file is "
-                << cfgName);
+                << cfgFile);
             try
             {
-                std::ifstream itfs(cfgName.c_str());
+                std::ifstream itfs(cfgFile.c_str());
                 {
                     boost::archive::xml_iarchive ia(itfs);
                     ia >> BOOST_SERIALIZATION_NVP(configuration);
@@ -146,9 +147,10 @@ int main(int argc, char* argv[])
             }
             catch (...)
             {
-                LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgName);
+                LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
             }
         } else {
+            cfgFile = "";
             LOG4CXX_INFO(WeLogger::GetLogger(), "Config is default, no files readed");
         }
         taskDbDir = configuration.dbDir;
