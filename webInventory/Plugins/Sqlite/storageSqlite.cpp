@@ -21,7 +21,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include "storageSqlite.h"
 #include "version.h"
-//#include "demoPlugin.xpm"
+#include "sqliteStorage.xpm"
 //#include "demoPlugin.xrc"
 
 SqliteStorage::SqliteStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
@@ -29,9 +29,9 @@ SqliteStorage::SqliteStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
 {
     pluginInfo.IfaceName = "SqliteStorage";
     pluginInfo.IfaceList.push_back("SqliteStorage");
-    pluginInfo.PluginDesc = "SqliteStorage plugin";
+    pluginInfo.PluginDesc = "Sqlite storage";
     pluginInfo.PluginId = "9FBCC44C52A1";
-    //pluginInfo.PluginIcon = WeXpmToStringList(demoPlugin_xpm, sizeof(demoPlugin_xpm) / sizeof(char*) );
+    pluginInfo.PluginIcon = WeXpmToStringList(sqliteStorage_xpm, sizeof(sqliteStorage_xpm) / sizeof(char*) );
 }
 
 SqliteStorage::~SqliteStorage(void)
@@ -51,7 +51,7 @@ void* SqliteStorage::GetInterface( const string& ifName )
 const string SqliteStorage::GetSetupUI( void )
 {
     /// @todo: change XRC to set the fields values
-    return xrc;
+    return NULL;
 }
 
 void SqliteStorage::ApplySettings( const string& xmlData )
