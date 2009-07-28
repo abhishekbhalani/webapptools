@@ -157,31 +157,31 @@ private:
 #define weoTaskCompletion    "completion"
 #define weoTransport         "TransportName"
 #define weoParser            "ParserName"
-/// put all founded links into the processing queue
+/// put all founded links into the processing queue (bool)
 #define weoFollowLinks       "FollowLinks"
-/// automatically load images as WeRefrenceObject
+/// automatically load images as WeRefrenceObject (bool)
 #define weoLoadImages        "LoadImages"
-/// automatically load scripts as WeRefrenceObject
+/// automatically load scripts as WeRefrenceObject (bool)
 #define weoLoadScripts       "LoadScripts"
-/// automatically load frames as WeRefrenceObject
+/// automatically load frames as WeRefrenceObject (bool)
 #define weoLoadFrames        "LoadFrames"
-/// collapse multiple spaces into one then HTML parse
+/// automatically load iframes as WeRefrenceObject (bool)
 #define weoLoadIframes       "LoadIframes"
-/// collapse multiple spaces into one then HTML parse
+/// collapse multiple spaces into one then HTML parse (bool)
 #define weoCollapseSpaces    "CollapseSpaces"
-/// do not leave domain of the request (second-level or higher)
+/// do not leave domain of the request (second-level or higher) (bool)
 #define weoStayInDomain      "StayInDomain"
-/// includes weoStayInDomain
+/// includes weoStayInDomain (bool)
 #define weoStayInHost        "StayInHost"
-/// includes woeStayInHost & weoStayInDomain
+/// includes woeStayInHost & weoStayInDomain (bool)
 #define weoStayInDir         "StayInDir"
-/// start response processing automatically
+/// start response processing automatically (bool)
 #define weoAutoProcess       "AutoProcess"
-/// controls the relocation loops and duplicates
+/// controls the relocation loops and duplicates (bool)
 #define weoCheckForLoops     "CheckForLoops"
-/// base URL for processing
+/// base URL for processing (bool)
 #define weoBaseURL           "BaseURL"
-/// base URL for processing
+/// links following depth (integer)
 #define weoScanDepth         "ScanDepth"
 /// logging level (integer)
 #define weoLogLevel          "LogLevel"
