@@ -166,6 +166,11 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_plugins = 0;
     m_plugList = NULL;
 
+    m_toolBarTask->EnableTool(wxID_TOOLGO, false);
+    m_toolBarTask->EnableTool(wxID_TOOLSTOP, false);
+    m_toolBarTask->EnableTool(wxID_TOOLNEW, false);
+    m_toolBarTask->EnableTool(wxID_TOOLDEL, false);
+
     wxString label;
     label = wxString::FromAscii(AutoVersion::FULLVERSION_STRING) + wxT(" ");
     label += wxString::FromAscii(AutoVersion::STATUS);
@@ -423,7 +428,7 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
 
 void wiMainForm::Disconnected(bool mode)
 {
-    m_bpTaskNew->Disable();
+    m_toolBarTask->EnableTool(wxID_TOOLNEW, false);
     m_pnServer->Disable();
     m_statusBar->SetImage(wiSTATUS_BAR_NO);
     m_statusBar->SetStatusText(_("Disconnected"), 1);
@@ -441,7 +446,7 @@ void wiMainForm::Disconnected(bool mode)
 
 void wiMainForm::Connected(bool mode)
 {
-    m_bpTaskNew->Enable();
+    m_toolBarTask->EnableTool(wxID_TOOLNEW, true);
     m_pnServer->Enable();
     m_statusBar->SetImage(wiSTATUS_BAR_YES);
     m_statusBar->SetStatusText(_("Connected"), 1);
@@ -553,28 +558,28 @@ void wiMainForm::SelectTask(int id/* = -1*/)
         m_lstTaskList->GetItem(info);
         if (info.GetImage() == WI_TSK_IDLE) {
             m_btnApply->Enable();
-            m_bpTaskGo->Enable();
-            m_bpTaskGo->SetBitmapLabel( wxBitmap(start_xpm) );
-            m_bpCancelTask->Disable();
-            m_bpTaskDel->Enable();
+            m_toolBarTask->EnableTool(wxID_TOOLGO, true);
+            m_toolBarTask->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(start_xpm) );
+            m_toolBarTask->EnableTool(wxID_TOOLSTOP, false);
+            m_toolBarTask->EnableTool(wxID_TOOLDEL, true);
             m_panTaskOpts->Enable();
             m_cbInvent->Disable();
 
         }
         else if (info.GetImage() == WI_TSK_RUN) {
             m_btnApply->Disable();
-            m_bpTaskGo->Enable();
-            m_bpTaskGo->SetBitmapLabel( wxBitmap(pause_xpm) );
-            m_bpCancelTask->Enable();
-            m_bpTaskDel->Disable();
+            m_toolBarTask->EnableTool(wxID_TOOLGO, true);
+            m_toolBarTask->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(pause_xpm) );
+            m_toolBarTask->EnableTool(wxID_TOOLSTOP, true);
+            m_toolBarTask->EnableTool(wxID_TOOLDEL, false);
             m_panTaskOpts->Disable();
         }
         else if (info.GetImage() == WI_TSK_PAUSED) {
             m_btnApply->Disable();
-            m_bpTaskGo->Enable();
-            m_bpTaskGo->SetBitmapLabel( wxBitmap(start_xpm) );
-            m_bpCancelTask->Enable();
-            m_bpTaskDel->Disable();
+            m_toolBarTask->EnableTool(wxID_TOOLGO, true);
+            m_toolBarTask->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(start_xpm) );
+            m_toolBarTask->EnableTool(wxID_TOOLSTOP, true);
+            m_toolBarTask->EnableTool(wxID_TOOLDEL, false);
             m_panTaskOpts->Disable();
         }
         // refresh task options
@@ -584,10 +589,9 @@ void wiMainForm::SelectTask(int id/* = -1*/)
     }
     else {
         m_btnApply->Enable();
-        m_bpTaskGo->Disable();
-        m_bpCancelTask->Disable();
-        m_bpTaskDel->Disable();
-        //m_panTaskOpts->Hide();
+        m_toolBarTask->EnableTool(wxID_TOOLGO, false);
+        m_toolBarTask->EnableTool(wxID_TOOLSTOP, false);
+        m_toolBarTask->EnableTool(wxID_TOOLDEL, false);
         m_panTaskOpts->Enable();
         m_panTaskOpts->Disable();
     }
@@ -708,10 +712,8 @@ void wiMainForm::GetTaskOptions(int taskID)
     wxString optsstr;
 
     if (m_client != NULL) {
-        wxLogMessage(wxT("%s"), id.c_str());
         optsstr = m_client->DoCmd(wxT("gettaskopts"), id);
         //optsstr = wxString(wxT("<?xml version=\"1.0\"?>")) + optsstr;
-        wxLogMessage(wxT("%s"), optsstr.c_str());
         wxCharBuffer buff = optsstr.utf8_str();
         int buffLen = strlen(buff.data());
         wxMemoryInputStream xmlStream(buff.data(), buffLen);
@@ -720,6 +722,14 @@ void wiMainForm::GetTaskOptions(int taskID)
             wxXmlNode *root = opt.GetRoot();
             if (root && root->GetName().CmpNoCase(wxT("options")) == 0) {
                 wxXmlNode *child = root->GetChildren();
+                // reset valuses
+                m_txtTaskName->SetValue(wxT(""));
+                m_txtBaseURL->SetValue(wxT(""));
+                m_rbDepth->SetSelection(0);
+                m_txtDepth->SetValue(wxT("-1"));
+                m_chLogLevel->Select(0);
+
+                // set new values
                 while (child != NULL) {
                     if (child->GetType() == wxXML_ELEMENT_NODE && child->GetName().CmpNoCase(wxT("option")) == 0) {
                         wxString name = child->GetPropVal(wxT("name"), wxT(""));
@@ -758,4 +768,82 @@ void wiMainForm::GetTaskOptions(int taskID)
             }
         }
     }
+}
+
+void wiMainForm::OnTaskApply( wxCommandEvent& event )
+{
+    wxListItem info;
+
+    if (m_selectedTask > -1) {
+        info.SetId(m_selectedTask);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_DATA);
+        m_lstTaskList->GetItem(info);
+        // check options changing and ask for save them
+        if (m_client != NULL) {
+            wxXmlDocument opt;
+            wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("options"));
+            wxXmlNode *chld;
+            wxString content;
+
+            SaveTaskOption(root, wxT(weoName), wxT(weoTypeString), m_txtTaskName->GetValue());
+
+            SaveTaskOption(root, wxT(weoBaseURL), wxT(weoTypeString), m_txtBaseURL->GetValue());
+
+            SaveTaskOptionBool(root, wxT(weoStayInDir), (m_rbDepth->GetSelection() == 0));
+
+            SaveTaskOptionBool(root, wxT(weoStayInHost), (m_rbDepth->GetSelection() == 1));
+
+            SaveTaskOptionBool(root, wxT(weoStayInDomain), (m_rbDepth->GetSelection() == 2));
+
+            SaveTaskOptionBool(root, wxT("OnlyInventory"), m_cbInvent->IsChecked());
+
+            SaveTaskOption(root, wxT(weoScanDepth), wxT(weoTypeInt), m_txtDepth->GetValue());
+
+            SaveTaskOptionInt(root, wxT(weoLogLevel), m_chLogLevel->GetSelection());
+
+            opt.SetRoot(root);
+            wxMemoryOutputStream outp;
+            opt.Save(outp, wxXML_NO_INDENTATION);
+            int dataLen = outp.GetSize();
+            char *data = new char[dataLen + 10];
+            if (data != NULL) {
+                outp.CopyTo(data, dataLen);
+                wxString str = wxString::Format(wxT("%X;"), info.GetData());
+                str += wxString::FromAscii(data);
+                m_client->DoCmd(wxT("settaskopts"), str);
+            }
+            else {
+                wxLogError(wxT("Can't compose options save request!"));
+            }
+        }
+    }
+}
+
+void wiMainForm::SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value)
+{
+    wxXmlNode *chld, *content;
+
+    chld = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("option"));
+    chld->AddProperty(wxT("name"), name);
+    chld->AddProperty(wxT("type"), type);
+    content = new wxXmlNode(wxXML_TEXT_NODE, wxT(""));
+    content->SetContent(value);
+    chld->AddChild(content);
+    root->AddChild(chld);
+}
+
+void wiMainForm::SaveTaskOptionBool (wxXmlNode *root, const wxString& name, const bool& value)
+{
+    wxString content = wxT("0");
+    if (value) {
+        content = wxT("1");
+    }
+    SaveTaskOption(root, name, wxT(weoTypeBool), content);
+}
+
+void wiMainForm::SaveTaskOptionInt (wxXmlNode *root, const wxString& name, const int& value)
+{
+    wxString content = wxString::Format(wxT("%d"), value);
+    SaveTaskOption(root, name, wxT(weoTypeInt), content);
 }

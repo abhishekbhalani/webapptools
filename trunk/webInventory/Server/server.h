@@ -39,6 +39,8 @@ public:
         : socket_(io_service),
           last(posix_time::second_clock::local_time())
     {
+        data_ = NULL;
+        datalen = 0;
     }
 
     tcp::socket& socket()
@@ -47,15 +49,18 @@ public:
     }
 
     void start();
-    void handle_read(const boost::system::error_code& error,
-        size_t bytes_transferred);
+    void handle_read_datalen(const boost::system::error_code& error, size_t bytes_transferred);
+    void handle_read_data(const boost::system::error_code& error, size_t bytes_transferred);
     void handle_write(const boost::system::error_code& error);
+    void reset_buffer(size_t sz);
+    void assign_buffer(size_t sz, char* buff);
 
     posix_time::ptime last;
 
 private:
     tcp::socket socket_;
-    boost::asio::streambuf data_;
+    size_t datalen;
+    char* data_;
 };
 
 class server
@@ -79,6 +84,6 @@ private:
     tcp::acceptor acceptor_;
 };
 
-extern int process_message(boost::asio::streambuf* buff, size_t bufSize, session* sess);
+extern int process_message(char* buff, size_t buffSz, session* sess);
 
 #endif //__SERVER_H__

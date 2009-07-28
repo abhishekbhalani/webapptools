@@ -28,6 +28,7 @@
 
 #include "wiGuiData.h"
 #include <wx/imaglist.h>
+#include <wx/xml/xml.h>
 #include "Config.h"
 #include "wiTcpClient.h"
 
@@ -59,6 +60,7 @@ protected:
     virtual void OnCancelTask( wxCommandEvent& event );
     virtual void OnTaskSelected( wxListEvent& event );
     virtual void OnSortItems( wxListEvent& event );
+    virtual void OnTaskApply( wxCommandEvent& event );
 
     void OnPluginSettings( wxCommandEvent& event );
     void ProcessTaskList(const wxString& criteria = wxT(""));
@@ -66,6 +68,9 @@ protected:
     void Connected(bool mode = true);
     void GetPluginList();
     void SelectTask(int id = -1);
+    void SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value);
+    void SaveTaskOptionBool (wxXmlNode *root, const wxString& name, const bool& value);
+    void SaveTaskOptionInt (wxXmlNode *root, const wxString& name, const int& value);
 
     void GetTaskOptions(int taskID);
 

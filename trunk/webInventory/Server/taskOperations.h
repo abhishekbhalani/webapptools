@@ -40,6 +40,4 @@ extern bool cancel_task(const string& id);
 extern string get_task_opts (const string& id);
 extern bool set_task_opts (const string& xml);
 
-extern void fake_task_processing( void );
-
 #endif //__TASKOPERATIONS_H__

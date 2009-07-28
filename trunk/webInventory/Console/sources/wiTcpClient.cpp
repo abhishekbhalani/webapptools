@@ -110,17 +110,25 @@ wxString wiTcpClient::DoCmd(const wxString& cmd, const wxString& payload)
         }
         std::string plain = string(oss.str(), oss.pcount());
         size_t request_length = plain.length();
+        boost::asio::write(client->sock, boost::asio::buffer(&request_length, sizeof(request_length)));
         boost::asio::write(client->sock, boost::asio::buffer(plain.c_str(), request_length));
-        boost::asio::streambuf reply;
-        size_t reply_length = boost::asio::read_until(client->sock, reply, '\0');
-        databuff = new char(reply_length + 1);
-        istream iss(&reply);
+        client->sock.read_some(boost::asio::buffer(&request_length, sizeof(request_length)));
+        if (request_length > 0)
         {
-            boost::archive::xml_iarchive ia(iss);
-            ia >> BOOST_SERIALIZATION_NVP(msg);
+            databuff = new char[request_length + 10];
+            client->sock.read_some(boost::asio::buffer(databuff, request_length));
+            databuff[request_length] = '\0';
+            {
+                istrstream iss(databuff, request_length);
+                boost::archive::xml_iarchive ia(iss);
+                ia >> BOOST_SERIALIZATION_NVP(msg);
+            }
+            result = wxString::FromAscii(msg.data.c_str());
+            delete databuff;
         }
-        result = wxString::FromAscii(msg.data.c_str());
-        //delete databuff;
+        else {
+            result = wxEmptyString;
+        }
     }
     catch (std::exception& e)
     {

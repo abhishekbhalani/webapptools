@@ -22,10 +22,11 @@ class wxCustomButton;
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/icon.h>
-#include <wx/bmpbuttn.h>
-#include <wx/button.h>
+#include <wx/toolbar.h>
 #include <wx/sizer.h>
 #include <wx/listctrl.h>
+#include <wx/bmpbuttn.h>
+#include <wx/button.h>
 #include <wx/textctrl.h>
 #include <wx/radiobox.h>
 #include <wx/checkbox.h>
@@ -36,7 +37,6 @@ class wxCustomButton;
 #include <wx/statline.h>
 #include <wx/richtext/richtextctrl.h>
 #include <wx/panel.h>
-#include <wx/toolbar.h>
 #include <wx/aui/auibook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
@@ -44,11 +44,15 @@ class wxCustomButton;
 
 ///////////////////////////////////////////////////////////////////////////
 
-#define wxID_TLCONNECT 1000
-#define wxID_TLNEW 1001
-#define wxID_TLEDIT 1002
-#define wxID_TLDELETE 1003
-#define wxID_TLLANGAPPLY 1004
+#define wxID_TOOLGO 1000
+#define wxID_TOOLSTOP 1001
+#define wxID_TOOLNEW 1002
+#define wxID_TOOLDEL 1003
+#define wxID_TLCONNECT 1004
+#define wxID_TLNEW 1005
+#define wxID_TLEDIT 1006
+#define wxID_TLDELETE 1007
+#define wxID_TLLANGAPPLY 1008
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
@@ -62,11 +66,7 @@ class MainForm : public wxFrame
 		wxPanel* m_pTasks;
 		wxStaticText* m_stTaskList;
 		
-		wxBitmapButton* m_bpTaskGo;
-		wxBitmapButton* m_bpCancelTask;
-		
-		wxBitmapButton* m_bpTaskNew;
-		wxBitmapButton* m_bpTaskDel;
+		wxToolBar* m_toolBarTask;
 		wxListCtrl* m_lstTaskList;
 		wxStaticText* m_stProfile;
 		

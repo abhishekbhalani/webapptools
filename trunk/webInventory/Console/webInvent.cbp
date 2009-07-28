@@ -190,6 +190,7 @@
 			<Add library="odbc32.lib" />
 		</Linker>
 		<Unit filename="..\Common\messages.h" />
+		<Unit filename="..\Common\optionnames.h" />
 		<Unit filename="sources\Config.cpp" />
 		<Unit filename="sources\Config.h" />
 		<Unit filename="sources\Crypto.cpp" />

@@ -20,8 +20,10 @@
 
 #include "server.h"
 // #include <boost/algorithm/string/predicate.hpp>
-// #include <boost/archive/xml_iarchive.hpp>#include <strstream>
+// #include <boost/archive/xml_iarchive.hpp>
+#include <strstream>
 #include <weLogger.h>
+#include <weBlob.h>
 // #include "messages.h"
 
 void server::handle_accept(session* new_session,
@@ -47,25 +49,41 @@ void session::start()
 {
     LOG4CXX_INFO(WeLogger::GetLogger(), "Session: connection accepted - " << socket_.remote_endpoint().address());
 
-    boost::asio::async_read_until(socket_, data_, "\0",
-        //boost::asio::transfer_at_least(1),
-        boost::bind(&session::handle_read, this,
-        boost::asio::placeholders::error,
-        boost::asio::placeholders::bytes_transferred));
+    socket_.async_read_some(boost::asio::buffer(&datalen, sizeof(size_t)),
+        boost::bind(&session::handle_read_datalen, this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred));
 }
 
-void session::handle_read(const boost::system::error_code& error,
-                 size_t bytes_transferred)
+void session::handle_read_datalen(const boost::system::error_code& error, size_t bytes_transferred)
 {
-    if (!error)
+    if (datalen > 0 && !error)
     {
-        int res = process_message(&data_, bytes_transferred, this);
+        data_ = new char[datalen];
+        socket_.async_read_some(boost::asio::buffer(data_, datalen),
+            boost::bind(&session::handle_read_data, this,
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred));
+    }
+    else
+    {
+        LOG4CXX_WARN(WeLogger::GetLogger(), "Session: read failed - " << error);
+        delete this;
+    }
+}
+
+void session::handle_read_data(const boost::system::error_code& error, size_t bytes_transferred)
+{
+    if (datalen > 0 && !error)
+    {
+        int res = process_message(data_, datalen, this);
         if (res == 1)
         {
-            boost::asio::async_write(socket_, data_,
+            boost::asio::write(socket_, boost::asio::buffer(&datalen, sizeof(size_t)));
+            boost::asio::async_write(socket_, boost::asio::buffer(data_, datalen),
                 boost::bind(&session::handle_write, this,
                 boost::asio::placeholders::error));
-        }
+        }
         else if (res == 0)
         {
             LOG4CXX_WARN(WeLogger::GetLogger(), "Session: close session");
@@ -76,7 +94,6 @@ void session::handle_read(const boost::system::error_code& error,
             LOG4CXX_WARN(WeLogger::GetLogger(), "Session: exit requested");
             socket_.io_service().stop();
         }
-        
     }
     else
     {
@@ -89,17 +106,12 @@ void session::handle_write(const boost::system::error_code& error)
 {
     if (!error)
     {
-        // finalize message
-        short nul = 0;
-        boost::asio::write(socket_, boost::asio::buffer(&nul, sizeof(nul)));
-        // clear buffer
-        data_.consume(data_.size());
+        reset_buffer(0);
         // Start reading remaining data until EOF.
-        boost::asio::async_read_until(socket_, data_, "\0",
-            //boost::asio::transfer_at_least(1),
-            boost::bind(&session::handle_read, this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
+        socket_.async_read_some(boost::asio::buffer(&datalen, sizeof(size_t)),
+            boost::bind(&session::handle_read_datalen, this,
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred));
     }
     else
     {
@@ -108,3 +120,25 @@ void session::handle_write(const boost::system::error_code& error)
     }
 }
 
+void session::reset_buffer(size_t sz)
+{
+    datalen = sz;
+    if (data_ != NULL)
+    {
+        delete data_;
+        data_ = NULL;
+        if (datalen > 0)
+        {
+            data_ = new char[datalen];
+        }
+    }
+}
+
+void session::assign_buffer(size_t sz, char* buff)
+{
+    reset_buffer(sz);
+    if (data_ != NULL)
+    {
+        memcpy(data_, buff, sz);
+    }
+}
