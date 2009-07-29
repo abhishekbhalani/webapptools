@@ -50,8 +50,7 @@ public:
 
     virtual bool InitStorage(const string& params) {return false;};
     virtual void Flush(const string& params = "") {};
-    virtual void Refresh(const string& params = "") {};
-    virtual string GenerateID(string objType = "");
+    virtual string GenerateID(const string& objType = "");
 
     virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData);
     virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result);
@@ -71,5 +70,10 @@ public:
 protected:
     static int lastId;
 };
+
+#define weObjTypeTask       "task"
+#define weObjTypeSysOption  "sysopt"
+#define weObjTypeDictionary "dict"
+#define weObjTypeAuthInfo   "auth"
 
 #endif //__IWESTORAGE_H__

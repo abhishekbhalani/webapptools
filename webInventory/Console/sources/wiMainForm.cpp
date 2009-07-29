@@ -194,6 +194,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_panTaskOpts->Disable();
     SelectTask( -1 );
     m_pnServer->Hide();
+    m_panTaskOpts->Disable();
+    m_lstTaskList->Disable();
+    m_toolBarTask->Disable();
     Layout();
 }
 
@@ -430,6 +433,9 @@ void wiMainForm::Disconnected(bool mode)
 {
     m_toolBarTask->EnableTool(wxID_TOOLNEW, false);
     m_pnServer->Disable();
+    m_panTaskOpts->Disable();
+    m_lstTaskList->Disable();
+    m_toolBarTask->Disable();
     m_statusBar->SetImage(wiSTATUS_BAR_NO);
     m_statusBar->SetStatusText(_("Disconnected"), 1);
     m_statusBar->SetStatusText(_("unknown"), 2);
@@ -448,6 +454,9 @@ void wiMainForm::Connected(bool mode)
 {
     m_toolBarTask->EnableTool(wxID_TOOLNEW, true);
     m_pnServer->Enable();
+    m_panTaskOpts->Enable();
+    m_lstTaskList->Enable();
+    m_toolBarTask->Enable();
     m_statusBar->SetImage(wiSTATUS_BAR_YES);
     m_statusBar->SetStatusText(_("Connected"), 1);
     m_statusBar->SetStatusText(wxT(""), 3);
@@ -611,6 +620,8 @@ void wiMainForm::GetPluginList()
     size_t lstSize;
 
     m_pluginsDock->Freeze();
+    m_chStorage->Freeze();
+    m_chStorage->Clear();
     for(i = 0; i < m_plugins; i++) {
         item = m_gbPluginsGrid->FindItemAtPosition(wxGBPosition(i+1, 0));
         if (item != NULL) {
@@ -637,6 +648,7 @@ void wiMainForm::GetPluginList()
         delete m_plugList;
     }
     if(m_client != NULL) {
+        wxString storageID = m_client->DoCmd(wxT("getstorage"), wxT(""));
         m_plugList = m_client->GetPluginList();
         if (m_plugList != NULL) {
             m_plugins = 0;
@@ -666,11 +678,20 @@ void wiMainForm::GetPluginList()
                 wxStaticBitmap *ico = new wxStaticBitmap( m_pluginsDock, wxID_ANY, wxBitmap(xpm));
                 m_gbPluginsGrid->Add(ico, wxGBPosition(m_plugins+1, 0), wxDefaultSpan, wxALIGN_CENTER);
 
+                // add plugins to the storage list
+                if (find((*m_plugList)[lstSize].IfaceList.begin(), (*m_plugList)[lstSize].IfaceList.end(), "iweStorage") != (*m_plugList)[lstSize].IfaceList.end()) {
+                    int itm = m_chStorage->Append(wxString::FromAscii((*m_plugList)[lstSize].PluginDesc.c_str()), (void*)(wxPluginsData + m_plugins));
+                    if (storageID.CmpNoCase(wxString::FromAscii((*m_plugList)[lstSize].PluginId.c_str())) == 0) {
+                        m_chStorage->SetSelection(itm);
+                    }
+                }
+
                 m_plugins++;
             }
             m_gbPluginsGrid->Layout();
         }
     }
+    m_chStorage->Thaw();
     m_pluginsDock->Thaw();
 }
 
@@ -846,4 +867,17 @@ void wiMainForm::SaveTaskOptionInt (wxXmlNode *root, const wxString& name, const
 {
     wxString content = wxString::Format(wxT("%d"), value);
     SaveTaskOption(root, name, wxT(weoTypeInt), content);
+}
+
+void wiMainForm::OnStorageChange( wxCommandEvent& event )
+{
+    int plg = m_chStorage->GetSelection();
+    if (plg != -1 && m_plugList != NULL && m_client != NULL) {
+        int plgIdx = (int)m_chStorage->GetClientData(plg) - wxPluginsData;
+        if (plgIdx >= 0 && plgIdx < m_plugList->size()) {
+            wxString plgID = wxString::FromAscii((*m_plugList)[plgIdx].PluginId.c_str());
+            m_client->DoCmd(wxT("setstorage"), plgID);
+            ProcessTaskList(wxT(""));
+        }
+    }
 }

@@ -49,17 +49,15 @@ extern WeDispatch* globalDispatcher;
 extern string cfgFile;
 
 string taskDbDir = ".";
-static vector<WeTask*>  task_list;
 
 char* trace_modes[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
 int trace_mode_last = 5;
 
-void load_task_list( void )
+void load_task_list( vector<WeTask*>& task_list )
 {
     string report = "";
     int tasks = 0;
 
-    globalDispatcher->Storage()->Refresh();
     tasks = globalDispatcher->Storage()->TaskReport("<taskreport><id value='*' /></taskreport>", report);
     if (tasks > 0)
     {   // parse the response
@@ -103,7 +101,7 @@ void load_task_list( void )
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "get_task_list - unexpected tag: " << tag);
+                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task_list - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:
@@ -120,21 +118,87 @@ void load_task_list( void )
     }
 }
 
-void save_task_list( void )
+void save_task( WeTask* tsk )
 {
     string taskRep;
-    size_t t;
 
-    for (t = 0; t < task_list.size(); t++)
-    {
-        taskRep = task_list[t]->ToXml();
-        globalDispatcher->Storage()->TaskSave(taskRep);
-    }
+    taskRep = tsk->ToXml();
+    globalDispatcher->Storage()->TaskSave(taskRep);
     globalDispatcher->Storage()->Flush();
+}
+
+WeTask* load_task( const string& id )
+{
+    string req;
+    string report = "";
+    int tasks = 0;
+    WeTask* tsk;
+
+    req = "<taskreport><id value='" + id + "' /></taskreport>";
+    tasks = globalDispatcher->Storage()->TaskReport(req, report);
+    tsk = NULL;
+    if (tasks > 0)
+    {   // parse the response
+        bool in_parsing = true;
+        int parsing_level = 0;
+        int xml_pos;
+        WeStrStream st(report.c_str());
+        WeTagScanner sc(st);
+        string tag;
+
+        while(in_parsing) {
+            xml_pos = sc.GetPos();
+            int t = sc.GetToken();
+            switch(t)
+            {
+            case wstError:
+                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task - parsing error");
+                in_parsing = false;
+                break;
+            case wstEof:
+                LOG4CXX_TRACE(WeLogger::GetLogger(), "load_task - parsing EOF");
+                in_parsing = false;
+                break;
+            case wstTagStart:
+                tag = sc.GetTagName();
+                if (parsing_level == 0)
+                {
+                    if (iequals(tag, "taskreport")) {
+                        parsing_level++;
+                        break;
+                    }
+                }
+                if (parsing_level == 1) {
+                    if (iequals(tag, "task")) {
+                        tsk = new WeTask();
+                        // go back to the start of the TAG
+                        tsk->FromXml(sc, t);
+                        // stop parsing - only first task need
+                        in_parsing = false; 
+                        break;
+                    }
+                }
+                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task - unexpected tag: " << tag);
+                in_parsing = false;
+                break;
+            case wstTagEnd:
+                tag = sc.GetTagName();
+                if (parsing_level == 0)
+                {
+                    if (iequals(tag, "taskreport")) {
+                        in_parsing = false;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    return tsk;
 }
 
 TaskList* get_task_list(const string& criteria/* = ""*/)
 {
+    vector<WeTask*>  task_list;
     TaskList    *lst = NULL;
     TaskRecord  *tsk = NULL;
     WeOption    opt;
@@ -142,10 +206,7 @@ TaskList* get_task_list(const string& criteria/* = ""*/)
     int idata;
     size_t t;
 
-    if (task_list.empty())
-    {
-        load_task_list();
-    }
+    load_task_list(task_list);
     lst = new TaskList;
     for(t = 0; t < task_list.size(); t++)
     {
@@ -169,6 +230,7 @@ TaskList* get_task_list(const string& criteria/* = ""*/)
 
         lst->push_back(*tsk);
     }
+    task_list.clear();
     return lst;
 }
 
@@ -185,8 +247,7 @@ string add_task(const string& name)
     tsk->Option(weoName, name);
     tsk->Option(weoTaskCompletion, 0);
     tsk->Option(weoTaskStatus, 0);
-    task_list.push_back(tsk);
-    save_task_list();
+    save_task(tsk);
     return retval;
 }
 
@@ -201,7 +262,6 @@ bool del_task(const string& id)
     if (globalDispatcher->Storage()->Delete("task", fName) != 0) {
         retval = true;
     }
-    load_task_list();
     return retval;
 }
 
@@ -211,59 +271,59 @@ bool run_task(const string& id)
     WeOption opt;
     string sdata;
     int idata;
-    size_t t;
+    WeTask* tsk;
 
-    for (t = 0; t < task_list.size(); t++)
+    tsk = load_task(id);
+    if (tsk != NULL)
     {
-        opt = task_list[t]->Option(weoID);
-        SAFE_GET_OPTION_VAL(opt, sdata, "");
+        opt = tsk->Option(weoTaskStatus);
+        SAFE_GET_OPTION_VAL(opt, idata, 0);
+        if (idata == WI_TSK_IDLE || idata == WI_TSK_PAUSED)
+        {
+            // prepare task to run
+            tsk->Option(weoTaskStatus, WI_TSK_RUN);
+            save_task(tsk);
+            // make base filename
+            string fname = id + "_" + posix_time::to_iso_string(posix_time::second_clock::local_time());
 
-        if (sdata == id) {
-            opt = task_list[t]->Option(weoTaskStatus);
+            opt = tsk->Option(weoLogLevel);
             SAFE_GET_OPTION_VAL(opt, idata, 0);
-            if (idata == WI_TSK_IDLE || idata == WI_TSK_PAUSED)
+            if (idata < 0)
             {
-                // prepare task to run
-                task_list[t]->Option(weoTaskStatus, WI_TSK_RUN);
-                save_task_list();
-                // make base filename
-                string fname = sdata + "_" + posix_time::to_iso_string(posix_time::second_clock::local_time());
-
-                opt = task_list[t]->Option(weoLogLevel);
-                SAFE_GET_OPTION_VAL(opt, idata, 0);
-                if (idata < 0)
-                {
-                    idata = 0;
-                }
-                if (idata > trace_mode_last)
-                {
-                    idata = trace_mode_last;
-                }
-                { // create trace.config
-                    string trace = fname + ".trace";
-                    ofstream tr(trace.c_str());
-                    tr << "log4j.appender.R=org.apache.RollingFileAppender" << endl;
-                    tr << "log4j.appender.R=org.apache.RollingFileAppender" << endl;
-                    tr << "log4j.appender.R.File=" << fname << ".log" << endl;
-                    tr << "log4j.appender.R.MaxFileSize=10MB" << endl;
-                    tr << "log4j.appender.R.MaxBackupIndex=100" << endl;
-                    tr << "log4j.appender.R.immediateflush=true" << endl;
-                    tr << "log4j.appender.R.layout=org.apache.log4j.PatternLayout" << endl;
-                    tr << "log4j.appender.R.layout.ConversionPattern=[%d] - %m%n" << endl;
-                    tr << "log4j.logger.webEngine=" << trace_modes[idata] << ", R" << endl;
-                }
-                // compose command line arguments
-                string cmdline = "--id " + sdata;
-                cmdline += " --trace " + fname + ".trace";
-                if (cfgFile != "") {
-                    cmdline += " --config " + cfgFile;
-                }
-                cmdline += " --storage " + globalDispatcher->Storage()->GetID();
-                execl("tskScanner", cmdline.c_str(), NULL);
-                retval = true;
+                idata = 0;
             }
+            if (idata > trace_mode_last)
+            {
+                idata = trace_mode_last;
+            }
+            { // create trace.config
+                string trace = fname + ".trace";
+                ofstream tr(trace.c_str());
+                tr << "log4j.appender.R=org.apache.RollingFileAppender" << endl;
+                tr << "log4j.appender.R=org.apache.RollingFileAppender" << endl;
+                tr << "log4j.appender.R.File=" << fname << ".log" << endl;
+                tr << "log4j.appender.R.MaxFileSize=10MB" << endl;
+                tr << "log4j.appender.R.MaxBackupIndex=100" << endl;
+                tr << "log4j.appender.R.immediateflush=true" << endl;
+                tr << "log4j.appender.R.layout=org.apache.log4j.PatternLayout" << endl;
+                tr << "log4j.appender.R.layout.ConversionPattern=[%d] - %m%n" << endl;
+                tr << "log4j.logger.webEngine=" << trace_modes[idata] << ", R" << endl;
+            }
+            // compose command line arguments
+            string cmdline = "--id " + sdata;
+            cmdline += " --trace " + fname + ".trace";
+            if (cfgFile != "") {
+                cmdline += " --config " + cfgFile;
+            }
+            cmdline += " --storage " + globalDispatcher->Storage()->GetID();
+            execl("tskScanner", cmdline.c_str(), NULL);
+            retval = true;
         }
     }
+    else {
+        LOG4CXX_WARN(WeLogger::GetLogger(), "run_task - task not found: " << id);
+    }
+
     return retval;
 }
 
@@ -273,24 +333,23 @@ bool pause_task(const string& id)
     WeOption opt;
     string sdata;
     int idata;
-    size_t t;
+    WeTask* tsk;
 
-    for (t = 0; t < task_list.size(); t++)
+    tsk = load_task(id);
+    if (tsk != NULL)
     {
-        opt = task_list[t]->Option(weoID);
-        SAFE_GET_OPTION_VAL(opt, sdata, "");
-
-        if (sdata == id) {
-            opt = task_list[t]->Option(weoTaskStatus);
-            SAFE_GET_OPTION_VAL(opt, idata, 0);
-            if (idata == WI_TSK_RUN)
-            {
-                task_list[t]->Option(weoTaskStatus, WI_TSK_PAUSED);
-                retval = true;
-                // @todo Pause process which executes this task
-                save_task_list();
-            }
+        opt = tsk->Option(weoTaskStatus);
+        SAFE_GET_OPTION_VAL(opt, idata, 0);
+        if (idata == WI_TSK_RUN)
+        {
+            tsk->Option(weoTaskStatus, WI_TSK_PAUSED);
+            retval = true;
+            // @todo Pause process which executes this task
+            save_task(tsk);
         }
+    }
+    else {
+        LOG4CXX_WARN(WeLogger::GetLogger(), "pause_task - task not found: " << id);
     }
     return retval;
 }
@@ -301,24 +360,23 @@ bool cancel_task(const string& id)
     WeOption opt;
     string sdata;
     int idata;
-    size_t t;
+    WeTask* tsk;
 
-    for (t = 0; t < task_list.size(); t++)
+    tsk = load_task(id);
+    if (tsk != NULL)
     {
-        opt = task_list[t]->Option(weoID);
-        SAFE_GET_OPTION_VAL(opt, sdata, "");
-
-        if (sdata == id) {
-            opt = task_list[t]->Option(weoTaskStatus);
-            SAFE_GET_OPTION_VAL(opt, idata, 0);
-            if (idata == WI_TSK_RUN)
-            {
-                task_list[t]->Option(weoTaskStatus, WI_TSK_IDLE);
-                retval = true;
-                // @todo Cancel process which executes this task
-                save_task_list();
-            }
+        opt = tsk->Option(weoTaskStatus);
+        SAFE_GET_OPTION_VAL(opt, idata, 0);
+        if (idata == WI_TSK_RUN)
+        {
+            tsk->Option(weoTaskStatus, WI_TSK_IDLE);
+            retval = true;
+            // @todo Cancel process which executes this task
+            save_task(tsk);
         }
+    }
+    else {
+        LOG4CXX_WARN(WeLogger::GetLogger(), "cancel_task - task not found: " << id);
     }
     return retval;
 }
@@ -328,20 +386,18 @@ string get_task_opts (const string& id)
     string retval = "";
     WeOption opt;
     string sdata;
-    size_t t;
+    WeTask* tsk;
 
-    for (t = 0; t < task_list.size(); t++)
+    tsk = load_task(id);
+    if (tsk != NULL)
     {
-        opt = task_list[t]->Option(weoID);
-        SAFE_GET_OPTION_VAL(opt, sdata, "");
-
-        if (sdata == id) {
-            // need to call exactly iweOptionsProvider::ToXml()
-            // 'cause it gets all options in the one pack in difference
-            // of structured output of WeTask::ToXml()
-            retval = ((iweOptionsProvider*)task_list[t])->ToXml();
-            break;
-        }
+        // need to call exactly iweOptionsProvider::ToXml()
+        // 'cause it gets all options in the one pack in difference
+        // of structured output of WeTask::ToXml()
+        retval = ((iweOptionsProvider*)tsk)->ToXml();
+    }
+    else {
+        LOG4CXX_WARN(WeLogger::GetLogger(), "get_task_opts - task not found: " << id);
     }
     return retval;
 }
@@ -354,24 +410,24 @@ bool set_task_opts (const string& dat)
     WeOption opt;
     string sdata;
     size_t t;
+    WeTask* tsk;
 
     t = dat.find(';');
     if (t != string::npos) {
         id = dat.substr(0, t);
         xml = dat.substr(t+1);
-        for (t = 0; t < task_list.size(); t++)
+        tsk = load_task(id);
+        if (tsk != NULL)
         {
-            opt = task_list[t]->Option(weoID);
-            SAFE_GET_OPTION_VAL(opt, sdata, "");
-
-            if (sdata == id) {
-                // need to call exactly iweOptionsProvider::FromXml()
-                // 'cause it gets all options in the one pack in difference
-                // of structured processing of WeTask::FromXml()
-                ((iweOptionsProvider*)task_list[t])->FromXml(xml);
-                retval = true;
-                break;
-            }
+            // need to call exactly iweOptionsProvider::FromXml()
+            // 'cause it gets all options in the one pack in difference
+            // of structured processing of WeTask::FromXml()
+            ((iweOptionsProvider*)tsk)->FromXml(xml);
+            save_task(tsk);
+            retval = true;
+        }
+        else {
+            LOG4CXX_WARN(WeLogger::GetLogger(), "get_task_opts - task not found: " << id);
         }
     }
     return retval;

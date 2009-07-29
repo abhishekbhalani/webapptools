@@ -61,6 +61,7 @@ protected:
     virtual void OnTaskSelected( wxListEvent& event );
     virtual void OnSortItems( wxListEvent& event );
     virtual void OnTaskApply( wxCommandEvent& event );
+    virtual void OnStorageChange( wxCommandEvent& event );
 
     void OnPluginSettings( wxCommandEvent& event );
     void ProcessTaskList(const wxString& criteria = wxT(""));

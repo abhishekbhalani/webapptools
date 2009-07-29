@@ -51,7 +51,7 @@ void* SqliteStorage::GetInterface( const string& ifName )
 const string SqliteStorage::GetSetupUI( void )
 {
     /// @todo: change XRC to set the fields values
-    return NULL;
+    return "";
 }
 
 void SqliteStorage::ApplySettings( const string& xmlData )

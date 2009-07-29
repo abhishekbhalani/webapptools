@@ -51,7 +51,7 @@ void* iweStorage::GetInterface( const string& ifName )
     return iwePlugin::GetInterface(ifName);
 }
 
-std::string iweStorage::GenerateID( string objType /*= ""*/ )
+std::string iweStorage::GenerateID( const string& objType /*= ""*/ )
 {
     return lexical_cast<string>(++lastId);
 }
@@ -185,7 +185,7 @@ int iweStorage::TaskSave( const string& xmlData, Operation op /*= iweStorage::au
                     pos += 7; // strlen("</task>") if the XML is wellformed
                     if (!id.empty()) {
                         LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::TaskSave - " << id << " saved(updated)");
-                        Query("task", id, op, xmlData.substr(taskStart, pos - taskStart));
+                        Query(weObjTypeTask, id, op, xmlData.substr(taskStart, pos - taskStart));
                     }
                 }
             }
@@ -212,19 +212,19 @@ FINISH:
 int iweStorage::DictionarySave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
 {
     /// @todo Add input data validation
-    return Query("dict", "-1", op, xmlData);
+    return Query(weObjTypeDictionary, "-1", op, xmlData);
 }
 
 int iweStorage::AuthorizationSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
 {
     /// @todo Add input data validation
-    return Query("auth", "-1", op, xmlData);
+    return Query(weObjTypeAuthInfo, "-1", op, xmlData);
 }
 
 int iweStorage::SystemOptionsSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
 {
     /// @todo Add input data validation
-    return Query("sysopt", "-1", op, xmlData);
+    return Query(weObjTypeSysOption, "-1", op, xmlData);
 }
 
 int iweStorage::TaskReport( const string& xmlData, string& result )
@@ -286,7 +286,7 @@ int iweStorage::TaskReport( const string& xmlData, string& result )
                     if (iequals(tag, "value")) {
                         id = sc.GetValue();
                         tag = "";
-                        int rep = Report("task", id, "", tag);
+                        int rep = Report(weObjTypeTask, id, "", tag);
                         if (rep > 0) {
                             retval += rep;
                             result += tag;
@@ -307,21 +307,21 @@ FINISH:
 
 int iweStorage::DictionaryReport( const string& xmlData, string& result )
 {
-    int retval = Report("dict", "-1", xmlData, result);
+    int retval = Report(weObjTypeDictionary, "-1", xmlData, result);
     /// @todo postprocess result
     return retval;
 }
 
 int iweStorage::AuthorizationReport( const string& xmlData, string& result )
 {
-    int retval = Report("auth", "-1", xmlData, result);
+    int retval = Report(weObjTypeAuthInfo, "-1", xmlData, result);
     /// @todo postprocess result
     return retval;
 }
 
 int iweStorage::SystemOptionsReport( const string& xmlData, string& result )
 {
-    int retval = Report("sysopt", "-1", xmlData, result);
+    int retval = Report(weObjTypeSysOption, "-1", xmlData, result);
     /// @todo postprocess result
     return retval;
 }
