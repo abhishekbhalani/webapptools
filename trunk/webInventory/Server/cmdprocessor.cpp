@@ -37,6 +37,8 @@ extern WeDispatch* globalDispatcher;
 string get_plugin_list(string filter);
 string get_plugin_ui(string filter);
 
+extern void save_cfg_storage(const string& id);
+
 int process_message(char* buff, size_t buffSz, session* sess)
 {
     int retval = 0; // close connection
@@ -233,7 +235,8 @@ int process_message(char* buff, size_t buffSz, session* sess)
         if (iequals(msg.cmd, "setstorage"))
         {
             LOG4CXX_INFO(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] request storage change to " << msg.data);
-            iwePlugin* newStorage = globalDispatcher->LoadPlugin(msg.data);
+            string id = msg.data;
+            iwePlugin* newStorage = globalDispatcher->LoadPlugin(id);
             msg.data = "0";
             if (newStorage != NULL)
             {
@@ -242,6 +245,7 @@ int process_message(char* buff, size_t buffSz, session* sess)
                 {
                     globalDispatcher->Storage(store);
                     msg.data = "1";
+                    save_cfg_storage(id);
                     LOG4CXX_INFO(WeLogger::GetLogger(), "storage changed to " << store->GetDesc());
                 }
             }

@@ -59,7 +59,7 @@ void* WeMemStorage::GetInterface( const string& ifName )
 int WeMemStorage::Query( const string& objType, const string& objId, Operation op, const string& xmlData )
 {
     int retval = 0;
-    if (iequals(objType, "task"))
+    if (iequals(objType, weObjTypeTask))
     {
         if (op == iweStorage::remove)
         {
@@ -92,7 +92,7 @@ int WeMemStorage::Query( const string& objType, const string& objId, Operation o
 int WeMemStorage::Report( const string& repType, const string& objId, const string& xmlData, string& result )
 {
     int retval = 0;
-    if (iequals(repType, "task"))
+    if (iequals(repType, weObjTypeTask))
     {
         WeStringMap::iterator tsk;
         result = "";
@@ -194,29 +194,5 @@ void WeMemStorage::Flush( const string& params /*= ""*/)
     {
         LOG4CXX_TRACE(WeLogger::GetLogger(), "WeMemStorage::Flush: filename not empty, save data");
         Save(fileName);
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void WeMemStorage::Refresh( const string& params )
-///
-/// @brief  Refresh storage data. 
-///
-/// @author A. Abramov
-/// @date   28.07.2009
-///
-/// @param  params  - Options for controlling the operation.
-/// 				
-////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeMemStorage::Refresh( const string& params /*= ""*/ )
-{
-    if (params != "")
-    {
-        fileName = params;
-    }
-    if (fileName != "")
-    {
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeMemStorage::Refresh: reload data from " << fileName);
-        Load(fileName);
     }
 }

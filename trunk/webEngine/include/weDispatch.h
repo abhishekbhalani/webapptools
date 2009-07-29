@@ -80,6 +80,9 @@ public:
     // Access the PluginList
     const WePluginList &PluginList(void) const  { return(pluginList); };
     void RefreshPluginList(boost::filesystem::path& baseDir);
+    
+    // Provide Logger to plugins
+    log4cxx::LoggerPtr GetLogger() { return WeLogger::GetLogger(); };
 
     iwePlugin* LoadPlugin(string id);
     

@@ -147,6 +147,7 @@ int main(int argc, char* argv[])
             }
             catch (...)
             {
+                cfgFile = "";
                 LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
             }
         } else {
@@ -162,6 +163,16 @@ int main(int argc, char* argv[])
         if (globalDispatcher != NULL)
         {
             LOG4CXX_INFO(WeLogger::GetLogger(), "Dispatcher created successfully");
+            path cfgPath;
+
+            cfgPath = argv[0];
+            cfgPath = cfgPath.remove_filename();
+            if (cfgPath.string().empty())
+            {
+                cfgPath = "./";
+            }
+            globalDispatcher->RefreshPluginList(cfgPath);
+
             iwePlugin* plugin = globalDispatcher->LoadPlugin(configuration.storageIface);
 
             if (plugin != NULL) {
@@ -171,17 +182,11 @@ int main(int argc, char* argv[])
 
                 if (storage != NULL)
                 {
-                    path cfgPath( configuration.dbDir );
+                    cfgPath = configuration.dbDir;
                     cfgPath /= configuration.fileDB;
                     storage->InitStorage(cfgPath.string());
                     globalDispatcher->Storage(storage);
-                    cfgPath = argv[0];
-                    cfgPath = cfgPath.remove_filename();
-                    if (cfgPath.string().empty())
-                    {
-                        cfgPath = "./";
-                    }
-                    globalDispatcher->RefreshPluginList(cfgPath);
+
                     server s(io_service, configuration.port);
                     io_service.run();
                 }
@@ -204,3 +209,36 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+void save_cfg_storage(const string& id)
+{
+    ProgramConfig configuration;
+
+    if (cfgFile != "")
+    {
+        try
+        {
+            std::ifstream itfs(cfgFile.c_str());
+            boost::archive::xml_iarchive ia(itfs);
+            ia >> BOOST_SERIALIZATION_NVP(configuration);
+        }
+        catch (...)
+        {
+            cfgFile = "";
+            LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
+            return;
+        }
+        configuration.storageIface = id;
+        try
+        {
+            std::ofstream otfs(cfgFile.c_str());
+            boost::archive::xml_oarchive oa(otfs);
+            oa << BOOST_SERIALIZATION_NVP(configuration);
+        }
+        catch (...)
+        {
+            cfgFile = "";
+            LOG4CXX_WARN(WeLogger::GetLogger(), "Can't save config to " << cfgFile);
+            return;
+        }
+    }
+}
