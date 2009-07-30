@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ssleay32.lib libeay32.lib log4cxx.lib webEngine.lib curllib-s.lib ws2_32.lib"
+				AdditionalDependencies="ssleay32.lib libeay32.lib log4cxx.lib webEngine.lib curllib-s.lib ws2_32.lib libboost_regex-vc80-mt-gd-1_38.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\webEngine\libs\debug"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
@@ -182,12 +182,28 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{8E418914-9114-4897-8820-E0ED30D95AA1}"
 			>
+			<File
+				RelativePath=".\taskexec.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\tskScanner.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\watchdog.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\watchdog.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

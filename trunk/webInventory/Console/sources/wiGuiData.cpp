@@ -153,7 +153,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_stLogLevel->Wrap( -1 );
 	gbSizer2->Add( m_stLogLevel, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-	wxString m_chLogLevelChoices[] = { _("Trace"), _("Info"), _("Warnings"), _("Errors"), _("Fatal") };
+	wxString m_chLogLevelChoices[] = { _("Trace"), _("Debug"), _("Info"), _("Warnings"), _("Errors"), _("Fatal") };
 	int m_chLogLevelNChoices = sizeof( m_chLogLevelChoices ) / sizeof( wxString );
 	m_chLogLevel = new wxChoice( m_panTaskOpts, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chLogLevelNChoices, m_chLogLevelChoices, 0 );
 	m_chLogLevel->SetSelection( 0 );

@@ -1176,7 +1176,7 @@
                                                                     <property name="rowspan">1</property>
                                                                     <object class="wxChoice" expanded="1">
                                                                         <property name="bg"></property>
-                                                                        <property name="choices">&quot;Trace&quot; &quot;Info&quot; &quot;Warnings&quot; &quot;Errors&quot; &quot;Fatal&quot;</property>
+                                                                        <property name="choices">&quot;Trace&quot; &quot;Debug&quot; &quot;Info&quot; &quot;Warnings&quot; &quot;Errors&quot; &quot;Fatal&quot;</property>
                                                                         <property name="context_help"></property>
                                                                         <property name="enabled">1</property>
                                                                         <property name="fg"></property>

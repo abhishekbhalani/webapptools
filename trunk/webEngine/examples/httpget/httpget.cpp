@@ -22,6 +22,7 @@
 */
 
 #include "weHtmlEntity.h"
+#include "weDispatch.h"
 #include "weHTTP.h"
 #include "weTask.h"
 #include "weHelper.h"
@@ -30,7 +31,8 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    WeHTTP proc;
+    WeDispatch kernel;
+    WeHTTP proc(&kernel);
     WeHtmlDocument  doc;
     WeHttpResponse resp;
 

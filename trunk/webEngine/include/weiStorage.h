@@ -61,13 +61,17 @@ public:
     virtual int DictionarySave(const string& xmlData, Operation op = iweStorage::autoop);
     virtual int AuthorizationSave(const string& xmlData, Operation op = iweStorage::autoop);
     virtual int SystemOptionsSave(const string& xmlData, Operation op = iweStorage::autoop);
+    virtual int ScanSave(const string& xmlData, Operation op = iweStorage::autoop);
 
     virtual int TaskReport(const string& xmlData, string& result);
     virtual int DictionaryReport(const string& xmlData, string& result);
     virtual int AuthorizationReport(const string& xmlData, string& result);
     virtual int SystemOptionsReport(const string& xmlData, string& result);
+    virtual int ScanReport(const string& xmlData, string& result);
 
 protected:
+    virtual int ObjectReport(const string& objType, const string& xmlData, string& result);
+    virtual int ObjectQuery(const string& objType, const string& xmlData, Operation op = iweStorage::autoop);
     static int lastId;
 };
 
@@ -75,5 +79,6 @@ protected:
 #define weObjTypeSysOption  "sysopt"
 #define weObjTypeDictionary "dict"
 #define weObjTypeAuthInfo   "auth"
+#define weObjTypeScan       "scan"
 
 #endif //__IWESTORAGE_H__

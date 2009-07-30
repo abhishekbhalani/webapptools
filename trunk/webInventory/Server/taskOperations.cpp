@@ -34,6 +34,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <process.h>
 #include <weiBase.h>
 #include <weLogger.h>
@@ -44,6 +45,8 @@
 #define NOGDI
 #include <windows.h>
 #endif
+
+namespace fs = boost::filesystem;
 
 extern WeDispatch* globalDispatcher;
 extern string cfgFile;
@@ -58,7 +61,7 @@ void load_task_list( vector<WeTask*>& task_list )
     string report = "";
     int tasks = 0;
 
-    tasks = globalDispatcher->Storage()->TaskReport("<taskreport><id value='*' /></taskreport>", report);
+    tasks = globalDispatcher->Storage()->TaskReport("<report><task value='*' /></report>", report);
     if (tasks > 0)
     {   // parse the response
         bool in_parsing = true;
@@ -86,7 +89,7 @@ void load_task_list( vector<WeTask*>& task_list )
                 tag = sc.GetTagName();
                 if (parsing_level == 0)
                 {
-                    if (iequals(tag, "taskreport")) {
+                    if (iequals(tag, "report")) {
                         task_list.clear();
                         parsing_level++;
                         break;
@@ -108,7 +111,7 @@ void load_task_list( vector<WeTask*>& task_list )
                 tag = sc.GetTagName();
                 if (parsing_level == 0)
                 {
-                    if (iequals(tag, "taskreport")) {
+                    if (iequals(tag, "report")) {
                         in_parsing = false;
                     }
                 }
@@ -134,7 +137,7 @@ WeTask* load_task( const string& id )
     int tasks = 0;
     WeTask* tsk;
 
-    req = "<taskreport><id value='" + id + "' /></taskreport>";
+    req = "<report><task value='" + id + "' /></report>";
     tasks = globalDispatcher->Storage()->TaskReport(req, report);
     tsk = NULL;
     if (tasks > 0)
@@ -163,7 +166,7 @@ WeTask* load_task( const string& id )
                 tag = sc.GetTagName();
                 if (parsing_level == 0)
                 {
-                    if (iequals(tag, "taskreport")) {
+                    if (iequals(tag, "report")) {
                         parsing_level++;
                         break;
                     }
@@ -185,7 +188,7 @@ WeTask* load_task( const string& id )
                 tag = sc.GetTagName();
                 if (parsing_level == 0)
                 {
-                    if (iequals(tag, "taskreport")) {
+                    if (iequals(tag, "report")) {
                         in_parsing = false;
                     }
                 }
@@ -281,8 +284,8 @@ bool run_task(const string& id)
         if (idata == WI_TSK_IDLE || idata == WI_TSK_PAUSED)
         {
             // prepare task to run
-            tsk->Option(weoTaskStatus, WI_TSK_RUN);
-            save_task(tsk);
+            // tsk->Option(weoTaskStatus, WI_TSK_RUN);
+            // save_task(tsk);
             // make base filename
             string fname = id + "_" + posix_time::to_iso_string(posix_time::second_clock::local_time());
 
@@ -306,18 +309,25 @@ bool run_task(const string& id)
                 tr << "log4j.appender.R.MaxBackupIndex=100" << endl;
                 tr << "log4j.appender.R.immediateflush=true" << endl;
                 tr << "log4j.appender.R.layout=org.apache.log4j.PatternLayout" << endl;
-                tr << "log4j.appender.R.layout.ConversionPattern=[%d] - %m%n" << endl;
+                tr << "log4j.appender.R.layout.ConversionPattern=[%d][%5p][%t] - %m%n" << endl;
                 tr << "log4j.logger.webEngine=" << trace_modes[idata] << ", R" << endl;
             }
             // compose command line arguments
-            string cmdline = "--id " + sdata;
+            string cmdline = "tskScanner --id " + id;
             cmdline += " --trace " + fname + ".trace";
             if (cfgFile != "") {
                 cmdline += " --config " + cfgFile;
             }
             cmdline += " --storage " + globalDispatcher->Storage()->GetID();
-            execl("tskScanner", cmdline.c_str(), NULL);
-            retval = true;
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "run_task: " << cmdline);
+            int err = spawnl(_P_NOWAIT, "tskScanner", cmdline.c_str(), NULL);
+            if (err != -1) {
+                retval = true;
+            }
+            else {
+                LOG4CXX_ERROR(WeLogger::GetLogger(), "run_task failed: (" << err << ") ERRNO=" << errno);
+                fs::remove(fname + ".trace");
+            }
         }
     }
     else {

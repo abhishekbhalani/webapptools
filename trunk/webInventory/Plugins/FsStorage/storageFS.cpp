@@ -19,8 +19,6 @@
 */
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <strstream>
 #include "storageFS.h"
@@ -28,8 +26,6 @@
 #include "fsStorage.xpm"
 //#include "demoPlugin.xrc"
 #include <weDispatch.h>
-
-namespace fs = boost::filesystem;
 
 FsStorage::FsStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
     iweStorage(krnl, handle)
@@ -151,6 +147,20 @@ bool FsStorage::InitStorage(const string& params)
             }
         }
         LOG4CXX_TRACE(logger, "FsStorage::InitStorage: authorization storage dir is " << dir_path.string());
+
+        // check scans storage presence
+        dir_path = db_dir;
+        dir_path /= weObjTypeScan;
+        if ( !fs::exists(dir_path) ) {
+            fs::create_directory(dir_path);
+        }
+        else {
+            if ( ! fs::is_directory(dir_path) ) {
+                string msg = dir_path.string() + "isn't a directory";
+                throw std::exception(msg.c_str());
+            }
+        }
+        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: scans storage dir is " << dir_path.string());
     }
     catch(std::exception& e) {
         LOG4CXX_ERROR(logger, "FsStorage::InitStorage: " << e.what());
@@ -183,24 +193,14 @@ int FsStorage::Query(const string& objType, const string& objId, Operation op, c
     int retval = 0;
     fs::path dir_path(db_dir);
  
-    if (iequals(objType, weObjTypeTask))
+    LOG4CXX_DEBUG(logger, "FsStorage::Query objType=" << objType << "; ID=" << objId << "; operation=" << op);
+    dir_path /= objType;
+    if (op == iweStorage::remove)
     {
-        dir_path /= weObjTypeTask;
-        if (op == iweStorage::remove)
-        {
-            // remove files
-        }
-        else {
-            // save data
-            dir_path /= objId;
-            ofstream ofs(dir_path.string().c_str());
-            ofs << xmlData;
-            retval = 1;
-        }
+        retval += FileRemove(dir_path, objId);
     }
     else {
-        /// @todo Implement other types of data except task
-        LOG4CXX_WARN(WeLogger::GetLogger(), "WeMemStorage::Query: Not implemented: " << objType);
+        retval += FileSave(dir_path, objId, xmlData);
     }
     return retval;
 }
@@ -210,48 +210,42 @@ int FsStorage::Report(const string& repType, const string& objId, const string& 
     int retval = 0;
     fs::path dir_path(db_dir);
  
-    if (iequals(repType, weObjTypeTask))
-    {
-        dir_path /= weObjTypeTask;
+    dir_path /= repType;
 
-        result = "";
-        if (objId == "*")
+    result = "";
+    if (objId == "*")
+    {
+        // list all files in the directory
+        fs::directory_iterator end_iter;
+        for ( fs::directory_iterator dir_itr( dir_path );
+            dir_itr != end_iter;
+            ++dir_itr )
         {
-            // list all files in the directory
-            fs::directory_iterator end_iter;
-            for ( fs::directory_iterator dir_itr( dir_path );
-                  dir_itr != end_iter;
-                  ++dir_itr )
-            {
-                try {
-                    if ( fs::is_regular_file( dir_itr->status() ) )
-                    {
-                        result += FsStorage::FileRead(dir_itr->path().string());
-                        retval++;
-                    }
-                }
-                catch ( const std::exception & e )
+            try {
+                if ( fs::is_regular_file( dir_itr->status() ) )
                 {
-                    LOG4CXX_ERROR(logger, "FsStorage::Report " << dir_itr->path().string() << " " << e.what());
+                    result += FsStorage::FileRead(dir_itr->path().string());
+                    retval++;
                 }
             }
-        }
-        else
-        {
-            dir_path /= objId;
-            
-            if (exists(dir_path))
+            catch ( const std::exception & e )
             {
-                // read file
-                result += FsStorage::FileRead(dir_path.string());
-                retval++;
+                LOG4CXX_ERROR(logger, "FsStorage::Report " << dir_itr->path().string() << " " << e.what());
             }
         }
     }
-    else {
-        /// @todo Implement other types of data except task
-        LOG4CXX_WARN(WeLogger::GetLogger(), "FsStorage::Report: Not implemented: " << repType);
+    else
+    {
+        dir_path /= objId;
+
+        if (exists(dir_path))
+        {
+            // read file
+            result += FsStorage::FileRead(dir_path.string());
+            retval++;
+        }
     }
+
     return retval;
 }
 
@@ -270,5 +264,68 @@ string FsStorage::FileRead(const string& fname)
         delete content;
     }
     
+    return retval;
+}
+
+int FsStorage::FileRemove( const fs::path& fspath, const string& fname )
+{
+    fs::path fp;
+    int retval = 0;
+
+    fp = fspath;
+    // remove files
+    LOG4CXX_TRACE(logger, "FsStorage::FileRemove " << fp.string() << " --- " << fname);
+    if (fname == "*")
+    {
+        fs::directory_iterator end_iter;
+        for ( fs::directory_iterator dir_itr( fp );
+            dir_itr != end_iter;
+            ++dir_itr )
+        {
+            try {
+                if ( fs::is_regular_file( dir_itr->status() ) )
+                {
+                    fs::remove(dir_itr->path());
+                    retval++;
+                }
+            }
+            catch ( const std::exception & e )
+            {
+                LOG4CXX_ERROR(logger, "FsStorage::FileRemove " << dir_itr->path().string() << " " << e.what());
+            }
+        }
+    }
+    else {
+        try {
+            fp /= fname;
+            fs::remove(fp);
+            retval++;
+        }
+        catch ( const std::exception & e )
+        {
+            LOG4CXX_ERROR(logger, "FsStorage::FileRemove " << fp.string() << " " << e.what());
+        }
+    }
+    return retval;
+}
+
+int FsStorage::FileSave( const fs::path& fspath, const string& fname, const string& content )
+{
+    fs::path fp;
+    int retval = 0;
+
+    fp = fspath;
+    // save data
+    LOG4CXX_TRACE(logger, "FsStorage::FileSave " << fp.string() << " --- " << fname);
+    fp /= fname;
+    try {
+        ofstream ofs(fp.string().c_str());
+        ofs << content;
+        retval = 1;
+    }
+    catch(const std::exception& e)
+    {
+        LOG4CXX_ERROR(logger, "FsStorage::FileSave can't save " << fp.string() << " : " << e.what());
+    }
     return retval;
 }

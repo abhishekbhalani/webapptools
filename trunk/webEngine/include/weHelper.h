@@ -106,7 +106,7 @@ public:
 extern WeHtmlFactory  weHtmlFactory;
 extern WeTransportFactory weTransportFactory;
 
-void WeLibInit(void);
+void WeLibInit(const string& config = "");
 void WeLibClose(void);
 string WeScreenXML(const string& xml);
 string WeUnscreenXML(const string& xml);
