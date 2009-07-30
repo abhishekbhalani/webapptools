@@ -59,14 +59,14 @@ std::string iweStorage::GenerateID( const string& objType /*= ""*/ )
 int iweStorage::Query( const string& objType, const string& objId, Operation op, const string& xmlData )
 {
     /// @todo Implement this!
-    throw runtime_error("Not implemented");
+    LOG4CXX_FATAL(WeLogger::GetLogger(), "iweStorage::Query - Not implemented");
     return -1;
 }
 
 int iweStorage::Report( const string& repType, const string& objId, const string& xmlData, string& result )
 {
     /// @todo Implement this!
-    throw runtime_error("Not implemented");
+    LOG4CXX_FATAL(WeLogger::GetLogger(), "iweStorage::Report - Not implemented");
     return -1;
 }
 
@@ -139,59 +139,223 @@ FINISH:
 
 int iweStorage::TaskSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
 {
+    return ObjectQuery(weObjTypeTask, xmlData, op);
+}
+
+int iweStorage::DictionarySave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+{
+    return ObjectQuery(weObjTypeDictionary, xmlData, op);
+}
+
+int iweStorage::AuthorizationSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+{
+    return ObjectQuery(weObjTypeAuthInfo, xmlData, op);
+}
+
+int iweStorage::SystemOptionsSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+{
+    return Query(weObjTypeSysOption, "0", op, xmlData);
+}
+
+int iweStorage::ScanSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+{
+    return ObjectQuery(weObjTypeScan, xmlData, op);
+}
+
+int iweStorage::TaskReport( const string& xmlData, string& result )
+{
+    return ObjectReport(weObjTypeTask, xmlData, result);
+}
+
+int iweStorage::DictionaryReport( const string& xmlData, string& result )
+{
+    return ObjectReport(weObjTypeDictionary, xmlData, result);
+}
+
+int iweStorage::AuthorizationReport( const string& xmlData, string& result )
+{
+    return ObjectReport(weObjTypeAuthInfo, xmlData, result);
+}
+
+int iweStorage::SystemOptionsReport( const string& xmlData, string& result )
+{
+    return Report(weObjTypeSysOption, "0", xmlData, result);
+}
+
+int iweStorage::ScanReport( const string& xmlData, string& result )
+{
+    return ObjectReport(weObjTypeScan, xmlData, result);
+}
+
+int iweStorage::ObjectReport( const string& objType, const string& xmlData, string& result )
+{
     int retval = 0;
-    bool inTask = false;
     WeStrStream st(xmlData.c_str());
     WeTagScanner sc(st);
-    int pos;
-    int taskStart;
+    bool inObject = false;
+    bool inReport = false;
+    bool inParse = true;
     string id;
     string tag;
 
-    while(true)
+    //int retval = Report(weObjTypeScan, "-1", xmlData, result);
+    result = "<report>\n";
+    while (inParse)
+    {
+        int t = sc.GetToken();
+        switch(t)
+        {
+        case wstError:
+            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - parsing error");
+            inParse = false;
+            break;
+        case wstEof:
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::ObjectReport - parsing EOF");
+            inParse = false;
+            break;
+        case wstTagStart:
+            tag = sc.GetTagName();
+            if (inReport)
+            {
+                if (iequals(tag, objType))
+                {
+                    id = "";
+                    inObject = true;
+                }
+                else
+                {
+                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag " << tag);
+                }
+            }
+            else
+            {
+                if (iequals(tag, "report"))
+                {
+                    inReport = true;
+                    inObject = false;
+                }
+                else
+                {
+                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag " << tag);
+                }
+            }
+            break;
+        case wstTagEnd:
+            tag = sc.GetTagName();
+            if (inReport && !inObject)
+            {
+                if (iequals(tag, "report"))
+                {
+                    inReport = false;
+                    inObject = false;
+                    inParse  = false;
+                }
+                else
+                {
+                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag " << tag);
+                    inParse = false;
+                    break;
+                }
+            }
+            else if (inObject) {
+                if (iequals(tag, objType))
+                {
+                    id = "";
+                    inObject = false;
+                }
+                else
+                {
+                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag " << tag);
+                }
+            }
+            else {
+                LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag" << tag);
+                inParse = false;
+                break;
+            }
+            break;
+        case wstAttr:
+            if (inObject) {
+                if (id.empty()) {
+                    tag = sc.GetAttrName();
+                    if (iequals(tag, "value")) {
+                        id = sc.GetValue();
+                        tag = "";
+                        int rep = Report(objType, id, "", tag);
+                        if (rep > 0) {
+                            retval += rep;
+                            result += tag;
+                        }
+                    }
+                }
+            }
+            break;
+        default:
+            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected token: " << t);
+            break;
+        };
+    }
+    result += "</report>\n";
+    return retval;
+}
+
+int iweStorage::ObjectQuery( const string& objType, const string& xmlData, Operation op /*= autoop*/ )
+{
+    int retval = 0;
+    bool inObject = false;
+    bool inParse = true;
+    WeStrStream st(xmlData.c_str());
+    WeTagScanner sc(st);
+    int pos;
+    int objStart;
+    string id;
+    string tag;
+
+    LOG4CXX_DEBUG(WeLogger::GetLogger(), "iweStorage::ObjectQuery - saving " << objType);
+    while(inParse)
     {
         pos = st.GetPos();
         int t = sc.GetToken();
         switch(t)
         {
         case wstError:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::TaskSave - parsing error");
-            goto FINISH;
+            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectQuery - parsing error");
+            inParse = false;
             break;
         case wstEof:
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::TaskSave - parsing EOF");
-            goto FINISH;
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::ObjectQuery - parsing EOF");
+            inParse = false;
             break;
         case wstTagStart:
             tag = sc.GetTagName();
-            if (!inTask) {
-                if (iequals(tag, "task")) {
-                    inTask = true;
+            if (!inObject) {
+                if (iequals(tag, objType)) {
+                    inObject = true;
                     id = "";
-                    taskStart = pos;
+                    objStart = pos;
                     retval++;
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::TaskSave - not a task");
-                    goto FINISH;
+                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectQuery - not an object of type " << objType);
+                    inParse = false;
                 }
             }
             break;
         case wstTagEnd:
             tag = sc.GetTagName();
-            if (inTask) {
-                if (iequals(tag, "task")) {
-                    inTask = false;
-                    pos += 7; // strlen("</task>") if the XML is wellformed
+            if (inObject) {
+                if (iequals(tag, objType)) {
+                    inObject = false;
+                    pos += objType.length() + 3; // strlen("</objType>") if the XML is wellformed
                     if (!id.empty()) {
-                        LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::TaskSave - " << id << " saved(updated)");
-                        Query(weObjTypeTask, id, op, xmlData.substr(taskStart, pos - taskStart));
+                        Query(objType, id, op, xmlData.substr(objStart, pos - objStart));
+                        LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::ObjectQuery - " << objType << " ID=" << id << " saved(updated)");
                     }
                 }
             }
             break;
         case wstAttr:
-            if (inTask) {
+            if (inObject) {
                 if (id.empty()) {
                     tag = sc.GetAttrName();
                     if (iequals(tag, "id")) {
@@ -205,123 +369,5 @@ int iweStorage::TaskSave( const string& xmlData, Operation op /*= iweStorage::au
             break;
         };
     }
-FINISH:
-    return retval;
-}
-
-int iweStorage::DictionarySave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
-{
-    /// @todo Add input data validation
-    return Query(weObjTypeDictionary, "-1", op, xmlData);
-}
-
-int iweStorage::AuthorizationSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
-{
-    /// @todo Add input data validation
-    return Query(weObjTypeAuthInfo, "-1", op, xmlData);
-}
-
-int iweStorage::SystemOptionsSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
-{
-    /// @todo Add input data validation
-    return Query(weObjTypeSysOption, "-1", op, xmlData);
-}
-
-int iweStorage::TaskReport( const string& xmlData, string& result )
-{
-    int retval = 0;
-    WeStrStream st(xmlData.c_str());
-    WeTagScanner sc(st);
-    bool inTask = false;
-    string id;
-    string tag;
-    WeStringMap::iterator tsk;
-
-    result = "<taskreport>\n";
-    while(true)
-    {
-        int t = sc.GetToken();
-        switch(t)
-        {
-        case wstError:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::TaskReport - parsing error");
-            goto FINISH;
-            break;
-        case wstEof:
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::TaskReport - parsing EOF");
-            goto FINISH;
-            break;
-        case wstTagStart:
-            tag = sc.GetTagName();
-            if (inTask)
-            {
-                if (iequals(tag, "id"))
-                {
-                    id = "";
-                }
-                else
-                {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::TaskReport - unexpected tag");
-                }
-            }
-            else
-            {
-                if (iequals(tag, "taskreport"))
-                {
-                    inTask = true;
-                }
-                else
-                {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::TaskReport - unexpected tag");
-                }
-            }
-            break;
-        case wstTagEnd:
-            tag = sc.GetTagName();
-            break;
-        case wstAttr:
-            if (inTask) {
-                if (id.empty()) {
-                    tag = sc.GetAttrName();
-                    if (iequals(tag, "value")) {
-                        id = sc.GetValue();
-                        tag = "";
-                        int rep = Report(weObjTypeTask, id, "", tag);
-                        if (rep > 0) {
-                            retval += rep;
-                            result += tag;
-                        }
-                    }
-                }
-            }
-            break;
-        default:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::TaskReport - unexpected token: " << t);
-            break;
-        };
-    };
-FINISH:
-    result += "</taskreport>\n";
-    return retval;
-}
-
-int iweStorage::DictionaryReport( const string& xmlData, string& result )
-{
-    int retval = Report(weObjTypeDictionary, "-1", xmlData, result);
-    /// @todo postprocess result
-    return retval;
-}
-
-int iweStorage::AuthorizationReport( const string& xmlData, string& result )
-{
-    int retval = Report(weObjTypeAuthInfo, "-1", xmlData, result);
-    /// @todo postprocess result
-    return retval;
-}
-
-int iweStorage::SystemOptionsReport( const string& xmlData, string& result )
-{
-    int retval = Report(weObjTypeSysOption, "-1", xmlData, result);
-    /// @todo postprocess result
     return retval;
 }

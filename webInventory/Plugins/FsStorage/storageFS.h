@@ -19,6 +19,10 @@
 */
 #pragma once
 #include <weiStorage.h>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
+
+namespace fs = boost::filesystem;
 
 class FsStorage :
     public iweStorage
@@ -115,6 +119,8 @@ public:
     
 protected:
     string FileRead(const string& fname);
+    int    FileRemove(const fs::path& fspath, const string& fname);
+    int    FileSave(const fs::path& fspath, const string& fname, const string& content);
 
     string db_dir;
     log4cxx::LoggerPtr logger;

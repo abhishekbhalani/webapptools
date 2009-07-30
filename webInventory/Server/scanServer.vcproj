@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Common\programcfg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\server.h"
 				>
 			</File>

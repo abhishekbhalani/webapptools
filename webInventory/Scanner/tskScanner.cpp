@@ -1,26 +1,23 @@
 /*
-    inventoryScanner is the web-application audit program
+    tskScanner is the web-application audit program
     Copyright (C) 2009 Andrew "Stinger" Abramov stinger911@gmail.com
 
-    This file is part of inventoryScanner
+    This file is part of tskScanner
 
-    inventoryScanner is free software: you can redistribute it and/or modify
+    tskScanner is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    inventoryScanneris distributed in the hope that it will be useful,
+    tskScanner is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
+    along with tskScanner.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include "server.h"
-#include <weHelper.h>
-#include <weDispatch.h>
+#include "watchdog.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -29,22 +26,27 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/lexical_cast.hpp>
-#include "version.h"
 #include <programcfg.h>
-
-#include "taskOperations.h"
+#include "version.h"
 
 using namespace std;
-using namespace boost::filesystem;
+namespace fs = boost::filesystem;
 namespace po = boost::program_options;
 
-WeDispatch* globalDispatcher = NULL;
-string cfgFile;
+extern void task_executor(const string& taskID);
 
 int main(int argc, char* argv[])
 {
     ProgramConfig configuration;
+    string traceName;
+    string cfgFile;
+    string taskID;
 
+    for (int i = 0; i < argc; i++)
+    {
+        cout << argv[i] << " ";
+    }
+    cout << endl;
     try
     {
         // initialization
@@ -58,8 +60,10 @@ int main(int argc, char* argv[])
         desc.add_options()
             ("help", "produce help message")
             ("version", "prints version and exit")
-            ("generate", "generates 'sample.config' file")
             ("config", po::value<string>(), "configuration file")
+            ("id", po::value<string>(), "identifier of the task to run")
+            ("trace", po::value<string>(), "trace configuration file")
+            ("storage", po::value<string>(), "storage interface redefinition")
             ;
         po::positional_options_description p;
         p.add("config", -1);
@@ -73,7 +77,7 @@ int main(int argc, char* argv[])
             return 1;
         }
         if (vm.count("version")) {
-            cout << "webInventory scanner " << AutoVersion::FULLVERSION_STRING
+            cout << "webInventory task executor " << AutoVersion::FULLVERSION_STRING
                 << " " << AutoVersion::STATUS
 #ifdef _WIN32_WINNT
                 << " (Windows)";
@@ -86,23 +90,20 @@ int main(int argc, char* argv[])
             cout << endl;
             return 1;
         }
-        if (vm.count("generate")) {
-            // save data to archive
-            try
+        if (vm.count("trace")) {
+            traceName = vm["trace"].as<string>();
+            fs::path tp(traceName);
+            if (!exists(tp))
             {
-                std::ofstream ofs("sample.config");
-                boost::archive::xml_oarchive oa(ofs);
-                // write class instance to archive
-                oa << BOOST_SERIALIZATION_NVP(configuration);
+                cerr << "Can't find trace configuration file: " << traceName << endl;
+                return 1;
             }
-            catch (std::exception& e) {
-                cerr << "Error writing 'sample.config': " << e.what() << endl;
-            }
-
+        }
+        else {
+            cerr << "Trace configuration file must be present!" << endl;
             return 1;
         }
-
-        WeLibInit(); // for initialize logging
+        WeLibInit(traceName); // for initialize logging
         LOG4CXX_INFO(WeLogger::GetLogger(), "Application started");
         string vers = AutoVersion::FULLVERSION_STRING;
 #ifdef _WIN32_WINNT
@@ -115,6 +116,7 @@ int main(int argc, char* argv[])
 #endif
 
         LOG4CXX_INFO(WeLogger::GetLogger(), "Version is " << vers);
+
         if (vm.count("config")) {
             cfgFile = vm["config"].as<string>();
             LOG4CXX_INFO(WeLogger::GetLogger(), "Config file is "
@@ -136,26 +138,36 @@ int main(int argc, char* argv[])
             cfgFile = "";
             LOG4CXX_INFO(WeLogger::GetLogger(), "Config is default, no files readed");
         }
-        taskDbDir = configuration.dbDir;
-        LOG4CXX_INFO(WeLogger::GetLogger(), "DB directory is " << configuration.dbDir);
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Listener port is " << configuration.port);
-        boost::asio::io_service io_service;
 
-        globalDispatcher = new WeDispatch;
-        if (globalDispatcher != NULL)
+        if (vm.count("storage")) {
+            LOG4CXX_INFO(WeLogger::GetLogger(), "Override storage plugin from command-line parameter");
+            configuration.storageIface = vm["storage"].as<string>();
+            LOG4CXX_INFO(WeLogger::GetLogger(), "Storage interface is " << configuration.storageIface);
+        }
+
+        if (vm.count("id")) {
+            taskID = vm["id"].as<string>();
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "Given task ID is " << taskID);
+        }
+        else {
+            // skip all other code - just finalize execution
+            throw std::exception("No task identifier given - exiting!");
+        }
+
+        globalData.dispatcher = new WeDispatch;
+        if (globalData.dispatcher != NULL)
         {
-            LOG4CXX_INFO(WeLogger::GetLogger(), "Dispatcher created successfully");
-            path cfgPath;
-
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "Dispatcher created successfully");
+            fs::path cfgPath;
             cfgPath = argv[0];
             cfgPath = cfgPath.remove_filename();
             if (cfgPath.string().empty())
             {
                 cfgPath = "./";
             }
-            globalDispatcher->RefreshPluginList(cfgPath);
+            globalData.dispatcher->RefreshPluginList(cfgPath);
 
-            iwePlugin* plugin = globalDispatcher->LoadPlugin(configuration.storageIface);
+            iwePlugin* plugin = globalData.dispatcher->LoadPlugin(configuration.storageIface);
 
             if (plugin != NULL) {
                 LOG4CXX_INFO(WeLogger::GetLogger(), "Storage plugin loaded successfully.");
@@ -167,10 +179,21 @@ int main(int argc, char* argv[])
                     cfgPath = configuration.dbDir;
                     cfgPath /= configuration.fileDB;
                     storage->InitStorage(cfgPath.string());
-                    globalDispatcher->Storage(storage);
+                    globalData.dispatcher->Storage(storage);
 
-                    server s(io_service, configuration.port);
-                    io_service.run();
+                    // check task presence
+                    globalData.load_task(taskID);
+                    if (globalData.task_info == NULL)
+                    {
+                        string msg = "Task ID=" + taskID + " not found - exiting!";
+                        throw std::exception(msg.c_str());
+                    }
+
+                    // create watchdog thread
+                    boost::thread watch_dog(watch_dog_thread, taskID);
+
+                    // go-go-go! :)
+                    task_executor(taskID);
                 }
                 else {
                     LOG4CXX_FATAL(WeLogger::GetLogger(), "No iweStorage interface in the plugin " << plugin->GetID());
@@ -180,47 +203,20 @@ int main(int argc, char* argv[])
                 LOG4CXX_FATAL(WeLogger::GetLogger(), "Can't load the plugin " << configuration.storageIface);
             }
         }
+        else {
+            LOG4CXX_ERROR(WeLogger::GetLogger(), "Can't create dispatcher");
+        }
     }
     catch (std::exception& e)
     {
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Exception: " << e.what());
+        LOG4CXX_FATAL(WeLogger::GetLogger(), "Exception: " << e.what());
     }
 
     LOG4CXX_INFO(WeLogger::GetLogger(), "Application finished");
     WeLibClose();
+
+    // remove trace configuration
+    fs::remove(traceName);
+
     return 0;
-}
-
-void save_cfg_storage(const string& id)
-{
-    ProgramConfig configuration;
-
-    if (cfgFile != "")
-    {
-        try
-        {
-            std::ifstream itfs(cfgFile.c_str());
-            boost::archive::xml_iarchive ia(itfs);
-            ia >> BOOST_SERIALIZATION_NVP(configuration);
-        }
-        catch (...)
-        {
-            cfgFile = "";
-            LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
-            return;
-        }
-        configuration.storageIface = id;
-        try
-        {
-            std::ofstream otfs(cfgFile.c_str());
-            boost::archive::xml_oarchive oa(otfs);
-            oa << BOOST_SERIALIZATION_NVP(configuration);
-        }
-        catch (...)
-        {
-            cfgFile = "";
-            LOG4CXX_WARN(WeLogger::GetLogger(), "Can't save config to " << cfgFile);
-            return;
-        }
-    }
 }

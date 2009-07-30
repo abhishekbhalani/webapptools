@@ -42,16 +42,22 @@ static bool isLibInited = false;
 /// @brief  WebEngine library initialize.
 /// @throw  WeError if cURL library doesn't initialized
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeLibInit(void)
+void WeLibInit(const string& config /*= ""*/)
 {
     CURLcode    cCode;
+    string      cfgFile;
+
     FUNCTION;
     try {
-        path p("trace.config");
+        cfgFile = config;
+        if (cfgFile == "") {
+            cfgFile = "trace.config";
+        }
+        path p(cfgFile);
         if (exists(p))
         {
 #ifdef WIN32
-            PropertyConfigurator::configure(log4cxx::File("trace.config"), LOG4CXX_STR("webEngine"));
+            PropertyConfigurator::configure(log4cxx::File(cfgFile), LOG4CXX_STR("webEngine"));
 #else
             PropertyConfigurator::configure(log4cxx::File("trace.config"));
 #endif
