@@ -42,11 +42,6 @@ int main(int argc, char* argv[])
     string cfgFile;
     string taskID;
 
-    for (int i = 0; i < argc; i++)
-    {
-        cout << argv[i] << " ";
-    }
-    cout << endl;
     try
     {
         // initialization
@@ -188,12 +183,26 @@ int main(int argc, char* argv[])
                         string msg = "Task ID=" + taskID + " not found - exiting!";
                         throw std::exception(msg.c_str());
                     }
+                    globalData.scan_info = new WeScan;
+                    if (globalData.scan_info == NULL)
+                    {
+                        string msg = "Can't create scan information - exiting!";
+                        throw std::exception(msg.c_str());
+                    }
+                    globalData.scan_info->scanID = globalData.dispatcher->Storage()->GenerateID(weObjTypeScan);
+                    globalData.scan_info->taskID = taskID;
+                    LOG4CXX_INFO(WeLogger::GetLogger(), "Scan information ID=" << globalData.scan_info->scanID
+                        << "; start time: " << posix_time::to_simple_string(globalData.scan_info->startTime));
 
                     // create watchdog thread
                     boost::thread watch_dog(watch_dog_thread, taskID);
 
                     // go-go-go! :)
                     task_executor(taskID);
+
+                    // finalize
+                    string report = globalData.scan_info->ToXml();
+                    globalData.dispatcher->Storage()->ScanSave(report);
                 }
                 else {
                     LOG4CXX_FATAL(WeLogger::GetLogger(), "No iweStorage interface in the plugin " << plugin->GetID());
@@ -210,6 +219,31 @@ int main(int argc, char* argv[])
     catch (std::exception& e)
     {
         LOG4CXX_FATAL(WeLogger::GetLogger(), "Exception: " << e.what());
+        // postprocess
+        if (globalData.dispatcher != NULL)
+        {
+            if (globalData.scan_info != NULL)
+            {
+                LOG4CXX_TRACE(WeLogger::GetLogger(), "Exception handler: save scan information");
+                if (globalData.scan_info->status != WeScan::weScanFinished && globalData.scan_info->status != WeScan::weScanStopped)
+                {
+                    globalData.scan_info->status = WeScan::weScanError;
+                }
+                if (globalData.scan_info->finishTime == posix_time::not_a_date_time)
+                {
+                    globalData.scan_info->finishTime = posix_time::second_clock::local_time();
+                }
+                string report = globalData.scan_info->ToXml();
+                globalData.dispatcher->Storage()->ScanSave(report);
+            }
+            if (globalData.task_info != NULL)
+            {
+                LOG4CXX_TRACE(WeLogger::GetLogger(), "Exception handler: save task information");
+                globalData.task_info->Option(weoTaskStatus, WI_TSK_IDLE);
+                globalData.task_info->Option(weoTaskCompletion, 0);
+                globalData.save_task();
+            }
+        }
     }
 
     LOG4CXX_INFO(WeLogger::GetLogger(), "Application finished");

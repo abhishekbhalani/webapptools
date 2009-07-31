@@ -43,7 +43,7 @@ static iweTransport* weCreateHttp(WeDispatch* krnl)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WeHttpRequest::WeHttpRequest()
 {
-    /// @todo Implement this!
+    /// @todo set appropriate proxy
     proxy = NULL;
 }
 
@@ -59,10 +59,12 @@ WeHttpRequest::WeHttpRequest()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WeHttpRequest::WeHttpRequest( string url, WeHttpRequest::weHttpMethod meth /*= wemGet*/, WeHttpResponse* resp /*= NULL*/ )
 {
+    /// @todo set appropriate proxy
+    proxy = NULL;
     method = meth;
     RequestUrl(url, resp);
     /// @todo Implement this!
-    throw runtime_error("Not implemented");
+    LOG4CXX_WARN(WeLogger::GetLogger(), "WeHttpRequest::WeHttpRequest(string, weHttpMethod, WeHttpResponse*) - Not implemented");
 }
 
 void WeHttpRequest::RequestUrl( const string &ReqUrl, iweOperation* resp /*= NULL*/ )

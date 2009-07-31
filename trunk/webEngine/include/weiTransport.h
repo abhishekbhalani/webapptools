@@ -155,6 +155,8 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     WeBlob& Data()  { return data;  };
 
+    int DownloadTime(void)        { return(downTime);   };
+
     virtual void Process(iweTransport* proc) = 0;
 
 #ifndef __DOXYGEN__
@@ -162,6 +164,7 @@ protected:
     WeURL realUrl;
     unsigned int relocCount;
     WeBlob data;
+    int downTime;
     bool processed;
 #endif //__DOXYGEN__
 };

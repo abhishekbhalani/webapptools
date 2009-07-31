@@ -194,6 +194,10 @@
 				RelativePath=".\watchdog.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\Common\weScan.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -202,6 +206,10 @@
 			>
 			<File
 				RelativePath=".\watchdog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Common\weScan.h"
 				>
 			</File>
 		</Filter>
