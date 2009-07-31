@@ -25,6 +25,7 @@ locked_data::locked_data()
 {
     dispatcher = NULL;
     task_info = NULL;
+    scan_info = NULL;
     execution = true;
     pause = false;
 }
@@ -175,34 +176,48 @@ void watch_dog_thread(const string& id)
                 int idata;
                 SAFE_GET_OPTION_VAL(opt, idata, -1);
                 if (idata == WI_TSK_IDLE) {
-                    LOG4CXX_INFO(WeLogger::GetLogger(), "Watchdog timer. Stop the task.");
+                    LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Stop the task.");
                     globalData.execution = false;
                     globalData.pause = false;
                     in_process = false;
                     globalData.task_info->Option(weoTaskCompletion, 0);
+                    if (globalData.scan_info->status != WeScan::weScanFinished)
+                    {
+                        globalData.scan_info->status = WeScan::weScanStopped;
+                    }
                 }
                 if (idata == WI_TSK_PAUSED) {
-                    LOG4CXX_INFO(WeLogger::GetLogger(), "Watchdog timer. Pause the task.");
+                    LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Pause the task.");
                     globalData.execution = true;
                     globalData.pause = true;
+                    if (globalData.scan_info->status != WeScan::weScanFinished && globalData.scan_info->status != WeScan::weScanStopped)
+                    {
+                        globalData.scan_info->status = WeScan::weScanPaused;
+                    }
                 }
                 if (idata == WI_TSK_RUN) {
-                    LOG4CXX_INFO(WeLogger::GetLogger(), "Watchdog timer. Continue task execution.");
+                    LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Continue task execution.");
                     globalData.execution = true;
                     globalData.pause = false;
+                    if (globalData.scan_info->status != WeScan::weScanFinished && globalData.scan_info->status != WeScan::weScanStopped)
+                    {
+                        globalData.scan_info->status = WeScan::weScanRunning;
+                    }
                     globalData.cond.notify_all();
                 }
             }
             else {
+                LOG4CXX_ERROR(WeLogger::GetLogger(), "Watchdog timer. Task not loaded!");
                 in_process = false;
                 globalData.execution = false;
                 globalData.pause = false;
+                globalData.scan_info->status = WeScan::weScanError;
             }
-            // todo Save scan information (watchdog ping)
+            // Save scan information (watchdog ping)
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Update scan information.");
+            globalData.scan_info->pingTime = posix_time::second_clock::local_time();
+            string report = globalData.scan_info->ToXml();
+            globalData.dispatcher->Storage()->ScanSave(report);
         }
-    }
-    {
-        //boost::lock_guard<boost::mutex> lock(globalData.locker);
-        // save scan information (task completion time)
     }
 }

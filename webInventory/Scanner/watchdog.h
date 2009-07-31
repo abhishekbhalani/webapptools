@@ -22,6 +22,7 @@
 #include <weHelper.h>
 #include <weDispatch.h>
 #include <weTask.h>
+#include "weScan.h"
 #include <boost/thread.hpp>
 
 class locked_data
@@ -42,6 +43,7 @@ public:
 
     WeDispatch* dispatcher;
     WeTask*     task_info;
+    WeScan*     scan_info;
 };
 
 extern locked_data  globalData;

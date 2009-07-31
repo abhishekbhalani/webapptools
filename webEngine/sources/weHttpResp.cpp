@@ -118,10 +118,13 @@ void WeHttpResponse::CurlSetOpts(WeHttpRequest* req /*= NULL*/)
 void WeHttpResponse::Process(iweTransport* proc)
 {
     char *st;
+    double tminf;
 
     if (curlHandle) {
         lastError = curl_easy_getinfo(curlHandle, CURLINFO_RESPONSE_CODE, &httpCode);
         lastError = curl_easy_getinfo(curlHandle, CURLINFO_EFFECTIVE_URL, &st);
+        lastError = curl_easy_getinfo(curlHandle, CURLINFO_TOTAL_TIME, &tminf);
+        downTime = (int)tminf;
         if (lastError == CURLE_OK) {
             realUrl = st;
             //delete str;
