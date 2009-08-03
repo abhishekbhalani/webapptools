@@ -19,14 +19,22 @@
 */
 #include "watchdog.h"
 
+void process_response(iweResponse *resp)
+{
+
+}
+
 void task_executor(const string& taskID)
 {
     string sdata;
-    int idata;
+    int idata, count;
     WeOption opt;
-    vector<WeHttpRequest*>  task_list;
-    int             task_list_max_size;
+    map<string, WeHttpRequest*>  task_list;
+    map<string, WeHttpRequest*>::iterator tsk_it;
+    map<string, WeHttpRequest*>::iterator tsk_go;
+    size_t          task_list_max_size;
     WeHttpRequest*  curr_url;
+    int     max_requests;
 
     bool in_process = false;
     LOG4CXX_DEBUG(WeLogger::GetLogger(), "Start task execution");
@@ -48,7 +56,7 @@ void task_executor(const string& taskID)
         }
         curr_url = new WeHttpRequest(sdata);
         curr_url->ID("0");
-        task_list.push_back(curr_url);
+        task_list[curr_url->RequestUrl().ToString()] = curr_url;
 
         LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor start: set task state WI_TSK_RUN");
         globalData.task_info->Option(weoTaskStatus, WI_TSK_RUN);
@@ -56,6 +64,10 @@ void task_executor(const string& taskID)
     }
     LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: go to main loop");
     task_list_max_size = task_list.size();
+
+    // get transport from task options
+    WeHTTP* transport = (WeHTTP*)globalData.dispatcher->LoadPlugin("A44A9A1E7C25"); // load HTTP transport
+
     do 
     {
         boost::this_thread::sleep(boost::posix_time::seconds(2));
@@ -63,33 +75,52 @@ void task_executor(const string& taskID)
             in_process = false;
             break;
         }
+        tsk_go = task_list.end();
         { // save the task execution status
             boost::lock_guard<boost::mutex> lock(globalData.locker);
             in_process = globalData.execution;
             if (in_process)
             {
+                count = 0;
+                for (tsk_it = task_list.begin(); tsk_it != task_list.end(); tsk_it++)
+                {
+                    if (tsk_it->second != NULL)
+                    {
+                        count++;
+                        if (tsk_go == task_list.end())
+                        {
+                            tsk_go = tsk_it;
+                        }
+                    }
+                }
+
+                idata = (task_list_max_size - count) * 100 / task_list_max_size;
+                LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor loop: rest " << count << " queries  from " <<
+                            task_list_max_size << " (" << idata << "%)");
                 LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor loop: reload task");
                 globalData.load_task(taskID);
                 if (globalData.task_info != NULL)
                 {
-                    idata = (task_list_max_size - task_list.size()) * 100 / task_list_max_size;
                     globalData.task_info->Option(weoTaskCompletion, idata);
                     globalData.save_task();
                 }
             }
         }
         // perform task operation
-        curr_url = task_list[0];
+        if (tsk_go == task_list.end() || tsk_go->second == NULL)
+        {
+            continue;
+        }
+        curr_url = tsk_go->second;
         WeHttpResponse resp;
-        // get transport from task options
-        WeHTTP* transport = (WeHTTP*)globalData.dispatcher->LoadPlugin("A44A9A1E7C25"); // load HTTP transport
         // set transport options such as authorization etc
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: send request to " << curr_url->RequestUrl().ToString());
+        LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor: send request to " << curr_url->RequestUrl().ToString());
         transport->Request(curr_url, &resp);
         while (!resp.Processed()) {
             transport->ProcessRequests();
         }
         // process response
+        //process_response(resp);
         LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: process response with code=" << resp.HttpCode());
         WeScanData* scdata = new WeScanData;
         scdata->dataID = globalData.dispatcher->Storage()->GenerateID("scan_data");
@@ -113,18 +144,138 @@ void task_executor(const string& taskID)
             string url = resp.Headers().FindFirst("Location");
             if (!url.empty()) {
                 LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor: redirected to " << url);
+                bool to_process = false;
                 WeURL baseUrl = curr_url->RequestUrl();
                 baseUrl.Restore(url);
-                WeHttpRequest* new_url = new WeHttpRequest(baseUrl.ToString());
-                new_url->ID(scdata->dataID);
-                task_list.push_back(new_url);
-                task_list_max_size++;
+                // !!! todo LOG4CXX_TRACE
+                LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor: reconstructed url is " << baseUrl.ToString());
+                if (globalData.task_info->IsSet(weoStayInHost))
+                {
+                    if (baseUrl.IsHostEquals(resp.RealUrl()))
+                    {
+                        to_process = true;
+                    }
+                    LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: weoStayInHost check " << to_process);
+                }
+                if (globalData.task_info->IsSet(weoStayInDomain))
+                {
+                    if (baseUrl.IsDomainEquals(resp.RealUrl()))
+                    {
+                        to_process = true;
+                    }
+                    LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: weoStayInDomain check << " << to_process);
+                }
+
+                if (to_process)
+                {
+                    string u_req = baseUrl.ToString();
+                    if (globalData.task_info->IsSet("noParamUrl")) {
+                        u_req = baseUrl.ToStringNoParam();
+                    }
+                    if (task_list.find(u_req) == task_list.end())
+                    {
+                        WeHttpRequest* new_url = new WeHttpRequest(baseUrl.ToString());
+                        new_url->ID(scdata->dataID);
+                        size_t last_size = task_list.size();
+                        task_list[u_req] = new_url;
+                        task_list_max_size += task_list.size() - last_size;
+                    }
+                    else
+                    {
+                        // add parent to existing scan data
+                    }
+                }
             }
         }
+        /// @todo select appropriate parser
+        if (resp.HttpCode() >= 200 && resp.HttpCode() < 300)
+        {
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: parse document");
+            WeHtmlDocument parser;
+            WeEntityList lst;
 
+            parser.ParseData(&resp);
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor: search for links");
+            lst = parser.FindTags("a");
+            if (lst.size() == 0) {
+                LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: no <a ...> tags");
+            }
+            else {
+                iweEntity* ent = NULL;
+                WeEntityList::iterator iEnt;
+                string href;
+                bool to_process;
+                for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
+                    to_process = false;
+                    href = (*iEnt)->Attr("href");
+                    if (href != "") {
+                        WeURL link;
+                        link.Restore(href, &(resp.RealUrl()));
+                        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: <a href...> tag. url=" << link.ToString());
+                        if (globalData.task_info->IsSet(weoStayInHost))
+                        {
+                            if (link.IsHostEquals(resp.RealUrl()))
+                            {
+                                to_process = true;
+                            }
+                            LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: weoStayInHost check " << to_process);
+                        }
+                        if (globalData.task_info->IsSet(weoStayInDomain))
+                        {
+                            if (link.IsDomainEquals(resp.RealUrl()))
+                            {
+                                to_process = true;
+                            }
+                            LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: weoStayInDomain check << " << to_process);
+                        }
+
+                        if (to_process)
+                        {
+                            string u_req = link.ToString();
+                            if (globalData.task_info->IsSet("noParamUrl")) {
+                                u_req = link.ToStringNoParam();
+                            }
+                            if (task_list.find(u_req) == task_list.end())
+                            {
+                                LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor: add link to task list. url=" << link.ToString());
+                                WeHttpRequest* new_url = new WeHttpRequest(link.ToString());
+                                new_url->ID(scdata->dataID);
+                                size_t last_size = task_list.size();
+                                task_list[u_req] = new_url;
+                                task_list_max_size += task_list.size() - last_size;
+                            }
+                            else
+                            {
+                                // add parent to existing scan data
+                            }
+                        }
+                    } // end href attribute
+                } // end <a ...> loop
+            } // end <a ...> tags processing
+            // todo: process other kind of links
+            // CSS
+            // scripts
+            // objects
+            // images
+            // frames
+            // etc ???
+        }
+
+        string u_req = curr_url->RequestUrl().ToString();
+        if (globalData.task_info->IsSet("noParamUrl")) {
+            u_req = curr_url->RequestUrl().ToStringNoParam();
+        }
+        task_list[u_req] = NULL;
         delete curr_url;
-        task_list.erase(task_list.begin());
-        if (task_list.size() == 0)
+        count = 0;
+        for (tsk_it = task_list.begin(); tsk_it != task_list.end(); tsk_it++)
+        {
+            if (tsk_it->second != NULL)
+            {
+                count++;
+            }
+        }
+        if (count == 0)
         {
             boost::lock_guard<boost::mutex> lock(globalData.locker);
             LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor: no requests in queue");

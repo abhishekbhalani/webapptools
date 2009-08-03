@@ -167,9 +167,9 @@ void watch_dog_thread(const string& id)
     while(in_process) {
         boost::this_thread::sleep(boost::posix_time::seconds(5));
         LOG4CXX_TRACE(WeLogger::GetLogger(), "Watchdog timer. Refresh task state.");
-        globalData.load_task(id);
         {
             boost::lock_guard<boost::mutex> lock(globalData.locker);
+            globalData.load_task(id);
             if (globalData.task_info != NULL)
             {
                 WeOption opt = globalData.task_info->Option(weoTaskStatus);
