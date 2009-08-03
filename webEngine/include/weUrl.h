@@ -41,12 +41,23 @@ public:
     WeURL(const WeURL& url);
     ~WeURL();
 
-    WeURL& operator=(const string url)  { Assign(url); return *this; };
+    WeURL& operator=(const string& url)  { Assign(url); return *this; };
     WeURL& operator=(const WeURL& url);
 
-    string& ToString(bool noDefPort = true);
-    void Assign(string url);
-    void Restore(string url, WeURL* base = NULL);
+    string ToString(bool noDefPort = true);
+    string ToStringNoParam(bool noDefPort = true);
+
+    void Assign(const string& url);
+    void Restore(const string& url, WeURL* base = NULL);
+
+    const bool Equals(const string& url);
+    const bool Equals(const WeURL& url);
+
+    const bool IsHostEquals(const string& url);
+    const bool IsHostEquals(const WeURL& url);
+
+    const bool IsDomainEquals(const string& url);
+    const bool IsDomainEquals(const WeURL& url);
 
     bool IsValid(void);
 
