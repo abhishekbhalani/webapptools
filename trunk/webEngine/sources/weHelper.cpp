@@ -156,49 +156,49 @@ string WeUnscreenXML(const string& xml)
 static WeHtmlEntity* weCreateRefObj(iweEntity* prnt)
 {
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHtmlFactory: create WeRefrenceObject");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeRefrenceObject");
     return new WeRefrenceObject(prnt);
 }
 
 static WeHtmlEntity* weCreateText(iweEntity* prnt)
 {
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHtmlFactory: create WeInnerText");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeInnerText");
     return new WeInnerText(prnt);
 }
 
 static WeHtmlEntity* weCreateComment(iweEntity* prnt)
 {
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHtmlFactory: create WeHtmlComment");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeHtmlComment");
     return new WeHtmlComment(prnt);
 }
 
 static WeHtmlEntity* weCreateCData(iweEntity* prnt)
 {
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHtmlFactory: create WeCData");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeCData");
     return new WeCData(prnt);
 }
 
 static WeHtmlEntity* weCreatePhpInc(iweEntity* prnt)
 {
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHtmlFactory: create WePhpInclude");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WePhpInclude");
     return new WePhpInclude(prnt);
 }
 
 static WeHtmlEntity* weCreateDocument(iweEntity* prnt)
 {
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHtmlFactory: create WeHtmlDocument");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeHtmlDocument");
     return NULL; //new WeDocument(prnt);
 }
 
 static WeHtmlEntity* weCreateScript(iweEntity* prnt)
 {
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHtmlFactory: create WeScript");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeScript");
     return new WeScript(prnt);
 }
 
@@ -208,7 +208,7 @@ static WeHtmlEntity* weCreateScript(iweEntity* prnt)
 static iweTransport* weCreateFile(WeDispatch* krnl)
 {
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTransportFactory: create WeFile");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTransportFactory: create WeFile");
     return NULL; //new WeFile();
 }
 #endif //__DOXYGEN__
@@ -266,7 +266,7 @@ WeHtmlEntity* WeHtmlFactory::CreateEntity( string tagName, WeHtmlEntity* prnt )
     EntityFactory func;
 
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHtmlFactory::CreateEntity => " << tagName);
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory::CreateEntity => " << tagName);
     func = FindFirst(tagName);
     if (func == NULL) {
         return new WeHtmlEntity(prnt);
@@ -332,7 +332,7 @@ iweTransport* WeTransportFactory::CreateTransport( string tagName, WeDispatch* k
     TransportFactory func;
 
     FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTransportFactory::CreateTransport => " << tagName);
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTransportFactory::CreateTransport => " << tagName);
     func = FindFirst(tagName);
     if (func == NULL) {
         return NULL;

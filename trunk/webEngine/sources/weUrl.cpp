@@ -97,7 +97,7 @@ WeURL& WeURL::operator=( const WeURL& url )
     return *this;
 }
 
-string& WeURL::ToString(bool noDefPort /*= true*/)
+string WeURL::ToString(bool noDefPort /*= true*/)
 {
     string *retval = new string;
 
@@ -121,7 +121,7 @@ string& WeURL::ToString(bool noDefPort /*= true*/)
     return *retval;
 }
 
-void WeURL::Assign( string url )
+void WeURL::Assign(const string& url )
 {
     string temp = url;
     size_t pos;
@@ -205,10 +205,11 @@ void WeURL::Assign( string url )
     valid = true;
 }
 
-void WeURL::Restore( string url, WeURL* base /*= NULL*/ )
+void WeURL::Restore( const string& url_, WeURL* base /*= NULL*/ )
 {
-    string    temp;
-    size_t    pos;
+    string  temp;
+    size_t  pos;
+    string  url = url_;
 
     if (base == NULL) {
         base = this;
@@ -225,6 +226,15 @@ void WeURL::Restore( string url, WeURL* base /*= NULL*/ )
         port = base->port;
         if (starts_with(url, "/")) {
             request = url;
+            fixDoubleSlash(request);
+            pos = request.find('?');
+            if (pos != string::npos) {
+                params = request.substr(pos + 1);
+                request = request.substr(0, pos);
+            }
+            else {
+                params.clear();
+            }
         }
         else {
             pos = base->request.find('?');
@@ -275,4 +285,127 @@ bool WeURL::IsValid( void )
     bool retval = (valid && !host.empty() && !request.empty() && port > 0 && port < 65535);
     valid = retval;
     return retval;
+}
+
+const bool WeURL::Equals( const string& url )
+{
+    WeURL tmp;
+    tmp.Assign(url);
+    return Equals(tmp);
+}
+
+const bool WeURL::Equals( const WeURL& url )
+{
+    bool retval = true;
+
+    if (protocol != url.protocol)
+    {
+        retval = false;
+    }
+    if (host != url.host)
+    {
+        retval = false;
+    }
+    if (port != url.port)
+    {
+        retval = false;
+    }
+    if (request != url.request)
+    {
+        retval = false;
+    }
+    if (params != url.params)
+    {
+        retval = false;
+    }
+    /** @todo Is it need to compare credentials?
+    if (username != url.username)
+    {
+        retval = false;
+    }
+    if (password != url.password)
+    {
+        retval = false;
+    }*/
+    return retval;
+}
+
+const bool WeURL::IsHostEquals( const string& url )
+{
+    WeURL tmp;
+    tmp.Assign(url);
+    return IsHostEquals(tmp);
+}
+
+const bool WeURL::IsHostEquals( const WeURL& url )
+{
+    bool retval = true;
+
+    if (protocol != url.protocol)
+    {
+        retval = false;
+    }
+    if (host != url.host)
+    {
+        retval = false;
+    }
+    return retval;
+}
+
+const bool WeURL::IsDomainEquals( const string& url )
+{
+    WeURL tmp;
+    tmp.Assign(url);
+    return IsDomainEquals(tmp);
+}
+
+const bool WeURL::IsDomainEquals( const WeURL& url )
+{
+    bool retval = true;
+    string second_level;
+    boost::iterator_range<string::iterator> dot_pos;
+
+    if (protocol != url.protocol)
+    {
+        retval = false;
+    }
+    dot_pos = find_nth(host, ".", -2);
+    if (dot_pos.size() != 0) {
+        string::iterator pos = dot_pos.begin();
+        second_level = "";
+        while(pos != host.end())
+        {
+            second_level += *pos;
+            pos++;
+        }
+    }
+    else {
+        second_level = host;
+    }
+    if (!iends_with(url.host, second_level))
+    {
+        retval = false;
+    }
+
+    return retval;
+}
+
+string WeURL::ToStringNoParam( bool noDefPort /*= true*/ )
+{
+    string *retval = new string;
+
+    *retval = protocol + "://";
+    if (!username.empty() || !password.empty()) {
+        *retval += username + ':' + password +'@';
+    }
+    *retval += host;
+    if (noDefPort && ((protocol == "http" && port == 80) || (protocol == "https" && port == 443))) {
+        // oops, in this case we don't need print anything :)
+    }
+    else if (port > 0 && port < 65536) {
+        *retval += ':';
+        *retval += boost::lexical_cast<std::string>(port);
+    }
+    *retval += request;
+    return *retval;
 }
