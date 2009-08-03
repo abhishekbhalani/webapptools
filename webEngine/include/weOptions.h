@@ -185,6 +185,10 @@ private:
 #define weoScanDepth         "ScanDepth"
 /// logging level (integer)
 #define weoLogLevel          "LogLevel"
+/// number of parallel requests to transport (integer)
+#define weoParallelReq       "ParallelReq"
+/// ignore URL parameters (bool)
+#define weoIgnoreUrlParam    "noParamUrl"
 //////////////////////////////////////////////////////////////////////////
 // Define options typenames
 //////////////////////////////////////////////////////////////////////////
