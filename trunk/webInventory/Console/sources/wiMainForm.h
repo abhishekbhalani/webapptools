@@ -62,6 +62,9 @@ protected:
     virtual void OnSortItems( wxListEvent& event );
     virtual void OnTaskApply( wxCommandEvent& event );
     virtual void OnStorageChange( wxCommandEvent& event );
+    virtual void OnReportTskFilter( wxCommandEvent& event );
+    virtual void OnReportsFilter( wxCommandEvent& event );
+    virtual void OnReportsRefresh( wxCommandEvent& event );
 
     void OnPluginSettings( wxCommandEvent& event );
     void ProcessTaskList(const wxString& criteria = wxT(""));
@@ -74,6 +77,8 @@ protected:
     void SaveTaskOptionInt (wxXmlNode *root, const wxString& name, const int& value);
 
     void GetTaskOptions(int taskID);
+    void FillTaskFilter();
+    void RebuildReportsTree();
 
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;

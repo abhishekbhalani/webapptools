@@ -11,7 +11,6 @@
 #include <wx/intl.h>
 
 class wiStatBar;
-class wxCustomButton;
 
 #include <wx/string.h>
 #include <wx/stattext.h>
@@ -25,18 +24,23 @@ class wxCustomButton;
 #include <wx/toolbar.h>
 #include <wx/sizer.h>
 #include <wx/listctrl.h>
-#include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/textctrl.h>
+#include <wx/choice.h>
 #include <wx/radiobox.h>
 #include <wx/checkbox.h>
-#include <wx/choice.h>
 #include <wx/statbox.h>
+#include <wx/spinctrl.h>
 #include <wx/gbsizer.h>
 #include <wx/scrolwin.h>
 #include <wx/statline.h>
 #include <wx/richtext/richtextctrl.h>
 #include <wx/panel.h>
+#include <wx/datectrl.h>
+#include <wx/dateevt.h>
+#include <wx/treectrl.h>
+#include <wx/splitter.h>
+#include <wx/bmpbuttn.h>
 #include <wx/aui/auibook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
@@ -48,11 +52,15 @@ class wxCustomButton;
 #define wxID_TOOLSTOP 1001
 #define wxID_TOOLNEW 1002
 #define wxID_TOOLDEL 1003
-#define wxID_TLCONNECT 1004
-#define wxID_TLNEW 1005
-#define wxID_TLEDIT 1006
-#define wxID_TLDELETE 1007
-#define wxID_TLLANGAPPLY 1008
+#define wxID_TLREFRESH 1004
+#define wxID_TLFILTER 1005
+#define wxID_TLSTATUS 1006
+#define wxID_TLSAVE 1007
+#define wxID_TLCONNECT 1008
+#define wxID_TLNEW 1009
+#define wxID_TLEDIT 1010
+#define wxID_TLDELETE 1011
+#define wxID_TLLANGAPPLY 1012
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
@@ -70,28 +78,36 @@ class MainForm : public wxFrame
 		wxListCtrl* m_lstTaskList;
 		wxStaticText* m_stProfile;
 		
-		wxCustomButton* m_btnApply;
+		wxButton* m_btnApply;
 		wxScrolledWindow* m_panTaskOpts;
 		wxStaticText* m_stTaskName;
 		wxTextCtrl* m_txtTaskName;
 		wxStaticText* m_stBaseURL;
 		wxTextCtrl* m_txtBaseURL;
+		wxStaticText* m_stLogLevel;
+		wxChoice* m_chLogLevel;
 		wxRadioBox* m_rbDepth;
 		wxStaticText* m_stDepth;
 		wxTextCtrl* m_txtDepth;
 		wxCheckBox* m_cbInvent;
-		wxStaticText* m_stLogLevel;
-		wxChoice* m_chLogLevel;
-		wxCheckBox* m_checkBox2;
+		wxCheckBox* m_chIgnoreParams;
+		wxStaticText* m_stThreads;
+		wxSpinCtrl* m_spinCtrl1;
 		
-		wxStaticText* m_staticText20;
-		wxStaticText* m_staticText21;
-		wxTextCtrl* m_textCtrl7;
 		wxStaticLine* m_staticline1;
 		wxStaticText* m_stTaskLog;
 		
 		wxRichTextCtrl* m_rtTask;
 		wxPanel* m_pReports;
+		wxSplitterWindow* m_split;
+		wxPanel* m_panRepTree;
+		wxToolBar* m_toolBarFilter;
+		wxStaticText* m_stToolTask;
+		wxChoice* m_chTaskFilter;
+		wxDatePickerCtrl* m_dateFilter;
+		wxTreeCtrl* m_treeScans;
+		wxPanel* m_panRepData;
+		wxRichTextCtrl* m_richText2;
 		wxPanel* m_pSettings;
 		wxStaticText* m_stConVers;
 		wxStaticText* m_stConVersData;
@@ -132,6 +148,13 @@ class MainForm : public wxFrame
 		virtual void OnSortItems( wxListEvent& event ){ event.Skip(); }
 		virtual void OnTaskSelected( wxListEvent& event ){ event.Skip(); }
 		virtual void OnTaskApply( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnReportsRefresh( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnReportsFilter( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnReportTskFilter( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnReportsDate( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnReportDateFilter( wxDateEvent& event ){ event.Skip(); }
+		virtual void OnReportsStatus( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnReportsSave( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnConnect( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddServer( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnEditServer( wxCommandEvent& event ){ event.Skip(); }
@@ -144,6 +167,12 @@ class MainForm : public wxFrame
 	public:
 		MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("WebInventory"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1070,660 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~MainForm();
+		void m_splitOnIdle( wxIdleEvent& )
+		{
+		m_split->SetSashPosition( 400 );
+		m_split->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitOnIdle ), NULL, this );
+		}
+		
 	
 };
 

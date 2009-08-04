@@ -48,7 +48,6 @@
 
 //    m_statusBar = new wiStatBar( this );
 //    SetStatusBar(m_statusBar);
-//    m_btnApply = new wxCustomButton( m_pTasks, wxID_ANY, _("Apply"), wxBitmap( apply_xpm ), wxDefaultPosition, wxDefaultSize, wxCUSTBUT_BUTTON|wxCUSTBUT_RIGHT);
 
 static const wxChar* gTaskStatus[] = {_("idle"),
                                       _("run (%d%%)"),
@@ -197,6 +196,8 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_panTaskOpts->Disable();
     m_lstTaskList->Disable();
     m_toolBarTask->Disable();
+    m_pReports->Disable();
+    m_mainnb->SetSelection(2);
     Layout();
 }
 
@@ -290,6 +291,7 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
             }
         }
     }
+    RebuildReportsTree();
 }
 
 void wiMainForm::OnAddServer( wxCommandEvent& event )
@@ -421,6 +423,8 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
             }
             m_lstTaskList->SortItems(SortItemFunc, (long)m_lstTaskList);
             m_lstTaskList->SetItemState(m_selectedTask, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+            FillTaskFilter();
         }
         else {
             m_statusBar->SetImage(wiSTATUS_BAR_NO);
@@ -432,6 +436,7 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
 void wiMainForm::Disconnected(bool mode)
 {
     m_toolBarTask->EnableTool(wxID_TOOLNEW, false);
+    m_pReports->Disable();
     m_pnServer->Disable();
     m_panTaskOpts->Disable();
     m_lstTaskList->Disable();
@@ -453,6 +458,7 @@ void wiMainForm::Disconnected(bool mode)
 void wiMainForm::Connected(bool mode)
 {
     m_toolBarTask->EnableTool(wxID_TOOLNEW, true);
+    m_pReports->Enable();
     m_pnServer->Enable();
     m_panTaskOpts->Enable();
     m_lstTaskList->Enable();
@@ -880,4 +886,95 @@ void wiMainForm::OnStorageChange( wxCommandEvent& event )
             ProcessTaskList(wxT(""));
         }
     }
+}
+
+void wiMainForm::FillTaskFilter()
+{
+    int tasks, i;
+    wxListItem info;
+    int taskID;
+    int taskIndex, tskSelected, tskID;
+    wxString taskName;
+
+    m_chTaskFilter->Clear();
+    if (! m_cfgEngine.Read(wxT("TaskFilter"), &tskID)) {
+        tskID = -1;
+    }
+    tskSelected = -1;
+    taskIndex = m_chTaskFilter->Append(_("All"), (void*)-1);
+    if (taskIndex == tskID) { // read selected from profile
+        tskSelected = taskIndex;
+    }
+    tasks = m_lstTaskList->GetItemCount();
+    for (i = 0; i < tasks; i++) {
+        info.SetId(i);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_DATA);
+        m_lstTaskList->GetItem(info);
+        taskID = info.GetData();
+        info.SetColumn(1);
+        info.SetMask(wxLIST_MASK_TEXT);
+        m_lstTaskList->GetItem(info);
+        taskName = info.GetText();
+        taskIndex = m_chTaskFilter->Append(taskName, (void*)taskID);
+        if (taskID == tskID) { // read selected from profile
+            tskSelected = taskIndex;
+        }
+    }
+    if (tskSelected > -1) {
+        m_chTaskFilter->Select(tskSelected);
+    }
+}
+
+void wiMainForm::OnReportTskFilter( wxCommandEvent& event )
+{
+    int tskIndex = m_chTaskFilter->GetSelection();
+    int tskFilter = (int)m_chTaskFilter->GetClientData(tskIndex);
+    m_cfgEngine.Write(wxT("TaskFilter"), tskFilter);
+    m_cfgEngine.Flush();
+}
+
+void wiMainForm::OnReportsFilter( wxCommandEvent& event )
+{
+    RebuildReportsTree();
+}
+
+void wiMainForm::OnReportsRefresh( wxCommandEvent& event )
+{
+    RebuildReportsTree();
+}
+
+void wiMainForm::RebuildReportsTree()
+{
+    bool isFilter = m_toolBarFilter->GetToolState(wxID_TLFILTER);
+    int tasks, i;
+    wxListItem info;
+    int taskID;
+    int taskIndex, tskID;
+    wxString taskName;
+    wxTreeItemId root;
+    wxTreeItemId task;
+
+    m_treeScans->Freeze();
+    m_treeScans->DeleteAllItems();
+    taskIndex = m_chTaskFilter->GetSelection();
+    tskID = (int)m_chTaskFilter->GetClientData(taskIndex);
+    tasks = m_lstTaskList->GetItemCount();
+    root = m_treeScans->AddRoot(wxT("root"));
+    for (i = 0; i < tasks; i++) {
+        info.SetId(i);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_DATA);
+        m_lstTaskList->GetItem(info);
+        taskID = info.GetData();
+        if ( !isFilter || taskID == tskID || tskID == -1) {
+            info.SetColumn(1);
+            info.SetMask(wxLIST_MASK_TEXT);
+            m_lstTaskList->GetItem(info);
+            taskName = info.GetText();
+            task = m_treeScans->AppendItem(root, taskName);
+        }
+    }
+
+    m_treeScans->Thaw();
 }
