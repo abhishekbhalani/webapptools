@@ -138,6 +138,7 @@ void WeScan::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                     WeScanData *scdata = new WeScanData;
                     scdata->FromXml(sc, token);
                     scan_data.push_back(scdata);
+                    break;
                 }
             }
             LOG4CXX_WARN(WeLogger::GetLogger(), "WeScan::FromXml unexpected tagStart: " << name);
@@ -167,15 +168,27 @@ void WeScan::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                 }
                 if (iequals(name, "start_time"))
                 {
-                    startTime = posix_time::time_from_string(dat);
+                    try {
+                        startTime = posix_time::time_from_string(dat);
+                    } catch (...) {
+                        startTime = posix_time::not_a_date_time;
+                    }
                 }
                 if (iequals(name, "finish_time"))
                 {
-                    finishTime = posix_time::time_from_string(dat);
+                    try {
+                        finishTime = posix_time::time_from_string(dat);
+                    } catch (...) {
+                        finishTime = posix_time::not_a_date_time;
+                    }
                 }
                 if (iequals(name, "ping_time"))
                 {
-                    pingTime = posix_time::time_from_string(dat);
+                    try {
+                        pingTime = posix_time::time_from_string(dat);
+                    } catch (...) {
+                        pingTime = posix_time::not_a_date_time;
+                    }
                 }
                 if (iequals(name, "status"))
                 {

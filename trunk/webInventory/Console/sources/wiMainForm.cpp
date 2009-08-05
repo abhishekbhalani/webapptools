@@ -31,6 +31,7 @@
 #include "wiServDialog.h"
 #include "wiMainForm.h"
 #include "wxThings.h"
+#include "treeData.h"
 #include "version.h"
 #include "../images/webInventory.xpm"
 #include "../images/btnStop.xpm"
@@ -49,9 +50,18 @@
 //    m_statusBar = new wiStatBar( this );
 //    SetStatusBar(m_statusBar);
 
+DEFINE_EVENT_TYPE(wxEVT_REPORT_LOADING)
+DEFINE_EVENT_TYPE(wxEVT_REPORT_LOAD)
+
 static const wxChar* gTaskStatus[] = {_("idle"),
                                       _("run (%d%%)"),
                                       _("paused (%d%%)")};
+
+wxString FromStdString(const std::string& str)
+{
+    wxString retval = wxString::FromUTF8(str.c_str());
+    return retval;
+}
 
 static int sortOrder = 0; // for now - the boolean order: 0 - normal, -1 - reverse
 static int wxCALLBACK SortItemFunc(long item1, long item2, long ctrlPtr)
@@ -199,6 +209,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_pReports->Disable();
     m_mainnb->SetSelection(2);
     Layout();
+
+    this->Connect( wxID_ANY, wxEVT_REPORT_LOADING, wxCommandEventHandler( wiMainForm::OnReportsLoadStart ) );
+    this->Connect( wxID_ANY, wxEVT_REPORT_LOAD, wxCommandEventHandler( wiMainForm::OnReportsLoad ) );
 }
 
 void wiMainForm::OnTimer( wxTimerEvent& event )
@@ -408,11 +421,11 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
 
             m_lstTaskList->DeleteAllItems();
             for (lstSize = 0; lstSize < lst->size(); lstSize++) {
-                wxString idStr = wxString::FromAscii((*lst)[lstSize].id.c_str());
+                wxString idStr = FromStdString((*lst)[lstSize].id.c_str());
                 idStr.ToLong(&idLong, 16);
                 idx = m_lstTaskList->GetItemCount();
                 m_lstTaskList->InsertItem(idx, (*lst)[lstSize].status);
-                m_lstTaskList->SetItem(idx, 1, wxString::FromAscii((*lst)[lstSize].name.c_str()));
+                m_lstTaskList->SetItem(idx, 1, FromStdString((*lst)[lstSize].name.c_str()));
                 if ((*lst)[lstSize].status >= 0 && (*lst)[lstSize].status < WI_TSK_MAX) {
                     m_lstTaskList->SetItem(idx, 2, wxString::Format(gTaskStatus[(*lst)[lstSize].status], (*lst)[lstSize].completion));
                 }
@@ -661,7 +674,7 @@ void wiMainForm::GetPluginList()
             for (lstSize = 0; lstSize < m_plugList->size(); lstSize++) {
                 wxString label;
 
-                label = wxString::FromAscii((*m_plugList)[lstSize].PluginDesc.c_str());
+                label = FromStdString((*m_plugList)[lstSize].PluginDesc.c_str());
 
                 wxStaticText *txt = new wxStaticText( m_pluginsDock, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, 0 );
                 m_gbPluginsGrid->Add(txt, wxGBPosition(m_plugins+1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
@@ -669,7 +682,7 @@ void wiMainForm::GetPluginList()
                 wxChoice *cho = new wxChoice( m_pluginsDock, wxID_ANY, wxDefaultPosition, wxSize(120, -1), 0, NULL, 0 );
                 for (i = 0; i < (*m_plugList)[lstSize].IfaceList.size(); i++)
                 {
-                    cho->Append(wxString::FromAscii((*m_plugList)[lstSize].IfaceList[i].c_str()));
+                    cho->Append(FromStdString((*m_plugList)[lstSize].IfaceList[i].c_str()));
                 }
                 if (cho->GetCount() > 0) {
                     cho->SetSelection(cho->GetCount() - 1);
@@ -686,8 +699,8 @@ void wiMainForm::GetPluginList()
 
                 // add plugins to the storage list
                 if (find((*m_plugList)[lstSize].IfaceList.begin(), (*m_plugList)[lstSize].IfaceList.end(), "iweStorage") != (*m_plugList)[lstSize].IfaceList.end()) {
-                    int itm = m_chStorage->Append(wxString::FromAscii((*m_plugList)[lstSize].PluginDesc.c_str()), (void*)(wxPluginsData + m_plugins));
-                    if (storageID.CmpNoCase(wxString::FromAscii((*m_plugList)[lstSize].PluginId.c_str())) == 0) {
+                    int itm = m_chStorage->Append(FromStdString((*m_plugList)[lstSize].PluginDesc.c_str()), (void*)(wxPluginsData + m_plugins));
+                    if (storageID.CmpNoCase(FromStdString((*m_plugList)[lstSize].PluginId.c_str())) == 0) {
                         m_chStorage->SetSelection(itm);
                     }
                 }
@@ -707,7 +720,7 @@ void wiMainForm::OnPluginSettings( wxCommandEvent& event )
     id -= wxPluginsData;
 
     if (m_client != NULL && (id >= 0 && id < m_plugList->size())) {
-        wxString str = wxString::FromAscii((*m_plugList)[id].PluginId.c_str());
+        wxString str = FromStdString((*m_plugList)[id].PluginId.c_str());
         wxString xrc = m_client->DoCmd(wxT("plgui"), str);
         if (xrc.IsEmpty()) {
             wxMessageBox(_("This plugin doesn't provide any settings"), wxT("WebInvent"), wxICON_WARNING | wxOK, this);
@@ -837,7 +850,7 @@ void wiMainForm::OnTaskApply( wxCommandEvent& event )
             if (data != NULL) {
                 outp.CopyTo(data, dataLen);
                 wxString str = wxString::Format(wxT("%X;"), info.GetData());
-                str += wxString::FromAscii(data);
+                str += FromStdString(data);
                 m_client->DoCmd(wxT("settaskopts"), str);
             }
             else {
@@ -881,7 +894,7 @@ void wiMainForm::OnStorageChange( wxCommandEvent& event )
     if (plg != -1 && m_plugList != NULL && m_client != NULL) {
         int plgIdx = (int)m_chStorage->GetClientData(plg) - wxPluginsData;
         if (plgIdx >= 0 && plgIdx < m_plugList->size()) {
-            wxString plgID = wxString::FromAscii((*m_plugList)[plgIdx].PluginId.c_str());
+            wxString plgID = FromStdString((*m_plugList)[plgIdx].PluginId.c_str());
             m_client->DoCmd(wxT("setstorage"), plgID);
             ProcessTaskList(wxT(""));
         }
@@ -972,9 +985,111 @@ void wiMainForm::RebuildReportsTree()
             info.SetMask(wxLIST_MASK_TEXT);
             m_lstTaskList->GetItem(info);
             taskName = info.GetText();
-            task = m_treeScans->AppendItem(root, taskName);
+            wiTreeData *data = new wiTreeData;
+            data->nodeType = WI_TREE_NODE_OBJECT;
+            data->objectID = taskID;
+            task = m_treeScans->AppendItem(root, taskName, -1, -1, data);
+            m_treeScans->AppendItem(task, _("Please wait..."));
         }
     }
 
     m_treeScans->Thaw();
+}
+
+void wiMainForm::OnReportExpand( wxTreeEvent& event )
+{
+    wxTreeItemId object = event.GetItem();
+    wiTreeData *data = (wiTreeData*)m_treeScans->GetItemData(object);
+
+    if (data != NULL) {
+        if (!data->hasData) {
+            OneStringReport(_("Please wait..."));
+            wxCommandEvent event( wxEVT_REPORT_LOADING, wxID_ANY );
+            event.SetClientData((void*)data);
+            GetEventHandler()->AddPendingEvent( event );
+        }
+    }
+}
+
+void wiMainForm::OnReportsLoadStart( wxCommandEvent& event )
+{   // just resend event after processing GUI events
+    wxCommandEvent event2( wxEVT_REPORT_LOAD, wxID_ANY );
+    event2.SetClientData(event.GetClientData());
+    wxSafeYield(this);
+    ::wxBeginBusyCursor();
+    GetEventHandler()->AddPendingEvent( event2 );
+}
+
+void wiMainForm::OnReportsLoad( wxCommandEvent& event )
+{
+    int i;
+    long tskId, scanId;
+    wxTreeItemId scan;
+    wiTreeData *scanData;
+
+    wiTreeData *data = (wiTreeData*)event.GetClientData();
+    if (data != NULL) {
+        if (data->nodeType == WI_TREE_NODE_OBJECT) {
+            // builds list of scans for this object (task for now)
+            m_treeScans->DeleteChildren(data->GetId());
+            if (m_client != NULL) {
+                ScanList* lst = m_client->GetScanList(wxString::Format(wxT("ID=%X"), data->objectID));
+                if (lst != NULL) {
+                    for (i = 0; i < lst->size(); i++) {
+                        wxString idStr = FromStdString((*lst)[i].TaskId);
+                        idStr.ToLong(&tskId, 16);
+                        if (tskId == data->objectID) {
+                            idStr = FromStdString((*lst)[i].ScanId);
+                            idStr.ToLong(&scanId, 16);
+                            idStr = FromStdString((*lst)[i].StartTime);
+                            /// @todo Apply date filter
+                            scanData = new wiTreeData;
+                            scanData->nodeType = WI_TREE_NODE_SCAN;
+                            scanData->objectID = scanId;
+                            scan = m_treeScans->AppendItem(data->GetId(), idStr, -1, -1, scanData);
+                            m_treeScans->AppendItem(scan, _("Please wait..."));
+                        }
+                    }
+                    // write summary for scan
+
+                    // save report
+
+                    delete lst;
+                }
+                else {
+                    // generate error report
+                    OneStringReport(_("Can't retreiving information for task!"), 1);
+                }
+            }
+            else {
+                // generate error report
+                OneStringReport(_("No connection to server!"), 1);
+            }
+        }
+        else {
+            wxSleep(5);
+            OneStringReport(_("Report"));
+        }
+    }
+    ::wxEndBusyCursor();
+}
+
+void wiMainForm::OneStringReport(const wxString& message, int code /*= 0*/)
+{
+    m_richText2->Clear();
+    m_richText2->BeginAlignment(wxTEXT_ALIGNMENT_CENTER);
+    m_richText2->BeginBold();
+    m_richText2->BeginItalic();
+    m_richText2->BeginFontSize(36);
+    if (code == 1) {
+        m_richText2->BeginTextColour(*wxRED);
+    }
+    m_richText2->WriteText(message);
+    if (code > 0) {
+        m_richText2->EndTextColour();
+    }
+    m_richText2->EndFontSize();
+    m_richText2->EndItalic();
+    m_richText2->EndBold();
+    m_richText2->EndAlignment();
 }

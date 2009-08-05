@@ -19,6 +19,7 @@
 */
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/thread.hpp>
 #include <fstream>
 #include <strstream>
 #include "storageFS.h"
@@ -192,8 +193,15 @@ int FsStorage::Query(const string& objType, const string& objId, Operation op, c
 {
     int retval = 0;
     fs::path dir_path(db_dir);
+    fs::path locker(db_dir);
  
     LOG4CXX_DEBUG(logger, "FsStorage::Query objType=" << objType << "; ID=" << objId << "; operation=" << op);
+    // lock the db
+    while (exists(locker / "lock"))
+    {
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
+    }
+    FileSave(locker, "lock", "1");
     dir_path /= objType;
     if (op == iweStorage::remove)
     {
@@ -202,6 +210,7 @@ int FsStorage::Query(const string& objType, const string& objId, Operation op, c
     else {
         retval += FileSave(dir_path, objId, xmlData);
     }
+    FileRemove(locker, "lock");
     return retval;
 }
 
@@ -209,9 +218,16 @@ int FsStorage::Report(const string& repType, const string& objId, const string& 
 {
     int retval = 0;
     fs::path dir_path(db_dir);
+    fs::path locker(db_dir);
  
-    dir_path /= repType;
+    // lock the db
+    while (exists(locker / "lock"))
+    {
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
+    }
+    FileSave(locker, "lock", "1");
 
+    dir_path /= repType;
     result = "";
     if (objId == "*")
     {
@@ -246,6 +262,7 @@ int FsStorage::Report(const string& repType, const string& objId, const string& 
         }
     }
 
+    FileRemove(locker, "lock");
     return retval;
 }
 
@@ -257,9 +274,11 @@ string FsStorage::FileRead(const string& fname)
     LOG4CXX_TRACE(logger, "FsStorage::FileRead " << fname);
     sz = fs::file_size(fname);
     if (sz > 0) {
-        char* content = new char[sz];
+        char* content = new char[sz+10];
+        memset(content, 0, sz+10);
         ifstream ifs(fname.c_str());
         ifs.read(content, sz);
+        content[sz] = '\0';
         retval = content;
         delete content;
     }

@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\scanOperations.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\scanServer.cpp"
 				>
 			</File>
@@ -214,6 +218,10 @@
 			</File>
 			<File
 				RelativePath="..\Common\programcfg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\scanOperations.h"
 				>
 			</File>
 			<File

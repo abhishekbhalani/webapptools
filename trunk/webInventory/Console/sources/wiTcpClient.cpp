@@ -207,3 +207,33 @@ PluginList* wiTcpClient::GetPluginList(const wxString& criteria /*= wxT("")*/)
     }
     return lst;
 }
+
+ScanList* wiTcpClient::GetScanList(const wxString& criteria /*= wxT("")*/)
+{
+    ScanList* lst = NULL;
+    wxString reply;
+    char* data;
+    try
+    {
+        reply = DoCmd(wxT("scans"), criteria);
+        if (!reply.IsEmpty()) {
+            lst = new ScanList;
+            data = strdup((char*)reply.ToAscii().data());
+            istrstream iss(data);
+            {
+                boost::archive::xml_iarchive ia(iss);
+                ia >> BOOST_SERIALIZATION_NVP(*lst);
+            }
+            delete data;
+        }
+    }
+    catch (std::exception& e)
+    {
+        lastError = wxString::FromAscii(e.what());
+        if (lst != NULL) {
+            delete lst;
+        }
+        lst = NULL;
+    }
+    return lst;
+}
