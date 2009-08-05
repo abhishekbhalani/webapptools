@@ -32,6 +32,11 @@
 #include "Config.h"
 #include "wiTcpClient.h"
 
+BEGIN_DECLARE_EVENT_TYPES()
+DECLARE_EVENT_TYPE(wxEVT_REPORT_LOADING, -1)
+DECLARE_EVENT_TYPE(wxEVT_REPORT_LOAD, -1)
+END_DECLARE_EVENT_TYPES()
+
 /**
  * @class   wiMainForm
  * @brief   Implementing MainForm
@@ -65,6 +70,10 @@ protected:
     virtual void OnReportTskFilter( wxCommandEvent& event );
     virtual void OnReportsFilter( wxCommandEvent& event );
     virtual void OnReportsRefresh( wxCommandEvent& event );
+    virtual void OnReportExpand( wxTreeEvent& event );
+
+    virtual void OnReportsLoadStart( wxCommandEvent& event );
+    virtual void OnReportsLoad( wxCommandEvent& event );
 
     void OnPluginSettings( wxCommandEvent& event );
     void ProcessTaskList(const wxString& criteria = wxT(""));
@@ -79,6 +88,7 @@ protected:
     void GetTaskOptions(int taskID);
     void FillTaskFilter();
     void RebuildReportsTree();
+    void OneStringReport(const wxString& message, int code = 0);
 
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;

@@ -196,7 +196,7 @@
 		<Unit filename="sources\Crypto.cpp" />
 		<Unit filename="sources\Crypto.h" />
 		<Unit filename="sources\Sha1.hpp" />
-		<Unit filename="sources\messages.h" />
+		<Unit filename="sources\treeData.h" />
 		<Unit filename="sources\version.h" />
 		<Unit filename="sources\wiApp.cpp" />
 		<Unit filename="sources\wiApp.h" />

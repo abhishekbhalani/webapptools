@@ -18,40 +18,37 @@
     along with webInventory.  If not, see <http://www.gnu.org/licenses/>.
 */
 /***************************************************************
- * @file      wiTcpClient.h
- * @brief     Declaration of the wiTcpClient class
+ * @file      treeData.h
+ * @brief     Defines wiTreeData Class for report tree
  * @author    Andrew "Stinger" Abramov (stinger911@gmail.com)
- * @date      02.07.2009
+ * @date      05.08.2009
  **************************************************************/
-#ifndef __WITCPCLIENT_H__
-#define __WITCPCLIENT_H__
 
-#include <wx/string.h>
+#ifndef WITREEDATA_H
+#define WITREEDATA_H
 
-#include "messages.h"
+#include <wx/treectrl.h>
 
-class wiInternalTcp;
+#define WI_TREE_NODE_NONE       -1
+#define WI_TREE_NODE_OBJECT     0
+#define WI_TREE_NODE_SCAN       1
+#define WI_TREE_NODE_SCANDATA   2
+#define WI_TREE_NODE_SCANVULNER 3
 
-class wiTcpClient
+class wiTreeData: public wxTreeItemData
 {
-public:
-    wiTcpClient(const char* host, const char* port);
-    ~wiTcpClient();
+    public:
+        wiTreeData()
+        {
+            nodeType = WI_TREE_NODE_NONE;
+            objectID = -1;
+            hasData = false;
+        };
 
-    bool Connect();
-    bool Ping();
-    wxString GetScannerVersion();
-    wxString DoCmd(const wxString& cmd, const wxString& payload);
-    const wxString& GetLastError() { return lastError; };
-    TaskList* GetTaskList(const wxString& criteria = wxT(""));
-    PluginList* GetPluginList(const wxString& criteria = wxT(""));
-    ScanList* GetScanList(const wxString& criteria = wxT(""));
-
-protected:
-    wiInternalTcp* client;
-    wxString lastError;
-
-private:
+        // treeData information
+        bool hasData;
+        int nodeType;
+        int objectID;
 };
 
-#endif // __WITCPCLIENT_H__
+#endif // WITREEDATA_H

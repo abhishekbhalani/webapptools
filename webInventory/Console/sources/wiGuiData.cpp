@@ -94,8 +94,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSizer111->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_btnApply = new wxButton( m_pTasks, wxID_ANY, _("Apply task settings"), wxDefaultPosition, wxDefaultSize, wxNO_BORDER );
-	bSizer111->Add( m_btnApply, 0, wxALL, 5 );
+	m_btnApply = new wxButton( m_pTasks, wxID_ANY, _("Apply task settings"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer111->Add( m_btnApply, 0, wxALL|wxEXPAND, 1 );
 
 	fgSizer6->Add( bSizer111, 0, wxEXPAND, 5 );
 
@@ -218,7 +218,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_pTasks->SetSizer( fgSizer1 );
 	m_pTasks->Layout();
 	fgSizer1->Fit( m_pTasks );
-	m_mainnb->AddPage( m_pTasks, _("Tasks"), false, wxBitmap( panTasks_xpm ) );
+	m_mainnb->AddPage( m_pTasks, _("Tasks"), true, wxBitmap( panTasks_xpm ) );
 	m_pReports = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer13;
 	bSizer13 = new wxBoxSizer( wxVERTICAL );
@@ -230,7 +230,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxBoxSizer* bSizer14;
 	bSizer14 = new wxBoxSizer( wxVERTICAL );
 
-	m_toolBarFilter = new wxToolBar( m_panRepTree, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL );
+	m_toolBarFilter = new wxToolBar( m_panRepTree, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
 	m_toolBarFilter->SetToolBitmapSize( wxSize( 22,22 ) );
 	m_toolBarFilter->AddTool( wxID_TLREFRESH, _("tool"), wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh reports list"), wxEmptyString );
 	m_toolBarFilter->AddTool( wxID_TLFILTER, _("tool"), wxBitmap( filter_xpm ), wxNullBitmap, wxITEM_CHECK, _("Apply filter"), wxEmptyString );
@@ -272,7 +272,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_pReports->SetSizer( bSizer13 );
 	m_pReports->Layout();
 	bSizer13->Fit( m_pReports );
-	m_mainnb->AddPage( m_pReports, _("Reports"), true, wxBitmap( panReports_xpm ) );
+	m_mainnb->AddPage( m_pReports, _("Reports"), false, wxBitmap( panReports_xpm ) );
 	m_pSettings = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer10;
 	bSizer10 = new wxBoxSizer( wxVERTICAL );
@@ -476,6 +476,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_dateFilter->Connect( wxEVT_DATE_CHANGED, wxDateEventHandler( MainForm::OnReportDateFilter ), NULL, this );
 	this->Connect( wxID_TLSTATUS, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnReportsStatus ) );
 	this->Connect( wxID_TLSAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnReportsSave ) );
+	m_treeScans->Connect( wxEVT_COMMAND_TREE_ITEM_EXPANDING, wxTreeEventHandler( MainForm::OnReportExpand ), NULL, this );
 	this->Connect( wxID_TLCONNECT, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnConnect ) );
 	this->Connect( wxID_TLNEW, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ) );
 	this->Connect( wxID_TLEDIT, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnEditServer ) );
@@ -504,6 +505,7 @@ MainForm::~MainForm()
 	m_dateFilter->Disconnect( wxEVT_DATE_CHANGED, wxDateEventHandler( MainForm::OnReportDateFilter ), NULL, this );
 	this->Disconnect( wxID_TLSTATUS, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnReportsStatus ) );
 	this->Disconnect( wxID_TLSAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnReportsSave ) );
+	m_treeScans->Disconnect( wxEVT_COMMAND_TREE_ITEM_EXPANDING, wxTreeEventHandler( MainForm::OnReportExpand ), NULL, this );
 	this->Disconnect( wxID_TLCONNECT, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnConnect ) );
 	this->Disconnect( wxID_TLNEW, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnAddServer ) );
 	this->Disconnect( wxID_TLEDIT, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnEditServer ) );

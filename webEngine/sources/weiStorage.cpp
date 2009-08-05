@@ -296,6 +296,7 @@ int iweStorage::ObjectReport( const string& objType, const string& xmlData, stri
         };
     }
     result += "</report>\n";
+    result += '\0';
     return retval;
 }
 

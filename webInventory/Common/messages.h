@@ -88,4 +88,27 @@ private:
 
 typedef vector<PluginInfo> PluginList;
 
+class ScanInfo
+{
+public:
+    string  ScanId;
+    string  TaskId;
+    string  StartTime;
+    string  FinishTime;
+    int status;
+private:
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & BOOST_SERIALIZATION_NVP(ScanId);
+        ar & BOOST_SERIALIZATION_NVP(TaskId);
+        ar & BOOST_SERIALIZATION_NVP(StartTime);
+        ar & BOOST_SERIALIZATION_NVP(FinishTime);
+        ar & BOOST_SERIALIZATION_NVP(status);
+    };
+};
+
+typedef vector<ScanInfo> ScanList;
+
 #endif //__MESSAGES_H__

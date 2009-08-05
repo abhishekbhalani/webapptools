@@ -155,6 +155,7 @@ class MainForm : public wxFrame
 		virtual void OnReportDateFilter( wxDateEvent& event ){ event.Skip(); }
 		virtual void OnReportsStatus( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnReportsSave( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnReportExpand( wxTreeEvent& event ){ event.Skip(); }
 		virtual void OnConnect( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddServer( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnEditServer( wxCommandEvent& event ){ event.Skip(); }

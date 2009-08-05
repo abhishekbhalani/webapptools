@@ -32,6 +32,7 @@
 #include "messages.h"
 #include "version.h"
 #include "taskOperations.h"
+#include "scanOperations.h""
 
 extern WeDispatch* globalDispatcher;
 string get_plugin_list(string filter);
@@ -248,6 +249,34 @@ int process_message(char* buff, size_t buffSz, session* sess)
                     save_cfg_storage(id);
                     LOG4CXX_INFO(WeLogger::GetLogger(), "storage changed to " << store->GetDesc());
                 }
+            }
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // GETSCANS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "scans"))
+        {
+            msg.cmd = "scans";
+            ScanList *lst;
+
+            lst = get_scan_list(msg.data);
+
+            if (lst != NULL)
+            {
+                { // auto-destroy block for output stream
+                    ostrstream oss;
+                    { // auto-destroy block for xml_oarchive
+                        boost::archive::xml_oarchive oa(oss);
+                        oa << BOOST_SERIALIZATION_NVP(lst);
+                    }
+                    msg.data = string(oss.str(), oss.rdbuf()->pcount());
+                    delete lst;
+                }
+            }
+            else {
+                msg.data = "";
             }
             retval = 1;
             processed = true;
