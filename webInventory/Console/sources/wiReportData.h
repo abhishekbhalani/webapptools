@@ -18,39 +18,38 @@
     along with webInventory.  If not, see <http://www.gnu.org/licenses/>.
 */
 /***************************************************************
- * @file      treeData.h
- * @brief     Defines wiTreeData Class for report tree
+ * @file      wiReportData.h
+ * @brief     Declaration of the Report classes
  * @author    Andrew "Stinger" Abramov (stinger911@gmail.com)
- * @date      05.08.2009
+ * @date      06.08.2009
  **************************************************************/
+#ifndef WIREPORTDATA_H
+#define WIREPORTDATA_H
 
-#ifndef WITREEDATA_H
-#define WITREEDATA_H
+#include <wx/richtext/richtextctrl.h>
 
-#include <wx/treectrl.h>
-
-#define WI_TREE_NODE_NONE       -1
-#define WI_TREE_NODE_OBJECT     0
-#define WI_TREE_NODE_SCAN       1
-#define WI_TREE_NODE_SCANDATA   2
-#define WI_TREE_NODE_SCANVULNER 3
-
-class wiReportData;
-
-class wiTreeData: public wxTreeItemData
+class wiReportData
 {
     public:
-        wiTreeData()
-        {
-            nodeType = WI_TREE_NODE_NONE;
-            objectID = -1;
-            hasData = NULL;
-        };
+        wiReportData() {};
+        virtual ~wiReportData() {};
 
-        // treeData information
-        wiReportData* hasData;
-        int nodeType;
-        int objectID;
+        virtual void WriteReport(wxRichTextCtrl& rt) = 0;
 };
 
-#endif // WITREEDATA_H
+class wiSimpleReport : public wiReportData
+{
+    public:
+        wiSimpleReport(wxString msg = wxT(""), int lvl = 0);
+        virtual ~wiSimpleReport();
+
+        virtual void WriteReport(wxRichTextCtrl& rt);
+
+        void SetText(wxString msg = wxT("")) { text = msg; };
+        void SetLevel(int lvl = 0) { level = lvl; };
+    protected:
+        wxString text;
+        int      level;
+};
+
+#endif // WIREPORTDATA_H
