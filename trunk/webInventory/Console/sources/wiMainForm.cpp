@@ -33,6 +33,7 @@
 #include "wxThings.h"
 #include "treeData.h"
 #include "version.h"
+#include "wiReportData.h"
 #include "../images/webInventory.xpm"
 #include "../images/btnStop.xpm"
 #include "../images/start.xpm"
@@ -56,6 +57,11 @@ DEFINE_EVENT_TYPE(wxEVT_REPORT_LOAD)
 static const wxChar* gTaskStatus[] = {_("idle"),
                                       _("run (%d%%)"),
                                       _("paused (%d%%)")};
+
+wiSimpleReport repWait(_("Please wait..."));
+wiSimpleReport repPlaceHold(_("Report will be here"));
+wiSimpleReport repError(_("Can't retreiving information for task!"), 1);
+wiSimpleReport repNoConnet(_("No connection to server!"), 1);
 
 wxString FromStdString(const std::string& str)
 {
@@ -175,10 +181,10 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_plugins = 0;
     m_plugList = NULL;
 
-    m_toolBarTask->EnableTool(wxID_TOOLGO, false);
-    m_toolBarTask->EnableTool(wxID_TOOLSTOP, false);
-    m_toolBarTask->EnableTool(wxID_TOOLNEW, false);
-    m_toolBarTask->EnableTool(wxID_TOOLDEL, false);
+    m_toolBarObject->EnableTool(wxID_TOOLGO, false);
+    m_toolBarObject->EnableTool(wxID_TOOLSTOP, false);
+    m_toolBarObject->EnableTool(wxID_TOOLNEW, false);
+    m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
 
     wxString label;
     label = wxString::FromAscii(AutoVersion::FULLVERSION_STRING) + wxT(" ");
@@ -205,7 +211,7 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_pnServer->Hide();
     m_panTaskOpts->Disable();
     m_lstTaskList->Disable();
-    m_toolBarTask->Disable();
+    m_toolBarObject->Disable();
     m_pReports->Disable();
     m_mainnb->SetSelection(2);
     Layout();
@@ -448,12 +454,12 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
 
 void wiMainForm::Disconnected(bool mode)
 {
-    m_toolBarTask->EnableTool(wxID_TOOLNEW, false);
+    m_toolBarObject->EnableTool(wxID_TOOLNEW, false);
     m_pReports->Disable();
     m_pnServer->Disable();
     m_panTaskOpts->Disable();
     m_lstTaskList->Disable();
-    m_toolBarTask->Disable();
+    m_toolBarObject->Disable();
     m_statusBar->SetImage(wiSTATUS_BAR_NO);
     m_statusBar->SetStatusText(_("Disconnected"), 1);
     m_statusBar->SetStatusText(_("unknown"), 2);
@@ -470,12 +476,12 @@ void wiMainForm::Disconnected(bool mode)
 
 void wiMainForm::Connected(bool mode)
 {
-    m_toolBarTask->EnableTool(wxID_TOOLNEW, true);
+    m_toolBarObject->EnableTool(wxID_TOOLNEW, true);
     m_pReports->Enable();
     m_pnServer->Enable();
     m_panTaskOpts->Enable();
     m_lstTaskList->Enable();
-    m_toolBarTask->Enable();
+    m_toolBarObject->Enable();
     m_statusBar->SetImage(wiSTATUS_BAR_YES);
     m_statusBar->SetStatusText(_("Connected"), 1);
     m_statusBar->SetStatusText(wxT(""), 3);
@@ -585,29 +591,29 @@ void wiMainForm::SelectTask(int id/* = -1*/)
         info.SetMask(wxLIST_MASK_IMAGE | wxLIST_MASK_DATA);
         m_lstTaskList->GetItem(info);
         if (info.GetImage() == WI_TSK_IDLE) {
-            m_btnApply->Enable();
-            m_toolBarTask->EnableTool(wxID_TOOLGO, true);
-            m_toolBarTask->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(start_xpm) );
-            m_toolBarTask->EnableTool(wxID_TOOLSTOP, false);
-            m_toolBarTask->EnableTool(wxID_TOOLDEL, true);
+            //m_btnApply->Enable();
+            m_toolBarObject->EnableTool(wxID_TOOLGO, true);
+            m_toolBarObject->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(start_xpm) );
+            m_toolBarObject->EnableTool(wxID_TOOLSTOP, false);
+            m_toolBarObject->EnableTool(wxID_TOOLDEL, true);
             m_panTaskOpts->Enable();
             m_cbInvent->Disable();
 
         }
         else if (info.GetImage() == WI_TSK_RUN) {
-            m_btnApply->Disable();
-            m_toolBarTask->EnableTool(wxID_TOOLGO, true);
-            m_toolBarTask->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(pause_xpm) );
-            m_toolBarTask->EnableTool(wxID_TOOLSTOP, true);
-            m_toolBarTask->EnableTool(wxID_TOOLDEL, false);
+            //m_btnApply->Disable();
+            m_toolBarObject->EnableTool(wxID_TOOLGO, true);
+            m_toolBarObject->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(pause_xpm) );
+            m_toolBarObject->EnableTool(wxID_TOOLSTOP, true);
+            m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
             m_panTaskOpts->Disable();
         }
         else if (info.GetImage() == WI_TSK_PAUSED) {
-            m_btnApply->Disable();
-            m_toolBarTask->EnableTool(wxID_TOOLGO, true);
-            m_toolBarTask->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(start_xpm) );
-            m_toolBarTask->EnableTool(wxID_TOOLSTOP, true);
-            m_toolBarTask->EnableTool(wxID_TOOLDEL, false);
+            //m_btnApply->Disable();
+            m_toolBarObject->EnableTool(wxID_TOOLGO, true);
+            m_toolBarObject->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(start_xpm) );
+            m_toolBarObject->EnableTool(wxID_TOOLSTOP, true);
+            m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
             m_panTaskOpts->Disable();
         }
         // refresh task options
@@ -616,10 +622,10 @@ void wiMainForm::SelectTask(int id/* = -1*/)
         }
     }
     else {
-        m_btnApply->Enable();
-        m_toolBarTask->EnableTool(wxID_TOOLGO, false);
-        m_toolBarTask->EnableTool(wxID_TOOLSTOP, false);
-        m_toolBarTask->EnableTool(wxID_TOOLDEL, false);
+        //m_btnApply->Enable();
+        m_toolBarObject->EnableTool(wxID_TOOLGO, false);
+        m_toolBarObject->EnableTool(wxID_TOOLSTOP, false);
+        m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
         m_panTaskOpts->Enable();
         m_panTaskOpts->Disable();
     }
@@ -750,7 +756,7 @@ void wiMainForm::GetTaskOptions(int taskID)
 {
     wxString id = wxString::Format(wxT("%X"), taskID);
     wxString optsstr;
-
+/*
     if (m_client != NULL) {
         optsstr = m_client->DoCmd(wxT("gettaskopts"), id);
         //optsstr = wxString(wxT("<?xml version=\"1.0\"?>")) + optsstr;
@@ -808,12 +814,13 @@ void wiMainForm::GetTaskOptions(int taskID)
             }
         }
     }
+*/
 }
 
 void wiMainForm::OnTaskApply( wxCommandEvent& event )
 {
     wxListItem info;
-
+/*
     if (m_selectedTask > -1) {
         info.SetId(m_selectedTask);
         info.SetColumn(0);
@@ -858,6 +865,7 @@ void wiMainForm::OnTaskApply( wxCommandEvent& event )
             }
         }
     }
+*/
 }
 
 void wiMainForm::SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value)
@@ -1003,10 +1011,31 @@ void wiMainForm::OnReportExpand( wxTreeEvent& event )
 
     if (data != NULL) {
         if (!data->hasData) {
-            OneStringReport(_("Please wait..."));
+            repWait.WriteReport(*m_richText2);
             wxCommandEvent event( wxEVT_REPORT_LOADING, wxID_ANY );
             event.SetClientData((void*)data);
             GetEventHandler()->AddPendingEvent( event );
+        }
+        else {
+            data->hasData->WriteReport(*m_richText2);
+        }
+    }
+}
+
+void wiMainForm::OnReportSelected( wxTreeEvent& event )
+{
+    wxTreeItemId object = event.GetItem();
+    wiTreeData *data = (wiTreeData*)m_treeScans->GetItemData(object);
+
+    if (data != NULL) {
+        if (!data->hasData) {
+            repWait.WriteReport(*m_richText2);
+            wxCommandEvent event( wxEVT_REPORT_LOADING, wxID_ANY );
+            event.SetClientData((void*)data);
+            GetEventHandler()->AddPendingEvent( event );
+        }
+        else {
+            data->hasData->WriteReport(*m_richText2);
         }
     }
 }
@@ -1022,7 +1051,7 @@ void wiMainForm::OnReportsLoadStart( wxCommandEvent& event )
 
 void wiMainForm::OnReportsLoad( wxCommandEvent& event )
 {
-    int i;
+    int i, n;
     long tskId, scanId;
     wxTreeItemId scan;
     wiTreeData *scanData;
@@ -1035,6 +1064,7 @@ void wiMainForm::OnReportsLoad( wxCommandEvent& event )
             if (m_client != NULL) {
                 ScanList* lst = m_client->GetScanList(wxString::Format(wxT("ID=%X"), data->objectID));
                 if (lst != NULL) {
+                    n = 0;
                     for (i = 0; i < lst->size(); i++) {
                         wxString idStr = FromStdString((*lst)[i].TaskId);
                         idStr.ToLong(&tskId, 16);
@@ -1048,48 +1078,34 @@ void wiMainForm::OnReportsLoad( wxCommandEvent& event )
                             scanData->objectID = scanId;
                             scan = m_treeScans->AppendItem(data->GetId(), idStr, -1, -1, scanData);
                             m_treeScans->AppendItem(scan, _("Please wait..."));
+                            n++;
                         }
                     }
                     // write summary for scan
+                    wiSimpleReport* rep = new wiSimpleReport(wxString::Format(wxT("Report for task: %s\nScans: %d"), wxT("***"), n));
 
                     // save report
+                    rep->WriteReport(*m_richText2);
+                    data->hasData = rep;
 
                     delete lst;
                 }
                 else {
                     // generate error report
-                    OneStringReport(_("Can't retreiving information for task!"), 1);
+                    repError.WriteReport(*m_richText2);
                 }
             }
             else {
                 // generate error report
-                OneStringReport(_("No connection to server!"), 1);
+                repNoConnet.WriteReport(*m_richText2);
             }
         }
         else {
-            wxSleep(5);
-            OneStringReport(_("Report"));
+            wxSleep(3);
+            wiSimpleReport* rep = new wiSimpleReport(_("Report will be here"));
+            rep->WriteReport(*m_richText2);
+            data->hasData = rep;
         }
     }
     ::wxEndBusyCursor();
-}
-
-void wiMainForm::OneStringReport(const wxString& message, int code /*= 0*/)
-{
-    m_richText2->Clear();
-    m_richText2->BeginAlignment(wxTEXT_ALIGNMENT_CENTER);
-    m_richText2->BeginBold();
-    m_richText2->BeginItalic();
-    m_richText2->BeginFontSize(36);
-    if (code == 1) {
-        m_richText2->BeginTextColour(*wxRED);
-    }
-    m_richText2->WriteText(message);
-    if (code > 0) {
-        m_richText2->EndTextColour();
-    }
-    m_richText2->EndFontSize();
-    m_richText2->EndItalic();
-    m_richText2->EndBold();
-    m_richText2->EndAlignment();
 }

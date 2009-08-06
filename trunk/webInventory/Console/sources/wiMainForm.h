@@ -71,6 +71,7 @@ protected:
     virtual void OnReportsFilter( wxCommandEvent& event );
     virtual void OnReportsRefresh( wxCommandEvent& event );
     virtual void OnReportExpand( wxTreeEvent& event );
+    virtual void OnReportSelected( wxTreeEvent& event );
 
     virtual void OnReportsLoadStart( wxCommandEvent& event );
     virtual void OnReportsLoad( wxCommandEvent& event );
