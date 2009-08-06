@@ -22,6 +22,11 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+#ifndef __DOXYGEN__
+static const WeOption empty_option("_empty_");
+#endif //__DOXYGEN__
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn std::string WeTask::ToXml( void )
 ///
@@ -298,4 +303,69 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
         }
         token = -1;
     }
+}
+
+WeOption& iweOptionsProvider::Option( const string& name )
+{
+    WeOptions::iterator it;
+
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::Option(" << name << ")");
+    it = options.find(name);
+    if (it != options.end())
+    {
+        return *(it->second);
+    }
+    return *((WeOption*)&empty_option);
+}
+
+void iweOptionsProvider::Option( const string& name, WeOptionVal val )
+{
+    WeOptions::iterator it;
+    WeOption* opt;
+
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::Option(" << name << ") set value=" << val);
+    it = options.find(name);
+    if (it != options.end())
+    {
+        opt = it->second;
+        opt->SetValue(val);
+    }
+    else {
+        opt = new WeOption();
+        opt->Name(name);
+        opt->SetValue(val);
+        options[name] = opt;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn	bool WeTask::IsSet(const string& name )
+///
+/// @brief	Query if bool options 'name' is set to true.
+///
+/// @param	name - The option name.
+///
+/// @retval	true if set, false if not.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool iweOptionsProvider::IsSet( const string& name )
+{
+    WeOptions::iterator it;
+    WeOption* opt;
+    bool retval = false;
+
+    FUNCTION;
+    it = options.find(name);
+    if (it != options.end())
+    {
+        opt = it->second;
+        try
+        {
+            opt->GetValue(retval);
+        }
+        catch (...)
+        {
+            retval = false;
+        }
+    }
+    return retval;
 }

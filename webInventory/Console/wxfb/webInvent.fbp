@@ -433,7 +433,7 @@
                                                                                 </object>
                                                                                 <object class="tool" expanded="1">
                                                                                     <property name="bitmap">../images/btnEdit.xpm; Load From File</property>
-                                                                                    <property name="id">wxID_ANY</property>
+                                                                                    <property name="id">wxID_TOOLEDIT</property>
                                                                                     <property name="kind">wxITEM_NORMAL</property>
                                                                                     <property name="label">tool</property>
                                                                                     <property name="name">m_toolObjectEdit</property>
@@ -454,7 +454,7 @@
                                                                                     <property name="statusbar"></property>
                                                                                     <property name="tooltip">Delete task</property>
                                                                                     <event name="OnMenuSelection"></event>
-                                                                                    <event name="OnToolClicked">OnDelTask</event>
+                                                                                    <event name="OnToolClicked">OnDelObject</event>
                                                                                     <event name="OnToolEnter"></event>
                                                                                     <event name="OnToolRClicked"></event>
                                                                                     <event name="OnUpdateUI"></event>
@@ -515,7 +515,7 @@
                                                                         <event name="OnListItemFocused"></event>
                                                                         <event name="OnListItemMiddleClick"></event>
                                                                         <event name="OnListItemRightClick"></event>
-                                                                        <event name="OnListItemSelected"></event>
+                                                                        <event name="OnListItemSelected">OnSelectObject</event>
                                                                         <event name="OnListKeyDown"></event>
                                                                         <event name="OnMiddleDClick"></event>
                                                                         <event name="OnMiddleDown"></event>
@@ -2300,7 +2300,7 @@
                                                                 </object>
                                                                 <object class="tool" expanded="1">
                                                                     <property name="bitmap">../images/date.xpm; Load From File</property>
-                                                                    <property name="id">wxID_ANY</property>
+                                                                    <property name="id">wxID_TLDATE</property>
                                                                     <property name="kind">wxITEM_NORMAL</property>
                                                                     <property name="label">tool</property>
                                                                     <property name="name">m_toolDate</property>
@@ -4067,7 +4067,7 @@
                 <event name="OnUpdateUI"></event>
             </object>
         </object>
-        <object class="Dialog" expanded="0">
+        <object class="Dialog" expanded="1">
             <property name="bg"></property>
             <property name="center"></property>
             <property name="context_help"></property>
@@ -4375,7 +4375,7 @@
                         <event name="OnContextHelpButtonClick"></event>
                         <event name="OnHelpButtonClick"></event>
                         <event name="OnNoButtonClick"></event>
-                        <event name="OnOKButtonClick"></event>
+                        <event name="OnOKButtonClick">OnOK</event>
                         <event name="OnSaveButtonClick"></event>
                         <event name="OnYesButtonClick"></event>
                     </object>

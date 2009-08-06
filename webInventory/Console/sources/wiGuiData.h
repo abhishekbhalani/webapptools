@@ -50,23 +50,25 @@ class wiStatBar;
 ///////////////////////////////////////////////////////////////////////////
 
 #define wxID_TOOLNEW 1000
-#define wxID_TOOLDEL 1001
-#define wxID_TLPROFNEW 1002
-#define wxID_TLPROFCLONE 1003
-#define wxID_TLPROFDEL 1004
-#define wxID_TLPROFSAVE 1005
-#define wxID_TOOLGO 1006
-#define wxID_TOOLPAUSE 1007
-#define wxID_TOOLSTOP 1008
-#define wxID_TLREFRESH 1009
-#define wxID_TLFILTER 1010
-#define wxID_TLSTATUS 1011
-#define wxID_TLSAVE 1012
-#define wxID_TLCONNECT 1013
-#define wxID_TLNEW 1014
-#define wxID_TLEDIT 1015
-#define wxID_TLDELETE 1016
-#define wxID_TLLANGAPPLY 1017
+#define wxID_TOOLEDIT 1001
+#define wxID_TOOLDEL 1002
+#define wxID_TLPROFNEW 1003
+#define wxID_TLPROFCLONE 1004
+#define wxID_TLPROFDEL 1005
+#define wxID_TLPROFSAVE 1006
+#define wxID_TOOLGO 1007
+#define wxID_TOOLPAUSE 1008
+#define wxID_TOOLSTOP 1009
+#define wxID_TLREFRESH 1010
+#define wxID_TLFILTER 1011
+#define wxID_TLDATE 1012
+#define wxID_TLSTATUS 1013
+#define wxID_TLSAVE 1014
+#define wxID_TLCONNECT 1015
+#define wxID_TLNEW 1016
+#define wxID_TLEDIT 1017
+#define wxID_TLDELETE 1018
+#define wxID_TLLANGAPPLY 1019
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
@@ -146,8 +148,9 @@ class MainForm : public wxFrame
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
 		virtual void OnAddObject( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnEditObject( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnDelTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnDelObject( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnTaskKillFocus( wxFocusEvent& event ){ event.Skip(); }
+		virtual void OnSelectObject( wxListEvent& event ){ event.Skip(); }
 		virtual void OnTaskApply( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
@@ -200,6 +203,10 @@ class ObjDialog : public wxDialog
 		wxStdDialogButtonSizer* m_sdbSizer2;
 		wxButton* m_sdbSizer2OK;
 		wxButton* m_sdbSizer2Cancel;
+		
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnOK( wxCommandEvent& event ){ event.Skip(); }
+		
 	
 	public:
 		wxTextCtrl* m_txtObjName;

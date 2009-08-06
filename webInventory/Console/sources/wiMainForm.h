@@ -67,11 +67,17 @@ protected:
     virtual void OnSortItems( wxListEvent& event );
     virtual void OnTaskApply( wxCommandEvent& event );
     virtual void OnStorageChange( wxCommandEvent& event );
+
     virtual void OnReportTskFilter( wxCommandEvent& event );
     virtual void OnReportsFilter( wxCommandEvent& event );
     virtual void OnReportsRefresh( wxCommandEvent& event );
     virtual void OnReportExpand( wxTreeEvent& event );
     virtual void OnReportSelected( wxTreeEvent& event );
+
+    virtual void OnAddObject( wxCommandEvent& event );
+    virtual void OnEditObject( wxCommandEvent& event );
+    virtual void OnDelObject( wxCommandEvent& event );
+    virtual void OnSelectObject( wxListEvent& event );
 
     virtual void OnReportsLoadStart( wxCommandEvent& event );
     virtual void OnReportsLoad( wxCommandEvent& event );
@@ -98,6 +104,7 @@ protected:
     PluginList* m_plugList;
     bool connStatus;
     int m_selectedTask;
+    int m_selectedObject;
     int m_selectedActive;
     int m_plugins;
 };
