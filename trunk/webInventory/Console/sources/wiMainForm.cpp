@@ -29,6 +29,7 @@
 #include <wx/mstream.h>
 #include "wiStatBar.h"
 #include "wiServDialog.h"
+#include "wiObjDialog.h"
 #include "wiMainForm.h"
 #include "wxThings.h"
 #include "treeData.h"
@@ -177,6 +178,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_lstTaskList->SetImageList(&m_lstImages, wxIMAGE_LIST_SMALL);
 
     m_lstTaskList->DeleteAllItems();
+
+    m_lstObjectList->InsertColumn(0, wxT("Object name"), wxLIST_FORMAT_LEFT, 180);
+    m_lstObjectList->DeleteAllItems();
 
     m_plugins = 0;
     m_plugList = NULL;
@@ -494,6 +498,62 @@ void wiMainForm::Connected(bool mode)
         m_pnServer->Show();
         Layout();
     }
+}
+
+void wiMainForm::OnSelectObject( wxListEvent& event )
+{
+    m_selectedObject = event.GetIndex();
+}
+
+void wiMainForm::OnAddObject( wxCommandEvent& event )
+{
+    wiObjDialog objDlg(this);
+    wxString name, url;
+
+    if (objDlg.ShowModal() == wxOK) {
+        // save new object
+        m_lstObjectList->InsertItem(m_lstObjectList->GetItemCount(), objDlg.m_txtObjName->GetValue());
+    }
+}
+
+void wiMainForm::OnEditObject( wxCommandEvent& event )
+{
+    wiObjDialog objDlg(this);
+    wxString name, url;
+    int idx;
+    long idt;
+
+    if (m_selectedObject > -1) {
+        name = m_lstObjectList->GetItemText(m_selectedObject);
+        objDlg.m_txtObjName->SetValue(name);
+        if (objDlg.ShowModal() == wxOK) {
+            // save new object
+            m_lstObjectList->SetItemText(-1, objDlg.m_txtObjName->GetValue());
+        }
+    }
+}
+
+void wiMainForm::OnDelObject( wxCommandEvent& event )
+{
+    wxString name;
+    wxListItem info;
+
+    if (m_selectedObject > -1)
+    {
+        info.SetId(m_selectedObject);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_TEXT);
+        m_lstObjectList->GetItem(info);
+        name = wxString::Format(_("Are you sure to delete object '%s'?"), info.GetText());
+        int res = wxMessageBox(name, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
+        if (res == wxYES) {
+            int id = m_lstObjectList->GetItemData(m_selectedObject);
+            name = wxString::Format(wxT("%X"), id);
+            //m_client->DoCmd(wxT("delobj"), name);
+            //ProcessTaskList();
+        }
+    }
+
 }
 
 void wiMainForm::OnAddTask( wxCommandEvent& event )

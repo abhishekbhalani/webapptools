@@ -204,6 +204,8 @@
 		<Unit filename="sources\wiGuiData.h" />
 		<Unit filename="sources\wiMainForm.cpp" />
 		<Unit filename="sources\wiMainForm.h" />
+		<Unit filename="sources\wiObjDialog.cpp" />
+		<Unit filename="sources\wiObjDialog.h" />
 		<Unit filename="sources\wiReportData.cpp" />
 		<Unit filename="sources\wiReportData.h" />
 		<Unit filename="sources\wiServDialog.cpp" />

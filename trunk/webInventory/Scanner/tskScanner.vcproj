@@ -195,6 +195,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Common\weProfile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\Common\weScan.cpp"
 				>
 			</File>
@@ -206,6 +210,10 @@
 			>
 			<File
 				RelativePath=".\watchdog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Common\weProfile.h"
 				>
 			</File>
 			<File

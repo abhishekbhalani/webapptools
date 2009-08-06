@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Common\weProfile.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\Common\weScan.cpp"
 				>
 			</File>
@@ -234,6 +238,10 @@
 			</File>
 			<File
 				RelativePath=".\version.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Common\weProfile.h"
 				>
 			</File>
 			<File

@@ -117,9 +117,9 @@ public:
     iweOptionsProvider() {};
     virtual ~iweOptionsProvider() {};
 
-    virtual WeOption& Option(const string& name) = 0;
+    virtual WeOption& Option(const string& name);
     virtual bool IsSet(const string& name) = 0;
-    virtual void Option(const string& name, WeOptionVal val) = 0;
+    virtual void Option(const string& name, WeOptionVal val);
     virtual void Erase(const string& name)
     {
         WeOptions::iterator it;

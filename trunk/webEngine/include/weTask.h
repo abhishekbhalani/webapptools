@@ -48,10 +48,6 @@ public:
     WeTask(WeTask& cpy);
     ~WeTask();
 
-    virtual WeOption& Option(const string& name);
-    virtual bool IsSet(const string& name);
-    virtual void Option(const string& name, WeOptionVal val);
-
     void SetTransport(const string& transp);
     void SetTransport(iweTransport* transp);
 
