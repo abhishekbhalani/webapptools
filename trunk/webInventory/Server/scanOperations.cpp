@@ -35,7 +35,11 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem/operations.hpp>
+#ifdef WIN32
 #include <process.h>
+#else
+#   include <spawn.h>
+#endif //WIN32
 #include <weiBase.h>
 #include <weLogger.h>
 #include <weDispatch.h>

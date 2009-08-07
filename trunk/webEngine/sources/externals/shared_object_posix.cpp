@@ -3,7 +3,7 @@
 
 #include <dlfcn.h>
 
-#include <shared_object.hpp>
+#include <externals/shared_object.hpp>
 
 namespace dyn
 {

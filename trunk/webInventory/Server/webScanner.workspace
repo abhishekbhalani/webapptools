@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="webScanner">
-		<Project filename="scanServer.cbp" active="1" />
-		<Project filename="..\Plugins\Demo\Demo.cbp" />
+		<Project filename="scanServer.cbp">
+			<Depends filename="../../webEngine/webEngine.cbp" />
+			<Depends filename="../Plugins/FsStorage/storageFS.cbp" />
+		</Project>
+		<Project filename="../Plugins/Demo/Demo.cbp" />
+		<Project filename="../../webEngine/webEngine.cbp" />
+		<Project filename="../Plugins/FsStorage/storageFS.cbp" active="1">
+			<Depends filename="../../webEngine/webEngine.cbp" />
+		</Project>
 	</Workspace>
 </CodeBlocks_workspace_file>
