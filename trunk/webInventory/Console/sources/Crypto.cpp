@@ -154,7 +154,7 @@ void CEasyCrypto::SetPassword()
 
 wxString CEasyCrypto::Encrypt(wxString data)
 {
-	byte *lData = (byte*)strdup(data.utf8_str().data());
+	byte *lData = (byte*)strdup(data.ToUTF8().data());
 	byte *bRes;
 	int len = strlen((const char*)lData);
 
@@ -179,7 +179,7 @@ wxString CEasyCrypto::Encrypt(wxString data)
 
 wxString CEasyCrypto::Decrypt(wxString data)
 {
-	byte *lData = (byte*)strdup(data.utf8_str().data());
+	byte *lData = (byte*)strdup(data.ToUTF8().data());
 	byte *bRes;
 	int len = strlen((const char*)lData);
 
@@ -252,7 +252,7 @@ void CEasyCrypto::AllocBinHex(int newSize)
 wxString CEasyCrypto::Hash(wxString data)
 {
     BYTE hash[SHA1_DIGEST];
-    byte *lData = (byte*)strdup(data.utf8_str().data());
+    byte *lData = (byte*)strdup(data.ToUTF8().data());
     int len = strlen((const char*)lData);
 
     AllocBinHex(SHA1_DIGEST+2);

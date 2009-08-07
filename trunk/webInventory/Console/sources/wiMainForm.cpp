@@ -238,6 +238,7 @@ void wiMainForm::OnTimer( wxTimerEvent& event )
                 }
             }
             ProcessTaskList(wxT(""));
+            ProcessObjects(wxT(""));
             connStatus = true;
         }
         else {
@@ -298,7 +299,7 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
             m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Port"), idx), (int*)&idt);
             port = wxString::Format(wxT("%d"), idt);
 
-            m_client = new wiTcpClient(host.ToAscii().data(), port.ToAscii().data());
+            m_client = new wiTcpClient(host.ToAscii(), port.ToAscii());
             m_client->Connect();
             host = m_client->GetScannerVersion();
             if (!host.IsEmpty()) {
@@ -417,7 +418,35 @@ void wiMainForm::LoadConnections()
     m_chServers->SetSelection(-1);
 }
 
-void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
+void wiMainForm::ProcessObjects(const wxString& criteria /*= wxT("")*/)
+{
+    ObjectList* lst;
+    size_t lstSize;
+    int idx = 0;
+
+    if(m_client != NULL) {
+        lst = m_client->GetObjectList(criteria);
+        if (lst != NULL) {
+            wxWindowUpdateLocker taskList(m_lstObjectList);
+
+            m_lstObjectList->DeleteAllItems();
+            for (lstSize = 0; lstSize < lst->size(); lstSize++) {
+                wxString idStr = FromStdString((*lst)[lstSize].Name.c_str());
+                idx = m_lstObjectList->GetItemCount();
+                m_lstObjectList->InsertItem(idx, idStr);
+                m_lstObjectList->SetItemData(idx, (wxUIntPtr)(&((*lst)[lstSize])));
+            }
+
+            FillObjectFilter();
+        }
+        else {
+            m_statusBar->SetImage(wiSTATUS_BAR_NO);
+            m_statusBar->SetStatusText(m_client->GetLastError(), 3);
+        }
+    }
+}
+
+void wiMainForm::ProcessTaskList(const wxString& criteria /*= wxT("")*/)
 {
     TaskList* lst;
     size_t lstSize;
@@ -435,7 +464,7 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
                 idStr.ToLong(&idLong, 16);
                 idx = m_lstTaskList->GetItemCount();
                 m_lstTaskList->InsertItem(idx, (*lst)[lstSize].status);
-                m_lstTaskList->SetItem(idx, 1, FromStdString((*lst)[lstSize].name.c_str()));
+                m_lstTaskList->SetItem(idx, 1, FromStdString((*lst)[lstSize].name));
                 if ((*lst)[lstSize].status >= 0 && (*lst)[lstSize].status < WI_TSK_MAX) {
                     m_lstTaskList->SetItem(idx, 2, wxString::Format(gTaskStatus[(*lst)[lstSize].status], (*lst)[lstSize].completion));
                 }
@@ -446,8 +475,6 @@ void wiMainForm::ProcessTaskList(const wxString& criteria/* = wxT("")*/)
             }
             m_lstTaskList->SortItems(SortItemFunc, (long)m_lstTaskList);
             m_lstTaskList->SetItemState(m_selectedTask, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-
-            FillTaskFilter();
         }
         else {
             m_statusBar->SetImage(wiSTATUS_BAR_NO);
@@ -495,6 +522,7 @@ void wiMainForm::Connected(bool mode)
 //        m_bpConnect->SetToolTip(_("Disconnect"));
 //        m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
         ProcessTaskList();
+        ProcessObjects();
         m_pnServer->Show();
         Layout();
     }
@@ -509,10 +537,17 @@ void wiMainForm::OnAddObject( wxCommandEvent& event )
 {
     wiObjDialog objDlg(this);
     wxString name, url;
+    ObjectInfo objInfo;
 
     if (objDlg.ShowModal() == wxOK) {
         // save new object
-        m_lstObjectList->InsertItem(m_lstObjectList->GetItemCount(), objDlg.m_txtObjName->GetValue());
+        objInfo.ObjectId = "0";
+        objInfo.Name = objDlg.m_txtObjName->GetValue().utf8_str();
+        objInfo.Address = objDlg.m_txtBaseURL->GetValue().utf8_str();
+        if (m_client != NULL) {
+            m_client->UpdateObject(objInfo);
+            ProcessObjects();
+        }
     }
 }
 
@@ -522,13 +557,20 @@ void wiMainForm::OnEditObject( wxCommandEvent& event )
     wxString name, url;
     int idx;
     long idt;
+    ObjectInfo* obj;
 
     if (m_selectedObject > -1) {
-        name = m_lstObjectList->GetItemText(m_selectedObject);
-        objDlg.m_txtObjName->SetValue(name);
+        obj = (ObjectInfo*)m_lstObjectList->GetItemData(m_selectedObject);
+        objDlg.m_txtObjName->SetValue(FromStdString(obj->Name));
+        objDlg.m_txtBaseURL->SetValue(FromStdString(obj->Address));
         if (objDlg.ShowModal() == wxOK) {
             // save new object
-            m_lstObjectList->SetItemText(-1, objDlg.m_txtObjName->GetValue());
+            obj->Name = objDlg.m_txtObjName->GetValue().utf8_str();
+            obj->Address = objDlg.m_txtBaseURL->GetValue().utf8_str();
+            if (m_client != NULL) {
+                m_client->UpdateObject(*obj);
+                //ProcessObjects();
+            }
         }
     }
 }
@@ -537,6 +579,7 @@ void wiMainForm::OnDelObject( wxCommandEvent& event )
 {
     wxString name;
     wxListItem info;
+    ObjectInfo* obj;
 
     if (m_selectedObject > -1)
     {
@@ -547,10 +590,9 @@ void wiMainForm::OnDelObject( wxCommandEvent& event )
         name = wxString::Format(_("Are you sure to delete object '%s'?"), info.GetText());
         int res = wxMessageBox(name, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
         if (res == wxYES) {
-            int id = m_lstObjectList->GetItemData(m_selectedObject);
-            name = wxString::Format(wxT("%X"), id);
-            //m_client->DoCmd(wxT("delobj"), name);
-            //ProcessTaskList();
+            obj = (ObjectInfo*)m_lstObjectList->GetItemData(m_selectedObject);
+            m_client->DoCmd(wxT("delobj"), FromStdString(obj->ObjectId));
+            //ProcessObjects();
         }
     }
 
@@ -740,7 +782,7 @@ void wiMainForm::GetPluginList()
             for (lstSize = 0; lstSize < m_plugList->size(); lstSize++) {
                 wxString label;
 
-                label = FromStdString((*m_plugList)[lstSize].PluginDesc.c_str());
+                label = FromStdString((*m_plugList)[lstSize].PluginDesc);
 
                 wxStaticText *txt = new wxStaticText( m_pluginsDock, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, 0 );
                 m_gbPluginsGrid->Add(txt, wxGBPosition(m_plugins+1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
@@ -748,7 +790,7 @@ void wiMainForm::GetPluginList()
                 wxChoice *cho = new wxChoice( m_pluginsDock, wxID_ANY, wxDefaultPosition, wxSize(120, -1), 0, NULL, 0 );
                 for (i = 0; i < (*m_plugList)[lstSize].IfaceList.size(); i++)
                 {
-                    cho->Append(FromStdString((*m_plugList)[lstSize].IfaceList[i].c_str()));
+                    cho->Append(FromStdString((*m_plugList)[lstSize].IfaceList[i]));
                 }
                 if (cho->GetCount() > 0) {
                     cho->SetSelection(cho->GetCount() - 1);
@@ -765,8 +807,8 @@ void wiMainForm::GetPluginList()
 
                 // add plugins to the storage list
                 if (find((*m_plugList)[lstSize].IfaceList.begin(), (*m_plugList)[lstSize].IfaceList.end(), "iweStorage") != (*m_plugList)[lstSize].IfaceList.end()) {
-                    int itm = m_chStorage->Append(FromStdString((*m_plugList)[lstSize].PluginDesc.c_str()), (void*)(wxPluginsData + m_plugins));
-                    if (storageID.CmpNoCase(FromStdString((*m_plugList)[lstSize].PluginId.c_str())) == 0) {
+                    int itm = m_chStorage->Append(FromStdString((*m_plugList)[lstSize].PluginDesc), (void*)(wxPluginsData + m_plugins));
+                    if (storageID.CmpNoCase(FromStdString((*m_plugList)[lstSize].PluginId)) == 0) {
                         m_chStorage->SetSelection(itm);
                     }
                 }
@@ -786,7 +828,7 @@ void wiMainForm::OnPluginSettings( wxCommandEvent& event )
     id -= wxPluginsData;
 
     if (m_client != NULL && (id >= 0 && id < m_plugList->size())) {
-        wxString str = FromStdString((*m_plugList)[id].PluginId.c_str());
+        wxString str = FromStdString((*m_plugList)[id].PluginId);
         wxString xrc = m_client->DoCmd(wxT("plgui"), str);
         if (xrc.IsEmpty()) {
             wxMessageBox(_("This plugin doesn't provide any settings"), wxT("WebInvent"), wxICON_WARNING | wxOK, this);
@@ -962,42 +1004,38 @@ void wiMainForm::OnStorageChange( wxCommandEvent& event )
     if (plg != -1 && m_plugList != NULL && m_client != NULL) {
         int plgIdx = (int)m_chStorage->GetClientData(plg) - wxPluginsData;
         if (plgIdx >= 0 && plgIdx < m_plugList->size()) {
-            wxString plgID = FromStdString((*m_plugList)[plgIdx].PluginId.c_str());
+            wxString plgID = FromStdString((*m_plugList)[plgIdx].PluginId);
             m_client->DoCmd(wxT("setstorage"), plgID);
             ProcessTaskList(wxT(""));
         }
     }
 }
 
-void wiMainForm::FillTaskFilter()
+void wiMainForm::FillObjectFilter()
 {
     int tasks, i;
     wxListItem info;
-    int taskID;
+    long taskID;
     int taskIndex, tskSelected, tskID;
-    wxString taskName;
+    wxString idStr;
+    ObjectInfo* obj;
 
     m_chTaskFilter->Clear();
-    if (! m_cfgEngine.Read(wxT("TaskFilter"), &tskID)) {
+    if (! m_cfgEngine.Read(wxT("ObjectFilter"), &tskID)) {
         tskID = -1;
     }
     tskSelected = -1;
     taskIndex = m_chTaskFilter->Append(_("All"), (void*)-1);
-    if (taskIndex == tskID) { // read selected from profile
+    if (-1 == tskID) { // read selected from profile
         tskSelected = taskIndex;
     }
-    tasks = m_lstTaskList->GetItemCount();
+    tasks = m_lstObjectList->GetItemCount();
     for (i = 0; i < tasks; i++) {
-        info.SetId(i);
-        info.SetColumn(0);
-        info.SetMask(wxLIST_MASK_DATA);
-        m_lstTaskList->GetItem(info);
-        taskID = info.GetData();
-        info.SetColumn(1);
-        info.SetMask(wxLIST_MASK_TEXT);
-        m_lstTaskList->GetItem(info);
-        taskName = info.GetText();
-        taskIndex = m_chTaskFilter->Append(taskName, (void*)taskID);
+        obj = (ObjectInfo*)m_lstObjectList->GetItemData(i);
+        idStr = FromStdString(obj->ObjectId);
+        idStr.ToLong(&taskID, 16);
+        idStr = FromStdString(obj->Name);
+        taskIndex = m_chTaskFilter->Append(idStr, (void*)taskID);
         if (taskID == tskID) { // read selected from profile
             tskSelected = taskIndex;
         }
@@ -1030,33 +1068,29 @@ void wiMainForm::RebuildReportsTree()
     bool isFilter = m_toolBarFilter->GetToolState(wxID_TLFILTER);
     int tasks, i;
     wxListItem info;
-    int taskID;
+    long taskID;
     int taskIndex, tskID;
-    wxString taskName;
+    wxString idStr;
     wxTreeItemId root;
     wxTreeItemId task;
+    ObjectInfo* obj;
 
     m_treeScans->Freeze();
     m_treeScans->DeleteAllItems();
     taskIndex = m_chTaskFilter->GetSelection();
     tskID = (int)m_chTaskFilter->GetClientData(taskIndex);
-    tasks = m_lstTaskList->GetItemCount();
+    tasks = m_lstObjectList->GetItemCount();
     root = m_treeScans->AddRoot(wxT("root"));
     for (i = 0; i < tasks; i++) {
-        info.SetId(i);
-        info.SetColumn(0);
-        info.SetMask(wxLIST_MASK_DATA);
-        m_lstTaskList->GetItem(info);
-        taskID = info.GetData();
+        obj = (ObjectInfo*)m_lstObjectList->GetItemData(i);
+        idStr = FromStdString(obj->ObjectId);
+        idStr.ToLong(&taskID, 16);
         if ( !isFilter || taskID == tskID || tskID == -1) {
-            info.SetColumn(1);
-            info.SetMask(wxLIST_MASK_TEXT);
-            m_lstTaskList->GetItem(info);
-            taskName = info.GetText();
+            idStr = FromStdString(obj->Name);
             wiTreeData *data = new wiTreeData;
             data->nodeType = WI_TREE_NODE_OBJECT;
             data->objectID = taskID;
-            task = m_treeScans->AppendItem(root, taskName, -1, -1, data);
+            task = m_treeScans->AppendItem(root, idStr, -1, -1, data);
             m_treeScans->AppendItem(task, _("Please wait..."));
         }
     }
@@ -1126,7 +1160,7 @@ void wiMainForm::OnReportsLoad( wxCommandEvent& event )
                 if (lst != NULL) {
                     n = 0;
                     for (i = 0; i < lst->size(); i++) {
-                        wxString idStr = FromStdString((*lst)[i].TaskId);
+                        wxString idStr = FromStdString((*lst)[i].ObjectId);
                         idStr.ToLong(&tskId, 16);
                         if (tskId == data->objectID) {
                             idStr = FromStdString((*lst)[i].ScanId);

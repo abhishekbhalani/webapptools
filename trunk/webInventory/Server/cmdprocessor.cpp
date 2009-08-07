@@ -281,6 +281,63 @@ int process_message(char* buff, size_t buffSz, session* sess)
             retval = 1;
             processed = true;
         }
+        //////////////////////////////////////////////////////////////////////////
+        // OBJECTS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "objects"))
+        {
+            msg.cmd = "objects";
+            ObjectList *lst;
+
+            lst = get_object_list(msg.data);
+
+            if (lst != NULL)
+            {
+                { // auto-destroy block for output stream
+                    ostrstream oss;
+                    { // auto-destroy block for xml_oarchive
+                        boost::archive::xml_oarchive oa(oss);
+                        oa << BOOST_SERIALIZATION_NVP(lst);
+                    }
+                    msg.data = string(oss.str(), oss.rdbuf()->pcount());
+                    delete lst;
+                }
+            }
+            else {
+                msg.data = "";
+            }
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // UPDATEOBJ command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "updateobj"))
+        {
+            msg.cmd = "updateobj";
+            ObjectInfo obj;
+
+            {// auto-destroy block for streams
+                istrstream data(msg.data.c_str(), msg.data.length());
+                boost::archive::xml_iarchive ia(data);
+                ia >> BOOST_SERIALIZATION_NVP(obj);
+            }
+            msg.data = update_object(obj);
+
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // DELOBJ command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "delobj"))
+        {
+            msg.cmd = "delobj";
+            msg.data = boost::lexical_cast<std::string>(del_object(msg.data));
+
+            retval = 1;
+            processed = true;
+        }
 
         //////////////////////////////////////////////////////////////////////////
         // finalization

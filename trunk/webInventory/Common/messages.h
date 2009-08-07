@@ -92,7 +92,7 @@ class ScanInfo
 {
 public:
     string  ScanId;
-    string  TaskId;
+    string  ObjectId;
     string  StartTime;
     string  FinishTime;
     int status;
@@ -102,7 +102,7 @@ private:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & BOOST_SERIALIZATION_NVP(ScanId);
-        ar & BOOST_SERIALIZATION_NVP(TaskId);
+        ar & BOOST_SERIALIZATION_NVP(ObjectId);
         ar & BOOST_SERIALIZATION_NVP(StartTime);
         ar & BOOST_SERIALIZATION_NVP(FinishTime);
         ar & BOOST_SERIALIZATION_NVP(status);
@@ -110,5 +110,24 @@ private:
 };
 
 typedef vector<ScanInfo> ScanList;
+
+class ObjectInfo
+{
+public:
+    string  ObjectId;
+    string  Name;
+    string  Address;
+private:
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & BOOST_SERIALIZATION_NVP(ObjectId);
+        ar & BOOST_SERIALIZATION_NVP(Name);
+        ar & BOOST_SERIALIZATION_NVP(Address);
+    };
+};
+
+typedef vector<ObjectInfo> ObjectList;
 
 #endif //__MESSAGES_H__

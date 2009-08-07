@@ -28,6 +28,14 @@
 //#include "demoPlugin.xrc"
 #include <weDispatch.h>
 
+static char* tables[] = {weObjTypeTask,
+                        weObjTypeSysOption,
+                        weObjTypeDictionary,
+                        weObjTypeAuthInfo,
+                        weObjTypeScan,
+                        weObjTypeObject,
+                        NULL}; // close the list with NULL
+
 FsStorage::FsStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
     iweStorage(krnl, handle)
 {
@@ -93,75 +101,24 @@ bool FsStorage::InitStorage(const string& params)
         }
         LOG4CXX_TRACE(logger, "FsStorage::InitStorage: base dir is " << db_dir);
 
-        // check tasks storage presence
-        dir_path = db_dir;
-        dir_path /= weObjTypeTask;
-        if ( !fs::exists(dir_path) ) {
-            fs::create_directory(dir_path);
-        }
-        else {
-            if ( ! fs::is_directory(dir_path) ) {
-                string msg = dir_path.string() + "isn't a directory";
-                throw std::exception(msg.c_str());
+        int i = 0;
+        while (tables[i] != NULL)
+        {
+            // check storage presence
+            dir_path = db_dir;
+            dir_path /= tables[i];
+            if ( !fs::exists(dir_path) ) {
+                fs::create_directory(dir_path);
             }
-        }
-        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: tasks storage dir is " << dir_path.string());
-
-        // check sysoptions storage presence
-        dir_path = db_dir;
-        dir_path /= weObjTypeSysOption;
-        if ( !fs::exists(dir_path) ) {
-            fs::create_directory(dir_path);
-        }
-        else {
-            if ( ! fs::is_directory(dir_path) ) {
-                string msg = dir_path.string() + "isn't a directory";
-                throw std::exception(msg.c_str());
+            else {
+                if ( ! fs::is_directory(dir_path) ) {
+                    string msg = dir_path.string() + "isn't a directory";
+                    throw std::exception(msg.c_str());
+                }
             }
+            LOG4CXX_TRACE(logger, "FsStorage::InitStorage: " << tables[i] << " storage dir is " << dir_path.string());
+            i++;
         }
-        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: system options storage dir is " << dir_path.string());
-
-        // check dictionaries storage presence
-        dir_path = db_dir;
-        dir_path /= weObjTypeDictionary;
-        if ( !exists(dir_path) ) {
-            fs::create_directory(dir_path);
-        }
-        else {
-            if ( ! fs::is_directory(dir_path) ) {
-                string msg = dir_path.string() + "isn't a directory";
-                throw std::exception(msg.c_str());
-            }
-        }
-        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: dictionaries storage dir is " << dir_path.string());
-
-        // check auths storage presence
-        dir_path = db_dir;
-        dir_path /= weObjTypeAuthInfo;
-        if ( !fs::exists(dir_path) ) {
-            fs::create_directory(dir_path);
-        }
-        else {
-            if ( ! fs::is_directory(dir_path) ) {
-                string msg = dir_path.string() + "isn't a directory";
-                throw std::exception(msg.c_str());
-            }
-        }
-        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: authorization storage dir is " << dir_path.string());
-
-        // check scans storage presence
-        dir_path = db_dir;
-        dir_path /= weObjTypeScan;
-        if ( !fs::exists(dir_path) ) {
-            fs::create_directory(dir_path);
-        }
-        else {
-            if ( ! fs::is_directory(dir_path) ) {
-                string msg = dir_path.string() + "isn't a directory";
-                throw std::exception(msg.c_str());
-            }
-        }
-        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: scans storage dir is " << dir_path.string());
     }
     catch(std::exception& e) {
         LOG4CXX_ERROR(logger, "FsStorage::InitStorage: " << e.what());

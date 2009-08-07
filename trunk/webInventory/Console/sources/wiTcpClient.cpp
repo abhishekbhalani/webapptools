@@ -101,8 +101,8 @@ wxString wiTcpClient::DoCmd(const wxString& cmd, const wxString& payload)
         Message msg;
         char *databuff;
 
-        msg.cmd = (char*)cmd.ToAscii().data();
-        msg.data = (char*)payload.To8BitData().data();
+        msg.cmd = (char*)cmd.utf8_str().data();
+        msg.data = (char*)payload.utf8_str().data();
         ostrstream oss;
         {
             boost::archive::xml_oarchive oa(oss);
@@ -123,7 +123,7 @@ wxString wiTcpClient::DoCmd(const wxString& cmd, const wxString& payload)
                 boost::archive::xml_iarchive ia(iss);
                 ia >> BOOST_SERIALIZATION_NVP(msg);
             }
-            result = wxString::FromAscii(msg.data.c_str());
+            result = wxString::FromUTF8(msg.data.c_str());
             delete databuff;
         }
         else {
@@ -158,7 +158,7 @@ TaskList* wiTcpClient::GetTaskList(const wxString& criteria/* = wxT("")*/)
         reply = DoCmd(wxT("tasks"), criteria);
         if (!reply.IsEmpty()) {
             lst = new TaskList;
-            data = strdup((char*)reply.ToAscii().data());
+            data = strdup((char*)reply.utf8_str().data());
             istrstream iss(data);
             {
                 boost::archive::xml_iarchive ia(iss);
@@ -188,7 +188,7 @@ PluginList* wiTcpClient::GetPluginList(const wxString& criteria /*= wxT("")*/)
         reply = DoCmd(wxT("plugins"), criteria);
         if (!reply.IsEmpty()) {
             lst = new PluginList;
-            data = strdup((char*)reply.ToAscii().data());
+            data = strdup((char*)reply.utf8_str().data());
             istrstream iss(data);
             {
                 boost::archive::xml_iarchive ia(iss);
@@ -218,7 +218,7 @@ ScanList* wiTcpClient::GetScanList(const wxString& criteria /*= wxT("")*/)
         reply = DoCmd(wxT("scans"), criteria);
         if (!reply.IsEmpty()) {
             lst = new ScanList;
-            data = strdup((char*)reply.ToAscii().data());
+            data = strdup((char*)reply.utf8_str().data());
             istrstream iss(data);
             {
                 boost::archive::xml_iarchive ia(iss);
@@ -237,3 +237,55 @@ ScanList* wiTcpClient::GetScanList(const wxString& criteria /*= wxT("")*/)
     }
     return lst;
 }
+
+ObjectList* wiTcpClient::GetObjectList(const wxString& criteria /*= wxT("")*/)
+{
+    ObjectList* lst = NULL;
+    wxString reply;
+    char* data;
+    try
+    {
+        reply = DoCmd(wxT("objects"), criteria);
+        if (!reply.IsEmpty()) {
+            lst = new ObjectList;
+            data = strdup((char*)reply.utf8_str().data());
+            istrstream iss(data);
+            {
+                boost::archive::xml_iarchive ia(iss);
+                ia >> BOOST_SERIALIZATION_NVP(*lst);
+            }
+            delete data;
+        }
+    }
+    catch (std::exception& e)
+    {
+        lastError = wxString::FromAscii(e.what());
+        if (lst != NULL) {
+            delete lst;
+        }
+        lst = NULL;
+    }
+    return lst;
+}
+
+wxString wiTcpClient::UpdateObject(ObjectInfo& objInfo)
+{
+    wxString retval = wxT("");
+    try
+    {
+        ostrstream oss;
+        {
+            boost::archive::xml_oarchive oa(oss);
+            oa << BOOST_SERIALIZATION_NVP(objInfo);
+        }
+        std::string plain = string(oss.str(), oss.pcount());
+        retval = DoCmd(wxT("updateobj"), wxString::FromUTF8(plain.c_str()));
+    }
+    catch (std::exception& e)
+    {
+        lastError = wxString::FromAscii(e.what());
+        retval = wxT("");
+    }
+    return retval;
+}
+

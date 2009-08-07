@@ -46,6 +46,8 @@ public:
     TaskList* GetTaskList(const wxString& criteria = wxT(""));
     PluginList* GetPluginList(const wxString& criteria = wxT(""));
     ScanList* GetScanList(const wxString& criteria = wxT(""));
+    ObjectList* GetObjectList(const wxString& criteria = wxT(""));
+    wxString UpdateObject(ObjectInfo& objInfo);
 
 protected:
     wiInternalTcp* client;

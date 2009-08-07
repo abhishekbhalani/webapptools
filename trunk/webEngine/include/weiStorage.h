@@ -80,5 +80,6 @@ protected:
 #define weObjTypeDictionary "dict"
 #define weObjTypeAuthInfo   "auth"
 #define weObjTypeScan       "scan"
+#define weObjTypeObject     "object"
 
 #endif //__IWESTORAGE_H__

@@ -40,4 +40,8 @@ extern bool cancel_task(const string& id);
 extern string get_task_opts (const string& id);
 extern bool set_task_opts (const string& xml);
 
+extern ObjectList* get_object_list(const string& criteria = "");
+extern string update_object(ObjectInfo& obj);
+extern bool del_object(const string& id);
+
 #endif //__TASKOPERATIONS_H__
