@@ -21,7 +21,7 @@
 #define __WEDISPATCH_H__
 #pragma once
 #include <boost/filesystem.hpp>
-#include "weoptions.h"
+#include "weOptions.h"
 #include "weiPlugin.h"
 #include "weMemStorage.h"
 

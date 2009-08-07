@@ -118,7 +118,7 @@ public:
     virtual ~iweOptionsProvider() {};
 
     virtual WeOption& Option(const string& name);
-    virtual bool IsSet(const string& name) = 0;
+    virtual bool IsSet(const string& name);
     virtual void Option(const string& name, WeOptionVal val);
     virtual void Erase(const string& name)
     {
