@@ -587,7 +587,7 @@ void wiMainForm::OnDelObject( wxCommandEvent& event )
         info.SetColumn(0);
         info.SetMask(wxLIST_MASK_TEXT);
         m_lstObjectList->GetItem(info);
-        name = wxString::Format(_("Are you sure to delete object '%s'?"), info.GetText());
+        name = wxString::Format(_("Are you sure to delete object '%s'?"), info.GetText().c_str());
         int res = wxMessageBox(name, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
         if (res == wxYES) {
             obj = (ObjectInfo*)m_lstObjectList->GetItemData(m_selectedObject);
@@ -620,7 +620,7 @@ void wiMainForm::OnDelTask( wxCommandEvent& event )
         info.SetColumn(1);
         info.SetMask(wxLIST_MASK_TEXT);
         m_lstTaskList->GetItem(info);
-        name = wxString::Format(_("Are you sure to delete task '%s'?"), info.GetText());
+        name = wxString::Format(_("Are you sure to delete task '%s'?"), info.GetText().c_str());
         int res = wxMessageBox(name, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
         if (res == wxYES) {
             int id = m_lstTaskList->GetItemData(m_selectedTask);
