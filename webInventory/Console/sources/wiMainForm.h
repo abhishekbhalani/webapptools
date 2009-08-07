@@ -84,6 +84,7 @@ protected:
 
     void OnPluginSettings( wxCommandEvent& event );
     void ProcessTaskList(const wxString& criteria = wxT(""));
+    void ProcessObjects(const wxString& criteria = wxT(""));
     void Disconnected(bool mode = true);
     void Connected(bool mode = true);
     void GetPluginList();
@@ -93,7 +94,7 @@ protected:
     void SaveTaskOptionInt (wxXmlNode *root, const wxString& name, const int& value);
 
     void GetTaskOptions(int taskID);
-    void FillTaskFilter();
+    void FillObjectFilter();
     void RebuildReportsTree();
     void OneStringReport(const wxString& message, int code = 0);
 

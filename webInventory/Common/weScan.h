@@ -43,7 +43,7 @@ public:
     static const weScanStatus weScanError    = (weScanStatus)0x0005;
 
     string            scanID;
-    string            taskID;
+    string            objectID;
     posix_time::ptime startTime;
     posix_time::ptime finishTime;
     posix_time::ptime pingTime;

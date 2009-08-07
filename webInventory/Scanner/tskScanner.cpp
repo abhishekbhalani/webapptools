@@ -189,8 +189,11 @@ int main(int argc, char* argv[])
                         string msg = "Can't create scan information - exiting!";
                         throw std::exception(msg.c_str());
                     }
+                    WeOption opt = globalData.task_info->Option(weoParentID);
+                    string objectID;
+                    SAFE_GET_OPTION_VAL(opt, objectID, "0");
                     globalData.scan_info->scanID = globalData.dispatcher->Storage()->GenerateID(weObjTypeScan);
-                    globalData.scan_info->taskID = taskID;
+                    globalData.scan_info->objectID = objectID;
                     LOG4CXX_INFO(WeLogger::GetLogger(), "Scan information ID=" << globalData.scan_info->scanID
                         << "; start time: " << posix_time::to_simple_string(globalData.scan_info->startTime));
 

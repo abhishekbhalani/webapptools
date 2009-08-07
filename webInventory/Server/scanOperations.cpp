@@ -205,7 +205,7 @@ ScanList* get_scan_list(const string& criteria/* = ""*/)
         tsk = new ScanInfo;
 
         tsk->ScanId = scan_list[t]->scanID;
-        tsk->TaskId = scan_list[t]->taskID;
+        tsk->ObjectId = scan_list[t]->objectID;
         tsk->StartTime = posix_time::to_simple_string(scan_list[t]->startTime);
         tsk->FinishTime = posix_time::to_simple_string(scan_list[t]->finishTime);
         tsk->status = scan_list[t]->status;

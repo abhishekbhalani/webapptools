@@ -189,6 +189,8 @@ private:
 #define weoParallelReq       "ParallelReq"
 /// ignore URL parameters (bool)
 #define weoIgnoreUrlParam    "noParamUrl"
+/// identifiers of the parent object (string)
+#define weoParentID          "ParentId"
 //////////////////////////////////////////////////////////////////////////
 // Define options typenames
 //////////////////////////////////////////////////////////////////////////
