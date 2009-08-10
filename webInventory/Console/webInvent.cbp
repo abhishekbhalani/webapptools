@@ -129,7 +129,7 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-Os" />
 					<Add option="-O3" />
-					<Add option="-Wall" />
+					<Add option="-W" />
 					<Add option="`wx-config --cflags`" />
 					<Add option="-Wno-deprecated" />
 					<Add option="-DNDEBUG" />
@@ -142,8 +142,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="`wx-config --libs`" />
-					<Add library="../../webEngine/libs/release/libboost_system-gcc43-mt-1_38.a" />
-					<Add library="../../webEngine/libs/release/libboost_serialization-gcc43-mt-1_38.a" />
+					<Add library="libboost_serialization-mt.a" />
 					<Add directory="../../webEngine/libs/release" />
 				</Linker>
 			</Target>
