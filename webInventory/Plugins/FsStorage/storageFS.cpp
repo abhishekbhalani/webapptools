@@ -86,7 +86,7 @@ void FsStorage::ApplySettings( const string& xmlData )
 bool FsStorage::InitStorage(const string& params)
 {
     bool retval = false;
-    
+
     LOG4CXX_TRACE(logger, "FsStorage::InitStorage params = " << params);
     try {
         db_dir = params;
@@ -102,6 +102,18 @@ bool FsStorage::InitStorage(const string& params)
         }
         LOG4CXX_TRACE(logger, "FsStorage::InitStorage: base dir is " << db_dir);
 
+<<<<<<< .mine
+        // check tasks storage presence
+        dir_path = db_dir;
+        dir_path /= weObjTypeTask;
+        if ( !fs::exists(dir_path) ) {
+            fs::create_directory(dir_path);
+        }
+        else {
+            if ( ! fs::is_directory(dir_path) ) {
+                string msg = dir_path.string() + "isn't a directory";
+                throw std::exception();//(msg.c_str());
+=======
         int i = 0;
         while (tables[i] != NULL)
         {
@@ -110,16 +122,79 @@ bool FsStorage::InitStorage(const string& params)
             dir_path /= tables[i];
             if ( !fs::exists(dir_path) ) {
                 fs::create_directory(dir_path);
+>>>>>>> .r64
             }
+<<<<<<< .mine
+        }
+        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: tasks storage dir is " << dir_path.string());
+
+        // check sysoptions storage presence
+        dir_path = db_dir;
+        dir_path /= weObjTypeSysOption;
+        if ( !fs::exists(dir_path) ) {
+            fs::create_directory(dir_path);
+        }
+        else {
+            if ( ! fs::is_directory(dir_path) ) {
+                string msg = dir_path.string() + "isn't a directory";
+                throw std::exception();//(msg.c_str());
+=======
             else {
                 if ( ! fs::is_directory(dir_path) ) {
                     string msg = dir_path.string() + "isn't a directory";
                     throw std::runtime_error(msg.c_str());
                 }
+>>>>>>> .r64
             }
             LOG4CXX_TRACE(logger, "FsStorage::InitStorage: " << tables[i] << " storage dir is " << dir_path.string());
             i++;
         }
+<<<<<<< .mine
+        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: system options storage dir is " << dir_path.string());
+
+        // check dictionaries storage presence
+        dir_path = db_dir;
+        dir_path /= weObjTypeDictionary;
+        if ( !exists(dir_path) ) {
+            fs::create_directory(dir_path);
+        }
+        else {
+            if ( ! fs::is_directory(dir_path) ) {
+                string msg = dir_path.string() + "isn't a directory";
+                throw std::exception();//(msg.c_str());
+            }
+        }
+        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: dictionaries storage dir is " << dir_path.string());
+
+        // check auths storage presence
+        dir_path = db_dir;
+        dir_path /= weObjTypeAuthInfo;
+        if ( !fs::exists(dir_path) ) {
+            fs::create_directory(dir_path);
+        }
+        else {
+            if ( ! fs::is_directory(dir_path) ) {
+                string msg = dir_path.string() + "isn't a directory";
+                throw std::exception();//(msg.c_str());
+            }
+        }
+        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: authorization storage dir is " << dir_path.string());
+
+        // check scans storage presence
+        dir_path = db_dir;
+        dir_path /= weObjTypeScan;
+        if ( !fs::exists(dir_path) ) {
+            fs::create_directory(dir_path);
+        }
+        else {
+            if ( ! fs::is_directory(dir_path) ) {
+                string msg = dir_path.string() + "isn't a directory";
+                throw std::exception();//(msg.c_str());
+            }
+        }
+        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: scans storage dir is " << dir_path.string());
+=======
+>>>>>>> .r64
     }
     catch(std::exception& e) {
         LOG4CXX_ERROR(logger, "FsStorage::InitStorage: " << e.what());
@@ -137,13 +212,13 @@ string FsStorage::GenerateID(const string& objType /*= ""*/)
 {
     string retval = "";
     fs::path dir_path(db_dir);
-    
+
     dir_path /= objType;
-    
+
     do {
         retval = lexical_cast<string>(++lastId);
     } while (fs::exists(dir_path / retval));
-    
+
     return retval;
 }
 
@@ -151,8 +226,12 @@ int FsStorage::Query(const string& objType, const string& objId, Operation op, c
 {
     int retval = 0;
     fs::path dir_path(db_dir);
+<<<<<<< .mine
+
+=======
     fs::path locker(db_dir);
  
+>>>>>>> .r64
     LOG4CXX_DEBUG(logger, "FsStorage::Query objType=" << objType << "; ID=" << objId << "; operation=" << op);
     // lock the db
     while (exists(locker / "lock"))
@@ -176,8 +255,12 @@ int FsStorage::Report(const string& repType, const string& objId, const string& 
 {
     int retval = 0;
     fs::path dir_path(db_dir);
+<<<<<<< .mine
+
+=======
     fs::path locker(db_dir);
  
+>>>>>>> .r64
     // lock the db
     while (exists(locker / "lock"))
     {
@@ -228,7 +311,7 @@ string FsStorage::FileRead(const string& fname)
 {
     string retval = "";
     size_t sz;
-    
+
     LOG4CXX_TRACE(logger, "FsStorage::FileRead " << fname);
     sz = fs::file_size(fname);
     if (sz > 0) {
@@ -240,7 +323,7 @@ string FsStorage::FileRead(const string& fname)
         retval = content;
         delete content;
     }
-    
+
     return retval;
 }
 

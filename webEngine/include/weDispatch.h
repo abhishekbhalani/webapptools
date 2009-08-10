@@ -28,7 +28,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  WeNullStorage
 ///
-/// @brief  null storage for the iweStorage placeholder. 
+/// @brief  null storage for the iweStorage placeholder.
 ///
 /// @author A. Abramov
 /// @date   23.07.2009
@@ -53,7 +53,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  WeDispatch
 ///
-/// @brief  Dispatcher for tasks processing and system options storage. 
+/// @brief  Dispatcher for tasks processing and system options storage.
 ///
 /// @author A. Abramov
 /// @date   16.07.2009
@@ -80,12 +80,12 @@ public:
     // Access the PluginList
     const WePluginList &PluginList(void) const  { return(pluginList); };
     void RefreshPluginList(boost::filesystem::path& baseDir);
-    
+
     // Provide Logger to plugins
     log4cxx::LoggerPtr GetLogger() { return WeLogger::GetLogger(); };
 
     iwePlugin* LoadPlugin(string id);
-    
+
 #ifndef __DOXYGEN__
 protected:
     WePluginList pluginList;
