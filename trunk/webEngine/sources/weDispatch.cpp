@@ -105,9 +105,9 @@ WeDispatch::~WeDispatch(void)
 ///
 /// @brief	Returns the Option with given name or empty option.
 ///
-/// @param  name - The option name. 
+/// @param  name - The option name.
 ///
-/// @retval WeOption. 
+/// @retval WeOption.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WeOption& WeDispatch::Option(const  string& name )
 {
@@ -129,8 +129,8 @@ WeOption& WeDispatch::Option(const  string& name )
 ///
 /// @brief  Sets the value of the options with given name.
 ///
-/// @param  name - The option name. 
-/// @param  val	 - The option value. 
+/// @param  name - The option name.
+/// @param  val	 - The option value.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void WeDispatch::Option(const string& name, WeOptionVal val)
 {
@@ -232,17 +232,17 @@ void WeDispatch::RefreshPluginList( boost::filesystem::path& baseDir )
             LOG4CXX_ERROR(WeLogger::GetLogger(), "WeDispatch::RefreshPluginList: can't load plugin " << *fl << ". Error: " << e.what());
         }
     }
-    
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	iwePlugin* WeDispatch::LoadPlugin( string id )
 ///
-/// @brief	Loads a plugin form shared library or internal implementation. 
+/// @brief	Loads a plugin form shared library or internal implementation.
 ///
-/// @param	id	 - The identifier. 
+/// @param	id	 - The identifier.
 ///
-/// @retval	null if it fails, else the plugin interface. 
+/// @retval	null if it fails, else the plugin interface.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 iwePlugin* WeDispatch::LoadPlugin( string id )
 {
@@ -311,7 +311,7 @@ void WeDispatch::Storage( const iweStorage* store )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn void WeDispatch::Flush()
 ///
-/// @brief  Stores the options into the storage. 
+/// @brief  Stores the options into the storage.
 ///
 /// @author A. Abramov
 /// @date   23.07.2009
