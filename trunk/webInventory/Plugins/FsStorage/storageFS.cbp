@@ -35,18 +35,28 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+<<<<<<< .mine
+					<Add library="user32" />
+					<Add directory="../../../webEngine/libs/release" />
+=======
 					<Add library="libboost_system-gcc43-mt.a" />
 					<Add library="libwebEngine.a" />
 					<Add library="libboost_filesystem-gcc43-mt.a" />
 					<Add library="libboost_thread-gcc43-mt-1_38.a" />
 					<Add directory="../../../webEngine/libs/release" />
+>>>>>>> .r64
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add directory="../../../webEngine/include" />
 		</Compiler>
+<<<<<<< .mine
+		<Unit filename="dlExport.def" />
 		<Unit filename="dlMain.cpp" />
+=======
+		<Unit filename="dlMain.cpp" />
+>>>>>>> .r64
 		<Unit filename="storageFS.cpp" />
 		<Unit filename="storageFS.h" />
 		<Unit filename="version.h" />
