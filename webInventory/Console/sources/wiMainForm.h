@@ -65,7 +65,6 @@ protected:
     virtual void OnCancelTask( wxCommandEvent& event );
     virtual void OnTaskSelected( wxListEvent& event );
     virtual void OnSortItems( wxListEvent& event );
-    virtual void OnTaskApply( wxCommandEvent& event );
     virtual void OnStorageChange( wxCommandEvent& event );
 
     virtual void OnReportTskFilter( wxCommandEvent& event );
@@ -82,9 +81,17 @@ protected:
     virtual void OnReportsLoadStart( wxCommandEvent& event );
     virtual void OnReportsLoad( wxCommandEvent& event );
 
-    void OnPluginSettings( wxCommandEvent& event );
+    virtual void OnAddProfile( wxCommandEvent& event );
+    virtual void OnCopyProfile( wxCommandEvent& event );
+    virtual void OnDelProfile( wxCommandEvent& event );
+    virtual void OnTaskApply( wxCommandEvent& event );
+    virtual void OnChangeProfile( wxCommandEvent& event );
+
     void ProcessTaskList(const wxString& criteria = wxT(""));
     void ProcessObjects(const wxString& criteria = wxT(""));
+    void ProcessProfileList(const wxString& criteria = wxT(""));
+
+    void OnPluginSettings( wxCommandEvent& event );
     void Disconnected(bool mode = true);
     void Connected(bool mode = true);
     void GetPluginList();
@@ -93,7 +100,7 @@ protected:
     void SaveTaskOptionBool (wxXmlNode *root, const wxString& name, const bool& value);
     void SaveTaskOptionInt (wxXmlNode *root, const wxString& name, const int& value);
 
-    void GetTaskOptions(int taskID);
+    void GetTaskOptions(const wxString& taskID);
     void FillObjectFilter();
     void RebuildReportsTree();
     void OneStringReport(const wxString& message, int code = 0);
@@ -107,6 +114,7 @@ protected:
     int m_selectedTask;
     int m_selectedObject;
     int m_selectedActive;
+    int m_selectedProf;
     int m_plugins;
 };
 

@@ -47,6 +47,7 @@ public:
     PluginList* GetPluginList(const wxString& criteria = wxT(""));
     ScanList* GetScanList(const wxString& criteria = wxT(""));
     ObjectList* GetObjectList(const wxString& criteria = wxT(""));
+    ProfileList* GetProfileList(const wxString& criteria = wxT(""));
     wxString UpdateObject(ObjectInfo& objInfo);
 
 protected:

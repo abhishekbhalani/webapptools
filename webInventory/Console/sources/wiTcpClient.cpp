@@ -289,3 +289,32 @@ wxString wiTcpClient::UpdateObject(ObjectInfo& objInfo)
     return retval;
 }
 
+ProfileList* wiTcpClient::GetProfileList(const wxString& criteria /*= wxT("")*/)
+{
+    ProfileList* lst = NULL;
+    wxString reply;
+    char* data;
+    try
+    {
+        reply = DoCmd(wxT("profiles"), criteria);
+        if (!reply.IsEmpty()) {
+            lst = new ProfileList;
+            data = strdup((char*)reply.utf8_str().data());
+            istrstream iss(data);
+            {
+                boost::archive::xml_iarchive ia(iss);
+                ia >> BOOST_SERIALIZATION_NVP(*lst);
+            }
+            delete data;
+        }
+    }
+    catch (std::exception& e)
+    {
+        lastError = wxString::FromAscii(e.what());
+        if (lst != NULL) {
+            delete lst;
+        }
+        lst = NULL;
+    }
+    return lst;
+}

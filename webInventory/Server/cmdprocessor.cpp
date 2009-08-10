@@ -28,11 +28,12 @@
 #include <strstream>
 #include <weiBase.h>
 #include <weLogger.h>
+#include <weProfile.h>
 #include <weDispatch.h>
 #include "messages.h"
 #include "version.h"
 #include "taskOperations.h"
-#include "scanOperations.h""
+#include "scanOperations.h"
 
 extern WeDispatch* globalDispatcher;
 string get_plugin_list(string filter);
@@ -200,6 +201,75 @@ int process_message(char* buff, size_t buffSz, session* sess)
         if (iequals(msg.cmd, "settaskopts"))
         {
             msg.data = set_task_opts(msg.data);
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // GETPROFILELIST command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "profiles"))
+        {
+            ProfileList* lst;
+
+            lst = get_profile_list(msg.data);
+            if (lst != NULL)
+            {
+                { // auto-destroy block for output stream
+                    ostrstream oss;
+                    { // auto-destroy block for xml_oarchive
+                        boost::archive::xml_oarchive oa(oss);
+                        oa << BOOST_SERIALIZATION_NVP(lst);
+                    }
+                    msg.data = string(oss.str(), oss.rdbuf()->pcount());
+                    delete lst;
+                }
+            }
+            else {
+                msg.data = "";
+            }
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // GETPROFILEOPTS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "getprofileopts"))
+        {
+            msg.data = get_profile_opts(msg.data);
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // SETPROFILEOPTS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "setprofileopts"))
+        {
+            msg.data = set_profile_opts(msg.data);
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // ADDPROFILE command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "addprofile"))
+        {
+            WeProfile prof;
+            string xml;
+            string id = globalDispatcher->Storage()->GenerateID(weObjTypeProfile);
+            prof.Option(weoID, id);
+            prof.Option(weoName, msg.data);
+            xml = prof.ToXml();
+            globalDispatcher->Storage()->Query(weObjTypeProfile, id, iweStorage::autoop, xml);
+            msg.data = id;
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // DELPROFILE command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "delprofile"))
+        {
+            msg.data = del_profile(msg.data);
             retval = 1;
             processed = true;
         }

@@ -81,5 +81,6 @@ protected:
 #define weObjTypeAuthInfo   "auth"
 #define weObjTypeScan       "scan"
 #define weObjTypeObject     "object"
+#define weObjTypeProfile    "profile"
 
 #endif //__IWESTORAGE_H__

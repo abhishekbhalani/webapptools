@@ -195,7 +195,6 @@ ScanList* get_scan_list(const string& criteria/* = ""*/)
     ScanInfo *tsk = NULL;
     WeOption    opt;
     string sdata;
-    int idata;
     size_t t;
 
     load_scan_list(scan_list);

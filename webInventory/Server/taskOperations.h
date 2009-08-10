@@ -44,4 +44,9 @@ extern ObjectList* get_object_list(const string& criteria = "");
 extern string update_object(ObjectInfo& obj);
 extern bool del_object(const string& id);
 
+extern string get_profile_opts (const string& id);
+extern bool set_profile_opts (const string& xml);
+extern bool del_profile (const string& id);
+extern ProfileList* get_profile_list(const string& criteria = "");
+
 #endif //__TASKOPERATIONS_H__
