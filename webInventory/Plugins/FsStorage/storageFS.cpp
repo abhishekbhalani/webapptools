@@ -114,7 +114,7 @@ bool FsStorage::InitStorage(const string& params)
             else {
                 if ( ! fs::is_directory(dir_path) ) {
                     string msg = dir_path.string() + "isn't a directory";
-                    throw std::exception(msg.c_str());
+                    throw std::runtime_error(msg.c_str());
                 }
             }
             LOG4CXX_TRACE(logger, "FsStorage::InitStorage: " << tables[i] << " storage dir is " << dir_path.string());
