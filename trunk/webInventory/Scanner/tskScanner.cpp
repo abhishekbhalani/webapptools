@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
         }
         else {
             // skip all other code - just finalize execution
-            throw std::exception("No task identifier given - exiting!");
+            throw std::runtime_error("No task identifier given - exiting!");
         }
 
         globalData.dispatcher = new WeDispatch;
@@ -181,13 +181,13 @@ int main(int argc, char* argv[])
                     if (globalData.task_info == NULL)
                     {
                         string msg = "Task ID=" + taskID + " not found - exiting!";
-                        throw std::exception(msg.c_str());
+                        throw std::runtime_error(msg.c_str());
                     }
                     globalData.scan_info = new WeScan;
                     if (globalData.scan_info == NULL)
                     {
                         string msg = "Can't create scan information - exiting!";
-                        throw std::exception(msg.c_str());
+                        throw std::runtime_error(msg.c_str());
                     }
                     WeOption opt = globalData.task_info->Option(weoParentID);
                     string objectID;
