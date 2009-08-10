@@ -212,6 +212,7 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_timer.Start(wxPING_INTERVAL);
     m_panTaskOpts->Disable();
     SelectTask( -1 );
+    m_selectedProf = -1;
     m_pnServer->Hide();
     m_panTaskOpts->Disable();
     m_lstTaskList->Disable();
@@ -239,6 +240,7 @@ void wiMainForm::OnTimer( wxTimerEvent& event )
             }
             ProcessTaskList(wxT(""));
             ProcessObjects(wxT(""));
+            ProcessProfileList(wxT(""));
             connStatus = true;
         }
         else {
@@ -523,6 +525,7 @@ void wiMainForm::Connected(bool mode)
 //        m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
         ProcessTaskList();
         ProcessObjects();
+        ProcessProfileList();
         m_pnServer->Show();
         Layout();
     }
@@ -694,42 +697,28 @@ void wiMainForm::SelectTask(int id/* = -1*/)
         m_lstTaskList->GetItem(info);
         if (info.GetImage() == WI_TSK_IDLE) {
             //m_btnApply->Enable();
-            m_toolBarObject->EnableTool(wxID_TOOLGO, true);
-            m_toolBarObject->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(start_xpm) );
-            m_toolBarObject->EnableTool(wxID_TOOLSTOP, false);
-            m_toolBarObject->EnableTool(wxID_TOOLDEL, true);
-            m_panTaskOpts->Enable();
-            m_cbInvent->Disable();
-
+            m_toolBarTasks->EnableTool(wxID_TOOLPAUSE, true);
+            m_toolBarTasks->SetToolNormalBitmap(wxID_TOOLPAUSE, wxBitmap(start_xpm) );
+            m_toolBarTasks->EnableTool(wxID_TOOLSTOP, false);
         }
         else if (info.GetImage() == WI_TSK_RUN) {
             //m_btnApply->Disable();
-            m_toolBarObject->EnableTool(wxID_TOOLGO, true);
-            m_toolBarObject->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(pause_xpm) );
-            m_toolBarObject->EnableTool(wxID_TOOLSTOP, true);
-            m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
-            m_panTaskOpts->Disable();
+            m_toolBarTasks->EnableTool(wxID_TOOLPAUSE, true);
+            m_toolBarTasks->SetToolNormalBitmap(wxID_TOOLPAUSE, wxBitmap(pause_xpm) );
+            m_toolBarTasks->EnableTool(wxID_TOOLSTOP, true);
         }
         else if (info.GetImage() == WI_TSK_PAUSED) {
             //m_btnApply->Disable();
-            m_toolBarObject->EnableTool(wxID_TOOLGO, true);
-            m_toolBarObject->SetToolNormalBitmap(wxID_TOOLGO, wxBitmap(start_xpm) );
-            m_toolBarObject->EnableTool(wxID_TOOLSTOP, true);
-            m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
-            m_panTaskOpts->Disable();
+            m_toolBarTasks->EnableTool(wxID_TOOLPAUSE, true);
+            m_toolBarTasks->SetToolNormalBitmap(wxID_TOOLPAUSE, wxBitmap(start_xpm) );
+            m_toolBarTasks->EnableTool(wxID_TOOLSTOP, true);
         }
-        // refresh task options
-        if (m_selectedTask != prevID) {
-            GetTaskOptions(info.GetData());
-        }
+        /// @todo refresh task log
     }
     else {
         //m_btnApply->Enable();
-        m_toolBarObject->EnableTool(wxID_TOOLGO, false);
-        m_toolBarObject->EnableTool(wxID_TOOLSTOP, false);
-        m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
-        m_panTaskOpts->Enable();
-        m_panTaskOpts->Disable();
+        m_toolBarTasks->EnableTool(wxID_TOOLPAUSE, false);
+        m_toolBarTasks->EnableTool(wxID_TOOLSTOP, false);
     }
     Layout();
 }
@@ -854,13 +843,12 @@ void wiMainForm::OnPluginSettings( wxCommandEvent& event )
     }
 }
 
-void wiMainForm::GetTaskOptions(int taskID)
+void wiMainForm::GetTaskOptions(const wxString& taskID)
 {
-    wxString id = wxString::Format(wxT("%X"), taskID);
     wxString optsstr;
-/*
+
     if (m_client != NULL) {
-        optsstr = m_client->DoCmd(wxT("gettaskopts"), id);
+        optsstr = m_client->DoCmd(wxT("getprofileopts"), taskID);
         //optsstr = wxString(wxT("<?xml version=\"1.0\"?>")) + optsstr;
         wxCharBuffer buff = optsstr.utf8_str();
         int buffLen = strlen(buff.data());
@@ -868,12 +856,35 @@ void wiMainForm::GetTaskOptions(int taskID)
         wxXmlDocument opt;
         if(opt.Load(xmlStream)) {
             wxXmlNode *root = opt.GetRoot();
-            if (root && root->GetName().CmpNoCase(wxT("options")) == 0) {
+            if (root && root->GetName().CmpNoCase(wxT("report")) == 0) {
                 wxXmlNode *child = root->GetChildren();
+                //search for 'profile'
+                while (child != NULL) {
+                    if (child->GetName().CmpNoCase(wxT("profile")) == 0) {
+                        break;
+                    }
+                }
+                if (child == NULL) {
+                    return;
+                }
+                child = child->GetChildren();
+                //search for 'options'
+                while (child != NULL) {
+                    if (child->GetName().CmpNoCase(wxT("options")) == 0) {
+                        break;
+                    }
+                }
+                if (child == NULL) {
+                    return;
+                }
+                child = child->GetChildren();
+
                 // reset valuses
-                m_txtTaskName->SetValue(wxT(""));
-                m_txtBaseURL->SetValue(wxT(""));
-                m_rbDepth->SetSelection(0);
+                m_txtProfName->SetValue(wxT(""));
+                //m_txtBaseURL->SetValue(wxT(""));
+                m_rbInDir->SetValue(false);
+                m_rbInHost->SetValue(false);
+                m_rbInDomain->SetValue(false);
                 m_txtDepth->SetValue(wxT("-1"));
                 m_chLogLevel->Select(0);
 
@@ -885,19 +896,19 @@ void wiMainForm::GetTaskOptions(int taskID)
                         wxString text = child->GetNodeContent();
                         // fill the data controls
                         if (name.CmpNoCase(wxT(weoName)) == 0) {
-                            m_txtTaskName->SetValue(text);
+                            m_txtProfName->SetValue(text);
                         }
                         if (name.CmpNoCase(wxT(weoBaseURL)) == 0) {
-                            m_txtBaseURL->SetValue(text);
+                            //m_txtBaseURL->SetValue(text);
                         }
                         if (name.CmpNoCase(wxT(weoStayInDir)) == 0 && text == wxT("1")) {
-                            m_rbDepth->SetSelection(0);
+                            m_rbInDir->SetValue(true);
                         }
                         if (name.CmpNoCase(wxT(weoStayInHost)) == 0 && text == wxT("1")) {
-                            m_rbDepth->SetSelection(1);
+                            m_rbInHost->SetValue(true);
                         }
                         if (name.CmpNoCase(wxT(weoStayInDomain)) == 0 && text == wxT("1")) {
-                            m_rbDepth->SetSelection(2);
+                            m_rbInDomain->SetValue(true);
                         }
                         if (name.CmpNoCase(wxT(weoScanDepth)) == 0) {
                             m_txtDepth->SetValue(text);
@@ -916,58 +927,6 @@ void wiMainForm::GetTaskOptions(int taskID)
             }
         }
     }
-*/
-}
-
-void wiMainForm::OnTaskApply( wxCommandEvent& event )
-{
-    wxListItem info;
-/*
-    if (m_selectedTask > -1) {
-        info.SetId(m_selectedTask);
-        info.SetColumn(0);
-        info.SetMask(wxLIST_MASK_DATA);
-        m_lstTaskList->GetItem(info);
-        // check options changing and ask for save them
-        if (m_client != NULL) {
-            wxXmlDocument opt;
-            wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("options"));
-            wxXmlNode *chld;
-            wxString content;
-
-            SaveTaskOption(root, wxT(weoName), wxT(weoTypeString), m_txtTaskName->GetValue());
-
-            SaveTaskOption(root, wxT(weoBaseURL), wxT(weoTypeString), m_txtBaseURL->GetValue());
-
-            SaveTaskOptionBool(root, wxT(weoStayInDir), (m_rbDepth->GetSelection() == 0));
-
-            SaveTaskOptionBool(root, wxT(weoStayInHost), (m_rbDepth->GetSelection() == 1));
-
-            SaveTaskOptionBool(root, wxT(weoStayInDomain), (m_rbDepth->GetSelection() == 2));
-
-            SaveTaskOptionBool(root, wxT("OnlyInventory"), m_cbInvent->IsChecked());
-
-            SaveTaskOption(root, wxT(weoScanDepth), wxT(weoTypeInt), m_txtDepth->GetValue());
-
-            SaveTaskOptionInt(root, wxT(weoLogLevel), m_chLogLevel->GetSelection());
-
-            opt.SetRoot(root);
-            wxMemoryOutputStream outp;
-            opt.Save(outp, wxXML_NO_INDENTATION);
-            int dataLen = outp.GetSize();
-            char *data = new char[dataLen + 10];
-            if (data != NULL) {
-                outp.CopyTo(data, dataLen);
-                wxString str = wxString::Format(wxT("%X;"), info.GetData());
-                str += FromStdString(data);
-                m_client->DoCmd(wxT("settaskopts"), str);
-            }
-            else {
-                wxLogError(wxT("Can't compose options save request!"));
-            }
-        }
-    }
-*/
 }
 
 void wiMainForm::SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value)
@@ -1078,6 +1037,9 @@ void wiMainForm::RebuildReportsTree()
     m_treeScans->Freeze();
     m_treeScans->DeleteAllItems();
     taskIndex = m_chTaskFilter->GetSelection();
+    if (taskIndex < 0) {
+        return;
+    }
     tskID = (int)m_chTaskFilter->GetClientData(taskIndex);
     tasks = m_lstObjectList->GetItemCount();
     root = m_treeScans->AddRoot(wxT("root"));
@@ -1202,4 +1164,175 @@ void wiMainForm::OnReportsLoad( wxCommandEvent& event )
         }
     }
     ::wxEndBusyCursor();
+}
+
+void wiMainForm::ProcessProfileList(const wxString& criteria /*= wxT("")*/)
+{
+    ProfileList* lst;
+    ProfileInfo* dat;
+    size_t lstSize;
+    int idx = 0;
+    int selected;
+    wxString idSelect = wxT("0");
+
+    selected = m_chProfile->GetSelection();
+    if (selected > -1) {
+        dat = (ProfileInfo*)m_chProfile->GetClientData(selected);
+        idSelect = FromStdString(dat->ObjectId);
+    }
+    if(m_client != NULL) {
+        lst = m_client->GetProfileList(criteria);
+        if (lst != NULL) {
+            wxWindowUpdateLocker taskList(m_chProfile);
+
+            m_chProfile->Clear();
+            selected = -1;
+            for (lstSize = 0; lstSize < lst->size(); lstSize++) {
+                wxString idStr = FromStdString((*lst)[lstSize].Name);
+                idx = m_chProfile->GetCount();
+                idx = m_chProfile->Insert(idStr, idx, (void*)(&((*lst)[lstSize])));
+                idStr = FromStdString((*lst)[lstSize].ObjectId);
+                if (idStr == idSelect) {
+                    selected = idx;
+                }
+            }
+            if (selected > -1) {
+                // restore selection
+                m_chProfile->Select(selected);
+            }
+        }
+        else {
+            m_statusBar->SetImage(wiSTATUS_BAR_NO);
+            m_statusBar->SetStatusText(m_client->GetLastError(), 3);
+        }
+    }
+
+}
+
+void wiMainForm::OnAddProfile( wxCommandEvent& event )
+{
+    wxString name;
+
+    name = wxGetTextFromUser(_("Input new profile name"), _("Query"), wxT(""), this);
+    if (!name.IsEmpty() && m_client != NULL) {
+        name = m_client->DoCmd(wxT("addprofile"), name);
+    }
+    ProcessProfileList();
+}
+
+void wiMainForm::OnCopyProfile( wxCommandEvent& event )
+{
+    ProfileInfo* dat;
+    int selected;
+    wxString idSelect;
+    wxString idPrev;
+    wxString xml;
+
+    selected = m_chProfile->GetSelection();
+    if (selected > -1) {
+        dat = (ProfileInfo*)m_chProfile->GetClientData(selected);
+        idSelect = FromStdString(dat->Name) + wxT(" copy");
+        if(m_client != NULL) {
+            idSelect = m_client->DoCmd(wxT("addprofile"), idSelect);
+            if (idSelect != wxT("") && idSelect != wxT("0")) {
+                idPrev = FromStdString(dat->ObjectId);
+                xml = m_client->DoCmd(wxT("getprofileopts"), idPrev);
+                /// @todo change ID and Name
+                idPrev = wxString::Format(wxT("%s;%s"), idSelect.c_str(), xml.c_str());
+                m_client->DoCmd(wxT("setprofileopts"), idPrev);
+
+                ProcessProfileList();
+            }
+        }
+    }
+}
+
+void wiMainForm::OnDelProfile( wxCommandEvent& event )
+{
+    wxString name;
+    ProfileInfo* dat;
+    int selected;
+
+    selected = m_chProfile->GetSelection();
+    if (selected > -1)
+    {
+        name = m_chProfile->GetString(selected);
+        dat = (ProfileInfo*)m_chProfile->GetClientData(selected);
+        name = wxString::Format(_("Are you sure to delete profile '%s'?"), name.c_str());
+        int res = wxMessageBox(name, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
+        if (res == wxYES) {
+            name = FromStdString(dat->ObjectId);
+            m_client->DoCmd(wxT("delprofile"), name);
+
+            ProcessProfileList();
+        }
+    }
+}
+
+void wiMainForm::OnTaskApply( wxCommandEvent& event )
+{
+    // save profile data
+/*
+    if (m_selectedTask > -1) {
+        info.SetId(m_selectedTask);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_DATA);
+        m_lstTaskList->GetItem(info);
+        // check options changing and ask for save them
+        if (m_client != NULL) {
+            wxXmlDocument opt;
+            wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("options"));
+            wxXmlNode *chld;
+            wxString content;
+
+            SaveTaskOption(root, wxT(weoName), wxT(weoTypeString), m_txtTaskName->GetValue());
+
+            SaveTaskOption(root, wxT(weoBaseURL), wxT(weoTypeString), m_txtBaseURL->GetValue());
+
+            SaveTaskOptionBool(root, wxT(weoStayInDir), (m_rbDepth->GetSelection() == 0));
+
+            SaveTaskOptionBool(root, wxT(weoStayInHost), (m_rbDepth->GetSelection() == 1));
+
+            SaveTaskOptionBool(root, wxT(weoStayInDomain), (m_rbDepth->GetSelection() == 2));
+
+            SaveTaskOptionBool(root, wxT("OnlyInventory"), m_cbInvent->IsChecked());
+
+            SaveTaskOption(root, wxT(weoScanDepth), wxT(weoTypeInt), m_txtDepth->GetValue());
+
+            SaveTaskOptionInt(root, wxT(weoLogLevel), m_chLogLevel->GetSelection());
+
+            opt.SetRoot(root);
+            wxMemoryOutputStream outp;
+            opt.Save(outp, wxXML_NO_INDENTATION);
+            int dataLen = outp.GetSize();
+            char *data = new char[dataLen + 10];
+            if (data != NULL) {
+                outp.CopyTo(data, dataLen);
+                wxString str = wxString::Format(wxT("%X;"), info.GetData());
+                str += FromStdString(data);
+                m_client->DoCmd(wxT("settaskopts"), str);
+            }
+            else {
+                wxLogError(wxT("Can't compose options save request!"));
+            }
+        }
+    }
+*/
+}
+
+void wiMainForm::OnChangeProfile( wxCommandEvent& event )
+{
+    wxListItem info;
+    int prevID = m_selectedProf;
+    ProfileInfo* dat;
+
+    m_selectedProf = m_chProfile->GetSelection();
+
+    if (m_selectedProf != prevID && m_selectedTask > -1) {
+        // check options changing and ask for save them
+    }
+    if (m_selectedProf > -1) {
+        dat = (ProfileInfo*)m_chProfile->GetClientData(m_selectedProf);
+        GetTaskOptions(FromStdString(dat->ObjectId));
+    }
 }

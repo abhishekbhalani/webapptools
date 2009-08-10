@@ -28,11 +28,11 @@ class wiStatBar;
 #include <wx/listbox.h>
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
-#include <wx/radiobox.h>
+#include <wx/radiobut.h>
+#include <wx/statbox.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
 #include <wx/spinctrl.h>
-#include <wx/statbox.h>
 #include <wx/gbsizer.h>
 #include <wx/scrolwin.h>
 #include <wx/panel.h>
@@ -57,18 +57,19 @@ class wiStatBar;
 #define wxID_TLPROFDEL 1005
 #define wxID_TLPROFSAVE 1006
 #define wxID_TOOLGO 1007
-#define wxID_TOOLPAUSE 1008
-#define wxID_TOOLSTOP 1009
-#define wxID_TLREFRESH 1010
-#define wxID_TLFILTER 1011
-#define wxID_TLDATE 1012
-#define wxID_TLSTATUS 1013
-#define wxID_TLSAVE 1014
-#define wxID_TLCONNECT 1015
-#define wxID_TLNEW 1016
-#define wxID_TLEDIT 1017
-#define wxID_TLDELETE 1018
-#define wxID_TLLANGAPPLY 1019
+#define wxID_RBMODE 1008
+#define wxID_TOOLPAUSE 1009
+#define wxID_TOOLSTOP 1010
+#define wxID_TLREFRESH 1011
+#define wxID_TLFILTER 1012
+#define wxID_TLDATE 1013
+#define wxID_TLSTATUS 1014
+#define wxID_TLSAVE 1015
+#define wxID_TLCONNECT 1016
+#define wxID_TLNEW 1017
+#define wxID_TLEDIT 1018
+#define wxID_TLDELETE 1019
+#define wxID_TLLANGAPPLY 1020
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
@@ -84,23 +85,22 @@ class MainForm : public wxFrame
 		wxPanel* m_panObjects;
 		wxToolBar* m_toolBarObject;
 		wxListCtrl* m_lstObjectList;
-		wxToolBar* m_toolBar6;
+		wxToolBar* m_toolBarProf;
 		wxChoice* m_chProfile;
 		wxScrolledWindow* m_panTaskOpts;
-		wxStaticText* m_stTransports;
 		wxListBox* m_listBox1;
 		wxBitmapButton* m_bpAddTransp;
 		wxBitmapButton* m_bpDelTrasp;
-		wxStaticText* m_stLogLevel;
 		wxChoice* m_chLogLevel;
-		wxRadioBox* m_rbDepth;
-		wxStaticText* m_stDepth;
+		wxRadioButton* m_rbInDir;
+		wxRadioButton* m_rbInHost;
+		wxRadioButton* m_rbInDomain;
 		wxTextCtrl* m_txtDepth;
 		wxCheckBox* m_cbInvent;
 		wxCheckBox* m_chIgnoreParams;
-		wxStaticText* m_stThreads;
 		wxSpinCtrl* m_spinCtrl1;
 		
+		wxTextCtrl* m_txtProfName;
 		wxPanel* m_panTasks;
 		wxToolBar* m_toolBarTasks;
 		wxListCtrl* m_lstTaskList;
@@ -151,6 +151,10 @@ class MainForm : public wxFrame
 		virtual void OnDelObject( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnTaskKillFocus( wxFocusEvent& event ){ event.Skip(); }
 		virtual void OnSelectObject( wxListEvent& event ){ event.Skip(); }
+		virtual void OnChangeProfile( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnAddProfile( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnCopyProfile( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnDelProfile( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnTaskApply( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }

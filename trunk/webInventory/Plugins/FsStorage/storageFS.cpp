@@ -34,6 +34,7 @@ static char* tables[] = {weObjTypeTask,
                         weObjTypeAuthInfo,
                         weObjTypeScan,
                         weObjTypeObject,
+                        weObjTypeProfile,
                         NULL}; // close the list with NULL
 
 FsStorage::FsStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :

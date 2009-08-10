@@ -46,6 +46,7 @@
 #include <weDispatch.h>
 #include <weTask.h>
 #include <weObject.h>
+#include <weProfile.h>
 #include <weTagScanner.h>
 #ifdef WIN32
 #define NOGDI
@@ -494,7 +495,7 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
     //query = "<report>";
     tasks = 0;
     result = "<report>\n";
-    int tpos = crit.find(',');
+    size_t tpos = crit.find(',');
     while (tpos != string::npos) {
         //query += "<object value='" + crit.substr(0, tpos) + "' />";
         i = globalDispatcher->Storage()->Report(weObjTypeObject, crit.substr(0,tpos), "", report); 
@@ -607,4 +608,170 @@ bool del_object(const string& id)
         retval = true;
     }
     return retval;
+}
+
+string get_profile_opts (const string& id)
+{
+    string retval = "";
+    string result = "";
+    string query = "";
+    int objs;
+
+    query = "<report><profile value='" + id + "'/></report>";
+    retval = "<report>";
+    objs = globalDispatcher->Storage()->Report(weObjTypeProfile, id, query, result);
+    if (objs > 0)
+    {
+        retval += result;
+    }
+    else {
+        LOG4CXX_WARN(WeLogger::GetLogger(), "get_profile_opts - profile not found: " << id);
+    }
+    retval += "</report>";
+    return retval;
+}
+
+bool set_profile_opts (const string& dat)
+{
+    bool retval = false;
+    string id;
+    string xml;
+    size_t t;
+
+    t = dat.find(';');
+    if (t != string::npos) {
+        id = dat.substr(0, t);
+        xml = dat.substr(t+1);
+        if (globalDispatcher->Storage()->Query(weObjTypeProfile, id, iweStorage::autoop, xml) > 0) {
+            retval = true;
+        }
+        else {
+            LOG4CXX_WARN(WeLogger::GetLogger(), "set_profile_opts - profile " << id << " not saved!");
+        }
+    }
+    return retval;
+}
+
+bool del_profile (const string& id)
+{
+    bool retval = false;
+    string query = "";
+
+    query = "<delete profile='" + id + "'/>";
+    if (globalDispatcher->Storage()->Delete(weObjTypeProfile, query) > 0) {
+        retval = true;
+    }
+    else {
+        LOG4CXX_WARN(WeLogger::GetLogger(), "del_profile - profile " << id << " not deleted!");
+    }
+    return retval;
+}
+
+ProfileList* get_profile_list(const string& criteria = "")
+{
+    string report = "";
+    string result;
+    string crit;
+    string query = "";
+    int tasks = 0, i;
+    ProfileList* lst;
+    ProfileInfo* obj;
+
+    if (criteria == "") {
+        crit = "*";
+    }
+    else {
+        crit = criteria;
+    }
+    lst = NULL;
+    //query = "<report>";
+    tasks = 0;
+    result = "<report>\n";
+    size_t tpos = crit.find(',');
+    while (tpos != string::npos) {
+        //query += "<profile value='" + crit.substr(0, tpos) + "' />";
+        i = globalDispatcher->Storage()->Report(weObjTypeProfile, crit.substr(0,tpos), "", report); 
+        if(i > 0) {
+            tasks += i;
+            result += report;
+        }
+        crit = crit.substr(tpos+1);
+        tpos = crit.find(',');
+    }
+    //query += "<profile value='" + crit + "' />";
+    i = globalDispatcher->Storage()->Report(weObjTypeProfile, crit, "", report); 
+    if(i > 0) {
+        tasks += i;
+        result += report;
+    }
+    //query += "</report>";
+    result += "</report>";
+    //tasks = globalDispatcher->Storage()->ObjectReport(weObjTypeProfile, query, report);
+    if (tasks > 0)
+    {   // parse the response
+        bool in_parsing = true;
+        int parsing_level = 0;
+        int xml_pos;
+        WeStrStream st(result.c_str());
+        WeTagScanner sc(st);
+        WeOption opt;
+        string sdata;
+        WeProfile tsk;
+        string tag;
+
+        while(in_parsing) {
+            xml_pos = sc.GetPos();
+            int t = sc.GetToken();
+            switch(t)
+            {
+            case wstError:
+                LOG4CXX_WARN(WeLogger::GetLogger(), "get_profile_list - parsing error");
+                in_parsing = false;
+                break;
+            case wstEof:
+                LOG4CXX_TRACE(WeLogger::GetLogger(), "get_profile_list - parsing EOF");
+                in_parsing = false;
+                break;
+            case wstTagStart:
+                tag = sc.GetTagName();
+                if (parsing_level == 0)
+                {
+                    if (iequals(tag, "report")) {
+                        lst = new ProfileList;
+                        lst->clear();
+                        parsing_level++;
+                        break;
+                    }
+                }
+                if (parsing_level == 1) {
+                    if (iequals(tag, weObjTypeProfile)) {
+                        // go back to the start of the TAG
+                        tsk.FromXml(sc, t);
+                        obj = new ProfileInfo;
+                        opt = tsk.Option(weoID);
+                        SAFE_GET_OPTION_VAL(opt, sdata, "0");
+                        obj->ObjectId = sdata;
+                        opt = tsk.Option(weoName);
+                        SAFE_GET_OPTION_VAL(opt, sdata, "0");
+                        obj->Name = sdata;
+                        lst->push_back(*obj);
+                        break;
+                    }
+                }
+                LOG4CXX_WARN(WeLogger::GetLogger(), "get_profile_list - unexpected tag: " << tag);
+                in_parsing = false;
+                break;
+            case wstTagEnd:
+                tag = sc.GetTagName();
+                if (parsing_level == 0)
+                {
+                    if (iequals(tag, "report")) {
+                        in_parsing = false;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    return lst;
 }

@@ -24,7 +24,7 @@
 
 using namespace boost;
 
-class weProfile : public iweOptionsProvider
+class WeProfile : public iweOptionsProvider
 {
 public:
     string ToXml( void );

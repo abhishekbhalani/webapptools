@@ -130,4 +130,21 @@ private:
 
 typedef vector<ObjectInfo> ObjectList;
 
+class ProfileInfo
+{
+public:
+    string  ObjectId;
+    string  Name;
+private:
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & BOOST_SERIALIZATION_NVP(ObjectId);
+        ar & BOOST_SERIALIZATION_NVP(Name);
+    };
+};
+
+typedef vector<ProfileInfo> ProfileList;
+
 #endif //__MESSAGES_H__

@@ -92,22 +92,22 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSzProfileTool->Add( 0, 0, 1, wxEXPAND, 5 );
 
-	m_toolBar6 = new wxToolBar( m_panObjects, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
-	m_toolBar6->SetToolBitmapSize( wxSize( 22,22 ) );
+	m_toolBarProf = new wxToolBar( m_panObjects, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
+	m_toolBarProf->SetToolBitmapSize( wxSize( 22,22 ) );
 	wxArrayString m_chProfileChoices;
-	m_chProfile = new wxChoice( m_toolBar6, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chProfileChoices, 0 );
+	m_chProfile = new wxChoice( m_toolBarProf, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chProfileChoices, 0 );
 	m_chProfile->SetSelection( 0 );
-	m_toolBar6->AddControl( m_chProfile );
-	m_toolBar6->AddTool( wxID_TLPROFNEW, _("tool"), wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Create new profile"), wxEmptyString );
-	m_toolBar6->AddTool( wxID_TLPROFCLONE, _("tool"), wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Copy current profile"), wxEmptyString );
-	m_toolBar6->AddTool( wxID_TLPROFDEL, _("tool"), wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete profile"), wxEmptyString );
-	m_toolBar6->AddSeparator();
-	m_toolBar6->AddTool( wxID_TLPROFSAVE, _("tool"), wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save profile"), wxEmptyString );
-	m_toolBar6->AddSeparator();
-	m_toolBar6->AddTool( wxID_TOOLGO, wxEmptyString, wxBitmap( start_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Start task"), wxEmptyString );
-	m_toolBar6->Realize();
+	m_toolBarProf->AddControl( m_chProfile );
+	m_toolBarProf->AddTool( wxID_TLPROFNEW, _("tool"), wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Create new profile"), wxEmptyString );
+	m_toolBarProf->AddTool( wxID_TLPROFCLONE, _("tool"), wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Copy current profile"), wxEmptyString );
+	m_toolBarProf->AddTool( wxID_TLPROFDEL, _("tool"), wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete profile"), wxEmptyString );
+	m_toolBarProf->AddSeparator();
+	m_toolBarProf->AddTool( wxID_TLPROFSAVE, _("tool"), wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save profile"), wxEmptyString );
+	m_toolBarProf->AddSeparator();
+	m_toolBarProf->AddTool( wxID_TOOLGO, wxEmptyString, wxBitmap( start_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Start task"), wxEmptyString );
+	m_toolBarProf->Realize();
 
-	bSzProfileTool->Add( m_toolBar6, 0, wxEXPAND, 5 );
+	bSzProfileTool->Add( m_toolBarProf, 0, wxEXPAND, 5 );
 
 	bSzProfile->Add( bSzProfileTool, 0, wxEXPAND, 5 );
 
@@ -125,86 +125,106 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	gbSizer2->SetFlexibleDirection( wxBOTH );
 	gbSizer2->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 
+	wxStaticText* m_stTransports;
 	m_stTransports = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Used transports"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stTransports->Wrap( -1 );
-	gbSizer2->Add( m_stTransports, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxALL, 5 );
+	gbSizer2->Add( m_stTransports, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxALL, 5 );
 
 	m_listBox1 = new wxListBox( m_panTaskOpts, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 );
-	gbSizer2->Add( m_listBox1, wxGBPosition( 0, 1 ), wxGBSpan( 2, 2 ), wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
+	gbSizer2->Add( m_listBox1, wxGBPosition( 1, 1 ), wxGBSpan( 2, 2 ), wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 5 );
 
 	m_bpAddTransp = new wxBitmapButton( m_panTaskOpts, wxID_ANY, wxBitmap( btnAdd_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpAddTransp->SetToolTip( _("Add transport") );
 
 	m_bpAddTransp->SetToolTip( _("Add transport") );
 
-	gbSizer2->Add( m_bpAddTransp, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	gbSizer2->Add( m_bpAddTransp, wxGBPosition( 1, 3 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
 	m_bpDelTrasp = new wxBitmapButton( m_panTaskOpts, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpDelTrasp->SetToolTip( _("Remove transport") );
 
 	m_bpDelTrasp->SetToolTip( _("Remove transport") );
 
-	gbSizer2->Add( m_bpDelTrasp, wxGBPosition( 1, 3 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	gbSizer2->Add( m_bpDelTrasp, wxGBPosition( 2, 3 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
+	wxStaticText* m_stLogLevel;
 	m_stLogLevel = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Log level"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stLogLevel->Wrap( -1 );
-	gbSizer2->Add( m_stLogLevel, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	gbSizer2->Add( m_stLogLevel, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	wxString m_chLogLevelChoices[] = { _("Trace"), _("Debug"), _("Info"), _("Warnings"), _("Errors"), _("Fatal") };
 	int m_chLogLevelNChoices = sizeof( m_chLogLevelChoices ) / sizeof( wxString );
-	m_chLogLevel = new wxChoice( m_panTaskOpts, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chLogLevelNChoices, m_chLogLevelChoices, 0 );
+	m_chLogLevel = new wxChoice( m_panTaskOpts, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chLogLevelNChoices, m_chLogLevelChoices, 0, wxDefaultValidator, wxT("LogLevel<2>") );
 	m_chLogLevel->SetSelection( 0 );
 	m_chLogLevel->SetMinSize( wxSize( 150,-1 ) );
 
-	gbSizer2->Add( m_chLogLevel, wxGBPosition( 2, 1 ), wxGBSpan( 1, 2 ), wxALL|wxEXPAND, 5 );
+	gbSizer2->Add( m_chLogLevel, wxGBPosition( 3, 1 ), wxGBSpan( 1, 2 ), wxALL|wxEXPAND, 5 );
 
-	wxString m_rbDepthChoices[] = { _("Stay in dir"), _("Stay in host"), _("Stay in domain") };
-	int m_rbDepthNChoices = sizeof( m_rbDepthChoices ) / sizeof( wxString );
-	m_rbDepth = new wxRadioBox( m_panTaskOpts, wxID_ANY, _("Depth mode"), wxDefaultPosition, wxDefaultSize, m_rbDepthNChoices, m_rbDepthChoices, 1, wxRA_SPECIFY_COLS );
-	m_rbDepth->SetSelection( 0 );
-	gbSizer2->Add( m_rbDepth, wxGBPosition( 3, 0 ), wxGBSpan( 3, 2 ), wxALL|wxEXPAND, 5 );
+	wxStaticBoxSizer* rbDepth;
+	rbDepth = new wxStaticBoxSizer( new wxStaticBox( m_panTaskOpts, wxID_ANY, _("Depth mode") ), wxVERTICAL );
 
+	m_rbInDir = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Stay in dir"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInDir<6>") );
+	rbDepth->Add( m_rbInDir, 0, wxALL, 5 );
+
+	m_rbInHost = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Saty in host"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInHost<6>") );
+	rbDepth->Add( m_rbInHost, 0, wxALL, 5 );
+
+	m_rbInDomain = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Stay in domain"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInDomain<6>") );
+	rbDepth->Add( m_rbInDomain, 0, wxALL, 5 );
+
+	gbSizer2->Add( rbDepth, wxGBPosition( 4, 0 ), wxGBSpan( 3, 2 ), wxEXPAND, 5 );
+
+	wxStaticText* m_stDepth;
 	m_stDepth = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Scan depth"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stDepth->Wrap( -1 );
-	gbSizer2->Add( m_stDepth, wxGBPosition( 3, 2 ), wxGBSpan( 1, 1 ), wxALIGN_BOTTOM|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
+	gbSizer2->Add( m_stDepth, wxGBPosition( 4, 2 ), wxGBSpan( 1, 1 ), wxALIGN_BOTTOM|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
 
-	m_txtDepth = new wxTextCtrl( m_panTaskOpts, wxID_ANY, _("-1"), wxDefaultPosition, wxDefaultSize, 0 );
-	gbSizer2->Add( m_txtDepth, wxGBPosition( 4, 2 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
+	m_txtDepth = new wxTextCtrl( m_panTaskOpts, wxID_ANY, _("-1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("ScanDepth<2>") );
+	gbSizer2->Add( m_txtDepth, wxGBPosition( 5, 2 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
 
 	wxStaticBoxSizer* sbSizer1;
 	sbSizer1 = new wxStaticBoxSizer( new wxStaticBox( m_panTaskOpts, wxID_ANY, _("Inventory options") ), wxVERTICAL );
 
-	m_cbInvent = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Inventory only"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
+	m_cbInvent = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Inventory only"), wxDefaultPosition, wxSize( -1,-1 ), 0, wxDefaultValidator, wxT("OnlyInventory<6>") );
 	m_cbInvent->SetValue(true);
 
 	m_cbInvent->Enable( false );
 
 	sbSizer1->Add( m_cbInvent, 0, wxALL, 5 );
 
-	m_chIgnoreParams = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Ignore URL parameters"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_chIgnoreParams = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Ignore URL parameters"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("noParamUrl<6>") );
 
 	sbSizer1->Add( m_chIgnoreParams, 0, wxALL, 5 );
 
 	wxBoxSizer* bSzThreads;
 	bSzThreads = new wxBoxSizer( wxHORIZONTAL );
 
+	wxStaticText* m_stThreads;
 	m_stThreads = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Number of threads"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stThreads->Wrap( -1 );
 	m_stThreads->SetToolTip( _("Number of thread for transport operations") );
 
 	bSzThreads->Add( m_stThreads, 0, wxALL, 5 );
 
-	m_spinCtrl1 = new wxSpinCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 50,-1 ), wxSP_ARROW_KEYS, 1, 50, 10 );
+	m_spinCtrl1 = new wxSpinCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 50,-1 ), wxSP_ARROW_KEYS, 1, 50, 10, wxT("ParallelReq<2>") );
 	m_spinCtrl1->SetToolTip( _("Number of thread for transport operations") );
 
 	bSzThreads->Add( m_spinCtrl1, 0, wxALL, 5 );
 
 	sbSizer1->Add( bSzThreads, 1, wxEXPAND, 5 );
 
-	gbSizer2->Add( sbSizer1, wxGBPosition( 6, 0 ), wxGBSpan( 3, 3 ), wxEXPAND, 5 );
+	gbSizer2->Add( sbSizer1, wxGBPosition( 7, 0 ), wxGBSpan( 3, 3 ), wxEXPAND, 5 );
 
 
 	gbSizer2->Add( 0, 0, wxGBPosition( 3, 4 ), wxGBSpan( 1, 1 ), wxEXPAND, 5 );
+
+	wxStaticText* m_staticText23;
+	m_staticText23 = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Profile name"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText23->Wrap( -1 );
+	gbSizer2->Add( m_staticText23, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+
+	m_txtProfName = new wxTextCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("name<8>") );
+	gbSizer2->Add( m_txtProfName, wxGBPosition( 0, 1 ), wxGBSpan( 1, 2 ), wxALL|wxEXPAND, 5 );
 
 	bSizer11->Add( gbSizer2, 0, wxEXPAND, 0 );
 
@@ -264,7 +284,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_pTasks->SetSizer( bSzTab1 );
 	m_pTasks->Layout();
 	bSzTab1->Fit( m_pTasks );
-	m_mainnb->AddPage( m_pTasks, _("Tasks"), false, wxBitmap( panTasks_xpm ) );
+	m_mainnb->AddPage( m_pTasks, _("Tasks"), true, wxBitmap( panTasks_xpm ) );
 	m_pReports = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer13;
 	bSizer13 = new wxBoxSizer( wxVERTICAL );
@@ -319,7 +339,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_pReports->SetSizer( bSizer13 );
 	m_pReports->Layout();
 	bSizer13->Fit( m_pReports );
-	m_mainnb->AddPage( m_pReports, _("Reports"), true, wxBitmap( panReports_xpm ) );
+	m_mainnb->AddPage( m_pReports, _("Reports"), false, wxBitmap( panReports_xpm ) );
 	m_pSettings = new wxPanel( m_mainnb, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer10;
 	bSizer10 = new wxBoxSizer( wxVERTICAL );
@@ -513,6 +533,10 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->Connect( wxID_TOOLDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelObject ) );
 	m_lstObjectList->Connect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MainForm::OnTaskKillFocus ), NULL, this );
 	m_lstObjectList->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnSelectObject ), NULL, this );
+	m_chProfile->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainForm::OnChangeProfile ), NULL, this );
+	this->Connect( wxID_TLPROFNEW, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnAddProfile ) );
+	this->Connect( wxID_TLPROFCLONE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCopyProfile ) );
+	this->Connect( wxID_TLPROFDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelProfile ) );
 	this->Connect( wxID_TLPROFSAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnTaskApply ) );
 	this->Connect( wxID_TOOLGO, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
 	this->Connect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
@@ -546,6 +570,10 @@ MainForm::~MainForm()
 	this->Disconnect( wxID_TOOLDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelObject ) );
 	m_lstObjectList->Disconnect( wxEVT_KILL_FOCUS, wxFocusEventHandler( MainForm::OnTaskKillFocus ), NULL, this );
 	m_lstObjectList->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnSelectObject ), NULL, this );
+	m_chProfile->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainForm::OnChangeProfile ), NULL, this );
+	this->Disconnect( wxID_TLPROFNEW, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnAddProfile ) );
+	this->Disconnect( wxID_TLPROFCLONE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCopyProfile ) );
+	this->Disconnect( wxID_TLPROFDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelProfile ) );
 	this->Disconnect( wxID_TLPROFSAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnTaskApply ) );
 	this->Disconnect( wxID_TOOLGO, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
 	this->Disconnect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
