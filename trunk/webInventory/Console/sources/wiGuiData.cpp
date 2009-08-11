@@ -154,7 +154,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	wxString m_chLogLevelChoices[] = { _("Trace"), _("Debug"), _("Info"), _("Warnings"), _("Errors"), _("Fatal") };
 	int m_chLogLevelNChoices = sizeof( m_chLogLevelChoices ) / sizeof( wxString );
-	m_chLogLevel = new wxChoice( m_panTaskOpts, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chLogLevelNChoices, m_chLogLevelChoices, 0, wxDefaultValidator, wxT("LogLevel<2>") );
+	m_chLogLevel = new wxChoice( m_panTaskOpts, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chLogLevelNChoices, m_chLogLevelChoices, 0, wxDefaultValidator, wxT("LogLevel<2>[4]") );
 	m_chLogLevel->SetSelection( 0 );
 	m_chLogLevel->SetMinSize( wxSize( 150,-1 ) );
 
@@ -163,13 +163,13 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxStaticBoxSizer* rbDepth;
 	rbDepth = new wxStaticBoxSizer( new wxStaticBox( m_panTaskOpts, wxID_ANY, _("Depth mode") ), wxVERTICAL );
 
-	m_rbInDir = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Stay in dir"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInDir<6>") );
+	m_rbInDir = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Stay in dir"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInDir<6>[1]") );
 	rbDepth->Add( m_rbInDir, 0, wxALL, 5 );
 
-	m_rbInHost = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Saty in host"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInHost<6>") );
+	m_rbInHost = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Saty in host"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInHost<6>[1]") );
 	rbDepth->Add( m_rbInHost, 0, wxALL, 5 );
 
-	m_rbInDomain = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Stay in domain"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInDomain<6>") );
+	m_rbInDomain = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Stay in domain"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInDomain<6>[1]") );
 	rbDepth->Add( m_rbInDomain, 0, wxALL, 5 );
 
 	gbSizer2->Add( rbDepth, wxGBPosition( 4, 0 ), wxGBSpan( 3, 2 ), wxEXPAND, 5 );
@@ -179,20 +179,20 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_stDepth->Wrap( -1 );
 	gbSizer2->Add( m_stDepth, wxGBPosition( 4, 2 ), wxGBSpan( 1, 1 ), wxALIGN_BOTTOM|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
 
-	m_txtDepth = new wxTextCtrl( m_panTaskOpts, wxID_ANY, _("-1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("ScanDepth<2>") );
+	m_txtDepth = new wxTextCtrl( m_panTaskOpts, wxID_ANY, _("-1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("ScanDepth<2>[0]") );
 	gbSizer2->Add( m_txtDepth, wxGBPosition( 5, 2 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
 
 	wxStaticBoxSizer* sbSizer1;
 	sbSizer1 = new wxStaticBoxSizer( new wxStaticBox( m_panTaskOpts, wxID_ANY, _("Inventory options") ), wxVERTICAL );
 
-	m_cbInvent = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Inventory only"), wxDefaultPosition, wxSize( -1,-1 ), 0, wxDefaultValidator, wxT("OnlyInventory<6>") );
+	m_cbInvent = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Inventory only"), wxDefaultPosition, wxSize( -1,-1 ), 0, wxDefaultValidator, wxT("OnlyInventory<6>[2]") );
 	m_cbInvent->SetValue(true);
 
 	m_cbInvent->Enable( false );
 
 	sbSizer1->Add( m_cbInvent, 0, wxALL, 5 );
 
-	m_chIgnoreParams = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Ignore URL parameters"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("noParamUrl<6>") );
+	m_chIgnoreParams = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Ignore URL parameters"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("noParamUrl<6>[2]") );
 
 	sbSizer1->Add( m_chIgnoreParams, 0, wxALL, 5 );
 
@@ -206,7 +206,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	bSzThreads->Add( m_stThreads, 0, wxALL, 5 );
 
-	m_spinCtrl1 = new wxSpinCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 50,-1 ), wxSP_ARROW_KEYS, 1, 50, 10, wxT("ParallelReq<2>") );
+	m_spinCtrl1 = new wxSpinCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 50,-1 ), wxSP_ARROW_KEYS, 1, 50, 10, wxT("ParallelReq<2>[3]") );
 	m_spinCtrl1->SetToolTip( _("Number of thread for transport operations") );
 
 	bSzThreads->Add( m_spinCtrl1, 0, wxALL, 5 );
@@ -223,7 +223,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_staticText23->Wrap( -1 );
 	gbSizer2->Add( m_staticText23, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 
-	m_txtProfName = new wxTextCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("name<8>") );
+	m_txtProfName = new wxTextCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("name<8>[0]") );
 	gbSizer2->Add( m_txtProfName, wxGBPosition( 0, 1 ), wxGBSpan( 1, 2 ), wxALL|wxEXPAND, 5 );
 
 	bSizer11->Add( gbSizer2, 0, wxEXPAND, 0 );

@@ -96,9 +96,6 @@ protected:
     void Connected(bool mode = true);
     void GetPluginList();
     void SelectTask(int id = -1);
-    void SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value);
-    void SaveTaskOptionBool (wxXmlNode *root, const wxString& name, const bool& value);
-    void SaveTaskOptionInt (wxXmlNode *root, const wxString& name, const int& value);
 
     void GetTaskOptions(const wxString& taskID);
     void FillObjectFilter();
