@@ -35,6 +35,7 @@
 #include "treeData.h"
 #include "version.h"
 #include "wiReportData.h"
+#include "weRttiOptions.h"
 #include "../images/webInventory.xpm"
 #include "../images/btnStop.xpm"
 #include "../images/start.xpm"
@@ -929,34 +930,6 @@ void wiMainForm::GetTaskOptions(const wxString& taskID)
     }
 }
 
-void wiMainForm::SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value)
-{
-    wxXmlNode *chld, *content;
-
-    chld = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("option"));
-    chld->AddProperty(wxT("name"), name);
-    chld->AddProperty(wxT("type"), type);
-    content = new wxXmlNode(wxXML_TEXT_NODE, wxT(""));
-    content->SetContent(value);
-    chld->AddChild(content);
-    root->AddChild(chld);
-}
-
-void wiMainForm::SaveTaskOptionBool (wxXmlNode *root, const wxString& name, const bool& value)
-{
-    wxString content = wxT("0");
-    if (value) {
-        content = wxT("1");
-    }
-    SaveTaskOption(root, name, wxT(weoTypeBool), content);
-}
-
-void wiMainForm::SaveTaskOptionInt (wxXmlNode *root, const wxString& name, const int& value)
-{
-    wxString content = wxString::Format(wxT("%d"), value);
-    SaveTaskOption(root, name, wxT(weoTypeInt), content);
-}
-
 void wiMainForm::OnStorageChange( wxCommandEvent& event )
 {
     int plg = m_chStorage->GetSelection();
@@ -1271,35 +1244,23 @@ void wiMainForm::OnDelProfile( wxCommandEvent& event )
 
 void wiMainForm::OnTaskApply( wxCommandEvent& event )
 {
+    ProfileInfo* dat;
+    wxString profID;
+
     // save profile data
-/*
-    if (m_selectedTask > -1) {
-        info.SetId(m_selectedTask);
-        info.SetColumn(0);
-        info.SetMask(wxLIST_MASK_DATA);
-        m_lstTaskList->GetItem(info);
+    if (m_selectedProf > -1) {
+        dat = (ProfileInfo*)m_chProfile->GetClientData(m_selectedProf);
+        profID.Empty();
+        if (dat != NULL) {
+            profID = FromStdString(dat->ObjectId);
+        }
         // check options changing and ask for save them
-        if (m_client != NULL) {
+        if (m_client != NULL && !profID.IsEmpty()) {
             wxXmlDocument opt;
             wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("options"));
-            wxXmlNode *chld;
             wxString content;
 
-            SaveTaskOption(root, wxT(weoName), wxT(weoTypeString), m_txtTaskName->GetValue());
-
-            SaveTaskOption(root, wxT(weoBaseURL), wxT(weoTypeString), m_txtBaseURL->GetValue());
-
-            SaveTaskOptionBool(root, wxT(weoStayInDir), (m_rbDepth->GetSelection() == 0));
-
-            SaveTaskOptionBool(root, wxT(weoStayInHost), (m_rbDepth->GetSelection() == 1));
-
-            SaveTaskOptionBool(root, wxT(weoStayInDomain), (m_rbDepth->GetSelection() == 2));
-
-            SaveTaskOptionBool(root, wxT("OnlyInventory"), m_cbInvent->IsChecked());
-
-            SaveTaskOption(root, wxT(weoScanDepth), wxT(weoTypeInt), m_txtDepth->GetValue());
-
-            SaveTaskOptionInt(root, wxT(weoLogLevel), m_chLogLevel->GetSelection());
+            weRttiOptions::GetOptions(m_panTaskOpts, root);
 
             opt.SetRoot(root);
             wxMemoryOutputStream outp;
@@ -1308,16 +1269,16 @@ void wiMainForm::OnTaskApply( wxCommandEvent& event )
             char *data = new char[dataLen + 10];
             if (data != NULL) {
                 outp.CopyTo(data, dataLen);
-                wxString str = wxString::Format(wxT("%X;"), info.GetData());
-                str += FromStdString(data);
-                m_client->DoCmd(wxT("settaskopts"), str);
+                data[dataLen] = '\0';
+                wxString str = wxString::Format(wxT("%s;"), profID);
+                str += wxString::FromUTF8(data);
+                m_client->DoCmd(wxT("setprofileopts"), str);
             }
             else {
                 wxLogError(wxT("Can't compose options save request!"));
             }
         }
     }
-*/
 }
 
 void wiMainForm::OnChangeProfile( wxCommandEvent& event )
