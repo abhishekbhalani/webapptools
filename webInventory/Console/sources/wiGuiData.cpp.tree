@@ -535,8 +535,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	this->SetSizer( bSizer1 );
 	this->Layout();
-    m_statusBar = new wiStatBar( this );
-    SetStatusBar(m_statusBar);
+	m_statusBar = new wiStatBar( this );
+	SetStatusBar(m_statusBar);
 
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
@@ -551,6 +551,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->Connect( wxID_TLPROFDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelProfile ) );
 	this->Connect( wxID_TLPROFSAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnTaskApply ) );
 	this->Connect( wxID_TOOLGO, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
+	m_plgBook->Connect( wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING, wxTreebookEventHandler( MainForm::OnOptionsPageChanging ), NULL, this );
 	this->Connect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
 	this->Connect( wxID_TOOLSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ) );
 	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
@@ -588,6 +589,7 @@ MainForm::~MainForm()
 	this->Disconnect( wxID_TLPROFDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelProfile ) );
 	this->Disconnect( wxID_TLPROFSAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnTaskApply ) );
 	this->Disconnect( wxID_TOOLGO, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
+	m_plgBook->Disconnect( wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING, wxTreebookEventHandler( MainForm::OnOptionsPageChanging ), NULL, this );
 	this->Disconnect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
 	this->Disconnect( wxID_TOOLSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ) );
 	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );

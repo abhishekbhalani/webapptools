@@ -158,6 +158,7 @@ class MainForm : public wxFrame
 		virtual void OnDelProfile( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnTaskApply( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnOptionsPageChanging( wxTreebookEvent& event ){ event.Skip(); }
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSortItems( wxListEvent& event ){ event.Skip(); }
 		virtual void OnTaskSelected( wxListEvent& event ){ event.Skip(); }

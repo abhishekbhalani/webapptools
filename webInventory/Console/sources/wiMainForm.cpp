@@ -40,6 +40,13 @@
 #include "../images/btnStop.xpm"
 #include "../images/start.xpm"
 #include "../images/pause.xpm"
+// treebook
+#include "../images/opts_global.xpm"
+#include "../images/opts_transport.xpm"
+#include "../images/opts_inventory.xpm"
+#include "../images/opts_audit.xpm"
+#include "../images/opts_vulner.xpm"
+
 #include "optionnames.h"
 
 /// @todo change this
@@ -195,6 +202,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_toolBarObject->EnableTool(wxID_TOOLSTOP, false);
     m_toolBarObject->EnableTool(wxID_TOOLNEW, false);
     m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
+
+    // create default view of the options panel
+    RebuildOptionsView();
 
     wxString label;
     label = wxString::FromAscii(AutoVersion::FULLVERSION_STRING) + wxT(" ");
@@ -1296,4 +1306,51 @@ void wiMainForm::OnChangeProfile( wxCommandEvent& event )
 void wiMainForm::OnPlgRefresh( wxCommandEvent& event )
 {
     GetPluginList();
+}
+
+void wiMainForm::RebuildOptionsView()
+{
+    wxImageList* icons;
+    wxPanel *panel;
+
+    wxWindowUpdateLocker taskList(m_plgBook);
+
+    icons = new wxImageList(16, 16);
+    icons->RemoveAll();
+    icons->Add(wxBitmap(opts_global_xpm));
+    icons->Add(wxBitmap(opts_transport_xpm));
+    icons->Add(wxBitmap(opts_inventory_xpm));
+    icons->Add(wxBitmap(opts_audit_xpm));
+    icons->Add(wxBitmap(opts_vulner_xpm));
+    m_plgBook->AssignImageList(icons);
+
+    while (m_plgBook->GetPageCount() > 1) {
+        m_plgBook->DeletePage(1);
+    }
+    m_plgBook->SetPageImage(0, 0);
+    // transports
+    panel = new wxPanel(m_plgBook);
+    m_plgBook->AddPage(panel, _("Transports"), false, 1);
+    // inventory
+    panel = new wxPanel(m_plgBook);
+    m_plgBook->AddPage(panel, _("Inventory"), false, 2);
+    // audit
+    panel = new wxPanel(m_plgBook);
+    m_plgBook->AddPage(panel, _("Audit"), false, 3);
+    // vulners
+    panel = new wxPanel(m_plgBook);
+    m_plgBook->AddPage(panel, _("Vulnerabilities"), false, 4);
+
+    m_plgBook->SetSelection(0);
+}
+
+void wiMainForm::OnOptionsPageChanging( wxTreebookEvent& event )
+{
+    const int idx = event.GetSelection();
+    if (idx >= 1 && idx <= 4) {
+        event.Veto();
+    }
+    else {
+        // do something for page changing
+    }
 }
