@@ -169,6 +169,11 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     }
     m_chLangs->SetSelection(iData);
 
+    iData = 0;
+    if (m_cfgEngine.Read(wxT("logging"), &iData)) {
+        m_chLogging->SetValue(iData);
+    }
+
     m_lstImages.Add(wxIcon(tree_unk));
     m_lstImages.Add(wxIcon(tree_yes));
     m_lstImages.Add(wxIcon(tree_no));
@@ -262,6 +267,7 @@ void wiMainForm::OnClose( wxCloseEvent& event )
 {
     // @todo disconnect from server and save state
     m_cfgEngine.Write(wxT("language"), m_chLangs->GetString(m_chLangs->GetSelection()));
+    m_cfgEngine.Write(wxT("logging"), m_chLogging->GetValue());
 
     if (m_client != NULL) {
         m_client->DoCmd(wxT("close"), wxT(""));
@@ -559,8 +565,6 @@ void wiMainForm::OnEditObject( wxCommandEvent& event )
 {
     wiObjDialog objDlg(this);
     wxString name, url;
-    int idx;
-    long idt;
     ObjectInfo* obj;
 
     if (m_selectedObject > -1) {
@@ -755,11 +759,6 @@ void wiMainForm::GetPluginList()
             m_gbPluginsGrid->Remove(item->GetWindow());
             //delete item;
         }
-        item = m_gbPluginsGrid->FindItemAtPosition(wxGBPosition(i+1, 3));
-        if (item != NULL) {
-            m_gbPluginsGrid->Remove(item->GetWindow());
-            //delete item;
-        }
     }
     if (m_plugList != NULL) {
         delete m_plugList;
@@ -787,10 +786,6 @@ void wiMainForm::GetPluginList()
                 }
                 m_gbPluginsGrid->Add(cho, wxGBPosition(m_plugins+1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
 
-                wxButton *btn = new wxButton( m_pluginsDock, wxPluginsData + m_plugins, _("Settings"), wxDefaultPosition, wxDefaultSize);
-                btn->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( wiMainForm::OnPluginSettings ), NULL, this );
-                m_gbPluginsGrid->Add(btn, wxGBPosition(m_plugins+1, 3), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-
                 char** xpm = StringListToXpm((*m_plugList)[lstSize].PluginIcon);
                 wxStaticBitmap *ico = new wxStaticBitmap( m_pluginsDock, wxID_ANY, wxBitmap(xpm));
                 m_gbPluginsGrid->Add(ico, wxGBPosition(m_plugins+1, 0), wxDefaultSpan, wxALIGN_CENTER);
@@ -812,37 +807,37 @@ void wiMainForm::GetPluginList()
     m_pluginsDock->Thaw();
 }
 
-void wiMainForm::OnPluginSettings( wxCommandEvent& event )
-{
-    int id = event.GetId();
-    id -= wxPluginsData;
-
-    if (m_client != NULL && (id >= 0 && id < m_plugList->size())) {
-        wxString str = FromStdString((*m_plugList)[id].PluginId);
-        wxString xrc = m_client->DoCmd(wxT("plgui"), str);
-        if (xrc.IsEmpty()) {
-            wxMessageBox(_("This plugin doesn't provide any settings"), wxT("WebInvent"), wxICON_WARNING | wxOK, this);
-        }
-        else {
-            str += wxT(".xrc");
-            wxMemoryFSHandler::AddFile(str, xrc);
-            wxString fname = wxT("memory:") + str;
-            if ( wxXmlResource::Get()->Load(fname) ) {
-                wxDialog dlg;
-                if ( wxXmlResource::Get()->LoadDialog(&dlg, this, wxT("SettingsDialog")) ) {
-                    dlg.ShowModal();
-                    /// @todo Get the controls values, pack them to the XML and sends back
-                    // m_client->DoCmd("applysettings", xmlData);
-                }
-                wxXmlResource::Get()->Unload(fname);
-            }
-            else {
-                wxMessageBox(_("Can't load given UI"), wxT("WebInvent"), wxICON_STOP | wxOK, this);
-            }
-            wxMemoryFSHandler::RemoveFile(str);
-        }
-    }
-}
+//void wiMainForm::OnPluginSettings( wxCommandEvent& event )
+//{
+//    int id = event.GetId();
+//    id -= wxPluginsData;
+//
+//    if (m_client != NULL && (id >= 0 && id < m_plugList->size())) {
+//        wxString str = FromStdString((*m_plugList)[id].PluginId);
+//        wxString xrc = m_client->DoCmd(wxT("plgui"), str);
+//        if (xrc.IsEmpty()) {
+//            wxMessageBox(_("This plugin doesn't provide any settings"), wxT("WebInvent"), wxICON_WARNING | wxOK, this);
+//        }
+//        else {
+//            str += wxT(".xrc");
+//            wxMemoryFSHandler::AddFile(str, xrc);
+//            wxString fname = wxT("memory:") + str;
+//            if ( wxXmlResource::Get()->Load(fname) ) {
+//                wxDialog dlg;
+//                if ( wxXmlResource::Get()->LoadDialog(&dlg, this, wxT("SettingsDialog")) ) {
+//                    dlg.ShowModal();
+//                    /// @todo Get the controls values, pack them to the XML and sends back
+//                    // m_client->DoCmd("applysettings", xmlData);
+//                }
+//                wxXmlResource::Get()->Unload(fname);
+//            }
+//            else {
+//                wxMessageBox(_("Can't load given UI"), wxT("WebInvent"), wxICON_STOP | wxOK, this);
+//            }
+//            wxMemoryFSHandler::RemoveFile(str);
+//        }
+//    }
+//}
 
 void wiMainForm::GetTaskOptions(const wxString& taskID)
 {
@@ -1296,4 +1291,9 @@ void wiMainForm::OnChangeProfile( wxCommandEvent& event )
         dat = (ProfileInfo*)m_chProfile->GetClientData(m_selectedProf);
         GetTaskOptions(FromStdString(dat->ObjectId));
     }
+}
+
+void wiMainForm::OnPlgRefresh( wxCommandEvent& event )
+{
+    GetPluginList();
 }
