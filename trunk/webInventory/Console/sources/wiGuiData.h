@@ -75,10 +75,10 @@ class wiStatBar;
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
 ///////////////////////////////////////////////////////////////////////////////
-class MainForm : public wxFrame 
+class MainForm : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxAuiNotebook* m_mainnb;
 		wxPanel* m_pTasks;
@@ -101,7 +101,7 @@ class MainForm : public wxFrame
 		wxCheckBox* m_cbInvent;
 		wxCheckBox* m_chIgnoreParams;
 		wxSpinCtrl* m_spinCtrl1;
-		
+
 		wxPanel* m_panTasks;
 		wxToolBar* m_toolBarTasks;
 		wxListCtrl* m_lstTaskList;
@@ -128,13 +128,13 @@ class MainForm : public wxFrame
 		wxToolBar* m_toolBarLang;
 		wxStaticText* m_stLangRestart;
 		wxCheckBox* m_chLogging;
-		
+
 		wxStaticLine* m_staticline2;
 		wxPanel* m_pnServer;
 		wxStaticText* m_staticText18;
 		wxChoice* m_chStorage;
 		wxBitmapButton* m_bpStorageApply;
-		
+
 		wxBitmapButton* m_bpPlgRefresh;
 		wxStaticText* m_staticText19;
 		wxScrolledWindow* m_pluginsDock;
@@ -142,9 +142,9 @@ class MainForm : public wxFrame
 		wxButton* m_btPluginIcon;
 		wxButton* m_btPluginDesc;
 		wxButton* m_btPluginIface;
-		
+
 		wiStatBar* m_statusBar;
-		
+
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
 		virtual void OnAddObject( wxCommandEvent& event ){ event.Skip(); }
@@ -158,6 +158,7 @@ class MainForm : public wxFrame
 		virtual void OnDelProfile( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnTaskApply( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnOptionsPageChanging( wxTreebookEvent& event ){ event.Skip(); }
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSortItems( wxListEvent& event ){ event.Skip(); }
 		virtual void OnTaskSelected( wxListEvent& event ){ event.Skip(); }
@@ -177,8 +178,8 @@ class MainForm : public wxFrame
 		virtual void OnLangChange( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnStorageChange( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnPlgRefresh( wxCommandEvent& event ){ event.Skip(); }
-		
-	
+
+
 	public:
 		MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("WebInventory"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1070,660 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~MainForm();
@@ -187,47 +188,47 @@ class MainForm : public wxFrame
 		m_splitTasks->SetSashPosition( 0 );
 		m_splitTasks->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitTasksOnIdle ), NULL, this );
 		}
-		
+
 		void m_splitOnIdle( wxIdleEvent& )
 		{
 		m_split->SetSashPosition( 400 );
 		m_split->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitOnIdle ), NULL, this );
 		}
-		
-	
+
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ObjDialog
 ///////////////////////////////////////////////////////////////////////////////
-class ObjDialog : public wxDialog 
+class ObjDialog : public wxDialog
 {
 	private:
-	
+
 	protected:
 		wxStdDialogButtonSizer* m_sdbSizer2;
 		wxButton* m_sdbSizer2OK;
 		wxButton* m_sdbSizer2Cancel;
-		
+
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnOK( wxCommandEvent& event ){ event.Skip(); }
-		
-	
+
+
 	public:
 		wxTextCtrl* m_txtObjName;
 		wxTextCtrl* m_txtBaseURL;
 		ObjDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Object"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 279,130 ), long style = wxDEFAULT_DIALOG_STYLE );
 		~ObjDialog();
-	
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ServDialog
 ///////////////////////////////////////////////////////////////////////////////
-class ServDialog : public wxDialog 
+class ServDialog : public wxDialog
 {
 	private:
-	
+
 	protected:
 		wxStaticText* m_stName;
 		wxStaticText* m_stServName;
@@ -235,18 +236,18 @@ class ServDialog : public wxDialog
 		wxStdDialogButtonSizer* m_sdbSizer1;
 		wxButton* m_sdbSizer1OK;
 		wxButton* m_sdbSizer1Cancel;
-		
+
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnOK( wxCommandEvent& event ){ event.Skip(); }
-		
-	
+
+
 	public:
 		wxTextCtrl* m_txtName;
 		wxTextCtrl* m_txtHostname;
 		wxTextCtrl* m_txtSrvPort;
 		ServDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Connection"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 296,156 ), long style = wxDEFAULT_DIALOG_STYLE );
 		~ServDialog();
-	
+
 };
 
 #endif //__wiGuiData__

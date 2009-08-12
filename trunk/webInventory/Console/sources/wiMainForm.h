@@ -55,6 +55,7 @@ protected:
     virtual void OnClose( wxCloseEvent& event );
     virtual void OnConnect( wxCommandEvent& event );
     virtual void OnLangChange( wxCommandEvent& event );
+    virtual void OnOptionsPageChanging( wxTreebookEvent& event );
     virtual void OnPlgRefresh( wxCommandEvent& event );
     virtual void OnSortItems( wxListEvent& event );
     virtual void OnStorageChange( wxCommandEvent& event );
@@ -102,7 +103,7 @@ protected:
     void GetTaskOptions(const wxString& taskID);
     void FillObjectFilter();
     void RebuildReportsTree();
-    void OneStringReport(const wxString& message, int code = 0);
+    void RebuildOptionsView();
 
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;
