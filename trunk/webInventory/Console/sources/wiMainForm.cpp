@@ -1315,6 +1315,8 @@ void wiMainForm::RebuildOptionsView()
 
     wxWindowUpdateLocker taskList(m_plgBook);
 
+    m_plgBook->GetTreeCtrl()->SetWindowStyle(wxTR_HIDE_ROOT);
+
     icons = new wxImageList(16, 16);
     icons->RemoveAll();
     icons->Add(wxBitmap(opts_global_xpm));

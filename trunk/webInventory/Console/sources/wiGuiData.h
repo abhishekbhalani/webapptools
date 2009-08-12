@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Apr 16 2008)
+// C++ code generated with wxFormBuilder (version Dec 29 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -248,6 +248,29 @@ class ServDialog : public wxDialog
 		ServDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Connection"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 296,156 ), long style = wxDEFAULT_DIALOG_STYLE );
 		~ServDialog();
 
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class PlgSelector
+///////////////////////////////////////////////////////////////////////////////
+class PlgSelector : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxTreeCtrl* m_plgTree;
+		wxStdDialogButtonSizer* m_sdbSizer3;
+		wxButton* m_sdbSizer3OK;
+		wxButton* m_sdbSizer3Cancel;
+		
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnOK( wxCommandEvent& event ){ event.Skip(); }
+		
+	
+	public:
+		PlgSelector( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Select plugin"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 500,300 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~PlgSelector();
+	
 };
 
 #endif //__wiGuiData__
