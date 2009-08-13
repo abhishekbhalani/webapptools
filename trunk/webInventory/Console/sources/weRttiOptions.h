@@ -32,7 +32,7 @@
 #define UNKNOWN         -1
 #define TEXT_CTRL       0
 #define RADIO_BTN       1
-#define CHECH_BOX       2
+#define CHECK_BOX       2
 #define SPIN_CTRL       3
 #define CHOICE          4
 #define COMBOBOX        5
@@ -42,6 +42,7 @@ class weRttiOptions
     public:
         weRttiOptions();
 
+        static void SetOptions(wxWindow* panel, wxXmlNode* root, bool verbose = false);
         static wxXmlNode* GetOptions(wxWindow* panel, wxXmlNode* root, bool verbose = false);
         static void SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value);
         static void SaveTaskOptionBool (wxXmlNode *root, const wxString& name, const bool& value);

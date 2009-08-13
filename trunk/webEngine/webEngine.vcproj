@@ -183,7 +183,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sources\weHttpInvent.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sources\weHttpResp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sources\weiInventory.cpp"
 				>
 			</File>
 			<File
@@ -265,7 +273,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\weHttpInvent.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\weiBase.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\weiInventory.h"
 				>
 			</File>
 			<File

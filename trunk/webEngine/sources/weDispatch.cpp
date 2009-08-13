@@ -19,6 +19,7 @@
 */
 #include "weiBase.h"
 #include "weHTTP.h"
+#include "weHttpInvent.h"
 #include "weDispatch.h"
 #include "externals/shared_object.hpp"
 
@@ -200,6 +201,8 @@ void WeDispatch::RefreshPluginList( boost::filesystem::path& baseDir )
     pluginList.push_back(*(WePluginInfo*)memStore.Info());
     WeHTTP httpTrans(this);
     pluginList.push_back(*(WePluginInfo*)httpTrans.Info());
+    WeHttpInvent httpInvent(this);
+    pluginList.push_back(*(WePluginInfo*)httpInvent.Info());
 
     // search for dynamic libraries with plugin interface
     WeStringList files = FindFiles(baseDir.string());
@@ -258,6 +261,11 @@ iwePlugin* WeDispatch::LoadPlugin( string id )
         // WeHTTP interface
         LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::LoadPlugin - embedded plugin: WeHTTP");
         retval = new WeHTTP(this);
+    }
+    if (id == "AB7ED6E5A7B3") {
+        // WeMemStorage interface
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::LoadPlugin - embedded plugin: WeHttpInvent");
+        retval = new WeHttpInvent(this);
     }
 
     if (retval == NULL) {

@@ -91,6 +91,9 @@ protected:
     virtual void OnTaskApply( wxCommandEvent& event );
     virtual void OnChangeProfile( wxCommandEvent& event );
 
+    virtual void OnAddPlugin( wxCommandEvent& event );
+    virtual void OnRemovePlugin( wxCommandEvent& event );
+
     void ProcessTaskList(const wxString& criteria = wxT(""));
     void ProcessObjects(const wxString& criteria = wxT(""));
     void ProcessProfileList(const wxString& criteria = wxT(""));
@@ -100,10 +103,12 @@ protected:
     void GetPluginList();
     void SelectTask(int id = -1);
 
-    void GetTaskOptions(const wxString& taskID);
     void FillObjectFilter();
-    void RebuildReportsTree();
+    void GetTaskOptions(const wxString& taskID);
+    wxPanel* LoadPluginSettings( PluginInfo* plg );
     void RebuildOptionsView();
+    void RebuildReportsTree();
+    PluginInfo* FoundPlugin( const wxString& id);
 
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;
