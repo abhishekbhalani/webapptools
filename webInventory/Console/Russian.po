@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webInventory 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-07-23 17:19+0300\n"
+"POT-Creation-Date: 2009-08-14 02:30+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Andrew Abramov <stinger@lab18.net>\n"
 "Language-Team: http://code.google.com/p/webapptools/ <stinger911@gmail.com>\n"
@@ -15,276 +15,413 @@ msgstr ""
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: sources\n"
 
-#: sources/wiGuiData.cpp:48
-msgid "Task List"
-msgstr "Список задач"
+#: sources/wiPlgSelector.cpp:17
+msgid "Select plugin to add"
+msgstr ""
 
-#: sources/wiGuiData.cpp:59
-#: sources/wiGuiData.cpp:62
-msgid "Start task"
-msgstr "Запустить задачу"
+#: sources/wiPlgSelector.cpp:17
+#: sources/wiMainForm.cpp:1509
+msgid "Warning"
+msgstr "Предупреждение"
 
-#: sources/wiGuiData.cpp:68
-#: sources/wiGuiData.cpp:71
-msgid "Cancel task"
-msgstr "Отменить задачу"
+#: sources/wiGuiData.cpp:54
+msgid "Targets List"
+msgstr "Список целей"
 
-#: sources/wiGuiData.cpp:80
-#: sources/wiGuiData.cpp:83
-msgid "Add new task"
-msgstr "Добавить задачу"
+#: sources/wiGuiData.cpp:65
+msgid "Add new object"
+msgstr "Добавить объект"
 
-#: sources/wiGuiData.cpp:89
-#: sources/wiGuiData.cpp:92
+#: sources/wiGuiData.cpp:66
+#: sources/wiGuiData.cpp:101
+#: sources/wiGuiData.cpp:102
+#: sources/wiGuiData.cpp:103
+#: sources/wiGuiData.cpp:105
+#: sources/wiGuiData.cpp:248
+#: sources/wiGuiData.cpp:249
+#: sources/wiGuiData.cpp:258
+#: sources/wiGuiData.cpp:261
+#: sources/wiGuiData.cpp:262
+#: sources/wiGuiData.cpp:324
+#: sources/wiGuiData.cpp:325
+#: sources/wiGuiData.cpp:357
+msgid "tool"
+msgstr ""
+
+#: sources/wiGuiData.cpp:67
 msgid "Delete task"
 msgstr "Удалить задачу"
 
-#: sources/wiGuiData.cpp:116
-msgid "Task settings"
-msgstr "Настройки задачи"
+#: sources/wiGuiData.cpp:86
+msgid "Profile settings"
+msgstr "Настройки профиля"
 
-#: sources/wiGuiData.cpp:129
-#: sources/wiMainForm.cpp:158
-msgid "Task name"
-msgstr "Название задачи"
+#: sources/wiGuiData.cpp:101
+msgid "Create new profile"
+msgstr ""
 
-#: sources/wiGuiData.cpp:138
-msgid "Base URL"
-msgstr "Базовый URL"
+#: sources/wiGuiData.cpp:102
+msgid "Copy current profile"
+msgstr ""
 
-#: sources/wiGuiData.cpp:147
-msgid "Stay in dir"
-msgstr "Оставаться в каталоге"
+#: sources/wiGuiData.cpp:103
+msgid "Delete profile"
+msgstr ""
 
-#: sources/wiGuiData.cpp:147
-msgid "Stay in host"
-msgstr "Оставаться на узле"
+#: sources/wiGuiData.cpp:105
+msgid "Save profile"
+msgstr ""
 
-#: sources/wiGuiData.cpp:147
-msgid "Stay in domain"
-msgstr "Оставаться в домене"
+#: sources/wiGuiData.cpp:107
+#: sources/wiGuiData.cpp:206
+msgid "Start task"
+msgstr "Запустить задачу"
 
-#: sources/wiGuiData.cpp:149
-msgid "Depth mode"
-msgstr "Режим"
+#: sources/wiGuiData.cpp:118
+msgid "Add plugin"
+msgstr ""
 
-#: sources/wiGuiData.cpp:153
-msgid "Scan depth"
-msgstr "Глубина сканирования"
+#: sources/wiGuiData.cpp:123
+msgid "Remove plugin"
+msgstr ""
 
-#: sources/wiGuiData.cpp:157
-msgid "-1"
-msgstr "-1"
+#: sources/wiGuiData.cpp:128
+msgid "Profile name"
+msgstr ""
 
-#: sources/wiGuiData.cpp:160
-msgid "Apply"
-msgstr "Применить"
-
-#: sources/wiGuiData.cpp:163
-msgid "Inventory only"
-msgstr "Только инвентаризация"
-
-#: sources/wiGuiData.cpp:183
-msgid "Task execution log"
-msgstr "Журнал выполнения"
-
-#: sources/wiGuiData.cpp:192
+#: sources/wiGuiData.cpp:159
 msgid "Log level"
 msgstr "Уровень журналирования"
 
-#: sources/wiGuiData.cpp:196
+#: sources/wiGuiData.cpp:163
 msgid "Trace"
 msgstr "Trace"
 
-#: sources/wiGuiData.cpp:196
+#: sources/wiGuiData.cpp:163
+msgid "Debug"
+msgstr ""
+
+#: sources/wiGuiData.cpp:163
 msgid "Info"
 msgstr "Info"
 
-#: sources/wiGuiData.cpp:196
+#: sources/wiGuiData.cpp:163
 msgid "Warnings"
 msgstr "Warnings"
 
-#: sources/wiGuiData.cpp:196
+#: sources/wiGuiData.cpp:163
 msgid "Errors"
 msgstr "Errors"
 
-#: sources/wiGuiData.cpp:196
+#: sources/wiGuiData.cpp:163
 msgid "Fatal"
 msgstr "Fatal"
 
-#: sources/wiGuiData.cpp:214
+#: sources/wiGuiData.cpp:178
+#: sources/wiMainForm.cpp:906
+msgid "Generic options"
+msgstr "Основные параметры"
+
+#: sources/wiGuiData.cpp:195
+msgid "Active tasks"
+msgstr "Активные задачи"
+
+#: sources/wiGuiData.cpp:207
+msgid "Cancel task"
+msgstr "Отменить задачу"
+
+#: sources/wiGuiData.cpp:234
 msgid "Tasks"
 msgstr "Задачи"
 
-#: sources/wiGuiData.cpp:216
+#: sources/wiGuiData.cpp:248
+msgid "Refresh reports list"
+msgstr ""
+
+#: sources/wiGuiData.cpp:249
+msgid "Apply filter"
+msgstr ""
+
+#: sources/wiGuiData.cpp:251
+msgid "Object: "
+msgstr "Объект:"
+
+#: sources/wiGuiData.cpp:258
+msgid "Date filter mode"
+msgstr "Режим фильтра даты"
+
+#: sources/wiGuiData.cpp:261
+msgid "Filter by scan status"
+msgstr ""
+
+#: sources/wiGuiData.cpp:262
+msgid "Save and load filters"
+msgstr ""
+
+#: sources/wiGuiData.cpp:289
 msgid "Reports"
 msgstr "Отчеты"
 
-#: sources/wiGuiData.cpp:226
+#: sources/wiGuiData.cpp:299
 msgid "Console version:"
 msgstr "Версия консоли:"
 
-#: sources/wiGuiData.cpp:230
-#: sources/wiGuiData.cpp:281
-#: sources/wiMainForm.cpp:182
-#: sources/wiMainForm.cpp:212
-#: sources/wiMainForm.cpp:428
+#: sources/wiGuiData.cpp:303
+#: sources/wiGuiData.cpp:336
+#: sources/wiMainForm.cpp:262
+#: sources/wiMainForm.cpp:303
+#: sources/wiMainForm.cpp:553
 msgid "unknown"
 msgstr "нет данных"
 
-#: sources/wiGuiData.cpp:234
+#: sources/wiGuiData.cpp:307
 msgid "Scanner address:"
 msgstr "Адрес сканера:"
 
-#: sources/wiGuiData.cpp:241
+#: sources/wiGuiData.cpp:314
 msgid "hostname[:port]"
 msgstr "hostname[:port]"
 
-#: sources/wiGuiData.cpp:248
-#: sources/wiGuiData.cpp:250
-#: sources/wiMainForm.cpp:431
+#: sources/wiGuiData.cpp:322
+#: sources/wiMainForm.cpp:556
 msgid "Connect"
 msgstr "Соединиться"
 
-#: sources/wiGuiData.cpp:255
-#: sources/wiGuiData.cpp:257
+#: sources/wiGuiData.cpp:323
 msgid "Add new connection"
 msgstr "Добавить соединение"
 
-#: sources/wiGuiData.cpp:262
-#: sources/wiGuiData.cpp:264
+#: sources/wiGuiData.cpp:324
 msgid "Edit connection"
 msgstr "Изменить соединение"
 
-#: sources/wiGuiData.cpp:269
-#: sources/wiGuiData.cpp:271
+#: sources/wiGuiData.cpp:325
 msgid "Delete connection"
 msgstr "Удалить соединение"
 
-#: sources/wiGuiData.cpp:277
+#: sources/wiGuiData.cpp:332
 msgid "Scanner version:"
 msgstr "Версия сканера:"
 
-#: sources/wiGuiData.cpp:285
+#: sources/wiGuiData.cpp:340
 msgid "Interface Language:"
 msgstr "Язык интерфейса:"
 
-#: sources/wiGuiData.cpp:292
+#: sources/wiGuiData.cpp:347
 msgid "English (default)"
 msgstr "English (default)"
 
-#: sources/wiGuiData.cpp:301
-#: sources/wiGuiData.cpp:303
+#: sources/wiGuiData.cpp:357
 msgid "Apply (need restart)"
 msgstr "Применить (требуется перезапуск)"
 
-#: sources/wiGuiData.cpp:307
+#: sources/wiGuiData.cpp:362
 msgid "Need to restart to apply changes"
 msgstr "Требуется перезапуск"
 
-#: sources/wiGuiData.cpp:331
+#: sources/wiGuiData.cpp:373
+msgid "Write console logs:"
+msgstr ""
+
+#: sources/wiGuiData.cpp:395
 msgid "Scanner storage:"
 msgstr "Хранилище сканера:"
 
-#: sources/wiGuiData.cpp:342
+#: sources/wiGuiData.cpp:410
+#: sources/wiGuiData.cpp:412
+msgid "Apply"
+msgstr "Применить"
+
+#: sources/wiGuiData.cpp:420
+#: sources/wiGuiData.cpp:422
+msgid "Refresh"
+msgstr "Обновить"
+
+#: sources/wiGuiData.cpp:428
 msgid "Scanner plugins:"
 msgstr "Расширения сканера:"
 
-#: sources/wiGuiData.cpp:364
+#: sources/wiGuiData.cpp:450
 msgid "Description"
 msgstr "Описание"
 
-#: sources/wiGuiData.cpp:367
+#: sources/wiGuiData.cpp:453
 msgid "Interface"
 msgstr "Интерфейс"
 
-#: sources/wiGuiData.cpp:390
-#: sources/wiMainForm.cpp:638
+#: sources/wiGuiData.cpp:473
 msgid "Settings"
 msgstr "Настройки"
 
-#: sources/wiGuiData.cpp:445
+#: sources/wiGuiData.cpp:575
+msgid "Object name"
+msgstr ""
+
+#: sources/wiGuiData.cpp:583
+msgid "Base URL"
+msgstr "Базовый URL"
+
+#: sources/wiGuiData.cpp:625
 msgid "Scanner name:"
 msgstr "Название сканера:"
 
-#: sources/wiGuiData.cpp:454
+#: sources/wiGuiData.cpp:634
 msgid "Scanner host:"
 msgstr "Хост сканера:"
 
-#: sources/wiGuiData.cpp:463
+#: sources/wiGuiData.cpp:643
 msgid "Scanner port:"
 msgstr "Порт сканера:"
 
-#: sources/wiMainForm.cpp:51
+#: sources/wiMainForm.cpp:67
 msgid "idle"
 msgstr "idle"
 
-#: sources/wiMainForm.cpp:52
+#: sources/wiMainForm.cpp:68
 #, c-format
 msgid "run (%d%%)"
 msgstr "run (%d%%)"
 
-#: sources/wiMainForm.cpp:53
+#: sources/wiMainForm.cpp:69
 #, c-format
 msgid "paused (%d%%)"
 msgstr "paused (%d%%)"
 
-#: sources/wiMainForm.cpp:159
+#: sources/wiMainForm.cpp:71
+#: sources/wiMainForm.cpp:1128
+#: sources/wiMainForm.cpp:1208
+msgid "Please wait..."
+msgstr ""
+
+#: sources/wiMainForm.cpp:72
+#: sources/wiMainForm.cpp:1233
+msgid "Report will be here"
+msgstr ""
+
+#: sources/wiMainForm.cpp:73
+msgid "Can't retreiving information for task!"
+msgstr ""
+
+#: sources/wiMainForm.cpp:74
+msgid "No connection to server!"
+msgstr ""
+
+#: sources/wiMainForm.cpp:149
+msgid "This plugin doesn't provide any settings"
+msgstr "Это расширение не предоставляет настроек"
+
+#: sources/wiMainForm.cpp:224
+msgid "Task name"
+msgstr "Название задачи"
+
+#: sources/wiMainForm.cpp:225
 msgid "Status"
 msgstr "Статус"
 
-#: sources/wiMainForm.cpp:181
-#: sources/wiMainForm.cpp:427
+#: sources/wiMainForm.cpp:261
+#: sources/wiMainForm.cpp:552
 msgid "Disconnected"
 msgstr "Нет соединения"
 
-#: sources/wiMainForm.cpp:304
-#: sources/wiMainForm.cpp:340
+#: sources/wiMainForm.cpp:397
+#: sources/wiMainForm.cpp:433
 msgid "Port value is out of range"
 msgstr "Недопустимый номер порта"
 
-#: sources/wiMainForm.cpp:308
+#: sources/wiMainForm.cpp:401
 msgid "Connection with the same name already exist"
 msgstr "Соединение с таким сканером уже существует"
 
-#: sources/wiMainForm.cpp:357
+#: sources/wiMainForm.cpp:450
 #, c-format
 msgid "Are you shure to delete the connection '%s'?"
 msgstr "Вы действительно хотите удалить соединение '%s'?"
 
-#: sources/wiMainForm.cpp:358
-#: sources/wiMainForm.cpp:477
+#: sources/wiMainForm.cpp:451
+#: sources/wiMainForm.cpp:647
+#: sources/wiMainForm.cpp:680
+#: sources/wiMainForm.cpp:1334
 msgid "Confirm"
 msgstr "Подтверждение"
 
-#: sources/wiMainForm.cpp:443
+#: sources/wiMainForm.cpp:574
 msgid "Connected"
 msgstr "Соединен"
 
-#: sources/wiMainForm.cpp:446
+#: sources/wiMainForm.cpp:577
 msgid "Disconnect"
 msgstr "Разорвать соединение"
 
-#: sources/wiMainForm.cpp:458
+#: sources/wiMainForm.cpp:646
+#, c-format
+msgid "Are you sure to delete object '%s'?"
+msgstr "Вы действительно хотите удалить объект '%s'?"
+
+#: sources/wiMainForm.cpp:661
 msgid "Input new task name"
 msgstr "Введите название задачи"
 
-#: sources/wiMainForm.cpp:458
+#: sources/wiMainForm.cpp:661
+#: sources/wiMainForm.cpp:1288
 msgid "Query"
 msgstr "Запрос"
 
-#: sources/wiMainForm.cpp:476
+#: sources/wiMainForm.cpp:679
 #, c-format
 msgid "Are you sure to delete task '%s'?"
 msgstr "Вы действительно хотите удалить задачу '%s'?"
 
-#: sources/wiMainForm.cpp:663
-msgid "This plugin doesn't provide any settings"
-msgstr "Это расширение не предоставляет настроек"
-
-#: sources/wiMainForm.cpp:679
+#: sources/wiMainForm.cpp:874
 msgid "Can't load given UI"
 msgstr "Не удается загрузить UI"
+
+#: sources/wiMainForm.cpp:890
+#: sources/wiMainForm.cpp:1446
+msgid "Transports"
+msgstr "Транспорты"
+
+#: sources/wiMainForm.cpp:894
+#: sources/wiMainForm.cpp:1449
+msgid "Inventory"
+msgstr "Инвенторизация"
+
+#: sources/wiMainForm.cpp:898
+#: sources/wiMainForm.cpp:1452
+msgid "Audit"
+msgstr "Аудит"
+
+#: sources/wiMainForm.cpp:902
+#: sources/wiMainForm.cpp:1455
+msgid "Vulnerabilities"
+msgstr ""
+
+#: sources/wiMainForm.cpp:1059
+msgid "All"
+msgstr ""
+
+#: sources/wiMainForm.cpp:1288
+msgid "Input new profile name"
+msgstr "Введите название профиля"
+
+#: sources/wiMainForm.cpp:1333
+#, c-format
+msgid "Are you sure to delete profile '%s'?"
+msgstr "Вы действительно хотите удалить профиль '%s'?"
+
+#: sources/wiMainForm.cpp:1509
+msgid "Plugin already exist in this profile"
+msgstr ""
+
+#: sources/weRttiOptions.cpp:156
+#: sources/weRttiOptions.cpp:286
+#, c-format
+msgid "Unknown widget code: %d (type=%d, name='%s'"
+msgstr ""
+
+#: sources/weRttiOptions.cpp:162
+#, c-format
+msgid "Unknown option type: %d (code=%d, name='%s'"
+msgstr "Неизвестный тип опции: %d (code=%d, name=%d)"
 
 #: sources/wxThings/filebrws.cpp:605
 msgid "Directory"
@@ -298,16 +435,38 @@ msgstr "Ссылка"
 msgid "Drive"
 msgstr "Диск"
 
-#: sources/wiGuiData.h:129
+#: sources/wiGuiData.h:175
 msgid "WebInventory"
 msgstr "WebInventory"
 
-#: sources/wiGuiData.h:157
+#: sources/wiGuiData.h:211
+msgid "Object"
+msgstr "Объект"
+
+#: sources/wiGuiData.h:239
 msgid "Connection"
 msgstr "Соединение"
 
-#~ msgid "Active tasks"
-#~ msgstr "Активные задачи"
+#: sources/wiGuiData.h:262
+msgid "Select plugin"
+msgstr "Выберите плагин"
+
+#~ msgid "Add new task"
+#~ msgstr "Добавить задачу"
+#~ msgid "Stay in dir"
+#~ msgstr "Оставаться в каталоге"
+#~ msgid "Stay in host"
+#~ msgstr "Оставаться на узле"
+#~ msgid "Stay in domain"
+#~ msgstr "Оставаться в домене"
+#~ msgid "Scan depth"
+#~ msgstr "Глубина сканирования"
+#~ msgid "-1"
+#~ msgstr "-1"
+#~ msgid "Inventory only"
+#~ msgstr "Только инвентаризация"
+#~ msgid "Task execution log"
+#~ msgstr "Журнал выполнения"
 #~ msgid "Continue task"
 #~ msgstr "Возобновить задачу"
 #~ msgid "Pause task"

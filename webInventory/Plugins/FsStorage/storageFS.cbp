@@ -18,7 +18,10 @@
 					<Add option="-DBUILD_DLL" />
 				</Compiler>
 				<Linker>
-					<Add library="user32" />
+					<Add library="libboost_system-mt.a" />
+					<Add library="libwebEngine.a" />
+					<Add library="libboost_filesystem-mt.a" />
+					<Add library="libboost_thread-mt.a" />
 					<Add directory="../../../webEngine/libs/debug" />
 				</Linker>
 			</Target>
@@ -35,10 +38,10 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="libboost_system-gcc43-mt.a" />
+					<Add library="libboost_system-mt.a" />
 					<Add library="libwebEngine.a" />
-					<Add library="libboost_filesystem-gcc43-mt.a" />
-					<Add library="libboost_thread-gcc43-mt-1_38.a" />
+					<Add library="libboost_filesystem-mt.a" />
+					<Add library="libboost_thread-mt.a" />
 					<Add directory="../../../webEngine/libs/release" />
 				</Linker>
 			</Target>

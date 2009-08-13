@@ -880,7 +880,7 @@ wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
     if (panel == NULL) {
         panel = CreateDefaultPanel(m_plgBook);
     }
-    char** xpm = StringListToXpm((vector<string>)plg->PluginIcon);
+    char** xpm = StringListToXpm((vector<string>&)plg->PluginIcon);
     int imgIdx = m_plgBook->GetImageList()->Add(wxBitmap(xpm));
     wxString pageLabel;
     int pageIdx = 0;
@@ -1380,7 +1380,7 @@ void wiMainForm::OnTaskApply( wxCommandEvent& event )
             if (data != NULL) {
                 outp.CopyTo(data, dataLen);
                 data[dataLen] = '\0';
-                wxString str = wxString::Format(wxT("%s;"), profID);
+                wxString str = wxString::Format(wxT("%s;"), profID.c_str());
                 str += wxString::FromUTF8(data);
                 m_client->DoCmd(wxT("setprofileopts"), str);
             }
