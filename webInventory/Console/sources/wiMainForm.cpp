@@ -36,6 +36,7 @@
 #include "version.h"
 #include "wiReportData.h"
 #include "weRttiOptions.h"
+#include "wiPlgSelector.h"
 #include "../images/webInventory.xpm"
 #include "../images/btnStop.xpm"
 #include "../images/start.xpm"
@@ -141,6 +142,40 @@ static char** StringListToXpm(vector<string>& data)
     return retval;
 }
 
+wxPanel* CreateDefaultPanel(wxWindow* parent)
+{
+    wxPanel* panel = new wxPanel(parent);
+
+    (void) new wxStaticText( panel, wxID_ANY, _("This plugin doesn't provide any settings"), wxDefaultPosition, wxDefaultSize, 0 );
+
+    return panel;
+}
+
+wxTreeItemId FindItem(wxTreeCtrl* tree, wxTreeItemId curr, const wxString& label)
+{
+    if (tree->GetItemText(curr) == label) {
+        return curr;
+    }
+    wxTreeItemId child, search;
+    wxTreeItemIdValue cookie;
+
+    child = tree->GetFirstChild(curr, cookie);
+    while (child.IsOk()) {
+        search = FindItem(tree, child, label);
+        if (search.IsOk()) {
+            break;
+        }
+        child = tree->GetNextChild(curr, cookie);
+    }
+
+    return search;
+}
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+//                   wiMainForm class functions
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 wiMainForm::wiMainForm( wxWindow* parent ) :
         MainForm( parent ),
         m_cfgEngine(wxT("WebInvent")),
@@ -197,6 +232,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
 
     m_plugins = 0;
     m_plugList = NULL;
+
+    m_bpAddPlugin->Enable(false);
+    m_bpDelPlugin->Enable(false);
 
     m_toolBarObject->EnableTool(wxID_TOOLGO, false);
     m_toolBarObject->EnableTool(wxID_TOOLSTOP, false);
@@ -817,37 +855,68 @@ void wiMainForm::GetPluginList()
     m_pluginsDock->Thaw();
 }
 
-//void wiMainForm::OnPluginSettings( wxCommandEvent& event )
-//{
-//    int id = event.GetId();
-//    id -= wxPluginsData;
-//
-//    if (m_client != NULL && (id >= 0 && id < m_plugList->size())) {
-//        wxString str = FromStdString((*m_plugList)[id].PluginId);
-//        wxString xrc = m_client->DoCmd(wxT("plgui"), str);
-//        if (xrc.IsEmpty()) {
-//            wxMessageBox(_("This plugin doesn't provide any settings"), wxT("WebInvent"), wxICON_WARNING | wxOK, this);
-//        }
-//        else {
-//            str += wxT(".xrc");
-//            wxMemoryFSHandler::AddFile(str, xrc);
-//            wxString fname = wxT("memory:") + str;
-//            if ( wxXmlResource::Get()->Load(fname) ) {
-//                wxDialog dlg;
-//                if ( wxXmlResource::Get()->LoadDialog(&dlg, this, wxT("SettingsDialog")) ) {
-//                    dlg.ShowModal();
-//                    /// @todo Get the controls values, pack them to the XML and sends back
-//                    // m_client->DoCmd("applysettings", xmlData);
-//                }
-//                wxXmlResource::Get()->Unload(fname);
-//            }
-//            else {
-//                wxMessageBox(_("Can't load given UI"), wxT("WebInvent"), wxICON_STOP | wxOK, this);
-//            }
-//            wxMemoryFSHandler::RemoveFile(str);
-//        }
-//    }
-//}
+wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
+{
+    wxString id = FromStdString(plg->PluginId);
+    wxPanel* panel = NULL;
+
+    if (m_client != NULL) {
+        wxString xrc = m_client->DoCmd(wxT("plgui"), id);
+        if (!xrc.IsEmpty()) {
+            id += wxT(".xrc");
+            wxMemoryFSHandler::AddFile(id, xrc);
+            wxString fname = wxT("memory:") + id;
+            if ( wxXmlResource::Get()->Load(fname) ) {
+                panel = wxXmlResource::Get()->LoadPanel(m_plgBook, wxT("ui_panel"));
+                wxXmlResource::Get()->Unload(fname);
+            }
+            else {
+                wxMessageBox(_("Can't load given UI"), wxT("WebInvent"), wxICON_STOP | wxOK, this);
+            }
+            wxMemoryFSHandler::RemoveFile(id);
+        }
+    }
+
+    if (panel == NULL) {
+        panel = CreateDefaultPanel(m_plgBook);
+    }
+    char** xpm = StringListToXpm((vector<string>)plg->PluginIcon);
+    int imgIdx = m_plgBook->GetImageList()->Add(wxBitmap(xpm));
+    wxString pageLabel;
+    int pageIdx = 0;
+
+    if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iweTransport") != plg->IfaceList.end())
+    {   // add plugins to the transport list
+        pageLabel = _("Transports");
+    }
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iweInventory") != plg->IfaceList.end())
+    {   // add plugins to the inventory list
+        pageLabel = _("Inventory");
+    }
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iweAudit") != plg->IfaceList.end())
+    {   // add plugins to the audit list
+        pageLabel = _("Audit");
+    }
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iweVulner") != plg->IfaceList.end())
+    {   // add plugins to the vulnerabilities list
+        pageLabel = _("Vulnerabilities");
+    }
+    else
+    {   // add plugins to the generic list
+        pageLabel = _("Generic options");
+    }
+    for (int i = 0; i < m_plgBook->GetPageCount(); i++) {
+        if (m_plgBook->GetPageText(i) == pageLabel) {
+            pageIdx = i;
+            break;
+        }
+    }
+    pageLabel = FromStdString(plg->IfaceList.back());
+    panel->SetName(id);
+    m_plgBook->InsertSubPage(pageIdx, panel, pageLabel, false, imgIdx);
+
+    return panel;
+}
 
 void wiMainForm::GetTaskOptions(const wxString& taskID)
 {
@@ -883,16 +952,19 @@ void wiMainForm::GetTaskOptions(const wxString& taskID)
                 if (child == NULL) {
                     return;
                 }
-                child = child->GetChildren();
+                root = child;
+                child = root->GetChildren();
 
                 // reset valuses
                 m_txtProfName->SetValue(wxT(""));
-                //m_txtBaseURL->SetValue(wxT(""));
-                m_rbInDir->SetValue(false);
-                m_rbInHost->SetValue(false);
-                m_rbInDomain->SetValue(false);
-                m_txtDepth->SetValue(wxT("-1"));
                 m_chLogLevel->Select(0);
+                RebuildOptionsView();
+                /// @todo reset values to default
+//                m_txtBaseURL->SetValue(wxT(""));
+//                m_rbInDir->SetValue(false);
+//                m_rbInHost->SetValue(false);
+//                m_rbInDomain->SetValue(false);
+//                m_txtDepth->SetValue(wxT("-1"));
 
                 // set new values
                 while (child != NULL) {
@@ -904,33 +976,55 @@ void wiMainForm::GetTaskOptions(const wxString& taskID)
                         if (name.CmpNoCase(wxT(weoName)) == 0) {
                             m_txtProfName->SetValue(text);
                         }
-                        if (name.CmpNoCase(wxT(weoBaseURL)) == 0) {
-                            //m_txtBaseURL->SetValue(text);
-                        }
-                        if (name.CmpNoCase(wxT(weoStayInDir)) == 0 && text == wxT("1")) {
-                            m_rbInDir->SetValue(true);
-                        }
-                        if (name.CmpNoCase(wxT(weoStayInHost)) == 0 && text == wxT("1")) {
-                            m_rbInHost->SetValue(true);
-                        }
-                        if (name.CmpNoCase(wxT(weoStayInDomain)) == 0 && text == wxT("1")) {
-                            m_rbInDomain->SetValue(true);
-                        }
-                        if (name.CmpNoCase(wxT(weoScanDepth)) == 0) {
-                            m_txtDepth->SetValue(text);
-                        }
-                        if (name.CmpNoCase(wxT(weoLogLevel)) == 0) {
-                            long idx;
-                            text.ToLong(&idx);
-                            if (idx >= 0 && idx < m_chLogLevel->GetCount()) {
-                                m_chLogLevel->Select(idx);
+                        if (name.CmpNoCase(wxT("plugin_list")) == 0) {
+                            // parse string and create options panels
+                            int pos = text.Find(wxT(';'));
+                            while (pos != wxNOT_FOUND) {
+                                wxString pid = text.Mid(0, pos);
+                                PluginInfo *plg = FoundPlugin(pid);
+                                if (plg != NULL) {
+                                    LoadPluginSettings(plg);
+                                }
+                                text = text.Mid(pos + 1);
+                                pos = text.Find(wxT(';'));
+                            }
+                            PluginInfo *plg = FoundPlugin(text);
+                            if (plg != NULL) {
+                                LoadPluginSettings(plg);
                             }
                         }
+
+//                        if (name.CmpNoCase(wxT(weoBaseURL)) == 0) {
+//                            //m_txtBaseURL->SetValue(text);
+//                        }
+//                        if (name.CmpNoCase(wxT(weoStayInDir)) == 0 && text == wxT("1")) {
+//                            m_rbInDir->SetValue(true);
+//                        }
+//                        if (name.CmpNoCase(wxT(weoStayInHost)) == 0 && text == wxT("1")) {
+//                            m_rbInHost->SetValue(true);
+//                        }
+//                        if (name.CmpNoCase(wxT(weoStayInDomain)) == 0 && text == wxT("1")) {
+//                            m_rbInDomain->SetValue(true);
+//                        }
+//                        if (name.CmpNoCase(wxT(weoScanDepth)) == 0) {
+//                            m_txtDepth->SetValue(text);
+//                        }
+//                        if (name.CmpNoCase(wxT(weoLogLevel)) == 0) {
+//                            long idx;
+//                            text.ToLong(&idx);
+//                            if (idx >= 0 && idx < m_chLogLevel->GetCount()) {
+//                                m_chLogLevel->Select(idx);
+//                            }
+//                        }
                     }
 
                     child = child->GetNext();
+                } // end of first iteration
+                // fill panel's data
+                for (int i = 1; i < m_plgBook->GetPageCount(); i++) {
+                    weRttiOptions::SetOptions(m_plgBook->GetPage(i), root);
                 }
-            }
+            } // end XML processing
         }
     }
 }
@@ -1265,6 +1359,17 @@ void wiMainForm::OnTaskApply( wxCommandEvent& event )
             wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("options"));
             wxString content;
 
+            for (int i = 1; i < m_plgBook->GetPageCount(); i++) {
+                int imgIdx = m_plgBook->GetPageImage(i);
+                if (imgIdx > 4) {
+                    if (!content.IsEmpty()) {
+                        content += wxT(";");
+                    }
+                    content += m_plgBook->GetPage(i)->GetName();
+                }
+                //weRttiOptions::GetOptions(m_plgBook->GetPage(i), root);
+            }
+            weRttiOptions::SaveTaskOption (root, wxT("plugin_list"), wxT("8"), content);
             weRttiOptions::GetOptions(m_panTaskOpts, root);
 
             opt.SetRoot(root);
@@ -1298,8 +1403,14 @@ void wiMainForm::OnChangeProfile( wxCommandEvent& event )
         // check options changing and ask for save them
     }
     if (m_selectedProf > -1) {
+        m_bpAddPlugin->Enable(true);
+        m_bpDelPlugin->Enable(true);
         dat = (ProfileInfo*)m_chProfile->GetClientData(m_selectedProf);
         GetTaskOptions(FromStdString(dat->ObjectId));
+    }
+    else {
+        m_bpAddPlugin->Enable(false);
+        m_bpDelPlugin->Enable(false);
     }
 }
 
@@ -1315,7 +1426,7 @@ void wiMainForm::RebuildOptionsView()
 
     wxWindowUpdateLocker taskList(m_plgBook);
 
-    m_plgBook->GetTreeCtrl()->SetWindowStyle(wxTR_HIDE_ROOT);
+    m_plgBook->GetTreeCtrl()->SetWindowStyle(wxTR_FULL_ROW_HIGHLIGHT|wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_LINES_AT_ROOT|wxTR_SINGLE);
 
     icons = new wxImageList(16, 16);
     icons->RemoveAll();
@@ -1331,16 +1442,16 @@ void wiMainForm::RebuildOptionsView()
     }
     m_plgBook->SetPageImage(0, 0);
     // transports
-    panel = new wxPanel(m_plgBook);
+    panel = CreateDefaultPanel(m_plgBook);
     m_plgBook->AddPage(panel, _("Transports"), false, 1);
     // inventory
-    panel = new wxPanel(m_plgBook);
+    panel = CreateDefaultPanel(m_plgBook);
     m_plgBook->AddPage(panel, _("Inventory"), false, 2);
     // audit
-    panel = new wxPanel(m_plgBook);
+    panel = CreateDefaultPanel(m_plgBook);
     m_plgBook->AddPage(panel, _("Audit"), false, 3);
     // vulners
-    panel = new wxPanel(m_plgBook);
+    panel = CreateDefaultPanel(m_plgBook);
     m_plgBook->AddPage(panel, _("Vulnerabilities"), false, 4);
 
     m_plgBook->SetSelection(0);
@@ -1348,11 +1459,92 @@ void wiMainForm::RebuildOptionsView()
 
 void wiMainForm::OnOptionsPageChanging( wxTreebookEvent& event )
 {
-    const int idx = event.GetSelection();
+    int idx = event.GetSelection();
+    idx = m_plgBook->GetPageImage(idx);
     if (idx >= 1 && idx <= 4) {
         event.Veto();
     }
     else {
         // do something for page changing
     }
+}
+
+void wiMainForm::OnAddPlugin( wxCommandEvent& event )
+{
+    size_t lstSize, i;
+    wxTreeItemId parent, current;
+    wiPlgSelector dlg(this);
+
+    if (m_plugList == NULL) {
+        GetPluginList();
+    }
+    dlg.m_plgTree->DeleteAllItems();
+    if (m_plugList != NULL) {
+        dlg.m_plgTree->AddRoot(wxT("iwePlugin"));
+        for (lstSize = 0; lstSize < m_plugList->size(); lstSize++) {
+            parent = dlg.m_plgTree->GetRootItem();
+            for (i = 0; i < (*m_plugList)[lstSize].IfaceList.size(); i++)
+            {
+                wxString label = FromStdString((*m_plugList)[lstSize].IfaceList[i]);
+                current = ::FindItem(dlg.m_plgTree, parent, label);
+
+                if (current.IsOk()) {
+                    parent = current;
+                    if ((i + 1) == (*m_plugList)[lstSize].IfaceList.size()) {
+                        wiPlgTreeData* data = new wiPlgTreeData(&((*m_plugList)[lstSize]));
+                        dlg.m_plgTree->SetItemData(current, data);
+                    }
+                }
+                else {
+                    wiPlgTreeData* data = new wiPlgTreeData(&((*m_plugList)[lstSize]));
+                    parent = dlg.m_plgTree->AppendItem(parent, label, -1, -1, data);
+                }
+            }
+        }
+        dlg.m_plgTree->ExpandAll();
+        if (dlg.ShowModal() == wxOK) {
+            wxString label = dlg.m_plgTree->GetItemText(dlg.m_selected);
+            current = ::FindItem(m_plgBook->GetTreeCtrl(), m_plgBook->GetTreeCtrl()->GetRootItem(), label);
+            if (current.IsOk()) {
+                wxMessageBox(_("Plugin already exist in this profile"), _("Warning"), wxOK | wxICON_WARNING, this);
+            }
+            else {
+                // add to list
+                wiPlgTreeData* data = (wiPlgTreeData*)dlg.m_plgTree->GetItemData(dlg.m_selected);
+
+                if (data != NULL && data->plg != NULL)
+                {
+                    (void) LoadPluginSettings(data->plg);
+                } // end of wiPlgTreeData processing
+            } // end of addition plugin to list
+        } // end of ShowModal() == wxOK
+    } // end of m_plugList != NULL
+    else {
+        wxLogError(wxT("Can't get plugin list!"));
+    }
+}
+
+void wiMainForm::OnRemovePlugin( wxCommandEvent& event )
+{
+    int idx = m_plgBook->GetSelection();
+    int img = m_plgBook->GetPageImage(idx);
+    if (img > 4) {
+        m_plgBook->DeletePage(idx);
+    }
+}
+
+PluginInfo* wiMainForm::FoundPlugin( const wxString& id)
+{
+    PluginInfo* retval = NULL;
+
+    if (m_plugList != NULL) {
+        for (size_t lstSize = 0; lstSize < m_plugList->size(); lstSize++) {
+            wxString plgId = FromStdString((*m_plugList)[lstSize].PluginId);
+            if (id == plgId) {
+                retval = &((*m_plugList)[lstSize]);
+                break;
+            }
+        }
+    }
+    return retval;
 }

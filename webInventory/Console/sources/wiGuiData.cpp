@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Dec 29 2008)
+// C++ code generated with wxFormBuilder (version Apr 16 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -114,19 +114,15 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxBoxSizer* bSzProfileSettings;
 	bSzProfileSettings = new wxBoxSizer( wxHORIZONTAL );
 	
-	m_bpAddTransp = new wxBitmapButton( m_panObjects, wxID_ANY, wxBitmap( btnAdd_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpAddTransp->SetToolTip( _("Add transport") );
+	m_bpAddPlugin = new wxBitmapButton( m_panObjects, wxID_ANY, wxBitmap( btnAdd_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpAddPlugin->SetToolTip( _("Add plugin") );
 	
-	m_bpAddTransp->SetToolTip( _("Add transport") );
+	bSzProfileSettings->Add( m_bpAddPlugin, 0, wxBOTTOM|wxLEFT|wxTOP, 5 );
 	
-	bSzProfileSettings->Add( m_bpAddTransp, 0, wxBOTTOM|wxLEFT|wxTOP, 5 );
+	m_bpDelPlugin = new wxBitmapButton( m_panObjects, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	m_bpDelPlugin->SetToolTip( _("Remove plugin") );
 	
-	m_bpDelTrasp = new wxBitmapButton( m_panObjects, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpDelTrasp->SetToolTip( _("Remove transport") );
-	
-	m_bpDelTrasp->SetToolTip( _("Remove transport") );
-	
-	bSzProfileSettings->Add( m_bpDelTrasp, 0, wxBOTTOM|wxRIGHT|wxTOP, 5 );
+	bSzProfileSettings->Add( m_bpDelPlugin, 0, wxBOTTOM|wxRIGHT|wxTOP, 5 );
 	
 	wxStaticText* m_staticText23;
 	m_staticText23 = new wxStaticText( m_panObjects, wxID_ANY, _("Profile name"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -137,7 +133,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	bSzProfileSettings->Add( m_txtProfName, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
 	bSzProfile->Add( bSzProfileSettings, 0, wxEXPAND, 0 );
-
+	
 	m_plgBook = new wxTreebook( m_panObjects, wxID_ANY, wxDefaultPosition, wxDefaultSize );
 	wxSize m_plgBookImageSize = wxSize( 16,16 );
 	int m_plgBookIndex = 0;
@@ -171,61 +167,6 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_chLogLevel->SetMinSize( wxSize( 150,-1 ) );
 	
 	gbSizer2->Add( m_chLogLevel, wxGBPosition( 0, 1 ), wxGBSpan( 1, 2 ), wxALL|wxEXPAND, 5 );
-	
-	wxStaticBoxSizer* rbDepth;
-	rbDepth = new wxStaticBoxSizer( new wxStaticBox( m_panTaskOpts, wxID_ANY, _("Depth mode") ), wxVERTICAL );
-	
-	m_rbInDir = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Stay in dir"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInDir<6>[1]") );
-	rbDepth->Add( m_rbInDir, 0, wxALL, 5 );
-	
-	m_rbInHost = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Saty in host"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInHost<6>[1]") );
-	rbDepth->Add( m_rbInHost, 0, wxALL, 5 );
-	
-	m_rbInDomain = new wxRadioButton( m_panTaskOpts, wxID_RBMODE, _("Stay in domain"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("StayInDomain<6>[1]") );
-	rbDepth->Add( m_rbInDomain, 0, wxALL, 5 );
-	
-	gbSizer2->Add( rbDepth, wxGBPosition( 1, 0 ), wxGBSpan( 3, 2 ), wxEXPAND, 5 );
-	
-	wxStaticText* m_stDepth;
-	m_stDepth = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Scan depth"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_stDepth->Wrap( -1 );
-	gbSizer2->Add( m_stDepth, wxGBPosition( 1, 2 ), wxGBSpan( 1, 1 ), wxALIGN_BOTTOM|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
-	
-	m_txtDepth = new wxTextCtrl( m_panTaskOpts, wxID_ANY, _("-1"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("ScanDepth<2>[0]") );
-	gbSizer2->Add( m_txtDepth, wxGBPosition( 2, 2 ), wxGBSpan( 1, 1 ), wxALIGN_TOP|wxBOTTOM|wxLEFT|wxRIGHT, 5 );
-	
-	wxStaticBoxSizer* sbSizer1;
-	sbSizer1 = new wxStaticBoxSizer( new wxStaticBox( m_panTaskOpts, wxID_ANY, _("Inventory options") ), wxVERTICAL );
-	
-	m_cbInvent = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Inventory only"), wxDefaultPosition, wxSize( -1,-1 ), 0, wxDefaultValidator, wxT("OnlyInventory<6>[2]") );
-	m_cbInvent->SetValue(true);
-	
-	m_cbInvent->Enable( false );
-	
-	sbSizer1->Add( m_cbInvent, 0, wxALL, 5 );
-	
-	m_chIgnoreParams = new wxCheckBox( m_panTaskOpts, wxID_ANY, _("Ignore URL parameters"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("noParamUrl<6>[2]") );
-	
-	sbSizer1->Add( m_chIgnoreParams, 0, wxALL, 5 );
-	
-	wxBoxSizer* bSzThreads;
-	bSzThreads = new wxBoxSizer( wxHORIZONTAL );
-	
-	wxStaticText* m_stThreads;
-	m_stThreads = new wxStaticText( m_panTaskOpts, wxID_ANY, _("Number of threads"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_stThreads->Wrap( -1 );
-	m_stThreads->SetToolTip( _("Number of thread for transport operations") );
-	
-	bSzThreads->Add( m_stThreads, 0, wxALL, 5 );
-	
-	m_spinCtrl1 = new wxSpinCtrl( m_panTaskOpts, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 50,-1 ), wxSP_ARROW_KEYS, 1, 50, 10, wxT("ParallelReq<2>[3]") );
-	m_spinCtrl1->SetToolTip( _("Number of thread for transport operations") );
-	
-	bSzThreads->Add( m_spinCtrl1, 0, wxALL, 5 );
-	
-	sbSizer1->Add( bSzThreads, 1, wxEXPAND, 5 );
-	
-	gbSizer2->Add( sbSizer1, wxGBPosition( 4, 0 ), wxGBSpan( 3, 3 ), wxEXPAND, 5 );
 	
 	
 	gbSizer2->Add( 0, 0, wxGBPosition( 3, 4 ), wxGBSpan( 1, 1 ), wxEXPAND, 5 );
@@ -495,14 +436,14 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
-
-	bSizer9->SetMinSize( wxSize( 500,300 ) );
+	
+	bSizer9->SetMinSize( wxSize( 500,300 ) ); 
 	m_gbPluginsGrid = new wxGridBagSizer( 0, 0 );
 	m_gbPluginsGrid->AddGrowableCol( 1 );
 	m_gbPluginsGrid->SetFlexibleDirection( wxBOTH );
 	m_gbPluginsGrid->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
-
-	m_gbPluginsGrid->SetMinSize( wxSize( 500,-1 ) );
+	
+	m_gbPluginsGrid->SetMinSize( wxSize( 500,-1 ) ); 
 	m_btPluginIcon = new wxButton( m_pluginsDock, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 24,-1 ), wxNO_BORDER );
 	m_gbPluginsGrid->Add( m_btPluginIcon, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL|wxEXPAND, 0 );
 	
@@ -537,7 +478,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->Layout();
 	m_statusBar = new wiStatBar( this );
 	SetStatusBar(m_statusBar);
-
+	
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( MainForm::OnClose ) );
 	this->Connect( wxID_TOOLNEW, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnAddObject ) );
@@ -551,6 +492,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->Connect( wxID_TLPROFDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelProfile ) );
 	this->Connect( wxID_TLPROFSAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnTaskApply ) );
 	this->Connect( wxID_TOOLGO, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
+	m_bpAddPlugin->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddPlugin ), NULL, this );
+	m_bpDelPlugin->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnRemovePlugin ), NULL, this );
 	m_plgBook->Connect( wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING, wxTreebookEventHandler( MainForm::OnOptionsPageChanging ), NULL, this );
 	this->Connect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
 	this->Connect( wxID_TOOLSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ) );
@@ -589,6 +532,8 @@ MainForm::~MainForm()
 	this->Disconnect( wxID_TLPROFDEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelProfile ) );
 	this->Disconnect( wxID_TLPROFSAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnTaskApply ) );
 	this->Disconnect( wxID_TOOLGO, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
+	m_bpAddPlugin->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddPlugin ), NULL, this );
+	m_bpDelPlugin->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnRemovePlugin ), NULL, this );
 	m_plgBook->Disconnect( wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING, wxTreebookEventHandler( MainForm::OnOptionsPageChanging ), NULL, this );
 	this->Disconnect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
 	this->Disconnect( wxID_TOOLSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ) );
@@ -729,7 +674,7 @@ ServDialog::~ServDialog()
 	m_sdbSizer1OK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ServDialog::OnOK ), NULL, this );
 }
 
-PlgSelector::PlgSelector( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+PlgSelector::PlgSelector( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	
@@ -737,7 +682,7 @@ PlgSelector::PlgSelector( wxWindow* parent, wxWindowID id, const wxString& title
 	bSizer24 = new wxBoxSizer( wxVERTICAL );
 	
 	m_plgTree = new wxTreeCtrl( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE|wxTR_SINGLE );
-	bSizer24->Add( m_plgTree, 1, wxALL|wxEXPAND, 5 );
+	bSizer24->Add( m_plgTree, 1, wxALL|wxEXPAND, 2 );
 	
 	m_sdbSizer3 = new wxStdDialogButtonSizer();
 	m_sdbSizer3OK = new wxButton( this, wxID_OK );
@@ -745,7 +690,7 @@ PlgSelector::PlgSelector( wxWindow* parent, wxWindowID id, const wxString& title
 	m_sdbSizer3Cancel = new wxButton( this, wxID_CANCEL );
 	m_sdbSizer3->AddButton( m_sdbSizer3Cancel );
 	m_sdbSizer3->Realize();
-	bSizer24->Add( m_sdbSizer3, 0, wxEXPAND, 5 );
+	bSizer24->Add( m_sdbSizer3, 0, wxALL|wxEXPAND, 5 );
 	
 	this->SetSizer( bSizer24 );
 	this->Layout();

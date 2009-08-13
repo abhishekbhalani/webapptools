@@ -53,4 +53,16 @@ class wiTreeData: public wxTreeItemData
         int objectID;
 };
 
+class wiPlgTreeData: public wxTreeItemData
+{
+    public:
+        wiPlgTreeData(PluginInfo* _plg)
+        {
+            plg = _plg;
+        };
+
+        // treeData information
+        PluginInfo* plg;
+};
+
 #endif // WITREEDATA_H
