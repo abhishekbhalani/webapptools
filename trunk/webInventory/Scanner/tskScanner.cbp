@@ -18,6 +18,14 @@
 				<Linker>
 					<Add library="libwebEngine.a" />
 					<Add library="liblog4cxx.a" />
+					<Add library="libboost_regex-mt.a" />
+					<Add library="libboost_date_time-mt.a" />
+					<Add library="libboost_system-mt.a" />
+					<Add library="libboost_thread-mt.a" />
+					<Add library="libboost_program_options-mt.a" />
+					<Add library="libboost_serialization-mt.a" />
+					<Add library="libcurl.a" />
+					<Add library="libboost_filesystem-mt.a" />
 					<Add directory="../../webEngine/libs/debug" />
 				</Linker>
 			</Target>
@@ -33,6 +41,15 @@
 				<Linker>
 					<Add option="-s" />
 					<Add library="libwebEngine.a" />
+					<Add library="liblog4cxx.a" />
+					<Add library="libboost_thread-mt.a" />
+					<Add library="libboost_system-mt.a" />
+					<Add library="libboost_serialization-mt.a" />
+					<Add library="libboost_program_options-mt.a" />
+					<Add library="libboost_date_time-mt.a" />
+					<Add library="libboost_filesystem-mt.a" />
+					<Add library="libcurl.a" />
+					<Add library="libboost_regex-mt.a" />
 					<Add directory="../../webEngine/libs/release" />
 				</Linker>
 			</Target>
@@ -59,6 +76,11 @@
 			<code_completion />
 			<envvars />
 			<debugger />
+			<AutoVersioning>
+				<Scheme minor_max="10" build_max="0" rev_max="0" rev_rand_max="10" build_times_to_increment_minor="100" />
+				<Settings autoincrement="1" date_declarations="1" do_auto_increment="0" ask_to_increment="0" language="C++" svn="0" svn_directory="" header_path="version.h" />
+				<Changes_Log show_changes_editor="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
+			</AutoVersioning>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

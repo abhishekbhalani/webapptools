@@ -17,11 +17,15 @@
 					<Add option="-DLOG4CXX_STATIC" />
 				</Compiler>
 				<Linker>
+					<Add library="liblog4cxx.a" />
 					<Add library="libboost_system-gcc43-mt.a" />
 					<Add library="libboost_serialization-gcc43-mt.a" />
 					<Add library="libboost_date_time-gcc43-mt.a" />
 					<Add library="libboost_program_options-gcc43-mt.a" />
-					<Add library="liblog4cxx.a" />
+					<Add library="libwebEngine.a" />
+					<Add library="libcurl.a" />
+					<Add library="libboost_filesystem-gcc43-mt.a" />
+					<Add library="libboost_regex-gcc43-mt.a" />
 					<Add directory="/usr/lib" />
 					<Add directory="../../webEngine/libs/debug" />
 				</Linker>
@@ -36,15 +40,15 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="libboost_system-gcc43-mt.a" />
-					<Add library="libboost_serialization-gcc43-mt.a" />
-					<Add library="libboost_date_time-gcc43-mt.a" />
-					<Add library="libboost_program_options-gcc43-mt.a" />
+					<Add library="libboost_system-mt.a" />
+					<Add library="libboost_serialization-mt.a" />
+					<Add library="libboost_date_time-mt.a" />
+					<Add library="libboost_program_options-mt.a" />
 					<Add library="liblog4cxx.a" />
 					<Add library="libwebEngine.a" />
 					<Add library="libcurl.a" />
-					<Add library="libboost_filesystem-gcc43-mt.a" />
-					<Add library="libboost_regex-gcc43-mt.a" />
+					<Add library="libboost_filesystem-mt.a" />
+					<Add library="libboost_regex-mt.a" />
 					<Add directory="/usr/lib" />
 					<Add directory="../../webEngine/libs/release" />
 				</Linker>
@@ -59,6 +63,8 @@
 		<Unit filename="../Common/messages.h" />
 		<Unit filename="../Common/optionnames.h" />
 		<Unit filename="../Common/programcfg.h" />
+		<Unit filename="../Common/weObject.cpp" />
+		<Unit filename="../Common/weObject.h" />
 		<Unit filename="../Common/weProfile.cpp" />
 		<Unit filename="../Common/weProfile.h" />
 		<Unit filename="../Common/weScan.cpp" />

@@ -47,6 +47,7 @@
 		<Unit filename="include/weHTTP.h" />
 		<Unit filename="include/weHelper.h" />
 		<Unit filename="include/weHtmlEntity.h" />
+		<Unit filename="include/weHttpInvent.h" />
 		<Unit filename="include/weLogger.h" />
 		<Unit filename="include/weOptions.h" />
 		<Unit filename="include/weStrings.h" />
@@ -54,6 +55,7 @@
 		<Unit filename="include/weTask.h" />
 		<Unit filename="include/weUrl.h" />
 		<Unit filename="include/weiBase.h" />
+		<Unit filename="include/weiInventory.h" />
 		<Unit filename="include/weiParser.h" />
 		<Unit filename="include/weiPlugin.h" />
 		<Unit filename="include/weiTransport.h" />
@@ -66,6 +68,7 @@
 		<Unit filename="sources/weHTTP.cpp" />
 		<Unit filename="sources/weHelper.cpp" />
 		<Unit filename="sources/weHtmlEntity.cpp" />
+		<Unit filename="sources/weHttpInvent.cpp" />
 		<Unit filename="sources/weHttpResp.cpp" />
 		<Unit filename="sources/weLogger.cpp" />
 		<Unit filename="sources/weMemStorage.cpp" />
@@ -74,6 +77,7 @@
 		<Unit filename="sources/weTagScanner.cpp" />
 		<Unit filename="sources/weTask.cpp" />
 		<Unit filename="sources/weUrl.cpp" />
+		<Unit filename="sources/weiInventory.cpp" />
 		<Unit filename="sources/weiParser.cpp" />
 		<Unit filename="sources/weiPlugin.cpp" />
 		<Unit filename="sources/weiStorage.cpp" />
