@@ -44,8 +44,8 @@ wxXmlNode* weRttiOptions::GetOptions(wxWindow* panel, wxXmlNode* root, bool verb
     wxWindowList children2;
     wxWindowListNode *node;
     wxWindow* chld;
-    wxString name, type, code;
-    long lCode;
+    wxString name, type;
+    wxString className;
     long lType;
     size_t spos, epos;
     wxString sData;
@@ -62,21 +62,8 @@ wxXmlNode* weRttiOptions::GetOptions(wxWindow* panel, wxXmlNode* root, bool verb
     while(node) {
         chld = node->GetData();
         name = chld->GetName();
+        className = chld->GetClassInfo()->GetClassName();
         type = wxT("8"); // default - string
-        code = wxT("-1"); // unknown
-
-        spos = name.Find(wxT('['));
-        epos = name.Find(wxT(']'), true);
-        if(spos != wxNOT_FOUND) {
-            if (epos == wxNOT_FOUND) {
-                code = name.Mid(spos + 1, wxSTRING_MAXLEN);
-            }
-            else {
-                code = name.Mid(spos + 1, epos - spos -1);
-            }
-            name = name.Mid(0, spos);
-        }
-        code.ToLong(&lCode);
 
         spos = name.Find(wxT('<'));
         epos = name.Find(wxT('>'), true);
@@ -92,74 +79,80 @@ wxXmlNode* weRttiOptions::GetOptions(wxWindow* panel, wxXmlNode* root, bool verb
         type.ToLong(&lType);
 
         if (lType >= 0 && lType < 9) {
-            switch(lCode) {
-                case TEXT_CTRL:
-                    sData = ((wxTextCtrl*)chld)->GetValue();
-                    if (lType < 2) {
-                        // char and uchar value
-                        SaveTaskOption(root, name, type, sData);
-                    }
-                    if (lType > 1 && lType < 6) {
-                        // all int values
-                        sData.ToLong(&iData);
-                        SaveTaskOptionInt(root, name, iData);
-                    }
-                    if (lType == 6) {
-                        // bool values
-                        sData.ToLong(&iData);
-                        SaveTaskOptionBool(root, name, iData);
-                    }
-                    if (lType == 7) {
-                        // double values
-                        sData.ToDouble(&dData);
-                        //SaveTaskOptionDouble(root, name, dData);
-                    }
-                    if (lType == 8) {
-                        // string values
-                        SaveTaskOption(root, name, type, sData);
-                    }
-                    break;
-                case RADIO_BTN:
-                    bData = ((wxRadioButton*)chld)->GetValue();
-                    SaveTaskOptionBool(root, name, bData);
-                    break;
-                case CHECK_BOX:
-                    bData = ((wxCheckBox*)chld)->GetValue();
-                    SaveTaskOptionBool(root, name, bData);
-                    break;
-                case SPIN_CTRL:
-                    iData = ((wxSpinCtrl*)chld)->GetValue();
+            if (className == wxT("wxTextCtrl"))
+            {
+                sData = ((wxTextCtrl*)chld)->GetValue();
+                if (lType < 2) {
+                    // char and uchar value
+                    SaveTaskOption(root, name, type, sData);
+                }
+                if (lType > 1 && lType < 6) {
+                    // all int values
+                    sData.ToLong(&iData);
                     SaveTaskOptionInt(root, name, iData);
-                    break;
-                case CHOICE:
-                    iData = ((wxChoice*)chld)->GetCurrentSelection();
-                    if (lType == 8) {
-                        sData = ((wxChoice*)chld)->GetString(iData);
-                        SaveTaskOption(root, name, type, sData);
-                    }
-                    else {
-                        SaveTaskOptionInt(root, name, iData);
-                    }
-                    break;
-                case COMBOBOX:
-                    if (lType == 8) {
-                        sData = ((wxComboBox*)chld)->GetValue();
-                        SaveTaskOption(root, name, type, sData);
-                    }
-                    else {
-                        iData = ((wxComboBox*)chld)->GetCurrentSelection();
-                        SaveTaskOptionInt(root, name, iData);
-                    }
-                    break;
-                default:
-                    if (verbose) {
-                        ::wxLogError(_("Unknown widget code: %d (type=%d, name='%s'"), lCode, lType, name.c_str());
-                    };
-            };
+                }
+                if (lType == 6) {
+                    // bool values
+                    sData.ToLong(&iData);
+                    SaveTaskOptionBool(root, name, iData);
+                }
+                if (lType == 7) {
+                    // double values
+                    sData.ToDouble(&dData);
+                    //SaveTaskOptionDouble(root, name, dData);
+                }
+                if (lType == 8) {
+                    // string values
+                    SaveTaskOption(root, name, type, sData);
+                }
+            }
+            else if (className == wxT("wxRadioButton"))
+            {
+                bData = ((wxRadioButton*)chld)->GetValue();
+                SaveTaskOptionBool(root, name, bData);
+            }
+            else if (className == wxT("wxCheckBox"))
+            {
+                bData = ((wxCheckBox*)chld)->GetValue();
+                SaveTaskOptionBool(root, name, bData);
+            }
+            else if (className == wxT("wxSpinCtrl"))
+            {
+                iData = ((wxSpinCtrl*)chld)->GetValue();
+                SaveTaskOptionInt(root, name, iData);
+            }
+            else if (className == wxT("wxChoice"))
+            {
+                iData = ((wxChoice*)chld)->GetCurrentSelection();
+                if (lType == 8) {
+                    sData = ((wxChoice*)chld)->GetString(iData);
+                    SaveTaskOption(root, name, type, sData);
+                }
+                else {
+                    SaveTaskOptionInt(root, name, iData);
+                }
+            }
+            else if (className == wxT("wxComboBox"))
+            {
+                if (lType == 8) {
+                    sData = ((wxComboBox*)chld)->GetValue();
+                    SaveTaskOption(root, name, type, sData);
+                }
+                else {
+                    iData = ((wxComboBox*)chld)->GetCurrentSelection();
+                    SaveTaskOptionInt(root, name, iData);
+                }
+            }
+            else
+            {
+                if (verbose) {
+                    ::wxLogError(_("Unknown widget class: %s (type=%d, name='%s'"), className.c_str(), lType, name.c_str());
+                };
+            }
         }
         else {
             if (verbose) {
-                wxLogError(_("Unknown option type: %d (code=%d, name='%s'"), lType, lCode, name.c_str());
+                wxLogError(_("Unknown option type: %d (class=%s, name='%s'"), lType, className.c_str(), name.c_str());
             }
         }
 
@@ -206,8 +199,9 @@ void weRttiOptions::SetOptions(wxWindow* panel, wxXmlNode* root, bool verbose /*
     wxWindowList children;
     wxWindowListNode *node;
     wxWindow* winchld;
-    wxString name, type, code;
-    long lCode;
+    wxString name, type;
+    wxString className;
+    wxString value;
     long lType;
     size_t spos, epos;
     long iData;
@@ -223,72 +217,59 @@ void weRttiOptions::SetOptions(wxWindow* panel, wxXmlNode* root, bool verbose /*
             winName += wxT("<");
             winName += chld->GetPropVal(wxT("type"), wxT("8"));
             winName += wxT(">");
+            value = chld->GetNodeContent();
+
             // search for window name
-            node = children.GetFirst();
-            while(node) {
-                winchld = node->GetData();
-                wxString name = winchld->GetName();
-                if (name.StartsWith(winName)) {
-                    // window found
-                    wxString value = chld->GetContent();
-                    // get window code
-                    spos = name.Find(wxT('['));
-                    epos = name.Find(wxT(']'), true);
-                    if(spos != wxNOT_FOUND) {
-                        if (epos == wxNOT_FOUND) {
-                            code = name.Mid(spos + 1, wxSTRING_MAXLEN);
-                        }
-                        else {
-                            code = name.Mid(spos + 1, epos - spos -1);
-                        }
-                        name = name.Mid(0, spos);
+            winchld = wxWindow::FindWindowByName(winName);
+            if (winchld != NULL) {
+                // window found
+                name = winchld->GetName();
+                className = winchld->GetClassInfo()->GetClassName();
+                // set control value
+                if (className == wxT("wxTextCtrl"))
+                {
+                    ((wxTextCtrl*)winchld)->SetValue(value);
+                }
+                else if (className == wxT("wxRadioButton"))
+                {
+                    value.ToLong(&iData);
+                    ((wxRadioButton*)winchld)->SetValue(iData);
+                }
+                else if (className == wxT("wxCheckBox"))
+                {
+                    value.ToLong(&iData);
+                    ((wxCheckBox*)winchld)->SetValue(iData);
+                }
+                else if (className == wxT("wxSpinCtrl"))
+                {
+                    value.ToLong(&iData);
+                    ((wxSpinCtrl*)winchld)->SetValue(iData);
+                }
+                else if (className == wxT("wxChoice"))
+                {
+                    if (lType == 8) {
+                        // todo - set string
                     }
-                    code.ToLong(&lCode);
-                    // sev control value
-                    switch(lCode) {
-                    case TEXT_CTRL:
-                        ((wxTextCtrl*)chld)->SetValue(value);
-                        break;
-                    case RADIO_BTN:
-                        value.ToLong(&iData);
-                        ((wxRadioButton*)chld)->SetValue(iData);
-                        break;
-                    case CHECK_BOX:
-                        value.ToLong(&iData);
-                        ((wxCheckBox*)chld)->SetValue(iData);
-                        break;
-                    case SPIN_CTRL:
-                        value.ToLong(&iData);
-                        ((wxSpinCtrl*)chld)->SetValue(iData);
-                        break;
-                    case CHOICE:
-//                        iData = ((wxChoice*)chld)->GetCurrentSelection();
-//                        if (lType == 8) {
-//                            sData = ((wxChoice*)chld)->GetString(iData);
-//                            SaveTaskOption(root, name, type, sData);
-//                        }
-//                        else {
-//                            SaveTaskOptionInt(root, name, iData);
-//                        }
-                        break;
-                    case COMBOBOX:
-//                        if (lType == 8) {
-//                            sData = ((wxComboBox*)chld)->GetValue();
-//                            SaveTaskOption(root, name, type, sData);
-//                        }
-//                        else {
-//                            iData = ((wxComboBox*)chld)->GetCurrentSelection();
-//                            SaveTaskOptionInt(root, name, iData);
-//                        }
-                        break;
-                    default:
-                        if (verbose) {
-                            ::wxLogError(_("Unknown widget code: %d (type=%d, name='%s'"), lCode, lType, name.c_str());
-                        };
+                    else {
+                        // todo - set index
+                    }
+                }
+                else if (className == wxT("wxComboBox"))
+                {
+                    if (lType == 8) {
+                        // todo - set string
+                    }
+                    else {
+                        // todo - set index
+                    }
+                }
+                else
+                {
+                    if (verbose) {
+                        ::wxLogError(_("Unknown widget class: %s (type=%d, name='%s'"), className.c_str(), lType, name.c_str());
                     };
                 }
-                node = node->GetNext();
-            }
+            } // end of winchld != NULL
         }
         chld = chld->GetNext();
     }

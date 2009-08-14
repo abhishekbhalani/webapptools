@@ -48,7 +48,6 @@ int main(int argc, char* argv[])
         configuration.port = 8080;
         configuration.dbDir = ".";
         configuration.storageIface = "D82B31419339";
-        configuration.fileDB = "sample.db";
 
         // Declare the supported options.
         po::options_description desc("Allowed options");
@@ -116,18 +115,10 @@ int main(int argc, char* argv[])
             cfgFile = vm["config"].as<string>();
             LOG4CXX_INFO(WeLogger::GetLogger(), "Config file is "
                 << cfgFile);
-            try
+            if (!configuration.load_from_file(cfgFile))
             {
-                std::ifstream itfs(cfgFile.c_str());
-                {
-                    boost::archive::xml_iarchive ia(itfs);
-                    ia >> BOOST_SERIALIZATION_NVP(configuration);
-                }
-            }
-            catch (...)
-            {
-                cfgFile = "";
                 LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
+                cfgFile = "";
             }
         } else {
             cfgFile = "";
@@ -171,9 +162,8 @@ int main(int argc, char* argv[])
 
                 if (storage != NULL)
                 {
-                    cfgPath = configuration.dbDir;
-                    cfgPath /= configuration.fileDB;
-                    storage->InitStorage(cfgPath.string());
+                    string plg_settings = configuration.plugin_options(plugin->GetID());
+                    storage->InitStorage(plg_settings);
                     globalData.dispatcher->Storage(storage);
 
                     // check task presence

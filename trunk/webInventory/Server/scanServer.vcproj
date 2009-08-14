@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Common\programcfg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\scanOperations.cpp"
 				>
 			</File>

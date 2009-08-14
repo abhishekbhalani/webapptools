@@ -51,7 +51,6 @@ int main(int argc, char* argv[])
         configuration.port = 8080;
         configuration.dbDir = ".";
         configuration.storageIface = "D82B31419339";
-        configuration.fileDB = "sample.db";
 
         // Declare the supported options.
         po::options_description desc("Allowed options");
@@ -88,15 +87,9 @@ int main(int argc, char* argv[])
         }
         if (vm.count("generate")) {
             // save data to archive
-            try
+            if (!configuration.save_to_file("sample.config"))
             {
-                std::ofstream ofs("sample.config");
-                boost::archive::xml_oarchive oa(ofs);
-                // write class instance to archive
-                oa << BOOST_SERIALIZATION_NVP(configuration);
-            }
-            catch (std::exception& e) {
-                cerr << "Error writing 'sample.config': " << e.what() << endl;
+                cerr << "Error writing 'sample.config'";
             }
 
             return 1;
@@ -119,18 +112,10 @@ int main(int argc, char* argv[])
             cfgFile = vm["config"].as<string>();
             LOG4CXX_INFO(WeLogger::GetLogger(), "Config file is "
                 << cfgFile);
-            try
+            if (!configuration.load_from_file(cfgFile))
             {
-                std::ifstream itfs(cfgFile.c_str());
-                {
-                    boost::archive::xml_iarchive ia(itfs);
-                    ia >> BOOST_SERIALIZATION_NVP(configuration);
-                }
-            }
-            catch (...)
-            {
-                cfgFile = "";
                 LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
+                cfgFile = "";
             }
         } else {
             cfgFile = "";
@@ -164,9 +149,8 @@ int main(int argc, char* argv[])
 
                 if (storage != NULL)
                 {
-                    cfgPath = configuration.dbDir;
-                    cfgPath /= configuration.fileDB;
-                    storage->InitStorage(cfgPath.string());
+                    string plg_settings = configuration.plugin_options(plugin->GetID());
+                    storage->InitStorage(plg_settings);
                     globalDispatcher->Storage(storage);
 
                     server s(io_service, configuration.port);
@@ -191,36 +175,27 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void save_cfg_storage(const string& id)
+string save_cfg_storage(const string& id)
 {
+    string retval = "";
     ProgramConfig configuration;
 
     if (cfgFile != "")
     {
-        try
+        if (! configuration.load_from_file(cfgFile) )
         {
-            std::ifstream itfs(cfgFile.c_str());
-            boost::archive::xml_iarchive ia(itfs);
-            ia >> BOOST_SERIALIZATION_NVP(configuration);
-        }
-        catch (...)
-        {
-            cfgFile = "";
             LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
-            return;
+            cfgFile = "";
+            return retval;
         }
         configuration.storageIface = id;
-        try
+        if (! configuration.save_to_file(cfgFile) )
         {
-            std::ofstream otfs(cfgFile.c_str());
-            boost::archive::xml_oarchive oa(otfs);
-            oa << BOOST_SERIALIZATION_NVP(configuration);
-        }
-        catch (...)
-        {
-            cfgFile = "";
             LOG4CXX_WARN(WeLogger::GetLogger(), "Can't save config to " << cfgFile);
-            return;
+            cfgFile = "";
+            return retval;
         }
+        retval = configuration.plugin_options(id);
     }
+    return retval;
 }

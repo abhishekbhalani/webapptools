@@ -860,6 +860,10 @@ wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
     wxString id = FromStdString(plg->PluginId);
     wxPanel* panel = NULL;
 
+    wxScrolledWindow* bookPage = new wxScrolledWindow( m_plgBook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxVSCROLL );
+    bookPage->SetScrollRate( 5, 5 );
+    wxBoxSizer* bSzPage = new wxBoxSizer( wxVERTICAL );
+
     if (m_client != NULL) {
         wxString xrc = m_client->DoCmd(wxT("plgui"), id);
         if (!xrc.IsEmpty()) {
@@ -867,7 +871,7 @@ wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
             wxMemoryFSHandler::AddFile(id, xrc);
             wxString fname = wxT("memory:") + id;
             if ( wxXmlResource::Get()->Load(fname) ) {
-                panel = wxXmlResource::Get()->LoadPanel(m_plgBook, wxT("ui_panel"));
+                panel = wxXmlResource::Get()->LoadPanel(bookPage, wxT("ui_panel"));
                 wxXmlResource::Get()->Unload(fname);
             }
             else {
@@ -878,8 +882,14 @@ wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
     }
 
     if (panel == NULL) {
-        panel = CreateDefaultPanel(m_plgBook);
+        panel = CreateDefaultPanel(bookPage);
     }
+    bSzPage->Add( panel, 0, wxEXPAND, 0 );
+    bookPage->SetSize(panel->GetSize());
+    bookPage->SetMinSize(panel->GetSize());
+	bookPage->SetSizer( bSzPage );
+	bookPage->Layout();
+
     char** xpm = StringListToXpm((vector<string>&)plg->PluginIcon);
     int imgIdx = m_plgBook->GetImageList()->Add(wxBitmap(xpm));
     wxString pageLabel;
@@ -912,8 +922,8 @@ wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
         }
     }
     pageLabel = FromStdString(plg->IfaceList.back());
-    panel->SetName(id);
-    m_plgBook->InsertSubPage(pageIdx, panel, pageLabel, false, imgIdx);
+    bookPage->SetName(FromStdString(plg->PluginId));
+    m_plgBook->InsertSubPage(pageIdx, bookPage, pageLabel, false, imgIdx);
 
     return panel;
 }
@@ -990,7 +1000,7 @@ void wiMainForm::GetTaskOptions(const wxString& taskID)
                             }
                             PluginInfo *plg = FoundPlugin(text);
                             if (plg != NULL) {
-                                LoadPluginSettings(plg);
+                                wxPanel* panel = LoadPluginSettings(plg);
                             }
                         }
 
@@ -1021,9 +1031,10 @@ void wiMainForm::GetTaskOptions(const wxString& taskID)
                     child = child->GetNext();
                 } // end of first iteration
                 // fill panel's data
-                for (int i = 1; i < m_plgBook->GetPageCount(); i++) {
+                for (int i = 0; i < m_plgBook->GetPageCount(); i++) {
                     weRttiOptions::SetOptions(m_plgBook->GetPage(i), root);
                 }
+                m_plgBook->Layout();
             } // end XML processing
         }
     }
@@ -1370,7 +1381,7 @@ void wiMainForm::OnTaskApply( wxCommandEvent& event )
                 //weRttiOptions::GetOptions(m_plgBook->GetPage(i), root);
             }
             weRttiOptions::SaveTaskOption (root, wxT("plugin_list"), wxT("8"), content);
-            weRttiOptions::GetOptions(m_panTaskOpts, root);
+            weRttiOptions::GetOptions(m_plgBook, root);
 
             opt.SetRoot(root);
             wxMemoryOutputStream outp;

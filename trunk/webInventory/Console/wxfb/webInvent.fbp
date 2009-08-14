@@ -1215,7 +1215,7 @@
                                                                                                     <property name="subclass"></property>
                                                                                                     <property name="tooltip"></property>
                                                                                                     <property name="window_extra_style"></property>
-                                                                                                    <property name="window_name">LogLevel&lt;2&gt;[4]</property>
+                                                                                                    <property name="window_name">LogLevel&lt;2&gt;</property>
                                                                                                     <property name="window_style"></property>
                                                                                                     <event name="OnChar"></event>
                                                                                                     <event name="OnChoice"></event>

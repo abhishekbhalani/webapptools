@@ -39,7 +39,7 @@ extern WeDispatch* globalDispatcher;
 string get_plugin_list(string filter);
 string get_plugin_ui(string filter);
 
-extern void save_cfg_storage(const string& id);
+extern string save_cfg_storage(const string& id);
 
 int process_message(char* buff, size_t buffSz, session* sess)
 {
@@ -314,9 +314,10 @@ int process_message(char* buff, size_t buffSz, session* sess)
                 iweStorage* store = (iweStorage*)newStorage->GetInterface("iweStorage");
                 if (store != NULL)
                 {
+                    string config = save_cfg_storage(id);
+                    store->InitStorage(config);
                     globalDispatcher->Storage(store);
                     msg.data = "1";
-                    save_cfg_storage(id);
                     LOG4CXX_INFO(WeLogger::GetLogger(), "storage changed to " << store->GetDesc());
                 }
             }

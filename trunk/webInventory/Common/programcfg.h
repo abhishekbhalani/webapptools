@@ -20,12 +20,9 @@
 #ifndef __PROGRAMCFG_H__
 #define __PROGRAMCFG_H__
 #include <string>
-#include <list>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/list.hpp>
+#include <map>
 
 using namespace std;
-using namespace boost;
 
 class ProgramConfig
 {
@@ -33,17 +30,16 @@ public:
     short   port;
     string  dbDir;
     string  storageIface;
-    string  fileDB;
-private:
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & BOOST_SERIALIZATION_NVP(port);
-        ar & BOOST_SERIALIZATION_NVP(dbDir);
-        ar & BOOST_SERIALIZATION_NVP(storageIface);
-        ar & BOOST_SERIALIZATION_NVP(fileDB);
-    };
+    string  plugin_options(const string& plugin_id);
+    bool    save_to_file(const string& filename);
+    bool    load_from_file(const string& filename);
+
+    ProgramConfig();
+    ~ProgramConfig();
+
+protected:
+    static const string cfg_version;
+    map<string, string> options;
 };
 
 #endif //__PROGRAMCFG_H__
