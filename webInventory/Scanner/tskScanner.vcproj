@@ -183,6 +183,10 @@
 			UniqueIdentifier="{8E418914-9114-4897-8820-E0ED30D95AA1}"
 			>
 			<File
+				RelativePath="..\Common\programcfg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\taskexec.cpp"
 				>
 			</File>

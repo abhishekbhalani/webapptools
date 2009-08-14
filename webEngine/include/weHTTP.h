@@ -202,6 +202,7 @@ public:
     ~WeHTTP();
 
     virtual void* GetInterface( const string& ifName );
+    virtual const string GetSetupUI( void );
     virtual void Register(WeTransportFactory* factory);
 
     virtual iweResponse* Request(iweRequest* req, iweResponse* resp = NULL);

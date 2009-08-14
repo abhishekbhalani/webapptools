@@ -21,6 +21,7 @@
 #include <algorithm>
 #include "weHelper.h"
 #include "weHTTP.h"
+#include "weHttp.xrc"
 
 #ifndef __DOXYGEN__
 string WeHTTP::protoName = "http";
@@ -307,4 +308,9 @@ const CURLMcode WeHTTP::ProcessRequests( void )
 void WeHTTP::Register( WeTransportFactory* factory )
 {
     factory->Add(protoName, weCreateHttp);
+}
+
+const string WeHTTP::GetSetupUI( void )
+{
+    return xrc;
 }
