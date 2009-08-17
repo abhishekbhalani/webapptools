@@ -53,3 +53,15 @@ void* iweInventory::GetInterface( const string& ifName )
     }
     return iwePlugin::GetInterface(ifName);
 }
+
+void iweInventory::ResponseDispatcher( iweResponse *resp, void* context )
+{
+    iweInventory* object = (iweInventory*)context;
+//     if (object->ProcessResponse) {
+        object->ProcessResponse(resp);
+//     }
+//     else
+//     {
+//         LOG4CXX_ERROR(object->logger, "iweInventory::ResponseDispatcher: invalid context, or abstract class - ProcessResponse == NULL");
+//     }
+}

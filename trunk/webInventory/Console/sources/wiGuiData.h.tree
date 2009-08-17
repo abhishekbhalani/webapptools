@@ -67,6 +67,9 @@ class wiStatBar;
 #define wxID_TLEDIT 1017
 #define wxID_TLDELETE 1018
 #define wxID_TLLANGAPPLY 1019
+#define wxID_TLPLGRELOAD 1020
+#define wxID_TLSRVSTOP 1021
+#define wxID_TLSRVLOG 1022
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
@@ -93,6 +96,7 @@ class MainForm : public wxFrame
 
 		wxPanel* m_panTasks;
 		wxToolBar* m_toolBarTasks;
+		wxSplitterWindow* m_splitLogs;
 		wxListCtrl* m_lstTaskList;
 		wxRichTextCtrl* m_rtTask;
 		wxPanel* m_pReports;
@@ -124,7 +128,7 @@ class MainForm : public wxFrame
 		wxChoice* m_chStorage;
 		wxBitmapButton* m_bpStorageApply;
 
-		wxBitmapButton* m_bpPlgRefresh;
+		wxToolBar* m_tbServer;
 		wxStaticText* m_staticText19;
 		wxScrolledWindow* m_pluginsDock;
 		wxGridBagSizer* m_gbPluginsGrid;
@@ -150,6 +154,7 @@ class MainForm : public wxFrame
 		virtual void OnAddPlugin( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRemovePlugin( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnOptionsPageChanging( wxTreebookEvent& event ){ event.Skip(); }
+		virtual void OnPauseTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSortItems( wxListEvent& event ){ event.Skip(); }
 		virtual void OnTaskSelected( wxListEvent& event ){ event.Skip(); }
@@ -169,6 +174,8 @@ class MainForm : public wxFrame
 		virtual void OnLangChange( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnStorageChange( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnPlgRefresh( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnSrvStop( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnServerLogs( wxCommandEvent& event ){ event.Skip(); }
 
 
 	public:
@@ -180,6 +187,12 @@ class MainForm : public wxFrame
 		m_splitTasks->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitTasksOnIdle ), NULL, this );
 		}
 
+		void m_splitLogsOnIdle( wxIdleEvent& )
+		{
+		m_splitLogs->SetSashPosition( 300 );
+		m_splitLogs->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitLogsOnIdle ), NULL, this );
+		}
+		
 		void m_splitOnIdle( wxIdleEvent& )
 		{
 		m_split->SetSashPosition( 400 );

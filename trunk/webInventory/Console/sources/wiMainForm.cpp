@@ -216,9 +216,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
         m_chLogging->SetValue(iData);
     }
 
-    m_lstImages.Add(wxIcon(tree_unk));
-    m_lstImages.Add(wxIcon(tree_yes));
-    m_lstImages.Add(wxIcon(tree_no));
+    m_lstImages.Add(wxIcon(tree_unk_xpm));
+    m_lstImages.Add(wxIcon(tree_yes_xpm));
+    m_lstImages.Add(wxIcon(tree_no_xpm));
 
     m_lstTaskList->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, 20);
     m_lstTaskList->InsertColumn(1, _("Task name"), wxLIST_FORMAT_LEFT, 180);
@@ -654,15 +654,38 @@ void wiMainForm::OnDelObject( wxCommandEvent& event )
 
 }
 
-void wiMainForm::OnAddTask( wxCommandEvent& event )
+//void wiMainForm::OnAddTask( wxCommandEvent& event )
+//{
+//    wxString name;
+//
+//    name = wxGetTextFromUser(_("Input new task name"), _("Query"), wxT(""), this);
+//    if (!name.IsEmpty() && m_client != NULL) {
+//        name = m_client->DoCmd(wxT("addtask"), name);
+//    }
+//    ProcessTaskList();
+//}
+//
+void wiMainForm::OnPauseTask( wxCommandEvent& event )
 {
-    wxString name;
+   wxListItem info;
 
-    name = wxGetTextFromUser(_("Input new task name"), _("Query"), wxT(""), this);
-    if (!name.IsEmpty() && m_client != NULL) {
-        name = m_client->DoCmd(wxT("addtask"), name);
+    if (m_selectedTask > -1)
+    {
+        int id = m_lstTaskList->GetItemData(m_selectedTask);
+        wxString name = wxString::Format(wxT("%X"), id);
+        info.SetId(m_selectedTask);
+        info.SetColumn(0);
+        info.SetMask(wxLIST_MASK_IMAGE);
+        m_lstTaskList->GetItem(info);
+        if (info.GetImage() == WI_TSK_IDLE || info.GetImage() == WI_TSK_PAUSED) {
+            m_client->DoCmd(wxT("runtask"), name);
+        }
+        else if (info.GetImage() == WI_TSK_RUN) {
+            m_client->DoCmd(wxT("pausetask"), name);
+        }
+
+        ProcessTaskList();
     }
-    ProcessTaskList();
 }
 
 void wiMainForm::OnDelTask( wxCommandEvent& event )
@@ -691,23 +714,73 @@ void wiMainForm::OnDelTask( wxCommandEvent& event )
 void wiMainForm::OnRunTask( wxCommandEvent& event )
 {
     wxListItem info;
+    ObjectInfo* objInfo;
+    ProfileInfo* profInfo;
+    wxString content;
 
-    if (m_selectedTask > -1)
+    if (m_selectedObject > -1)
     {
-        int id = m_lstTaskList->GetItemData(m_selectedTask);
-        wxString name = wxString::Format(wxT("%X"), id);
-        info.SetId(m_selectedTask);
-        info.SetColumn(0);
-        info.SetMask(wxLIST_MASK_IMAGE);
-        m_lstTaskList->GetItem(info);
-        if (info.GetImage() == WI_TSK_IDLE || info.GetImage() == WI_TSK_PAUSED) {
-            m_client->DoCmd(wxT("runtask"), name);
+        wxString tskName = m_lstObjectList->GetItemText(m_selectedObject);
+        objInfo = (ObjectInfo*)m_lstObjectList->GetItemData(m_selectedObject);
+        if (objInfo == NULL) {
+            ::wxLogError(_("Can't get information about object %s (id=%s)"), tskName.c_str(), objInfo->ObjectId);
+            return;
         }
-        else if (info.GetImage() == WI_TSK_RUN) {
-            m_client->DoCmd(wxT("pausetask"), name);
-        }
+        if (m_selectedProf > -1)
+        {
+            tskName += wxT(" [");
+            tskName += m_chProfile->GetString(m_selectedProf);
+            tskName += wxT("]");
+            profInfo = (ProfileInfo*)m_chProfile->GetClientData(m_selectedProf);
+            if (objInfo == NULL) {
+                ::wxLogError(_("Can't get information about profile %s (id=%s)"), m_chProfile->GetString(m_selectedProf).c_str(), profInfo->ObjectId);
+                return;
+            }
+            if (m_client)
+            {
+                wxString tskID = m_client->DoCmd(wxT("addtask"), tskName);
+                if (!tskID.IsEmpty() && tskID != wxT("0"))
+                {
+                    // set task's options
+                    wxXmlDocument opt;
+                    wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("options"));
 
-        ProcessTaskList();
+                    content = FromStdString(objInfo->ObjectId);
+                    weRttiOptions::SaveTaskOption (root, wxT(weoParentID), wxT("8"), content);
+
+                    content = FromStdString(profInfo->ObjectId);
+                    weRttiOptions::SaveTaskOption (root, wxT(weoProfileID), wxT("8"), content);
+
+                    opt.SetRoot(root);
+                    wxMemoryOutputStream outp;
+                    opt.Save(outp, wxXML_NO_INDENTATION);
+                    int dataLen = outp.GetSize();
+                    char *data = new char[dataLen + 10];
+                    if (data != NULL) {
+                        outp.CopyTo(data, dataLen);
+                        data[dataLen] = '\0';
+                        wxString str = wxString::Format(wxT("%s;"), tskID.c_str());
+                        str += wxString::FromUTF8(data);
+                        m_client->DoCmd(wxT("settaskopts"), str);
+                    }
+                    else {
+                        wxLogError(wxT("Can't compose options save request!"));
+                    }
+
+                    // run task
+                    m_client->DoCmd(wxT("runtask"), tskID);
+                }
+                ProcessTaskList();
+            }
+        }
+        else
+        {
+            wxMessageBox(_("Select profile for scanning"), _("Warning"), wxICON_WARNING | wxOK);
+        }
+    }
+    else
+    {
+        wxMessageBox(_("Select object for scanning"), _("Warning"), wxICON_WARNING | wxOK);
     }
 }
 
@@ -875,7 +948,7 @@ wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
                 wxXmlResource::Get()->Unload(fname);
             }
             else {
-                wxMessageBox(_("Can't load given UI"), wxT("WebInvent"), wxICON_STOP | wxOK, this);
+                wxLogWarning(_("Can't load given UI"));
             }
             wxMemoryFSHandler::RemoveFile(id);
         }
@@ -1558,4 +1631,19 @@ PluginInfo* wiMainForm::FoundPlugin( const wxString& id)
         }
     }
     return retval;
+}
+
+void wiMainForm::OnSrvStop( wxCommandEvent& event )
+{
+    int res = wxMessageBox(_("Are you shure to stop the server?\n(All active tasks will be paused, and all clients will be disconnected)"), _("Warning"), wxICON_QUESTION | wxYES_NO);
+    if (res == wxYES) {
+        if (m_client) {
+            m_client->DoCmd(wxT("exit"), wxT(""));
+        }
+    }
+}
+
+void wiMainForm::OnServerLogs( wxCommandEvent& event )
+{
+    wxMessageBox(wxT("Coming soon!"), _("Information"), wxICON_INFORMATION | wxOK);
 }

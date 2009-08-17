@@ -19,6 +19,7 @@
 */
 #include <weHelper.h>
 #include <weDispatch.h>
+#include <weTask.h>
 #include <weHttpInvent.h>
 #include "iweInventory.xrc"
 
@@ -50,4 +51,45 @@ void* WeHttpInvent::GetInterface( const string& ifName )
 const string WeHttpInvent::GetSetupUI( void )
 {
     return xrc;
+}
+
+void WeHttpInvent::Start( WeTask* tsk )
+{
+    WeURL   start_url;
+
+    if (tsk)
+    {
+        task = tsk;
+        if (kernel)
+        {
+            string host;
+            WeOption opt = tsk->Option("scan_host");
+            SAFE_GET_OPTION_VAL(opt, host, "");
+            if (host != "")
+            {
+                string path;
+                WeOption opt = tsk->Option("httpInventory/BaseURL");
+                SAFE_GET_OPTION_VAL(opt, path, "");
+                start_url.host = host;
+                start_url.request = path;
+                host += path;
+                LOG4CXX_INFO(logger, "WeHttpInvent::Start: start scanning from: " << host);
+                task->GetRequestAsync(start_url, WeHttpInvent::ResponseDispatcher, this);
+            }
+            else {
+                LOG4CXX_WARN(logger, "WeHttpInvent::Start: Can't find hostname. Finishing.");
+            }
+        }
+        else {
+            LOG4CXX_WARN(logger, "WeHttpInvent::Start: No kernel given - can't read options. Finishing.");
+        }
+    }
+    else {
+        LOG4CXX_WARN(logger, "WeHttpInvent::Start: No parent task - can't process requests. Finishing.");
+    }
+}
+
+void WeHttpInvent::ProcessResponse( iweResponse *resp )
+{
+
 }

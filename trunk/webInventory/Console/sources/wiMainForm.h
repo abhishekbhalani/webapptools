@@ -60,16 +60,19 @@ protected:
     virtual void OnSortItems( wxListEvent& event );
     virtual void OnStorageChange( wxCommandEvent& event );
     virtual void OnTimer( wxTimerEvent& event );
+    virtual void OnSrvStop( wxCommandEvent& event );
+    virtual void OnServerLogs( wxCommandEvent& event );
 
     virtual void OnAddServer( wxCommandEvent& event );
     virtual void OnEditServer( wxCommandEvent& event );
     virtual void OnDelServer( wxCommandEvent& event );
 
-    virtual void OnAddTask( wxCommandEvent& event );
+//    virtual void OnAddTask( wxCommandEvent& event );
     virtual void OnDelTask( wxCommandEvent& event );
     virtual void OnRunTask( wxCommandEvent& event );
     virtual void OnCancelTask( wxCommandEvent& event );
     virtual void OnTaskSelected( wxListEvent& event );
+    virtual void OnPauseTask( wxCommandEvent& event );
 
     virtual void OnReportTskFilter( wxCommandEvent& event );
     virtual void OnReportsFilter( wxCommandEvent& event );

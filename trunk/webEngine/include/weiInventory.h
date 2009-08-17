@@ -20,6 +20,9 @@
 #pragma once
 #include "weiPlugin.h"
 
+class WeTask;
+class iweResponse;
+
 class iweInventory :
     public iwePlugin
 {
@@ -42,6 +45,36 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void* GetInterface(const string& ifName);
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void Start(WeTask* tsk)
+    ///
+    /// @brief  Starts the inventory process. 
+    ///
+    /// @param  tsk	 - If non-null, the pointer to task what handles the process. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void Start(WeTask* tsk) = 0;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void ProcessResponse(iweResponse *resp)
+    ///
+    /// @brief  Process the transport response described by resp.
+    /// 		
+    /// @param  resp - If non-null, the resp. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void ProcessResponse(iweResponse *resp) = 0;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn static void ResponseDispatcher(iweResponse *resp, void* context)
+    ///
+    /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
+    ///         by the context
+    ///
+    /// @param  resp	 - If non-null, the resp. 
+    /// @param  context	 - If non-null, the context. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    static void ResponseDispatcher(iweResponse *resp, void* context);
+
 protected:
     log4cxx::LoggerPtr logger;
+    WeTask* task;
 };

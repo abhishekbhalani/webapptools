@@ -44,6 +44,7 @@ public:
     WeDispatch* dispatcher;
     WeTask*     task_info;
     WeScan*     scan_info;
+    vector<iwePlugin*> plugins;
 };
 
 extern locked_data  globalData;

@@ -69,6 +69,8 @@
 #define weoIgnoreUrlParam    "noParamUrl"
 /// identifiers of the parent object (string)
 #define weoParentID          "ParentId"
+/// identifiers of the profile object (string)
+#define weoProfileID          "ProfileId"
 //////////////////////////////////////////////////////////////////////////
 // Define options typenames
 //////////////////////////////////////////////////////////////////////////

@@ -21,11 +21,21 @@
 #include "weTask.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/thread.hpp>
+
+static void WeTaskProcessor(WeTask& tsk)
+{
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTaskProcessor started for task " << ((void*)&tsk));
+    while (tsk.IsReady())
+    {
+        tsk.WaitForData();
+    };
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTaskProcessor finished for task " << ((void*)&tsk));
+}
 
 WeTask::WeTask()
 {
     FUNCTION;
-    transport = NULL;
     // set the default options
     Option(weoName, string(""));
     Option(weoID, string(""));
@@ -34,18 +44,15 @@ WeTask::WeTask()
     Option(weoAutoProcess, true);
     Option(weoStayInDir, true);
     Option(weoFollowLinks, true);
+    processThread = true;
+    mutex_ptr = (void*)(new boost::mutex);
+    event_ptr = (void*)(new boost::condition_variable);
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask created");
 }
 
 WeTask::WeTask( WeTask& cpy )
 {
     options = cpy.options;
-    if (cpy.transport != NULL) {
-        SetTransport(cpy.transport->GetName());
-    }
-    else {
-        transport = NULL;
-    }
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask assignment");
 }
 
@@ -54,63 +61,56 @@ WeTask::~WeTask()
     /// @todo Cleanup
 }
 
-iweResponse* WeTask::GetRequest( iweRequest* req )
-{
-    iweResponse* resp;
-
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequest");
-    resp = GetRequestAsync( req );
-    if (resp != NULL) {
-        /// @todo: wait for response completion
-        LOG4CXX_ERROR(WeLogger::GetLogger(), " *** Not implemented yet! ***");
-    }
-    return resp;
-}
-
-iweResponse* WeTask::GetRequestAsync( iweRequest* req )
+iweResponse* WeTask::GetRequest( WeURL req )
 {
     /// @todo Implement this!
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequestAsync");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequest (WeURL)");
     LOG4CXX_ERROR(WeLogger::GetLogger(), " *** Not implemented yet! ***");
     return NULL;
 }
 
+void WeTask::GetRequestAsync( WeURL req, fnProcessResponse *processor, void* context )
+{
+    /// @todo Implement this!
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequestAsync");
+    LOG4CXX_ERROR(WeLogger::GetLogger(), " *** Not implemented yet! ***");
+
+    // wake-up task_processor
+    if (event_ptr != NULL && mutex_ptr != NULL) {
+        boost::mutex *mt = (boost::mutex*)mutex_ptr;
+        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
+        boost::unique_lock<boost::mutex> lock(*mt);
+        cond->notify_all();
+    }
+    return;
+}
+
 bool WeTask::IsReady()
 {
-    string name;
+    return (transports.size() > 0 && processThread);
+}
 
-    FUNCTION;
-    // try to complete initialization
-    if (transport == NULL) {
-        if (!Option(weoTransport).IsEmpty()) {
-            Option(weoTransport).GetValue(name);
-            // create named transport
-            //transport = WeCreateNamedTransport(name);
+void WeTask::AddTransport(const  string& transp )
+{
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport (const string&)");
+    //iweTransport* tr = WeCreateNamedTransport(transp, NULL);
+    //AddTransport(tr);
+}
+
+void WeTask::AddTransport( iweTransport* transp )
+{
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport (iweTransport)");
+    for (int i = 0; i < transports.size(); i++)
+    {
+        if (transports[i]->GetID() == transp->GetID())
+        {
+            // transport already in list
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::AddTransport - transport already in list");
+            return;
         }
     }
-    return (transport != NULL);
-}
-
-void WeTask::SetTransport(const  string& transp )
-{
-    FUNCTION;
-    /// @todo Cleanup previous transport
-    Option(weoTransport, transp);
-    //transport = WeCreateNamedTransport(transp);
-}
-
-void WeTask::SetTransport( iweTransport* transp )
-{
-    FUNCTION;
-    transport = transp;
-    if (transport != NULL) {
-        Option(weoTransport, transport->GetName());
-    }
-    else {
-        Option(weoTransport, string(""));
-    }
+    transports.push_back(transp);
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport: added " << transp->GetDesc());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -369,5 +369,17 @@ void WeTask::FromXml( WeTagScanner& sc, int token /*= -1*/ )
             break;
         }
         token = -1;
+    }
+}
+
+void WeTask::WaitForData()
+{
+    if (event_ptr != NULL && mutex_ptr != NULL) {
+        boost::mutex *mt = (boost::mutex*)mutex_ptr;
+        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
+        boost::unique_lock<boost::mutex> lock(*mt);
+        while(taskList.size() == 0) {
+            cond->wait(lock);
+        }
     }
 }

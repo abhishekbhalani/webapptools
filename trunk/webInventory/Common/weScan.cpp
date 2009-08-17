@@ -47,6 +47,7 @@ std::string WeScan::ToXml( void )
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeScan::ToXml");
     retval += "<scan id='" + WeScreenXML(scanID) + "'>\n";
     retval += "  <object>" + WeScreenXML(objectID) + "</object>\n";
+    retval += "  <profile>" + WeScreenXML(profileID) + "</profile>\n";
     strData = posix_time::to_simple_string(startTime);
     retval += "  <start_time>" + WeScreenXML(strData) + "</start_time>\n";
     strData = posix_time::to_simple_string(finishTime);
@@ -165,6 +166,10 @@ void WeScan::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                 if (iequals(name, "object"))
                 {
                     objectID = dat;
+                }
+                if (iequals(name, "profile"))
+                {
+                    profileID = dat;
                 }
                 if (iequals(name, "start_time"))
                 {
