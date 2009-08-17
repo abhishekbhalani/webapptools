@@ -39,6 +39,7 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-Wno-write-strings" />
 			<Add directory="include" />
 		</Compiler>
 		<Unit filename="include/weBlob.h" />

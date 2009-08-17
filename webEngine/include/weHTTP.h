@@ -213,7 +213,7 @@ public:
     const CURLMcode &GetLastError(void) const   { return(lastError);    };
 
     /// @brief  Process pending requests
-    const CURLMcode ProcessRequests(void);
+    virtual const int ProcessRequests(void);
 
     virtual string& GetName()                   { return protoName; };
     virtual bool IsOwnProtocol(string& proto)   {return iequals(proto, protoName); };

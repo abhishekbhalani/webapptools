@@ -28,6 +28,7 @@
 #include <boost/lexical_cast.hpp>
 #include <programcfg.h>
 #include <weProfile.h>
+#include <weObject.h>
 #include "version.h"
 
 using namespace std;

@@ -74,7 +74,11 @@ void WeHttpInvent::Start( WeTask* tsk )
                 start_url.request = path;
                 host += path;
                 LOG4CXX_INFO(logger, "WeHttpInvent::Start: start scanning from: " << host);
-                task->GetRequestAsync(start_url, WeHttpInvent::ResponseDispatcher, this);
+                WeHttpRequest* req = new WeHttpRequest;
+                req->BaseUrl(start_url);
+                req->processor = WeHttpInvent::ResponseDispatcher;
+                req->context = (void*)this;
+                task->GetRequestAsync(req);
             }
             else {
                 LOG4CXX_WARN(logger, "WeHttpInvent::Start: Can't find hostname. Finishing.");
@@ -91,5 +95,15 @@ void WeHttpInvent::Start( WeTask* tsk )
 
 void WeHttpInvent::ProcessResponse( iweResponse *resp )
 {
+    WeHttpResponse* htResp;
 
+    try {
+        htResp = reinterpret_cast<WeHttpResponse*>(resp);
+    }
+    catch (...) {
+        LOG4CXX_ERROR(logger, "WeHttpInvent::ProcessResponse: The response from " << resp->BaseUrl().ToString() << " isn't the HttpResponse!");
+        return;
+    }
+    // process response
+    LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: process response with code=" << htResp->HttpCode());
 }

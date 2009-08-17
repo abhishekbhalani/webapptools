@@ -31,7 +31,10 @@ using namespace boost;
 class iweTransport;
 
 class iweOperation;
+class iweResponse;
 typedef shared_ptr<iweOperation> iweOperationPtr;
+typedef void (fnProcessResponse)(iweResponse *resp, void* context);
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  iweOperation
@@ -47,7 +50,7 @@ typedef shared_ptr<iweOperation> iweOperationPtr;
 class iweOperation
 {
 public:
-    iweOperation() { usageCount = 0; };
+    iweOperation() { usageCount = 0; context = NULL; processor = NULL; };
     virtual ~iweOperation();
 
     virtual iweOperationPtr& GetRef() { return (* new iweOperationPtr(this)); };
@@ -70,6 +73,10 @@ public:
     void ID(const string &id)   { identifier = id;  };
     const string & ID()         { return identifier;};
     //@}
+
+    void* context;
+    fnProcessResponse* processor;
+
 
 #ifndef __DOXYGEN__
 protected:
@@ -192,6 +199,10 @@ public:
     virtual ~iweTransport() {};
 
     virtual iweResponse* Request(string url, iweResponse *resp = NULL) = 0;
+    virtual iweResponse* Request(iweRequest* req, iweResponse *resp = NULL) = 0;
+
+    /// @brief  Process pending requests
+    virtual const int ProcessRequests(void) = 0;
 
     virtual WeOption& Option(const string& name);
     virtual bool IsSet(const string& name);

@@ -62,13 +62,14 @@ WeTask* locked_data::load_task(const string& id)
     string req;
     string report = "";
     int tasks = 0;
-    WeTask* tsk;
 
     //boost::lock_guard<boost::mutex> lock(locker);
 
     req = "<report><task value='" + id + "' /></report>";
     tasks = globalData.dispatcher->Storage()->TaskReport(req, report);
-    tsk = NULL;
+    if (globalData.task_info == NULL) {
+        globalData.task_info = new WeTask;
+    }
     if (tasks > 0)
     {   // parse the response
         bool in_parsing = true;
@@ -102,11 +103,10 @@ WeTask* locked_data::load_task(const string& id)
                 }
                 if (parsing_level == 1) {
                     if (iequals(tag, "task")) {
-                        tsk = new WeTask();
                         // go back to the start of the TAG
-                        tsk->FromXml(sc, t);
+                        globalData.task_info->FromXml(sc, t);
                         // stop parsing - only first task need
-                        in_parsing = false; 
+                        in_parsing = false;
                         break;
                     }
                 }
@@ -125,13 +125,8 @@ WeTask* locked_data::load_task(const string& id)
             }
         }
     }
-    if (globalData.task_info != NULL)
-    {
-        delete globalData.task_info;
-    }
 
-    globalData.task_info = tsk;
-    return tsk;
+    return globalData.task_info;
 }
 
 void locked_data::save_task( void )
@@ -157,7 +152,7 @@ bool locked_data::check_state()
             cond.wait(lock);
         }
     }
-    return execution;    
+    return execution;
 }
 
 void watch_dog_thread(const string& id)

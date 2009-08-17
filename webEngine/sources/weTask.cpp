@@ -23,12 +23,85 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread.hpp>
 
-static void WeTaskProcessor(WeTask& tsk)
+void WeTaskProcessor(WeTask* tsk)
 {
+    WeOption opt;
+    int i;
+    WeTask::WeRequestMap::iterator tsk_it;
+    WeTask::WeRequestMap::iterator tsk_go;
+    WeResponseList::iterator rIt;
+    iweResponse* resp;
+    iweRequest* curr_url;
+
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTaskProcessor started for task " << ((void*)&tsk));
-    while (tsk.IsReady())
+    while (tsk->IsReady())
     {
-        tsk.WaitForData();
+        tsk->WaitForData();
+        opt = tsk->Option(weoParallelReq);
+        SAFE_GET_OPTION_VAL(opt, tsk->taskQueueSize, 1);
+
+        // send request if slots available
+        while (tsk->taskQueueSize > tsk->taskQueue.size()) {
+            for (tsk_go = tsk->taskList.begin(); tsk_go != tsk->taskList.end(); tsk_go++)
+            {
+                if (tsk_go->second != NULL) {
+                    break;
+                }
+            }
+            if (tsk_go != tsk->taskList.end())
+            {
+                curr_url = tsk_go->second;
+                // search for transport or recreate request to all transports
+                if (curr_url->RequestUrl().IsValid()) {
+                    // search for transport
+                    for(i = 0; i < tsk->transports.size(); i++)
+                    {
+                        if (tsk->transports[i]->IsOwnProtocol(curr_url->RequestUrl().protocol)) {
+                            resp = tsk->transports[i]->Request(curr_url);
+                            resp->ID(curr_url->ID());
+                            resp->processor = curr_url->processor;
+                            resp->context = curr_url->context;
+                            tsk->taskQueue.push_back(resp);
+                            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().ToString());
+                            break;
+                        }
+                    }
+                }
+                else {
+                    // try to send request though appropriate transports
+                    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().ToString());
+                }
+
+                string u_req = curr_url->RequestUrl().ToString();
+                tsk->taskList[u_req] = NULL;
+                delete curr_url;
+            }
+            else {
+                break; // no URLs in the waiting list
+            }
+        }
+
+        // if any requests pending process transport operations
+        if (tsk->taskQueue.size() > 0) {
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTaskProcessor: transport->ProcessRequests()");
+            for(i = 0; i < tsk->transports.size(); i++)
+            {
+                tsk->transports[i]->ProcessRequests();
+            }
+            boost::this_thread::sleep(boost::posix_time::millisec(500));
+            for(rIt = tsk->taskQueue.begin(); rIt != tsk->taskQueue.end();) {
+                if ((*rIt)->Processed()) {
+                    if ((*rIt)->processor) {
+                        (*rIt)->processor((*rIt), (*rIt)->context);
+                    }
+                    tsk->taskQueue.erase(rIt);
+                    rIt = tsk->taskQueue.begin();
+                }
+                else {
+                    rIt++;
+                }
+            }
+        }
     };
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTaskProcessor finished for task " << ((void*)&tsk));
 }
@@ -37,23 +110,20 @@ WeTask::WeTask()
 {
     FUNCTION;
     // set the default options
-    Option(weoName, string(""));
-    Option(weoID, string(""));
-    Option(weoTaskStatus, 0);
-    Option(weoTaskCompletion, 0);
-    Option(weoAutoProcess, true);
-    Option(weoStayInDir, true);
-    Option(weoFollowLinks, true);
     processThread = true;
     mutex_ptr = (void*)(new boost::mutex);
     event_ptr = (void*)(new boost::condition_variable);
+    taskList.clear();
+    taskQueue.clear();
+    processThread = true;
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask created");
+    boost::thread process(WeTaskProcessor, this);
 }
 
 WeTask::WeTask( WeTask& cpy )
 {
     options = cpy.options;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask assignment");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask assigned");
 }
 
 WeTask::~WeTask()
@@ -61,7 +131,7 @@ WeTask::~WeTask()
     /// @todo Cleanup
 }
 
-iweResponse* WeTask::GetRequest( WeURL req )
+iweResponse* WeTask::GetRequest( iweRequest* req )
 {
     /// @todo Implement this!
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequest (WeURL)");
@@ -69,17 +139,17 @@ iweResponse* WeTask::GetRequest( WeURL req )
     return NULL;
 }
 
-void WeTask::GetRequestAsync( WeURL req, fnProcessResponse *processor, void* context )
+void WeTask::GetRequestAsync( iweRequest* req )
 {
     /// @todo Implement this!
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequestAsync");
-    LOG4CXX_ERROR(WeLogger::GetLogger(), " *** Not implemented yet! ***");
-
     // wake-up task_processor
     if (event_ptr != NULL && mutex_ptr != NULL) {
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         boost::unique_lock<boost::mutex> lock(*mt);
+        taskList[req->RequestUrl().ToString()] = req;
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequestAsync: new task size=" << taskList.size());
         cond->notify_all();
     }
     return;
@@ -116,13 +186,13 @@ void WeTask::AddTransport( iweTransport* transp )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn std::string WeTask::ToXml( void )
 ///
-/// @brief  Converts this object to an XML. 
+/// @brief  Converts this object to an XML.
 ///
 /// This function realizes alternate serialization mechanism. It generates more compact and
 /// simplified XML representation. This representation is used for internal data exchange
 /// (for example to store data through iweStorage interface).
 ///
-/// @retval This object as a std::string. 
+/// @retval This object as a std::string.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string WeTask::ToXml( void )
 {
@@ -185,35 +255,35 @@ std::string WeTask::ToXml( void )
             {
             case 0:
                 it->second->GetValue(chData);
-                strData = boost::lexical_cast<string>(chData); 
+                strData = boost::lexical_cast<string>(chData);
                 break;
             case 1:
                 it->second->GetValue(uchData);
-                strData = boost::lexical_cast<string>(uchData); 
+                strData = boost::lexical_cast<string>(uchData);
                 break;
             case 2:
                 it->second->GetValue(intData);
-                strData = boost::lexical_cast<string>(intData); 
+                strData = boost::lexical_cast<string>(intData);
                 break;
             case 3:
                 it->second->GetValue(uintData);
-                strData = boost::lexical_cast<string>(uintData); 
+                strData = boost::lexical_cast<string>(uintData);
                 break;
             case 4:
                 it->second->GetValue(longData);
-                strData = boost::lexical_cast<string>(longData); 
+                strData = boost::lexical_cast<string>(longData);
                 break;
             case 5:
                 it->second->GetValue(ulongData);
-                strData = boost::lexical_cast<string>(ulongData); 
+                strData = boost::lexical_cast<string>(ulongData);
                 break;
             case 6:
                 it->second->GetValue(boolData);
-                strData = boost::lexical_cast<string>(boolData); 
+                strData = boost::lexical_cast<string>(boolData);
                 break;
             case 7:
                 it->second->GetValue(doubleData);
-                strData = boost::lexical_cast<string>(doubleData); 
+                strData = boost::lexical_cast<string>(doubleData);
                 break;
             case 8:
                 it->second->GetValue(strData);
@@ -245,11 +315,11 @@ std::string WeTask::ToXml( void )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn void WeTask::FromXml( string input )
 ///
-/// @brief  Initializes this object from the given from XML. 
+/// @brief  Initializes this object from the given from XML.
 ///
 /// This function reconstructs object back from the XML generated by the @b ToXml function
 ///
-/// @param  input - The input XML. 
+/// @param  input - The input XML.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void WeTask::FromXml( string input )
 {
@@ -361,7 +431,7 @@ void WeTask::FromXml( WeTagScanner& sc, int token /*= -1*/ )
                 }
             }
             break;
-        case wstWord: 
+        case wstWord:
         case wstSpace:
             dat += sc.GetValue();
             break;
@@ -378,8 +448,26 @@ void WeTask::WaitForData()
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         boost::unique_lock<boost::mutex> lock(*mt);
-        while(taskList.size() == 0) {
+        while(taskList.size() == 0 && ! processThread) {
             cond->wait(lock);
         }
     }
+}
+
+void WeTask::CalcStatus()
+{
+    WeRequestMap::iterator tsk_it;
+    size_t count = 0;
+    for (tsk_it = taskList.begin(); tsk_it != taskList.end(); tsk_it++)
+    {
+        if (tsk_it->second != NULL)
+        {
+            count++;
+        }
+    }
+    size_t task_list_max_size = taskList.size();
+    int idata = (task_list_max_size - count) * 100 / task_list_max_size;
+    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::CalcStatus: rest " << count << " queries  from " <<
+                task_list_max_size << " (" << idata << "%)");
+    Option(weoTaskCompletion, idata);
 }

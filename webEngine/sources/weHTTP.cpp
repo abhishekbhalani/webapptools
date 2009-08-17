@@ -259,7 +259,7 @@ iweResponse* WeHTTP::Request( WeURL& url, iweResponse* resp /*= NULL*/ )
     return Request(req, resp);
 }
 
-const CURLMcode WeHTTP::ProcessRequests( void )
+const int WeHTTP::ProcessRequests( void )
 {
     int running_handles;
     int msgs_in_queue;
