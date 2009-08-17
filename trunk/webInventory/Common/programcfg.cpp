@@ -24,6 +24,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <programcfg.h>
+#include <fstream>
 
 namespace fs = boost::filesystem;
 
@@ -273,7 +274,7 @@ bool ProgramConfig::load_from_file( const string& filename )
                     }
                 }
                 break;
-            case wstWord: 
+            case wstWord:
             case wstSpace:
                 if (parseLevel == 3 && pos_last == 0)
                 {

@@ -64,7 +64,10 @@
 			<Add option="`wx-config --libs`" />
 		</Linker>
 		<Unit filename="../Common/optionnames.h" />
+		<Unit filename="../Common/programcfg.cpp" />
 		<Unit filename="../Common/programcfg.h" />
+		<Unit filename="../Common/weObject.cpp" />
+		<Unit filename="../Common/weProfile.cpp" />
 		<Unit filename="../Common/weScan.cpp" />
 		<Unit filename="../Common/weScan.h" />
 		<Unit filename="taskexec.cpp" />

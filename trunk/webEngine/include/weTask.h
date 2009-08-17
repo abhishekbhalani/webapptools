@@ -33,8 +33,6 @@ using namespace std;
 
 #define WE_VERSION_ID   0
 
-typedef void (fnProcessResponse)(iweResponse *resp, void* context);
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  WeTask
 ///
@@ -54,22 +52,26 @@ public:
     void AddTransport(iweTransport* transp);
 
     bool IsReady();
-    iweResponse* GetRequest(WeURL req);
-    void GetRequestAsync(WeURL req, fnProcessResponse *processor, void* context);
+    iweResponse* GetRequest(iweRequest* req);
+    void GetRequestAsync(iweRequest* req);
 
     string ToXml( void );
     void FromXml( string input );
     void FromXml( WeTagScanner& sc, int token = -1 );
 
     void WaitForData();
+    void CalcStatus();
 
 #ifndef __DOXYGEN__
 protected:
+    typedef map<string, iweRequest*> WeRequestMap;
     vector<iweTransport*>   transports;
     bool processThread;
     void* mutex_ptr;
     void* event_ptr;
-    WeRequestList taskList;
+    int taskQueueSize;
+    WeRequestMap taskList;
+    WeResponseList taskQueue;
 #endif //__DOXYGEN__
 
 private:
@@ -77,6 +79,7 @@ private:
     {
         ar & BOOST_SERIALIZATION_NVP(options);
     };
+    friend void WeTaskProcessor(WeTask* tsk);
 };
 
 BOOST_CLASS_TRACKING(WeTask, boost::serialization::track_never)

@@ -49,6 +49,7 @@
 					<Add library="libcurl.a" />
 					<Add library="libboost_filesystem-mt.a" />
 					<Add library="libboost_regex-mt.a" />
+					<Add library="libboost_thread-mt.a" />
 					<Add directory="/usr/lib" />
 					<Add directory="../../webEngine/libs/release" />
 				</Linker>
@@ -62,6 +63,7 @@
 		</Compiler>
 		<Unit filename="../Common/messages.h" />
 		<Unit filename="../Common/optionnames.h" />
+		<Unit filename="../Common/programcfg.cpp" />
 		<Unit filename="../Common/programcfg.h" />
 		<Unit filename="../Common/weObject.cpp" />
 		<Unit filename="../Common/weObject.h" />
