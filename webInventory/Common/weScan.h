@@ -44,6 +44,7 @@ public:
 
     string            scanID;
     string            objectID;
+    string            profileID;
     posix_time::ptime startTime;
     posix_time::ptime finishTime;
     posix_time::ptime pingTime;

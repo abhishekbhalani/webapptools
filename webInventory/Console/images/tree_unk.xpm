@@ -1,5 +1,5 @@
 /* XPM */
-static char *tree_unk[] = {
+static char *tree_unk_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 16 17 1",
 "  c #040404",

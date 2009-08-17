@@ -369,3 +369,13 @@ bool iweOptionsProvider::IsSet( const string& name )
     }
     return retval;
 }
+
+void iweOptionsProvider::CopyOptions( iweOptionsProvider* cpy )
+{
+    WeOptions::iterator it;
+
+    for (it = cpy->options.begin(); it != cpy->options.end(); it++)
+    {
+        options[it->first] = it->second;
+    }
+}

@@ -183,6 +183,7 @@ void task_executor(const string& taskID)
     int     max_requests;
     WeResponseList resps;
     WeResponseList::iterator rIt;
+    vector<iweTransport*>   transports;
 
     bool in_process = false;
     LOG4CXX_DEBUG(WeLogger::GetLogger(), "Start task execution");
@@ -190,6 +191,20 @@ void task_executor(const string& taskID)
         boost::lock_guard<boost::mutex> lock(globalData.locker);
         LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor start: reload task");
         globalData.load_task(taskID);
+
+        // get transport from task options
+        transports.clear();
+        for (int i = 0; i < globalData.plugins.size(); i++)
+        {
+            if (find(globalData.plugins[i].InterfaceList().begin(),
+                        globalData.plugins[i].InterfaceList().end(),
+                        "iweTransport") != globalData.plugins[i].InterfaceList().end())
+            {
+                transports.push_back(globalData.plugins[i]);
+                LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor found transport: ", globalData.plugins[i].GetDesc());
+            }
+        }
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor load" << transports.size() << " transports");
 
         opt = globalData.task_info->Option(weoBaseURL);
         SAFE_GET_OPTION_VAL(opt, sdata, "");
@@ -217,8 +232,17 @@ void task_executor(const string& taskID)
     LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: go to main loop");
     task_list_max_size = task_list.size();
 
-    // get transport from task options
-    WeHTTP* transport = (WeHTTP*)globalData.dispatcher->LoadPlugin("A44A9A1E7C25"); // load HTTP transport
+    // stage 1: inventory
+    for (int i = 0; i < globalData.plugins.size(); i++)
+    {
+        if (find(globalData.plugins[i].InterfaceList().begin(),
+            globalData.plugins[i].InterfaceList().end(),
+            "iweInventory") != globalData.plugins[i].InterfaceList().end())
+        {
+            ((iweInventory*)globalData.plugins[i])->;
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor found transport: ", globalData.plugins[i].GetDesc());
+        }
+    }
 
     do 
     {

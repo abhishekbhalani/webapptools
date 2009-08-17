@@ -18,11 +18,13 @@
 #include "../images/filter.xpm"
 #include "../images/flsave.xpm"
 #include "../images/flstatus.xpm"
+#include "../images/opts_audit.xpm"
 #include "../images/panReports.xpm"
 #include "../images/panSettings.xpm"
 #include "../images/panTasks.xpm"
 #include "../images/reload.xpm"
 #include "../images/start.xpm"
+#include "../images/tree_no.xpm"
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -162,7 +164,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	
 	wxString m_chLogLevelChoices[] = { _("Trace"), _("Debug"), _("Info"), _("Warnings"), _("Errors"), _("Fatal") };
 	int m_chLogLevelNChoices = sizeof( m_chLogLevelChoices ) / sizeof( wxString );
-	m_chLogLevel = new wxChoice( m_panTaskOpts, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chLogLevelNChoices, m_chLogLevelChoices, 0, wxDefaultValidator, wxT("LogLevel<2>[4]") );
+	m_chLogLevel = new wxChoice( m_panTaskOpts, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chLogLevelNChoices, m_chLogLevelChoices, 0, wxDefaultValidator, wxT("LogLevel<2>") );
 	m_chLogLevel->SetSelection( 0 );
 	m_chLogLevel->SetMinSize( wxSize( 150,-1 ) );
 	
@@ -214,11 +216,32 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	wxBoxSizer* bSzTaskInfo;
 	bSzTaskInfo = new wxBoxSizer( wxHORIZONTAL );
 	
-	m_lstTaskList = new wxListCtrl( m_panTasks, wxID_ANY, wxDefaultPosition, wxSize( 300,-1 ), wxLC_HRULES|wxLC_REPORT|wxLC_SINGLE_SEL );
-	bSzTaskInfo->Add( m_lstTaskList, 0, wxEXPAND|wxLEFT|wxRIGHT, 5 );
+	m_splitLogs = new wxSplitterWindow( m_panTasks, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
+	m_splitLogs->Connect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitLogsOnIdle ), NULL, this );
+	wxPanel* m_panTaskList;
+	m_panTaskList = new wxPanel( m_splitLogs, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer24;
+	bSizer24 = new wxBoxSizer( wxVERTICAL );
 	
-	m_rtTask = new wxRichTextCtrl( m_panTasks, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_AUTO_URL|wxTE_READONLY|wxHSCROLL|wxVSCROLL|wxWANTS_CHARS );
-	bSzTaskInfo->Add( m_rtTask, 1, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 0 );
+	m_lstTaskList = new wxListCtrl( m_panTaskList, wxID_ANY, wxDefaultPosition, wxSize( 300,-1 ), wxLC_HRULES|wxLC_REPORT|wxLC_SINGLE_SEL );
+	bSizer24->Add( m_lstTaskList, 1, wxEXPAND|wxLEFT|wxRIGHT, 0 );
+	
+	m_panTaskList->SetSizer( bSizer24 );
+	m_panTaskList->Layout();
+	bSizer24->Fit( m_panTaskList );
+	wxPanel* m_paTaskLog;
+	m_paTaskLog = new wxPanel( m_splitLogs, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer25;
+	bSizer25 = new wxBoxSizer( wxVERTICAL );
+	
+	m_rtTask = new wxRichTextCtrl( m_paTaskLog, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_AUTO_URL|wxTE_READONLY|wxHSCROLL|wxVSCROLL|wxWANTS_CHARS );
+	bSizer25->Add( m_rtTask, 1, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 0 );
+	
+	m_paTaskLog->SetSizer( bSizer25 );
+	m_paTaskLog->Layout();
+	bSizer25->Fit( m_paTaskLog );
+	m_splitLogs->SplitVertically( m_panTaskList, m_paTaskLog, 300 );
+	bSzTaskInfo->Add( m_splitLogs, 1, wxEXPAND, 0 );
 	
 	bSzTasks->Add( bSzTaskInfo, 1, wxEXPAND, 5 );
 	
@@ -404,24 +427,26 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_chStorage->SetSelection( 0 );
 	m_chStorage->SetMinSize( wxSize( 250,-1 ) );
 	
-	bSizer12->Add( m_chStorage, 0, wxALL, 5 );
+	bSizer12->Add( m_chStorage, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
 	m_bpStorageApply = new wxBitmapButton( m_pnServer, wxID_ANY, wxBitmap( btnApply16_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	m_bpStorageApply->SetToolTip( _("Apply") );
 	
 	m_bpStorageApply->SetToolTip( _("Apply") );
 	
-	bSizer12->Add( m_bpStorageApply, 0, wxBOTTOM|wxTOP, 5 );
+	bSizer12->Add( m_bpStorageApply, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxTOP, 5 );
 	
 	
 	bSizer12->Add( 0, 0, 1, wxEXPAND, 5 );
 	
-	m_bpPlgRefresh = new wxBitmapButton( m_pnServer, wxID_ANY, wxBitmap( reload_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpPlgRefresh->SetToolTip( _("Refresh") );
+	m_tbServer = new wxToolBar( m_pnServer, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
+	m_tbServer->SetToolBitmapSize( wxSize( 20,20 ) );
+	m_tbServer->AddTool( wxID_TLPLGRELOAD, _("tool"), wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh plugins list"), wxEmptyString );
+	m_tbServer->AddTool( wxID_TLSRVSTOP, _("tool"), wxBitmap( tree_no_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Stops the server"), wxEmptyString );
+	m_tbServer->AddTool( wxID_TLSRVLOG, _("tool"), wxBitmap( opts_audit_xpm ), wxNullBitmap, wxITEM_NORMAL, _("View server log"), wxEmptyString );
+	m_tbServer->Realize();
 	
-	m_bpPlgRefresh->SetToolTip( _("Refresh") );
-	
-	bSizer12->Add( m_bpPlgRefresh, 0, wxBOTTOM|wxTOP, 5 );
+	bSizer12->Add( m_tbServer, 0, wxALIGN_CENTER_VERTICAL, 0 );
 	
 	fgSizer61->Add( bSizer12, 1, wxEXPAND, 5 );
 	
@@ -495,7 +520,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_bpAddPlugin->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddPlugin ), NULL, this );
 	m_bpDelPlugin->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnRemovePlugin ), NULL, this );
 	m_plgBook->Connect( wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING, wxTreebookEventHandler( MainForm::OnOptionsPageChanging ), NULL, this );
-	this->Connect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
+	this->Connect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnPauseTask ) );
 	this->Connect( wxID_TOOLSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ) );
 	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
 	m_lstTaskList->Connect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
@@ -514,7 +539,9 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	this->Connect( wxID_TLDELETE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelServer ) );
 	this->Connect( wxID_TLLANGAPPLY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnLangChange ) );
 	m_bpStorageApply->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnStorageChange ), NULL, this );
-	m_bpPlgRefresh->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnPlgRefresh ), NULL, this );
+	this->Connect( wxID_TLPLGRELOAD, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnPlgRefresh ) );
+	this->Connect( wxID_TLSRVSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnSrvStop ) );
+	this->Connect( wxID_TLSRVLOG, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnServerLogs ) );
 }
 
 MainForm::~MainForm()
@@ -535,7 +562,7 @@ MainForm::~MainForm()
 	m_bpAddPlugin->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnAddPlugin ), NULL, this );
 	m_bpDelPlugin->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnRemovePlugin ), NULL, this );
 	m_plgBook->Disconnect( wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING, wxTreebookEventHandler( MainForm::OnOptionsPageChanging ), NULL, this );
-	this->Disconnect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnRunTask ) );
+	this->Disconnect( wxID_TOOLPAUSE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnPauseTask ) );
 	this->Disconnect( wxID_TOOLSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnCancelTask ) );
 	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_COL_CLICK, wxListEventHandler( MainForm::OnSortItems ), NULL, this );
 	m_lstTaskList->Disconnect( wxEVT_COMMAND_LIST_ITEM_SELECTED, wxListEventHandler( MainForm::OnTaskSelected ), NULL, this );
@@ -554,7 +581,9 @@ MainForm::~MainForm()
 	this->Disconnect( wxID_TLDELETE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnDelServer ) );
 	this->Disconnect( wxID_TLLANGAPPLY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnLangChange ) );
 	m_bpStorageApply->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnStorageChange ), NULL, this );
-	m_bpPlgRefresh->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainForm::OnPlgRefresh ), NULL, this );
+	this->Disconnect( wxID_TLPLGRELOAD, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnPlgRefresh ) );
+	this->Disconnect( wxID_TLSRVSTOP, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnSrvStop ) );
+	this->Disconnect( wxID_TLSRVLOG, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainForm::OnServerLogs ) );
 }
 
 ObjDialog::ObjDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )

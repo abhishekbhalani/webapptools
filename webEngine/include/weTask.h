@@ -33,6 +33,8 @@ using namespace std;
 
 #define WE_VERSION_ID   0
 
+typedef void (fnProcessResponse)(iweResponse *resp, void* context);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  WeTask
 ///
@@ -48,20 +50,26 @@ public:
     WeTask(WeTask& cpy);
     ~WeTask();
 
-    void SetTransport(const string& transp);
-    void SetTransport(iweTransport* transp);
+    void AddTransport(const string& transp);
+    void AddTransport(iweTransport* transp);
 
     bool IsReady();
-    iweResponse* GetRequest(iweRequest* req);
-    iweResponse* GetRequestAsync(iweRequest* req);
+    iweResponse* GetRequest(WeURL req);
+    void GetRequestAsync(WeURL req, fnProcessResponse *processor, void* context);
 
     string ToXml( void );
     void FromXml( string input );
     void FromXml( WeTagScanner& sc, int token = -1 );
 
+    void WaitForData();
+
 #ifndef __DOXYGEN__
 protected:
-    iweTransport*   transport;
+    vector<iweTransport*>   transports;
+    bool processThread;
+    void* mutex_ptr;
+    void* event_ptr;
+    WeRequestList taskList;
 #endif //__DOXYGEN__
 
 private:

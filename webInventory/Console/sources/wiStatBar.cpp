@@ -58,13 +58,13 @@ void wiStatBar::SetImage(int status)
     }
     switch(status) {
         case wiSTATUS_BAR_NO:
-            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_no));
+            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_no_xpm));
             break;
         case wiSTATUS_BAR_YES:
-            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_yes));
+            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_yes_xpm));
             break;
         default:
-            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_unk));
+            m_statbmp = new wxStaticBitmap(this, wxID_ANY, wxIcon(tree_unk_xpm));
             break;
     };
     SetMinHeight(16);

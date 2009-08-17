@@ -1,5 +1,5 @@
 /* XPM */
-static char *tree_no[] = {
+static char *tree_no_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 16 17 1",
 "  c #0f0204",

@@ -129,6 +129,8 @@ public:
         }
     };
 
+    void CopyOptions(iweOptionsProvider* cpy);
+
     string ToXml( void );
     void FromXml( string input );
     void FromXml( WeTagScanner& sc, int token = -1 );
@@ -191,6 +193,8 @@ private:
 #define weoIgnoreUrlParam    "noParamUrl"
 /// identifiers of the parent object (string)
 #define weoParentID          "ParentId"
+/// identifiers of the profile object (string)
+#define weoProfileID          "ProfileId"
 //////////////////////////////////////////////////////////////////////////
 // Define options typenames
 //////////////////////////////////////////////////////////////////////////

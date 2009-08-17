@@ -27,6 +27,7 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/lexical_cast.hpp>
 #include <programcfg.h>
+#include <weProfile.h>
 #include "version.h"
 
 using namespace std;
@@ -41,6 +42,11 @@ int main(int argc, char* argv[])
     string traceName;
     string cfgFile;
     string taskID;
+    WeProfile profile;
+    WeScanObject object;
+    string query;
+    string report;
+    int objs;
 
     try
     {
@@ -182,10 +188,64 @@ int main(int argc, char* argv[])
                     WeOption opt = globalData.task_info->Option(weoParentID);
                     string objectID;
                     SAFE_GET_OPTION_VAL(opt, objectID, "0");
-                    globalData.scan_info->scanID = globalData.dispatcher->Storage()->GenerateID(weObjTypeScan);
                     globalData.scan_info->objectID = objectID;
+                    query = "<report><object value='" + objectID + "'/></report>";
+                    objs = globalData.dispatcher->Storage()->Report(weObjTypeObject, objectID, query, report);
+                    if (objs == 0)
+                    {
+                        string msg = "Object not found: " + objectID;
+                        throw std::runtime_error(msg.c_str());
+                    }
+                    object.FromXml(report);
+                    globalData.task_info->Option("scan_host", object.Address);
+
+
+                    opt = globalData.task_info->Option(weoProfileID);
+                    SAFE_GET_OPTION_VAL(opt, objectID, "0");
+                    globalData.scan_info->profileID = objectID;
+
+                    query = "<report><profile value='" + objectID + "'/></report>";
+                    objs = globalData.dispatcher->Storage()->Report(weObjTypeProfile, objectID, query, report);
+                    if (objs == 0)
+                    {
+                        string msg = "Profile not found: " + objectID;
+                        throw std::runtime_error(msg.c_str());
+                    }
+                    profile.FromXml(report);
+                    globalData.dispatcher->CopyOptions(&profile);
+
+                    globalData.scan_info->scanID = globalData.dispatcher->Storage()->GenerateID(weObjTypeScan);
                     LOG4CXX_INFO(WeLogger::GetLogger(), "Scan information ID=" << globalData.scan_info->scanID
                         << "; start time: " << posix_time::to_simple_string(globalData.scan_info->startTime));
+
+                    // load plugins
+                    opt = globalData.dispatcher->Option("plugin_list");
+                    SAFE_GET_OPTION_VAL(opt, query, "");
+
+                    globalData.plugins.clear();
+                    int pos = query.find(';');
+                    while (pos != string::npos) {
+                        string pid = query.substr(0, pos);
+                        iwePlugin* plg = globalData.dispatcher->LoadPlugin(pid);
+                        if (plg != NULL)
+                        {
+                            globalData.plugins.push_back(plg);
+                        }
+                        query = query.substr(pos + 1);
+                        pos = query.find(';');
+                    }
+                    if (query != "") {
+                        iwePlugin* plg = globalData.dispatcher->LoadPlugin(query);
+                        if (plg != NULL)
+                        {
+                            globalData.plugins.push_back(plg);
+                        }
+                    }
+                    if (globalData.plugins.size() == 0)
+                    {
+                        string msg = "No active plugins in the profile - nothing to do";
+                        throw std::runtime_error(msg.c_str());
+                    }
 
                     // create watchdog thread
                     boost::thread watch_dog(watch_dog_thread, taskID);
@@ -194,8 +254,10 @@ int main(int argc, char* argv[])
                     task_executor(taskID);
 
                     // finalize
-                    string report = globalData.scan_info->ToXml();
+                    report = globalData.scan_info->ToXml();
                     globalData.dispatcher->Storage()->ScanSave(report);
+                    report = "<delete task='" + taskID + "'/>";
+                    globalData.dispatcher->Storage()->Delete(weObjTypeTask, report);
                 }
                 else {
                     LOG4CXX_FATAL(WeLogger::GetLogger(), "No iweStorage interface in the plugin " << plugin->GetID());

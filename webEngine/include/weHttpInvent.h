@@ -27,6 +27,11 @@ public:
     WeHttpInvent(WeDispatch* krnl, void* handle = NULL);
     virtual ~WeHttpInvent(void);
 
+    // iwePlugin functions
     virtual void* GetInterface(const string& ifName);
     virtual const string GetSetupUI( void );
+
+    // iweInventory functions
+    void Start(WeTask* tsk);
+    void ProcessResponse(iweResponse *resp);
 };
