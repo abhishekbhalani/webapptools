@@ -37,12 +37,9 @@ static bool task_control(const string& taskID)
 void task_executor(const string& taskID)
 {
     string sdata;
-    int idata, count;
     WeOption opt;
 //    WeHttpMap  task_list;
-    size_t          task_list_max_size;
 //    WeHttpRequest*  curr_url;
-    int     max_requests;
     vector<iweTransport*>   transports;
 
     bool in_process = false;
@@ -54,7 +51,7 @@ void task_executor(const string& taskID)
         globalData.save_task();
 
         // get transport from task options
-        for (int i = 0; i < globalData.plugins.size(); i++)
+        for (size_t i = 0; i < globalData.plugins.size(); i++)
         {
             WeStringList ifaces = globalData.plugins[i]->InterfaceList();
             LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor plugin: " << globalData.plugins[i]->GetDesc() << " ifaces: " << ifaces.size());
@@ -73,7 +70,7 @@ void task_executor(const string& taskID)
 
     // stage 1: inventory
     LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: stage 1 - inventory");
-    for (int i = 0; i < globalData.plugins.size(); i++)
+    for (size_t i = 0; i < globalData.plugins.size(); i++)
     {
         WeStringList ifaces = globalData.plugins[i]->InterfaceList();
         LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor plugin: " << globalData.plugins[i]->GetDesc() << " ifaces: " << ifaces.size());

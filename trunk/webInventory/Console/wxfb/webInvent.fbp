@@ -435,7 +435,7 @@
                                                                                     <property name="bitmap">../images/btnEdit.xpm; Load From File</property>
                                                                                     <property name="id">wxID_TOOLEDIT</property>
                                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                                    <property name="label">tool</property>
+                                                                                    <property name="label"></property>
                                                                                     <property name="name">m_toolObjectEdit</property>
                                                                                     <property name="statusbar"></property>
                                                                                     <property name="tooltip"></property>
@@ -714,7 +714,7 @@
                                                                                     <property name="bitmap">../images/btnAdd.xpm; Load From File</property>
                                                                                     <property name="id">wxID_TLPROFNEW</property>
                                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                                    <property name="label">tool</property>
+                                                                                    <property name="label"></property>
                                                                                     <property name="name">m_toolProfNew</property>
                                                                                     <property name="statusbar"></property>
                                                                                     <property name="tooltip">Create new profile</property>
@@ -728,7 +728,7 @@
                                                                                     <property name="bitmap">../images/reload.xpm; Load From File</property>
                                                                                     <property name="id">wxID_TLPROFCLONE</property>
                                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                                    <property name="label">tool</property>
+                                                                                    <property name="label"></property>
                                                                                     <property name="name">m_toolProfClone</property>
                                                                                     <property name="statusbar"></property>
                                                                                     <property name="tooltip">Copy current profile</property>
@@ -742,7 +742,7 @@
                                                                                     <property name="bitmap">../images/btnDel.xpm; Load From File</property>
                                                                                     <property name="id">wxID_TLPROFDEL</property>
                                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                                    <property name="label">tool</property>
+                                                                                    <property name="label"></property>
                                                                                     <property name="name">m_toolProfDel</property>
                                                                                     <property name="statusbar"></property>
                                                                                     <property name="tooltip">Delete profile</property>
@@ -757,7 +757,7 @@
                                                                                     <property name="bitmap">../images/flsave.xpm; Load From File</property>
                                                                                     <property name="id">wxID_TLPROFSAVE</property>
                                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                                    <property name="label">tool</property>
+                                                                                    <property name="label"></property>
                                                                                     <property name="name">m_toolProlileApply</property>
                                                                                     <property name="statusbar"></property>
                                                                                     <property name="tooltip">Save profile</property>
@@ -804,7 +804,7 @@
                                                                                 <property name="bitmap">../images/btnAdd.xpm; Load From File</property>
                                                                                 <property name="context_help"></property>
                                                                                 <property name="default">0</property>
-                                                                                <property name="disabled"></property>
+                                                                                <property name="disabled">../images/_btnAdd.xpm; Load From File</property>
                                                                                 <property name="enabled">1</property>
                                                                                 <property name="fg"></property>
                                                                                 <property name="focus"></property>
@@ -861,7 +861,7 @@
                                                                                 <property name="bitmap">../images/btnDel.xpm; Load From File</property>
                                                                                 <property name="context_help"></property>
                                                                                 <property name="default">0</property>
-                                                                                <property name="disabled"></property>
+                                                                                <property name="disabled">../images/_btnDel.xpm; Load From File</property>
                                                                                 <property name="enabled">1</property>
                                                                                 <property name="fg"></property>
                                                                                 <property name="focus"></property>
@@ -1989,7 +1989,7 @@
                                                                     <property name="bitmap">../images/reload.xpm; Load From File</property>
                                                                     <property name="id">wxID_TLREFRESH</property>
                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                    <property name="label">tool</property>
+                                                                    <property name="label"></property>
                                                                     <property name="name">m_tooRefresh</property>
                                                                     <property name="statusbar"></property>
                                                                     <property name="tooltip">Refresh reports list</property>
@@ -2003,7 +2003,7 @@
                                                                     <property name="bitmap">../images/filter.xpm; Load From File</property>
                                                                     <property name="id">wxID_TLFILTER</property>
                                                                     <property name="kind">wxITEM_CHECK</property>
-                                                                    <property name="label">tool</property>
+                                                                    <property name="label"></property>
                                                                     <property name="name">m_toolFilter</property>
                                                                     <property name="statusbar"></property>
                                                                     <property name="tooltip">Apply filter</property>
@@ -2109,7 +2109,7 @@
                                                                     <property name="bitmap">../images/date.xpm; Load From File</property>
                                                                     <property name="id">wxID_TLDATE</property>
                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                    <property name="label">tool</property>
+                                                                    <property name="label"></property>
                                                                     <property name="name">m_toolDate</property>
                                                                     <property name="statusbar"></property>
                                                                     <property name="tooltip">Date filter mode</property>
@@ -2168,7 +2168,7 @@
                                                                     <property name="bitmap">../images/flstatus.xpm; Load From File</property>
                                                                     <property name="id">wxID_TLSTATUS</property>
                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                    <property name="label">tool</property>
+                                                                    <property name="label"></property>
                                                                     <property name="name">m_toolStatus</property>
                                                                     <property name="statusbar"></property>
                                                                     <property name="tooltip">Filter by scan status</property>
@@ -2182,7 +2182,7 @@
                                                                     <property name="bitmap">../images/flsave.xpm; Load From File</property>
                                                                     <property name="id">wxID_TLSAVE</property>
                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                    <property name="label">tool</property>
+                                                                    <property name="label"></property>
                                                                     <property name="name">m_toolSave</property>
                                                                     <property name="statusbar"></property>
                                                                     <property name="tooltip">Save and load filters</property>
@@ -2748,7 +2748,7 @@
                                                                 <property name="bitmap">../images/btnEdit.xpm; Load From File</property>
                                                                 <property name="id">wxID_TLEDIT</property>
                                                                 <property name="kind">wxITEM_NORMAL</property>
-                                                                <property name="label">tool</property>
+                                                                <property name="label"></property>
                                                                 <property name="name">m_bpSrvEdit</property>
                                                                 <property name="statusbar"></property>
                                                                 <property name="tooltip">Edit connection</property>
@@ -3451,7 +3451,7 @@
                                                                 <property name="bitmap">../images/btnApply16.xpm; Load From File</property>
                                                                 <property name="context_help"></property>
                                                                 <property name="default">0</property>
-                                                                <property name="disabled"></property>
+                                                                <property name="disabled">../images/_btnApply16.xpm; Load From File</property>
                                                                 <property name="enabled">1</property>
                                                                 <property name="fg"></property>
                                                                 <property name="focus"></property>
@@ -3564,7 +3564,7 @@
                                                                     <property name="bitmap">../images/reload.xpm; Load From File</property>
                                                                     <property name="id">wxID_TLPLGRELOAD</property>
                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                    <property name="label">tool</property>
+                                                                    <property name="label"></property>
                                                                     <property name="name">m_toolReloadPlugs</property>
                                                                     <property name="statusbar"></property>
                                                                     <property name="tooltip">Refresh plugins list</property>
@@ -3578,7 +3578,7 @@
                                                                     <property name="bitmap">../images/tree_no.xpm; Load From File</property>
                                                                     <property name="id">wxID_TLSRVSTOP</property>
                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                    <property name="label">tool</property>
+                                                                    <property name="label"></property>
                                                                     <property name="name">m_toolSrvStop</property>
                                                                     <property name="statusbar"></property>
                                                                     <property name="tooltip">Stops the server</property>
@@ -3592,7 +3592,7 @@
                                                                     <property name="bitmap">../images/opts_audit.xpm; Load From File</property>
                                                                     <property name="id">wxID_TLSRVLOG</property>
                                                                     <property name="kind">wxITEM_NORMAL</property>
-                                                                    <property name="label">tool</property>
+                                                                    <property name="label"></property>
                                                                     <property name="name">m_toolSrvLogs</property>
                                                                     <property name="statusbar"></property>
                                                                     <property name="tooltip">View server log</property>

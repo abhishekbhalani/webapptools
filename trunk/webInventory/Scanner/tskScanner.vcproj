@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Common\weObject.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\Common\weProfile.cpp"
 				>
 			</File>
@@ -213,7 +217,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\Common\optionnames.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Common\programcfg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\watchdog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Common\weObject.h"
 				>
 			</File>
 			<File

@@ -9,6 +9,9 @@
 
 #include "wiGuiData.h"
 
+#include "../images/_btnAdd.xpm"
+#include "../images/_btnApply16.xpm"
+#include "../images/_btnDel.xpm"
 #include "../images/btnAdd.xpm"
 #include "../images/btnApply16.xpm"
 #include "../images/btnDel.xpm"
@@ -117,11 +120,15 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	bSzProfileSettings = new wxBoxSizer( wxHORIZONTAL );
 
 	m_bpAddPlugin = new wxBitmapButton( m_panObjects, wxID_ANY, wxBitmap( btnAdd_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	
+	m_bpAddPlugin->SetBitmapDisabled( wxBitmap( _btnAdd ) );
 	m_bpAddPlugin->SetToolTip( _("Add plugin") );
 
 	bSzProfileSettings->Add( m_bpAddPlugin, 0, wxBOTTOM|wxLEFT|wxTOP, 5 );
 
 	m_bpDelPlugin = new wxBitmapButton( m_panObjects, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
+	
+	m_bpDelPlugin->SetBitmapDisabled( wxBitmap( _btnDel ) );
 	m_bpDelPlugin->SetToolTip( _("Remove plugin") );
 
 	bSzProfileSettings->Add( m_bpDelPlugin, 0, wxBOTTOM|wxRIGHT|wxTOP, 5 );
@@ -430,8 +437,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	bSizer12->Add( m_chStorage, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
 	m_bpStorageApply = new wxBitmapButton( m_pnServer, wxID_ANY, wxBitmap( btnApply16_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
-	m_bpStorageApply->SetToolTip( _("Apply") );
-
+	
+	m_bpStorageApply->SetBitmapDisabled( wxBitmap( _btnApply16 ) );
 	m_bpStorageApply->SetToolTip( _("Apply") );
 
 	bSizer12->Add( m_bpStorageApply, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxTOP, 5 );

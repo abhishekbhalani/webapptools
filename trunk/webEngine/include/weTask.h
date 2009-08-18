@@ -69,8 +69,9 @@ protected:
     bool processThread;
     void* mutex_ptr;
     void* event_ptr;
-    int taskQueueSize;
-    WeRequestMap taskList;
+    size_t taskQueueSize;
+    size_t taskListSize;
+    WeRequestList taskList;
     WeResponseList taskQueue;
 #endif //__DOXYGEN__
 

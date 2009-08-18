@@ -272,7 +272,7 @@ iwePlugin* WeDispatch::LoadPlugin( string id )
         // external plugins
         // go through loop and search plugin
         // if found - loads shared library and create instance
-        for (int i = 0; i < pluginList.size(); i++)
+        for (size_t i = 0; i < pluginList.size(); i++)
         {
             if (pluginList[i].PluginId == id) {
                 LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::LoadPlugin - found plugin: " << pluginList[i].PluginDesc);

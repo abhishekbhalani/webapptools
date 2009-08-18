@@ -26,9 +26,7 @@
 void WeTaskProcessor(WeTask* tsk)
 {
     WeOption opt;
-    int i;
-    WeTask::WeRequestMap::iterator tsk_it;
-    WeTask::WeRequestMap::iterator tsk_go;
+    size_t i;
     WeResponseList::iterator rIt;
     iweResponse* resp;
     iweRequest* curr_url;
@@ -42,15 +40,9 @@ void WeTaskProcessor(WeTask* tsk)
 
         // send request if slots available
         while (tsk->taskQueueSize > tsk->taskQueue.size()) {
-            for (tsk_go = tsk->taskList.begin(); tsk_go != tsk->taskList.end(); tsk_go++)
+            if (!tsk->taskList.empty())
             {
-                if (tsk_go->second != NULL) {
-                    break;
-                }
-            }
-            if (tsk_go != tsk->taskList.end())
-            {
-                curr_url = tsk_go->second;
+                curr_url = tsk->taskList[0];
                 // search for transport or recreate request to all transports
                 if (curr_url->RequestUrl().IsValid()) {
                     // search for transport
@@ -73,7 +65,7 @@ void WeTaskProcessor(WeTask* tsk)
                 }
 
                 string u_req = curr_url->RequestUrl().ToString();
-                tsk->taskList[u_req] = NULL;
+                tsk->taskList.erase(tsk->taskList.begin());
                 delete curr_url;
             }
             else {
@@ -115,6 +107,7 @@ WeTask::WeTask()
     event_ptr = (void*)(new boost::condition_variable);
     taskList.clear();
     taskQueue.clear();
+    taskListSize = 0;
     processThread = true;
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask created");
     boost::thread process(WeTaskProcessor, this);
@@ -148,7 +141,8 @@ void WeTask::GetRequestAsync( iweRequest* req )
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         boost::unique_lock<boost::mutex> lock(*mt);
-        taskList[req->RequestUrl().ToString()] = req;
+        taskList.push_back(req);
+        taskListSize++;
         LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequestAsync: new task size=" << taskList.size());
         cond->notify_all();
     }
@@ -157,7 +151,7 @@ void WeTask::GetRequestAsync( iweRequest* req )
 
 bool WeTask::IsReady()
 {
-    return (transports.size() > 0 && processThread);
+    return (transports.size() > 0 || processThread);
 }
 
 void WeTask::AddTransport(const  string& transp )
@@ -170,7 +164,7 @@ void WeTask::AddTransport(const  string& transp )
 void WeTask::AddTransport( iweTransport* transp )
 {
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport (iweTransport)");
-    for (int i = 0; i < transports.size(); i++)
+    for (size_t i = 0; i < transports.size(); i++)
     {
         if (transports[i]->GetID() == transp->GetID())
         {
@@ -456,18 +450,10 @@ void WeTask::WaitForData()
 
 void WeTask::CalcStatus()
 {
-    WeRequestMap::iterator tsk_it;
-    size_t count = 0;
-    for (tsk_it = taskList.begin(); tsk_it != taskList.end(); tsk_it++)
-    {
-        if (tsk_it->second != NULL)
-        {
-            count++;
-        }
-    }
-    size_t task_list_max_size = taskList.size();
-    int idata = (task_list_max_size - count) * 100 / task_list_max_size;
+
+    size_t count = taskList.size();
+    int idata = (taskListSize - count) * 100 / taskListSize;
     LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::CalcStatus: rest " << count << " queries  from " <<
-                task_list_max_size << " (" << idata << "%)");
+                taskListSize << " (" << idata << "%)");
     Option(weoTaskCompletion, idata);
 }
