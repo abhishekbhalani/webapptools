@@ -2,7 +2,23 @@
 
 = Список документов по категориям =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+== Общая документация и вопросы компиляции ==
+  * Команда проекта
+  * Список внешник ссылок
+
+== Документация программиста ==
+  * Оформление кода
+  * Структура проекта
+   * библиотека webEngine
+   * выполнение задач
+   * управление задачами
+   * GUI для управления задачами
+   * плагины webEngine
+     * iwePlugin interface
+     * iweOptionsProvider interface
+     * iweStorage interface
+     * iweTransport interface
+     * iweInventory interface
+     * iweAudit interface
+     * iweVulner interface
+  * Документированный исходный код
