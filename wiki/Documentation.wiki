@@ -7,3 +7,18 @@
   * Used libraries list
 
 == Programmers documentation ==
+  * Coding style
+  * Project structure
+   * webEngine library
+   * Task execution
+   * Tasks dispatching
+   * GUI for tasks dispatching
+   * webEngine plugins
+     * iwePlugin interface
+     * iweOptionsProvider interface
+     * iweStorage interface
+     * iweTransport interface
+     * iweInventory interface
+     * iweAudit interface
+     * iweVulner interface
+  * Sources documentation
