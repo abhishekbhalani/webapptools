@@ -2,7 +2,8 @@
 
 = Documents list by category =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+== General documents and compilation issues ==
+  * Project team
+  * Used libraries list
+
+== Programmers documentation ==
