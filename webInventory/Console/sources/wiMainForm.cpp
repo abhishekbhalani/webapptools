@@ -37,6 +37,21 @@
 #include "wiReportData.h"
 #include "weRttiOptions.h"
 #include "wiPlgSelector.h"
+
+#include "../images/_btnAdd.xpm"
+#include "../images/_btnApply16.xpm"
+#include "../images/_btnDel.xpm"
+#include "../images/_btnEdit.xpm"
+#include "../images/_btnStop.xpm"
+#include "../images/_date.xpm"
+#include "../images/_filter.xpm"
+#include "../images/_flsave.xpm"
+#include "../images/_flstatus.xpm"
+#include "../images/_opts_audit.xpm"
+#include "../images/_reload.xpm"
+#include "../images/_start.xpm"
+#include "../images/_tree_no.xpm"
+
 #include "../images/webInventory.xpm"
 #include "../images/btnStop.xpm"
 #include "../images/start.xpm"
@@ -216,6 +231,37 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
         m_chLogging->SetValue(iData);
     }
 
+    // fix tolbar images - add "disabled"
+    m_toolBarObject->SetToolDisabledBitmap(wxID_TOOLNEW, wxBitmap(_btnAdd_xpm));
+    m_toolBarObject->SetToolDisabledBitmap(wxID_TOOLEDIT, wxBitmap(_btnEdit_xpm));
+    m_toolBarObject->SetToolDisabledBitmap(wxID_TOOLDEL, wxBitmap(_btnDel_xpm));
+
+    m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFNEW, wxBitmap(_btnAdd_xpm));
+    m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFCLONE, wxBitmap(_reload_xpm));
+    m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFDEL, wxBitmap(_btnDel_xpm));
+    m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFSAVE, wxBitmap(_flsave_xpm));
+    m_toolBarProf->SetToolDisabledBitmap(wxID_TOOLGO, wxBitmap(_start_xpm));
+
+    m_toolBarTasks->SetToolDisabledBitmap(wxID_TOOLPAUSE, wxBitmap(_start_xpm));
+    m_toolBarTasks->SetToolDisabledBitmap(wxID_TOOLSTOP, wxBitmap(_btnStop_xpm));
+
+    m_toolBarFilter->SetToolDisabledBitmap(wxID_TLREFRESH, wxBitmap(_reload_xpm));
+    m_toolBarFilter->SetToolDisabledBitmap(wxID_TLFILTER, wxBitmap(_filter_xpm));
+    m_toolBarFilter->SetToolDisabledBitmap(wxID_TLDATE, wxBitmap(_date_xpm));
+    m_toolBarFilter->SetToolDisabledBitmap(wxID_TLSTATUS, wxBitmap(_flstatus_xpm));
+    m_toolBarFilter->SetToolDisabledBitmap(wxID_TLSAVE, wxBitmap(_flsave_xpm));
+
+    m_toolBarSrv->SetToolDisabledBitmap(wxID_TLCONNECT, wxBitmap(_start_xpm));
+    m_toolBarSrv->SetToolDisabledBitmap(wxID_TLNEW, wxBitmap(_btnAdd_xpm));
+    m_toolBarSrv->SetToolDisabledBitmap(wxID_TLEDIT, wxBitmap(_btnEdit_xpm));
+    m_toolBarSrv->SetToolDisabledBitmap(wxID_TLDELETE, wxBitmap(_btnDel_xpm));
+
+    m_toolBarLang->SetToolDisabledBitmap(wxID_TLLANGAPPLY, wxBitmap(_btnApply16_xpm));
+
+    m_tbServer->SetToolDisabledBitmap(wxID_TLPLGRELOAD, wxBitmap(_reload_xpm));
+    m_tbServer->SetToolDisabledBitmap(wxID_TLSRVSTOP, wxBitmap(_tree_no_xpm));
+    m_tbServer->SetToolDisabledBitmap(wxID_TLSRVLOG, wxBitmap(_opts_audit_xpm));
+
     m_lstImages.Add(wxIcon(tree_unk_xpm));
     m_lstImages.Add(wxIcon(tree_yes_xpm));
     m_lstImages.Add(wxIcon(tree_no_xpm));
@@ -237,7 +283,6 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_bpDelPlugin->Enable(false);
 
     m_toolBarObject->EnableTool(wxID_TOOLGO, false);
-    m_toolBarObject->EnableTool(wxID_TOOLSTOP, false);
     m_toolBarObject->EnableTool(wxID_TOOLNEW, false);
     m_toolBarObject->EnableTool(wxID_TOOLDEL, false);
 

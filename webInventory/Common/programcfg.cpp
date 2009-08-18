@@ -116,7 +116,7 @@ bool ProgramConfig::load_from_file( const string& filename )
     {
         WeStrStream st(xml.c_str());
         WeTagScanner sc(st);
-        int pos_last, pos;
+        size_t pos_last, pos;
         int parseLevel = 0;
         bool inParsing = true;
         string name, val, dat, plugin_id;
