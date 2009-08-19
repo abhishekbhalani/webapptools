@@ -11,21 +11,21 @@
 				<Option object_output="Debug/obj/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="0" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DLOG4CXX_STATIC" />
 				</Compiler>
 				<Linker>
 					<Add library="liblog4cxx.a" />
-					<Add library="libboost_system-gcc43-mt.a" />
-					<Add library="libboost_serialization-gcc43-mt.a" />
-					<Add library="libboost_date_time-gcc43-mt.a" />
-					<Add library="libboost_program_options-gcc43-mt.a" />
+					<Add library="libboost_regex-mt.a" />
+					<Add library="libboost_filesystem-mt.a" />
+					<Add library="libboost_system-mt.a" />
+					<Add library="libboost_serialization-mt.a" />
+					<Add library="libboost_date_time-mt.a" />
+					<Add library="libboost_program_options-mt.a" />
 					<Add library="libwebEngine.a" />
 					<Add library="libcurl.a" />
-					<Add library="libboost_filesystem-gcc43-mt.a" />
-					<Add library="libboost_regex-gcc43-mt.a" />
+					<Add library="libboost_thread-mt.a" />
 					<Add directory="/usr/lib" />
 					<Add directory="../../webEngine/libs/debug" />
 				</Linker>
@@ -69,8 +69,6 @@
 		<Unit filename="../Common/weObject.h" />
 		<Unit filename="../Common/weProfile.cpp" />
 		<Unit filename="../Common/weProfile.h" />
-		<Unit filename="../Common/weScan.cpp" />
-		<Unit filename="../Common/weScan.h" />
 		<Unit filename="cmdprocessor.cpp" />
 		<Unit filename="scanOperations.cpp" />
 		<Unit filename="scanOperations.h" />
