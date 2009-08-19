@@ -4,7 +4,7 @@
 
 *iwePlugin* - основной интерфейс для плагинов.
 
-Плагин - интерфейс к динамически подгружаемой библиотеке. The library provides method to create the contained plugin as the basic *iwePlugin* interface. Other interfaces may be requested from the plugin by calling the GetInterface function. Plugin object can't be copied, use the GetInterface function instead to obtain pointer to the plugin or copy the existing pointer if you are sure to control the object's lifetime. Program must avoid the explicit destruction of the plugin, because it may destroy the object, that can be used somewhere else. Use the *Release* function to free the pointer to the interface when it is no longer needed.
+Плагин - интерфейс к динамически подгружаемой библиотеке. The library provides method to create the contained plugin as the basic *iwePlugin* interface. Other interfaces may be requested from the plugin by calling the *{{{GetInterface}}}* function. Plugin object can't be copied, use the *{{{*GetInterface}}}* function instead to obtain pointer to the plugin or copy the existing pointer if you are sure to control the object's lifetime. Program must avoid the explicit destruction of the plugin, because it may destroy the object, that can be used somewhere else. Use the *Release* function to free the pointer to the interface when it is no longer needed.
 
 *Важные модификации:*
 || *Дата* || *Автор* || *Описание* ||
