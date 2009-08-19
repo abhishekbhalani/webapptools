@@ -14,22 +14,24 @@ Plugin is the interface to the external dynamic library. The library provides me
 = Structure and relations = 
 
 Followed scheme describes the structure of the plugins classes inheritance:
+
 http://webapptools.googlecode.com/svn/wiki/images/iweplugin_graph.png [GraphLegend [legend]]
 
 
 == Interface description ==
 === Functions ===
-  * iwePlugin (WeDispatch *krnl, void *handle=NULL)
-    Constructor. 
+  * iwePlugin 
+Constructor. 
 {{{
 iwePlugin::iwePlugin ( WeDispatch* krnl, void* handle = NULL ); 	
 }}}
-    *Parameters:*
-        _krnl_      - Back-link to the kernel 
-        _handle_    - The handle to the dynamic library. (may be *NULL*).
+*Parameters:*
+    _krnl_      - Back-link to the kernel 
+    
+    _handle_    - The handle to the dynamic library. (may be *NULL*).
 
-  * ~iwePlugin ()
-    Destructor
+  * ~iwePlugin 
+Destructor
 {{{
 iwePlugin::~iwePlugin ( ) [inline, virtual]
 }}}
