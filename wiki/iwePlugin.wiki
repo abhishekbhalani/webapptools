@@ -18,9 +18,9 @@ Followed scheme describes the structure of the plugins classes inheritance:
 http://webapptools.googlecode.com/svn/wiki/images/iweplugin_graph.png [GraphLegend [legend]]
 
 
-== Interface description ==
-=== Functions ===
-  * iwePlugin 
+= Interface description =
+== Functions ==
+=== iwePlugin ===
 Constructor. 
 {{{
 iwePlugin::iwePlugin ( WeDispatch* krnl, void* handle = NULL ); 	
@@ -30,12 +30,12 @@ iwePlugin::iwePlugin ( WeDispatch* krnl, void* handle = NULL );
     
     _handle_    - The handle to the dynamic library. (may be *NULL*).
 
-  * ~iwePlugin 
+=== ~iwePlugin ===
 Destructor
 {{{
 iwePlugin::~iwePlugin ( ) [inline, virtual]
 }}}
 
-=== Attributes ===
-=== Protected Attributes ===
-=== Private Functions ===
+== Attributes ==
+== Protected Attributes ==
+== Private Functions ==
