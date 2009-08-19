@@ -68,8 +68,6 @@
 		<Unit filename="../Common/programcfg.h" />
 		<Unit filename="../Common/weObject.cpp" />
 		<Unit filename="../Common/weProfile.cpp" />
-		<Unit filename="../Common/weScan.cpp" />
-		<Unit filename="../Common/weScan.h" />
 		<Unit filename="taskexec.cpp" />
 		<Unit filename="tskScanner.cpp" />
 		<Unit filename="version.h" />

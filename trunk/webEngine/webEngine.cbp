@@ -51,6 +51,7 @@
 		<Unit filename="include/weHttpInvent.h" />
 		<Unit filename="include/weLogger.h" />
 		<Unit filename="include/weOptions.h" />
+		<Unit filename="include/weScan.h" />
 		<Unit filename="include/weStrings.h" />
 		<Unit filename="include/weTagScanner.h" />
 		<Unit filename="include/weTask.h" />
@@ -74,6 +75,7 @@
 		<Unit filename="sources/weLogger.cpp" />
 		<Unit filename="sources/weMemStorage.cpp" />
 		<Unit filename="sources/weOptions.cpp" />
+		<Unit filename="sources/weScan.cpp" />
 		<Unit filename="sources/weStrings.cpp" />
 		<Unit filename="sources/weTagScanner.cpp" />
 		<Unit filename="sources/weTask.cpp" />
