@@ -12,4 +12,4 @@
 
 = Структура и связи = 
 
-http://webapptools.googlecode.com/svn/wiki/images/iweplugin_graph.png
+http://webapptools.googlecode.com/svn/wiki/images/iweplugin_graph.png [GraphLegend [см. легенду]]

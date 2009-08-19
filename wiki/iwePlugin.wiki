@@ -13,4 +13,4 @@ Plugin is the interface to the external dynamic library. The library provides me
 
 = Structure and relations = 
 
-http://webapptools.googlecode.com/svn/wiki/images/iweplugin_graph.png
+http://webapptools.googlecode.com/svn/wiki/images/iweplugin_graph.png [GraphLegend [legend]]
