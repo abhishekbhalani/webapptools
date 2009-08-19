@@ -1,5 +1,4 @@
 #summary Проектная документация.
-#
 
 = Список документов по категориям =
 
@@ -17,7 +16,7 @@
 
   * *Дополнительная информация*
     * Форум разработчиков проекта webEngine. (_coming soon_)
-    * [http://code.google.com/p/webapptools/issues/list Список задач] и [http://code.google.com/p/webapptools/issues/list Багтрекер] проекта.
+    * [http://code.google.com/p/webapptools/issues/list?q=label:Type-Enhancement Список задач] и [http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Багтрекер] проекта.
 
 == Документация программиста ==
   * Оформление кода
