@@ -27,7 +27,7 @@
    * Tasks dispatching
    * GUI for tasks dispatching
    * webEngine plugins
-     * iwePlugin interface
+     * [iwePlugin iwePlugin interface]
      * iweOptionsProvider interface
      * iweStorage interface
      * iweTransport interface

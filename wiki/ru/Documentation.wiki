@@ -26,7 +26,7 @@
    * управление задачами
    * GUI для управления задачами
    * плагины webEngine
-     * iwePlugin interface
+     * [iwePlugin iwePlugin interface]
      * iweOptionsProvider interface
      * iweStorage interface
      * iweTransport interface
