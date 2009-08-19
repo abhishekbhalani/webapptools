@@ -27,7 +27,6 @@ static bool task_control(const string& taskID)
     }
     { // save the task execution status
         boost::lock_guard<boost::mutex> lock(globalData.locker);
-        globalData.load_task(taskID);
         globalData.task_info->CalcStatus();
         globalData.save_task();
     }
@@ -51,59 +50,49 @@ void task_executor(const string& taskID)
         globalData.save_task();
 
         // get transport from task options
-        for (size_t i = 0; i < globalData.plugins.size(); i++)
-        {
-            WeStringList ifaces = globalData.plugins[i]->InterfaceList();
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor plugin: " << globalData.plugins[i]->GetDesc() << " ifaces: " << ifaces.size());
-            WeStringList::iterator trsp = find(ifaces.begin(), ifaces.end(), "iweTransport");
-            if (trsp != ifaces.end())
-            {
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor found transport: " << (*trsp));
-                globalData.task_info->AddTransport((iweTransport*)globalData.plugins[i]);
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor found transport: " << globalData.plugins[i]->GetDesc());
-            }
-        }
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor transports loaded");
+        globalData.task_info->StorePlugins(globalData.plugins);
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor plugins loaded");
 
     }
     LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: go to main loop");
 
-    // stage 1: inventory
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: stage 1 - inventory");
-    for (size_t i = 0; i < globalData.plugins.size(); i++)
-    {
-        WeStringList ifaces = globalData.plugins[i]->InterfaceList();
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor plugin: " << globalData.plugins[i]->GetDesc() << " ifaces: " << ifaces.size());
-        WeStringList::iterator trsp = find(ifaces.begin(), ifaces.end(), "iweInventory");
-        if (trsp != ifaces.end())
-        {
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor found inventory: " << globalData.plugins[i]->GetDesc());
-            ((iweInventory*)globalData.plugins[i])->Start(globalData.task_info);
-        }
-    }
-    task_control(taskID);
+    // stage 0: prepare to start
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: stage 0 - start inventories");
+    globalData.task_info->Run();
 
-    // stage 2: audit
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: stage 2 - audit");
-    boost::this_thread::sleep(boost::posix_time::seconds(1));
-
-    task_control(taskID);
-
-    // stage 3: vulnerabilities
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: stage 3 - vulnerabilities");
-    boost::this_thread::sleep(boost::posix_time::seconds(1));
-
-    task_control(taskID);
-
-
-    // final stage - wait for data in queues
     do
     {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        // stage 1: inventory
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: stage 1 - check inventory");
         if (!task_control(taskID)) {
             break;
         }
-        globalData.task_info->WaitForData();
+
+        // stage 2: audit
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: stage 2 - check audit");
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
+
+        if (!task_control(taskID)) {
+            break;
+        }
+
+        // stage 3: vulnerabilities
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "task_executor: stage 3 - check vulnerabilities");
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
+
+        if (!task_control(taskID)) {
+            break;
+        }
     }
     while(true);
+    {
+        boost::lock_guard<boost::mutex> lock(globalData.locker);
+        LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor: task completed");
+        globalData.execution = false;
+        globalData.scan_info->finishTime = posix_time::second_clock::local_time();
+        globalData.scan_info->status = WeScan::weScanFinished;
+        globalData.task_info->Option(weoTaskStatus, WI_TSK_IDLE);
+        globalData.task_info->Option(weoTaskCompletion, 0);
+        in_process = false;
+    }
 }

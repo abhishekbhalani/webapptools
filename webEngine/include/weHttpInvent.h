@@ -34,4 +34,6 @@ public:
     // iweInventory functions
     void Start(WeTask* tsk);
     void ProcessResponse(iweResponse *resp);
+protected:
+    map<string, bool> tasklist;
 };

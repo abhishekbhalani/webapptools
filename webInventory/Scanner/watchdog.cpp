@@ -176,6 +176,7 @@ void watch_dog_thread(const string& id)
                     globalData.pause = false;
                     in_process = false;
                     globalData.task_info->Option(weoTaskCompletion, 0);
+                    globalData.task_info->Stop();
                     if (globalData.scan_info->status != WeScan::weScanFinished)
                     {
                         globalData.scan_info->status = WeScan::weScanStopped;
@@ -185,6 +186,7 @@ void watch_dog_thread(const string& id)
                     LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Pause the task.");
                     globalData.execution = true;
                     globalData.pause = true;
+                    globalData.task_info->Pause();
                     if (globalData.scan_info->status != WeScan::weScanFinished && globalData.scan_info->status != WeScan::weScanStopped)
                     {
                         globalData.scan_info->status = WeScan::weScanPaused;
@@ -194,6 +196,7 @@ void watch_dog_thread(const string& id)
                     LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Continue task execution.");
                     globalData.execution = true;
                     globalData.pause = false;
+                    globalData.task_info->Pause(false);
                     if (globalData.scan_info->status != WeScan::weScanFinished && globalData.scan_info->status != WeScan::weScanStopped)
                     {
                         globalData.scan_info->status = WeScan::weScanRunning;

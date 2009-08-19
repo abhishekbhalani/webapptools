@@ -232,6 +232,48 @@ void WeScan::FromXml( WeTagScanner& sc, int token /*= -1 */ )
     }
 }
 
+WeScanData* WeScan::GetScanData( const string& baseUrl, const string& realUrl )
+{
+    WeScanData* retval = NULL;
+
+    for (size_t i = 0; i < scan_data.size(); i++) {
+        if (scan_data[i]->requestedURL == baseUrl &&
+            scan_data[i]->realURL == realUrl)
+        {
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::GetScanData - found existing ScanData");
+            retval = scan_data[i];
+            break;
+        }
+    }
+    if (retval == NULL)
+    {
+        LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::GetScanData new ScanData");
+        retval = new WeScanData;
+        retval->respCode = 0;
+        retval->downloadTime = -1;
+        retval->dataSize = -1;
+        retval->requestedURL = baseUrl;
+        retval->realURL = realUrl;
+    }
+    return retval;
+}
+
+void WeScan::SetScanData( WeScanData* scData )
+{
+    size_t i;
+
+    for (i = 0; i < scan_data.size(); i++) {
+        if (scan_data[i] == scData)
+        {
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::SetScanData - found existing ScanData");
+            break;
+        }
+    }
+    if (i == scan_data.size()) {
+        LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::SetScanData add ScanData to list");
+        scan_data.push_back(scData);
+    }
+}
 std::string WeScanData::ToXml( void )
 {
     string retval;

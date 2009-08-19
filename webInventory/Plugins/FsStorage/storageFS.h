@@ -123,5 +123,4 @@ protected:
     int    FileSave(const fs::path& fspath, const string& fname, const string& content);
 
     string db_dir;
-    log4cxx::LoggerPtr logger;
 };

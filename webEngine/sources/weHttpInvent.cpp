@@ -21,6 +21,7 @@
 #include <weDispatch.h>
 #include <weTask.h>
 #include <weHttpInvent.h>
+#include <weScan.h>
 #include "iweInventory.xrc"
 
 WeHttpInvent::WeHttpInvent(WeDispatch* krnl, void* handle /*= NULL*/) :
@@ -67,15 +68,23 @@ void WeHttpInvent::Start( WeTask* tsk )
             SAFE_GET_OPTION_VAL(opt, host, "");
             if (host != "")
             {
+                WeOption opt;
                 string path;
-                WeOption opt = tsk->Option("httpInventory/BaseURL");
+                int iData;
+                opt = tsk->Option("httpInventory/"weoParallelReq);
+                SAFE_GET_OPTION_VAL(opt, iData, 1);
+                /// @todo Verify existing option and correctly update it
+                tsk->Option(weoParallelReq, iData);
+
+                opt = tsk->Option("httpInventory/BaseURL");
                 SAFE_GET_OPTION_VAL(opt, path, "");
                 start_url.host = host;
                 start_url.request = path;
                 host += path;
-                LOG4CXX_INFO(logger, "WeHttpInvent::Start: start scanning from: " << host);
+                LOG4CXX_INFO(logger, "WeHttpInvent::Start: start scanning from: " << host << " ==> " << start_url.ToString());
                 WeHttpRequest* req = new WeHttpRequest;
-                req->BaseUrl(start_url);
+                req->RequestUrl(start_url);
+                LOG4CXX_TRACE(logger, "WeHttpInvent::Start: start request = " << req->RequestUrl().ToString());
                 req->processor = WeHttpInvent::ResponseDispatcher;
                 req->context = (void*)this;
                 task->GetRequestAsync(req);
@@ -106,4 +115,146 @@ void WeHttpInvent::ProcessResponse( iweResponse *resp )
     }
     // process response
     LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: process response with code=" << htResp->HttpCode());
+    WeScanData* scData = task->GetScanData(htResp->BaseUrl().ToString(), htResp->RealUrl().ToString());
+    if (scData->parentID == "")
+    {
+        scData->parentID = htResp->ID();
+    }
+    if (scData->dataID == "")
+    {
+        scData->dataID = kernel->Storage()->GenerateID(weObjTypeScan);
+        scData->respCode = htResp->HttpCode();
+        scData->downloadTime = htResp->DownloadTime();
+        scData->dataSize = htResp->Data().size();
+    }
+    //task->AddScanData();
+
+    /// @todo process options
+    if (htResp->HttpCode() >= 300 && htResp->HttpCode() < 400) {
+        // redirections
+        LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: process redirect");
+        string url = htResp->Headers().FindFirst("Location");
+        if (!url.empty()) {
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "task_executor: redirected to " << url);
+            bool to_process = true;
+            WeURL baseUrl = htResp->BaseUrl();
+            baseUrl.Restore(url);
+            // !!! todo LOG4CXX_TRACE
+            LOG4CXX_DEBUG(logger, "WeHttpInvent::ProcessResponse: reconstructed url is " << baseUrl.ToString());
+            if (!baseUrl.IsHostEquals(htResp->RealUrl()))
+            {
+                if (!task->IsSet("httpInventory/"weoStayInHost))
+                {
+                    to_process = false;
+                }
+                LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: weoStayInHost check " << to_process);
+            }
+            if (!baseUrl.IsDomainEquals(htResp->RealUrl()))
+            {
+                if (!task->IsSet("httpInventory/"weoStayInDomain))
+                {
+                    to_process = false;
+                }
+                LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: weoStayInDomain check << " << to_process);
+            }
+
+            if (to_process)
+            {
+                string u_req = baseUrl.ToString();
+                if (task->IsSet("httpInventory/"weoIgnoreUrlParam)) {
+                    u_req = baseUrl.ToStringNoParam();
+                }
+                LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: weoIgnoreUrlParam check << " << u_req);
+                if (tasklist.find(u_req) == tasklist.end())
+                {
+                    WeHttpRequest* new_url = new WeHttpRequest(baseUrl.ToString());
+                    new_url->ID(scData->dataID);
+                    tasklist[u_req] = true;
+                    new_url->processor = WeHttpInvent::ResponseDispatcher;
+                    new_url->context = (void*)this;
+                    task->GetRequestAsync(new_url);
+                }
+                else
+                {
+                    // add parent to existing scan data
+                }
+            }
+        }
+    }
+    /// @todo select appropriate parser
+    if (htResp->HttpCode() >= 200 && htResp->HttpCode() < 300)
+    {
+        LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: parse document");
+        WeHtmlDocument parser;
+        WeEntityList lst;
+
+        parser.ParseData(resp);
+        LOG4CXX_DEBUG(logger, "WeHttpInvent::ProcessResponse: search for links");
+        lst = parser.FindTags("a");
+        if (lst.size() == 0) {
+            LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: no <a ...> tags");
+        }
+        else {
+            iweEntity* ent = NULL;
+            WeEntityList::iterator iEnt;
+            string href;
+            bool to_process;
+            for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
+                to_process = true;
+                href = (*iEnt)->Attr("href");
+                if (href != "") {
+                    WeURL link;
+                    link.Restore(href, &(htResp->RealUrl()));
+                    LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: <a href...> tag. url=" << link.ToString());
+                    if (!link.IsHostEquals(htResp->RealUrl()))
+                    {
+                        if (!task->IsSet("httpInventory/"weoStayInHost))
+                        {
+                            to_process = false;
+                        }
+                        LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: weoStayInHost check " << to_process);
+                    }
+                    if (!link.IsDomainEquals(htResp->RealUrl()))
+                    {
+                        if (!task->IsSet("httpInventory/"weoStayInDomain))
+                        {
+                            to_process = false;
+                        }
+                        LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: weoStayInDomain check << " << to_process);
+                    }
+
+                    if (to_process)
+                    {
+                        string u_req = link.ToString();
+                        if (task->IsSet("httpInventory/"weoIgnoreUrlParam)) {
+                            u_req = link.ToStringNoParam();
+                        }
+                        LOG4CXX_TRACE(logger, "WeHttpInvent::ProcessResponse: weoIgnoreUrlParam check << " << u_req);
+                        if (tasklist.find(u_req) == tasklist.end())
+                        {
+                            LOG4CXX_DEBUG(logger, "WeHttpInvent::ProcessResponse: add link to task list. url=" << link.ToString());
+                            WeHttpRequest* new_url = new WeHttpRequest(link.ToString());
+                            new_url->ID(scData->dataID);
+                            tasklist[u_req] = true;
+                            new_url->processor = WeHttpInvent::ResponseDispatcher;
+                            new_url->context = (void*)this;
+                            task->GetRequestAsync(new_url);
+                        }
+                        else
+                        {
+                            // add parent to existing scan data
+                        }
+                    }
+                } // end href attribute
+            } // end <a ...> loop
+        } // end <a ...> tags processing
+        // todo: process other kind of links
+        // CSS
+        // scripts
+        // objects
+        // images
+        // frames
+        // etc ???
+    }
+    task->SetScanData(scData);
 }

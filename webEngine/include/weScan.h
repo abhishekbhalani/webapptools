@@ -56,6 +56,9 @@ public:
     void FromXml( string input );
     void FromXml( WeTagScanner& sc, int token = -1 );
 
+    WeScanData* GetScanData(const string& baseUrl, const string& realUrl);
+    void SetScanData(WeScanData* scData);
+
 protected:
     vector<WeScanData*> scan_data;
 };

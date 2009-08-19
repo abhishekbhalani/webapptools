@@ -163,6 +163,8 @@ void* WeHTTP::GetInterface( const string& ifName )
 iweResponse* WeHTTP::Request( iweRequest* req, iweResponse* resp /*= NULL*/ )
 {
     WeHttpResponse* retval;
+    WeOption opt;
+    int portNum;
 
     if (!req->RequestUrl().IsValid()) {
         if (resp != NULL) {
@@ -170,6 +172,18 @@ iweResponse* WeHTTP::Request( iweRequest* req, iweResponse* resp /*= NULL*/ )
             req->RequestUrl().Restore(url, &(resp->RealUrl()));
         }
     }
+
+    if (!req->RequestUrl().IsValid()) {
+        if (req->RequestUrl().protocol == "") {
+            req->RequestUrl().protocol = protoName;
+        }
+        if (req->RequestUrl().port < 1 || req->RequestUrl().port > 65535) {
+            opt = Option("httpTransport/Port");
+            SAFE_GET_OPTION_VAL(opt, portNum, 0);
+            req->RequestUrl().port = portNum;
+        }
+    }
+    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHTTP::Request: url=" << req->RequestUrl().ToString());
 
     if (!req->RequestUrl().IsValid()) {
         // bad luck! still not valid request... :(

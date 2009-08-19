@@ -17,7 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "weiPlugin.h"
+#include <weiPlugin.h>
+#include <weDispatch.h>
 #include "externals/shared_object.hpp"
 
 iwePlugin::iwePlugin( WeDispatch* krnl, void* handle /*= NULL*/ )
@@ -32,6 +33,12 @@ iwePlugin::iwePlugin( WeDispatch* krnl, void* handle /*= NULL*/ )
     pluginInfo.PluginId = "C665E995E5B4";
     pluginInfo.PluginIcon.clear();
     pluginInfo.PluginPath = "";
+    if (krnl != NULL) {
+        logger = krnl->GetLogger();
+    }
+    else {
+        logger = WeLogger::GetLogger();
+    }
 }
 
 const string iwePlugin::InterfaceName()

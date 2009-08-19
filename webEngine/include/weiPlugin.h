@@ -46,12 +46,16 @@ class WeDispatch;
 ///
 /// @brief  Basic interface for the plugins.
 ///
-/// Plugin is the interface to the external dynamic library. The library provides method to create
-/// the contained plugin as the basic iwePlugin interface. Other interfaces may be requested from
-/// the plugin by calling the GetInterface function. Plugin object can't be copied, use the GetRef
-/// function instead to obtain pointer to the plugin. Program must avoid the explicit destruction
-/// of the plugin, because it may destroy the object, that can be used somewhere else. Use the
-/// shared_ptr to the plugin instead to keep references .
+/// iwePlugin is the basic interface for the plugins.
+///
+/// Plugin is the interface to the external dynamic library. The library provides method to
+/// create the contained plugin as the basic iwePlugin interface. Other interfaces may be
+/// requested from the plugin by calling the GetInterface function. Plugin object can't be copied,
+/// use the GetInterface function instead to obtain pointer to the plugin or copy the existing
+/// pointer if you are sure to control the object's lifetime. Program must avoid the explicit
+/// destruction of the plugin, because it may destroy the object, that can be used somewhere
+/// else. Use the Release function to free the pointer to the interface when it is no
+/// longer needed.
 ///
 /// @author A. Abramov
 /// @date   19.06.2009
@@ -192,6 +196,7 @@ protected:
     void* libHandle;
     WePluginInfo pluginInfo;
     WeDispatch* kernel;
+    log4cxx::LoggerPtr logger;
 
 private:
     iwePlugin(iwePlugin&) {};               ///< Avoid object copying

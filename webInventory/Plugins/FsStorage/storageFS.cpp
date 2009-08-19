@@ -46,12 +46,6 @@ FsStorage::FsStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
     pluginInfo.PluginId = "1FBAB8DCF440";
     pluginInfo.PluginIcon = WeXpmToStringList(fsStorage_xpm, sizeof(fsStorage_xpm) / sizeof(char*) );
     db_dir = "";
-    if (krnl != NULL) {
-        logger = krnl->GetLogger();
-    }
-    else {
-        logger = WeLogger::GetLogger();
-    }
     LOG4CXX_TRACE(logger, "FsStorage plugin created");
 }
 
