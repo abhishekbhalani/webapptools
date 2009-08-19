@@ -75,6 +75,5 @@ public:
     static void ResponseDispatcher(iweResponse *resp, void* context);
 
 protected:
-    log4cxx::LoggerPtr logger;
     WeTask* task;
 };

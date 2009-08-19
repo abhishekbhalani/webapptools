@@ -206,10 +206,6 @@
 				RelativePath="..\Common\weProfile.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\Common\weScan.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -234,10 +230,6 @@
 			</File>
 			<File
 				RelativePath="..\Common\weProfile.h"
-				>
-			</File>
-			<File
-				RelativePath="..\Common\weScan.h"
 				>
 			</File>
 		</Filter>

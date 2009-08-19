@@ -30,12 +30,6 @@ iweInventory::iweInventory(WeDispatch* krnl, void* handle /*= NULL*/) :
     pluginInfo.PluginDesc = "Abstract inventory interface";
     pluginInfo.PluginId = "5C20963DFD87"; //{51038E5D-5948-47ab-9A2A-5C20963DFD87}
     pluginInfo.PluginIcon = WeXpmToStringList(iweInventory_xpm, sizeof(iweInventory_xpm) / sizeof(char*) );
-    if (krnl != NULL) {
-        logger = krnl->GetLogger();
-    }
-    else {
-        logger = WeLogger::GetLogger();
-    }
 }
 
 iweInventory::~iweInventory(void)

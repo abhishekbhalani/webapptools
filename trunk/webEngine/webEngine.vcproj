@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sources\weiAudit.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sources\weiInventory.cpp"
 				>
 			</File>
@@ -211,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sources\weiVulner.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sources\weLogger.cpp"
 				>
 			</File>
@@ -220,6 +228,10 @@
 			</File>
 			<File
 				RelativePath=".\sources\weOptions.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sources\weScan.cpp"
 				>
 			</File>
 			<File
@@ -277,6 +289,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\weiAudit.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\weiBase.h"
 				>
 			</File>
@@ -301,6 +317,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\weiVulner.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\weLogger.h"
 				>
 			</File>
@@ -310,6 +330,10 @@
 			</File>
 			<File
 				RelativePath=".\include\weOptions.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\weScan.h"
 				>
 			</File>
 			<File

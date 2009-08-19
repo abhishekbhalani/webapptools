@@ -25,11 +25,19 @@
 #include <boost/any.hpp>
 #include "weiBase.h"
 #include "weOptions.h"
-#include "weiTransport.h"
 
 using boost::any_cast;
 using namespace boost;
 using namespace std;
+
+// forward declarations
+class iweTransport;
+class iweInventory;
+class iweAudit;
+class iweVulner;
+class iweRequest;
+class WeScanData;
+class WeScan;
 
 #define WE_VERSION_ID   0
 
@@ -48,8 +56,15 @@ public:
     WeTask(WeTask& cpy);
     ~WeTask();
 
-    void AddTransport(const string& transp);
-    void AddTransport(iweTransport* transp);
+    void AddTransport(iweTransport* plugin);
+    void AddInventory(iweInventory* plugin);
+    void AddAuditor(iweAudit* plugin);
+    void AddVulner(iweVulner* plugin);
+    void StorePlugins(vector<iwePlugin*>& plugins);
+
+    void Run();
+    void Pause(const bool& state = true);
+    void Stop();
 
     bool IsReady();
     iweResponse* GetRequest(iweRequest* req);
@@ -62,17 +77,26 @@ public:
     void WaitForData();
     void CalcStatus();
 
+    WeScan* GetScan() { return scanInfo; };
+    WeScanData* GetScanData(const string& baseUrl, const string& realUrl);
+    void SetScanData(WeScanData* scData);
+
 #ifndef __DOXYGEN__
 protected:
     typedef map<string, iweRequest*> WeRequestMap;
-    vector<iweTransport*>   transports;
+    vector<iweTransport*> transports;
+    vector<iweInventory*> inventories;
+    vector<iweAudit*> auditors;
+    vector<iweVulner*> vulners;
     bool processThread;
+    bool isRunning;
     void* mutex_ptr;
     void* event_ptr;
     size_t taskQueueSize;
     size_t taskListSize;
-    WeRequestList taskList;
-    WeResponseList taskQueue;
+    vector<iweRequest*> taskList;
+    vector<iweResponse*> taskQueue;
+    WeScan* scanInfo;
 #endif //__DOXYGEN__
 
 private:

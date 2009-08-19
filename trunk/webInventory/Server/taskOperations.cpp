@@ -98,7 +98,7 @@ void load_task_list( vector<WeTask*>& task_list )
     {   // parse the response
         bool in_parsing = true;
         int parsing_level = 0;
-        int xml_pos;
+        size_t xml_pos;
         WeStrStream st(report.c_str());
         WeTagScanner sc(st);
         WeTask* tsk;
@@ -176,7 +176,7 @@ WeTask* load_task( const string& id )
     {   // parse the response
         bool in_parsing = true;
         int parsing_level = 0;
-        int xml_pos;
+        size_t xml_pos;
         WeStrStream st(report.c_str());
         WeTagScanner sc(st);
         string tag;
@@ -519,7 +519,7 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
     {   // parse the response
         bool in_parsing = true;
         int parsing_level = 0;
-        int xml_pos;
+        size_t xml_pos;
         WeStrStream st(result.c_str());
         WeTagScanner sc(st);
         WeScanObject tsk;
@@ -632,7 +632,7 @@ WeProfile* get_profile(const string& id)
     {   // parse the response
         bool in_parsing = true;
         int parsing_level = 0;
-        int xml_pos;
+        size_t xml_pos;
         WeStrStream st(result.c_str());
         WeTagScanner sc(st);
         WeOption opt;
@@ -802,7 +802,7 @@ ProfileList* get_profile_list(const string& criteria = "")
     {   // parse the response
         bool in_parsing = true;
         int parsing_level = 0;
-        int xml_pos;
+        size_t xml_pos;
         WeStrStream st(result.c_str());
         WeTagScanner sc(st);
         WeOption opt;

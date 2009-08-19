@@ -309,7 +309,7 @@ WeOption& iweOptionsProvider::Option( const string& name )
 {
     WeOptions::iterator it;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::Option(" << name << ")");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::Option(" << name << ")");
     it = options.find(name);
     if (it != options.end())
     {
@@ -323,7 +323,7 @@ void iweOptionsProvider::Option( const string& name, WeOptionVal val )
     WeOptions::iterator it;
     WeOption* opt;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::Option(" << name << ") set value=" << val);
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::Option(" << name << ") set value=" << val);
     it = options.find(name);
     if (it != options.end())
     {
@@ -353,7 +353,6 @@ bool iweOptionsProvider::IsSet( const string& name )
     WeOption* opt;
     bool retval = false;
 
-    FUNCTION;
     it = options.find(name);
     if (it != options.end())
     {
@@ -367,6 +366,7 @@ bool iweOptionsProvider::IsSet( const string& name )
             retval = false;
         }
     }
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::IsSet(" << name << ") value=" << retval);
     return retval;
 }
 

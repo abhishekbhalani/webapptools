@@ -17,8 +17,13 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "weHelper.h"
-#include "weTask.h"
+#include <weHelper.h>
+#include <weTask.h>
+#include <weiTransport.h>
+#include <weiInventory.h>
+#include <weiAudit.h>
+#include <weiVulner.h>
+#include <weScan.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread.hpp>
@@ -32,11 +37,14 @@ void WeTaskProcessor(WeTask* tsk)
     iweRequest* curr_url;
 
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTaskProcessor started for task " << ((void*)&tsk));
+    tsk->isRunning = true;
     while (tsk->IsReady())
     {
         tsk->WaitForData();
         opt = tsk->Option(weoParallelReq);
         SAFE_GET_OPTION_VAL(opt, tsk->taskQueueSize, 1);
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTaskProcessor max requests: " << tsk->taskQueueSize <<
+            " in queue: " << tsk->taskQueue.size() << " waiting: " << tsk->taskList.size());
 
         // send request if slots available
         while (tsk->taskQueueSize > tsk->taskQueue.size()) {
@@ -62,6 +70,14 @@ void WeTaskProcessor(WeTask* tsk)
                 else {
                     // try to send request though appropriate transports
                     LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().ToString());
+                    for(i = 0; i < tsk->transports.size(); i++)
+                    {
+                        resp = tsk->transports[i]->Request(curr_url);
+                        resp->ID(curr_url->ID());
+                        resp->processor = curr_url->processor;
+                        resp->context = curr_url->context;
+                        tsk->taskQueue.push_back(resp);
+                    }
                 }
 
                 string u_req = curr_url->RequestUrl().ToString();
@@ -84,7 +100,17 @@ void WeTaskProcessor(WeTask* tsk)
             for(rIt = tsk->taskQueue.begin(); rIt != tsk->taskQueue.end();) {
                 if ((*rIt)->Processed()) {
                     if ((*rIt)->processor) {
+                        // send to owner
+                        LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTaskProcessor: send response to owner");
                         (*rIt)->processor((*rIt), (*rIt)->context);
+                    }
+                    else {
+                        // send to all inventories
+                        for (size_t i = 0; i < tsk->inventories.size(); i++)
+                        {
+                            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTaskProcessor: send response to " << tsk->inventories[i]->GetDesc());
+                            tsk->inventories[i]->ProcessResponse(*rIt);
+                        }
                     }
                     tsk->taskQueue.erase(rIt);
                     rIt = tsk->taskQueue.begin();
@@ -95,6 +121,7 @@ void WeTaskProcessor(WeTask* tsk)
             }
         }
     };
+    tsk->isRunning = false;
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTaskProcessor finished for task " << ((void*)&tsk));
 }
 
@@ -102,15 +129,22 @@ WeTask::WeTask()
 {
     FUNCTION;
     // set the default options
-    processThread = true;
+    processThread = false;
+    isRunning = false;
     mutex_ptr = (void*)(new boost::mutex);
     event_ptr = (void*)(new boost::condition_variable);
     taskList.clear();
     taskQueue.clear();
     taskListSize = 0;
-    processThread = true;
+
+    transports.clear();
+    inventories.clear();
+    auditors.clear();
+    vulners.clear();
+
+    scanInfo = new WeScan;
+
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask created");
-    boost::thread process(WeTaskProcessor, this);
 }
 
 WeTask::WeTask( WeTask& cpy )
@@ -136,6 +170,11 @@ void WeTask::GetRequestAsync( iweRequest* req )
 {
     /// @todo Implement this!
     LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::GetRequestAsync");
+    processThread = true;
+    if (!isRunning) {
+        LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::GetRequestAsync: create WeTaskProcessor");
+        boost::thread process(WeTaskProcessor, this);
+    }
     // wake-up task_processor
     if (event_ptr != NULL && mutex_ptr != NULL) {
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
@@ -151,32 +190,157 @@ void WeTask::GetRequestAsync( iweRequest* req )
 
 bool WeTask::IsReady()
 {
-    return (transports.size() > 0 || processThread);
+    return (processThread);
 }
 
-void WeTask::AddTransport(const  string& transp )
+void WeTask::AddTransport( iweTransport* plugin )
 {
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport (const string&)");
-    //iweTransport* tr = WeCreateNamedTransport(transp, NULL);
-    //AddTransport(tr);
-}
-
-void WeTask::AddTransport( iweTransport* transp )
-{
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport (iweTransport)");
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport");
     for (size_t i = 0; i < transports.size(); i++)
     {
-        if (transports[i]->GetID() == transp->GetID())
+        if (transports[i]->GetID() == plugin->GetID())
         {
             // transport already in list
             LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::AddTransport - transport already in list");
             return;
         }
     }
-    transports.push_back(transp);
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport: added " << transp->GetDesc());
+    transports.push_back(plugin);
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddTransport: added " << plugin->GetDesc());
 }
 
+void WeTask::AddInventory( iweInventory* plugin )
+{
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddInventory");
+    for (size_t i = 0; i < inventories.size(); i++)
+    {
+        if (inventories[i]->GetID() == plugin->GetID())
+        {
+            // transport already in list
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::AddInventory - inventory already in list");
+            return;
+        }
+    }
+    inventories.push_back(plugin);
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddInventory: added " << plugin->GetDesc());
+}
+
+void WeTask::AddAuditor( iweAudit* plugin )
+{
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddAuditor");
+    for (size_t i = 0; i < auditors.size(); i++)
+    {
+        if (auditors[i]->GetID() == plugin->GetID())
+        {
+            // transport already in list
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::AddAuditor - auditor already in list");
+            return;
+        }
+    }
+    auditors.push_back(plugin);
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddAuditor: added " << plugin->GetDesc());
+}
+
+void WeTask::AddVulner( iweVulner* plugin )
+{
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddVulner");
+    for (size_t i = 0; i < vulners.size(); i++)
+    {
+        if (vulners[i]->GetID() == plugin->GetID())
+        {
+            // transport already in list
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::AddVulner - vulner already in list");
+            return;
+        }
+    }
+    vulners.push_back(plugin);
+    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::AddVulner: added " << plugin->GetDesc());
+}
+
+void WeTask::StorePlugins(vector<iwePlugin*>& plugins)
+{
+    WeStringList::iterator trsp;
+    WeStringList ifaces;
+
+    for (size_t i = 0; i < plugins.size(); i++)
+    {
+        ifaces = plugins[i]->InterfaceList();
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::StorePlugins - plugin: " << plugins[i]->GetDesc() << " ifaces: " << ifaces.size());
+
+        trsp = find(ifaces.begin(), ifaces.end(), "iweTransport");
+        if (trsp != ifaces.end())
+        {
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::StorePlugins - found transport: " << plugins[i]->GetDesc());
+            AddTransport((iweTransport*)plugins[i]);
+        }
+
+        trsp = find(ifaces.begin(), ifaces.end(), "iweInventory");
+        if (trsp != ifaces.end())
+        {
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::StorePlugins - found inventory: " << plugins[i]->GetDesc());
+            AddInventory((iweInventory*)plugins[i]);
+        }
+
+        trsp = find(ifaces.begin(), ifaces.end(), "iweAudit");
+        if (trsp != ifaces.end())
+        {
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::StorePlugins - found auditor: " << plugins[i]->GetDesc());
+            AddAuditor((iweAudit*)plugins[i]);
+        }
+
+        trsp = find(ifaces.begin(), ifaces.end(), "iweVulner");
+        if (trsp != ifaces.end())
+        {
+            LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::StorePlugins - found vulner: " << plugins[i]->GetDesc());
+            AddVulner((iweVulner*)plugins[i]);
+        }
+    }
+
+}
+
+void WeTask::Run(void)
+{
+    processThread = true;
+    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::Run: create WeTaskProcessor");
+    boost::thread process(WeTaskProcessor, this);
+
+    for (size_t i = 0; i < inventories.size(); i++)
+    {
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::Run: " << inventories[i]->GetDesc());
+        inventories[i]->Start(this);
+    }
+}
+
+void WeTask::Pause(const bool& state /*= true*/)
+{
+    int idata;
+//    WeOption opt;
+//    opt = Option(weoTaskStatus);
+//    SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
+    if (state)
+    {
+        idata = WI_TSK_PAUSED;
+    }
+    else
+    {
+        idata = WI_TSK_RUN;
+    }
+    Option(weoTaskStatus, idata);
+    if (event_ptr != NULL && mutex_ptr != NULL) {
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::Pause notify all about TaskStatus change");
+        boost::mutex *mt = (boost::mutex*)mutex_ptr;
+        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
+        cond->notify_all();
+    }
+}
+
+void WeTask::Stop()
+{
+    processThread = false;
+    taskList.clear();
+    taskQueue.clear();
+    CalcStatus();
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn std::string WeTask::ToXml( void )
 ///
@@ -438,12 +602,22 @@ void WeTask::FromXml( WeTagScanner& sc, int token /*= -1*/ )
 
 void WeTask::WaitForData()
 {
+    int idata;
+    WeOption opt;
+    opt = Option(weoTaskStatus);
+    SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
+
     if (event_ptr != NULL && mutex_ptr != NULL) {
+        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTask::WaitForData synch object ready");
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         boost::unique_lock<boost::mutex> lock(*mt);
-        while(taskList.size() == 0 && ! processThread) {
+        while((taskList.size() == 0 && taskQueue.size() == 0) || idata == WI_TSK_PAUSED) {
+            LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::WaitForData: go to sleep");
             cond->wait(lock);
+
+            opt = Option(weoTaskStatus);
+            SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
         }
     }
 }
@@ -456,4 +630,25 @@ void WeTask::CalcStatus()
     LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::CalcStatus: rest " << count << " queries  from " <<
                 taskListSize << " (" << idata << "%)");
     Option(weoTaskCompletion, idata);
+    // set task status
+    if (taskList.size() == 0 && taskQueue.size() == 0) {
+        LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTask::CalcStatus: finish!");
+        processThread = false;
+        Option(weoTaskStatus, WI_TSK_IDLE);
+    }
+}
+
+WeScanData* WeTask::GetScanData( const string& baseUrl, const string& realUrl )
+{
+    WeScanData* retval = scanInfo->GetScanData( baseUrl, realUrl );
+    if (retval->scanID == "")
+    {
+        retval->scanID = scanInfo->scanID;
+    }
+    return retval;
+}
+
+void WeTask::SetScanData( WeScanData* scData )
+{
+    scanInfo->SetScanData(scData);
 }

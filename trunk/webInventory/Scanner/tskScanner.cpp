@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
                         string msg = "Task ID=" + taskID + " not found - exiting!";
                         throw std::runtime_error(msg.c_str());
                     }
-                    globalData.scan_info = new WeScan;
+                    globalData.scan_info = globalData.task_info->GetScan();
                     if (globalData.scan_info == NULL)
                     {
                         string msg = "Can't create scan information - exiting!";
@@ -213,7 +213,10 @@ int main(int argc, char* argv[])
                         throw std::runtime_error(msg.c_str());
                     }
                     profile.FromXml(report);
+                    profile.Erase(weoName);
+                    profile.Erase(weoID);
                     globalData.dispatcher->CopyOptions(&profile);
+                    globalData.task_info->CopyOptions(&profile);
 
                     globalData.scan_info->scanID = globalData.dispatcher->Storage()->GenerateID(weObjTypeScan);
                     LOG4CXX_INFO(WeLogger::GetLogger(), "Scan information ID=" << globalData.scan_info->scanID
