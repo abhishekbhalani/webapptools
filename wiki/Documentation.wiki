@@ -15,7 +15,7 @@
     * [http://logging.apache.org/log4cxx/index.html log4cxx library] used for logging operations.
 
   * *Additional information*
-    * Developers forum for the webEngine project. Open Discussion and general Developers forums are also available. (_coming soon_)
+    * Developers forum for the webEngine project. (_coming soon_)
     * Project's [http://code.google.com/p/webapptools/issues/list Task List] and [http://code.google.com/p/webapptools/issues/list Bug Tracking system].
 
 == Programmers documentation ==

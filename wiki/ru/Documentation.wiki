@@ -3,8 +3,19 @@
 = Список документов по категориям =
 
 == Общая документация и вопросы компиляции ==
-  * Команда проекта
-  * Список внешник ссылок
+  * *Команда проекта*
+    * Andrew "Stinger" Abramov ([http://en.securitylab.ru/lab/ Positive Technologies Research Team])
+    * Alex Yudin ([http://en.securitylab.ru/lab/ Positive Technologies Research Team])
+
+  * Список используемых библиотек
+    * [http://www.boost.org/ boost library]. Версия 1.37 или выше используется при компиляции.
+    * [http://curl.haxx.se/libcurl/ cURL library]. Используется для операций с HTTP(s) и FTP протоколами.
+    * [http://code.google.com/p/dtl-cpp/ dtl - Diff Template Library]. Copyright В© 2008-2009 Tatsuhiko Kubo <cubicdaiya@gmail.com>. Данный код включен в структуру webEngine.
+    * [http://logging.apache.org/log4cxx/index.html log4cxx library] используется для логирования работы системы.
+
+  * *Дополнительная информация*
+    * Форум разработчиков проекта webEngine. (_coming soon_)
+    * [http://code.google.com/p/webapptools/issues/list Список задач] и [http://code.google.com/p/webapptools/issues/list Багтрекер] проекта.
 
 == Документация программиста ==
   * Оформление кода
