@@ -13,6 +13,7 @@
     * [http://curl.haxx.se/libcurl/ cURL library]. Web operations are performed through the cURL library.
     * [http://code.google.com/p/dtl-cpp/ dtl - Diff Template Library]. Copyright © 2008-2009 Tatsuhiko Kubo <cubicdaiya@gmail.com>. This code adopted into webEngine structure.
     * [http://logging.apache.org/log4cxx/index.html log4cxx library] used for logging operations.
+    * [http://www.doxygen.org Doxygen system] is used for documenting this project.
 
   * *Additional information*
     * Developers forum for the webEngine project. (_coming soon_)
@@ -22,7 +23,7 @@
   * Coding style
   * Project structure
    * webEngine library
-   * Task execution
+   * [TaskExecution Task execution]
    * Tasks dispatching
    * GUI for tasks dispatching
    * webEngine plugins
