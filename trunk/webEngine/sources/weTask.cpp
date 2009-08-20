@@ -34,6 +34,7 @@ void TaskProcessor(Task* tsk)
 {
     wOption opt;
     size_t i;
+    int iData;
     ResponseList::iterator rIt;
     iResponse* resp;
     iRequest* curr_url;
@@ -44,7 +45,8 @@ void TaskProcessor(Task* tsk)
     {
         tsk->WaitForData();
         opt = tsk->Option(weoParallelReq);
-        SAFE_GET_OPTION_VAL(opt, tsk->taskQueueSize, 1);
+        SAFE_GET_OPTION_VAL(opt, iData, 1);
+        tsk->taskQueueSize = iData;
         LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor max requests: " << tsk->taskQueueSize <<
             " in queue: " << tsk->taskQueue.size() << " waiting: " << tsk->taskList.size());
 
@@ -191,6 +193,7 @@ void Task::GetRequestAsync( iRequest* req )
 
 bool Task::IsReady()
 {
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::IsReady - " << processThread);
     return (processThread);
 }
 
@@ -342,6 +345,38 @@ void Task::Stop()
     taskQueue.clear();
     CalcStatus();
 }
+
+void Task::CalcStatus()
+{
+
+    size_t count = taskList.size();
+    int idata = (taskListSize - count) * 100 / taskListSize;
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: rest " << count << " queries  from " <<
+        taskListSize << " (" << idata << "%)");
+    Option(weoTaskCompletion, idata);
+    // set task status
+    if (taskList.size() == 0 && taskQueue.size() == 0) {
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: finish!");
+        processThread = false;
+        Option(weoTaskStatus, WI_TSK_IDLE);
+    }
+}
+
+ScanData* Task::GetScanData( const string& baseUrl, const string& realUrl )
+{
+    ScanData* retval = scanInfo->GetScanData( baseUrl, realUrl );
+    if (retval->scanID == "")
+    {
+        retval->scanID = scanInfo->scanID;
+    }
+    return retval;
+}
+
+void Task::SetScanData( ScanData* scData )
+{
+    scanInfo->SetScanData(scData);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn std::string Task::ToXml( void )
 ///
@@ -621,37 +656,6 @@ void Task::WaitForData()
             SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
         }
     }
-}
-
-void Task::CalcStatus()
-{
-
-    size_t count = taskList.size();
-    int idata = (taskListSize - count) * 100 / taskListSize;
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: rest " << count << " queries  from " <<
-                taskListSize << " (" << idata << "%)");
-    Option(weoTaskCompletion, idata);
-    // set task status
-    if (taskList.size() == 0 && taskQueue.size() == 0) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: finish!");
-        processThread = false;
-        Option(weoTaskStatus, WI_TSK_IDLE);
-    }
-}
-
-ScanData* Task::GetScanData( const string& baseUrl, const string& realUrl )
-{
-    ScanData* retval = scanInfo->GetScanData( baseUrl, realUrl );
-    if (retval->scanID == "")
-    {
-        retval->scanID = scanInfo->scanID;
-    }
-    return retval;
-}
-
-void Task::SetScanData( ScanData* scData )
-{
-    scanInfo->SetScanData(scData);
 }
 
 } // namespace webEngine

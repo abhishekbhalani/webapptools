@@ -145,7 +145,7 @@ void HttpInventory::ProcessResponse( iResponse *resp )
             LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: reconstructed url is " << baseUrl.ToString());
             if (!baseUrl.IsHostEquals(htResp->RealUrl()))
             {
-                if (!task->IsSet("httpInventory/"weoStayInHost))
+                if (task->IsSet("httpInventory/"weoStayInHost))
                 {
                     to_process = false;
                 }
@@ -153,7 +153,7 @@ void HttpInventory::ProcessResponse( iResponse *resp )
             }
             if (!baseUrl.IsDomainEquals(htResp->RealUrl()))
             {
-                if (!task->IsSet("httpInventory/"weoStayInDomain))
+                if (task->IsSet("httpInventory/"weoStayInDomain))
                 {
                     to_process = false;
                 }
@@ -210,7 +210,7 @@ void HttpInventory::ProcessResponse( iResponse *resp )
                     LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: <a href...> tag. url=" << link.ToString());
                     if (!link.IsHostEquals(htResp->RealUrl()))
                     {
-                        if (!task->IsSet("httpInventory/"weoStayInHost))
+                        if (task->IsSet("httpInventory/"weoStayInHost))
                         {
                             to_process = false;
                         }
@@ -218,7 +218,7 @@ void HttpInventory::ProcessResponse( iResponse *resp )
                     }
                     if (!link.IsDomainEquals(htResp->RealUrl()))
                     {
-                        if (!task->IsSet("httpInventory/"weoStayInDomain))
+                        if (task->IsSet("httpInventory/"weoStayInDomain))
                         {
                             to_process = false;
                         }

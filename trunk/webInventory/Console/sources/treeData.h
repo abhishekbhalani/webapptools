@@ -56,13 +56,13 @@ class wiTreeData: public wxTreeItemData
 class wiPlgTreeData: public wxTreeItemData
 {
     public:
-        wiPlgTreeData(PluginInfo* _plg)
+        wiPlgTreeData(PluginInf* _plg)
         {
             plg = _plg;
         };
 
         // treeData information
-        PluginInfo* plg;
+        PluginInf* plg;
 };
 
 #endif // WITREEDATA_H
