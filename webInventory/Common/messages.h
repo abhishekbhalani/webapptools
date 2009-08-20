@@ -86,7 +86,7 @@ private:
     };
 };
 
-typedef vector<::PluginInf> PluginList;
+typedef vector<PluginInf> PluginList;
 
 class ScanInf
 {
