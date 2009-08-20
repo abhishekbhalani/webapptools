@@ -17,7 +17,7 @@
 
   * *Additional information*
     * Developers forum for the webEngine project. (_coming soon_)
-    * Project's [http://code.google.com/p/webapptools/issues/list?q=label:Type-Enhancement Task List] and [http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Bug Tracking system].
+    * Project's [http://code.google.com/p/webapptools/issues/list?q=label:Enhancement+OR+label:Task Task List] and [http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Bug Tracking system].
 
 == Programmers documentation ==
   * Coding style

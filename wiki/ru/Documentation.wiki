@@ -16,7 +16,7 @@
 
   * *Дополнительная информация*
     * Форум разработчиков проекта webEngine. (_coming soon_)
-    * [http://code.google.com/p/webapptools/issues/list?q=label:Type-Enhancement Список задач] и [http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Багтрекер] проекта.
+    * [http://code.google.com/p/webapptools/issues/list?q=label:Enhancement+OR+label:Task Список задач] и [http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Багтрекер] проекта.
 
 == Документация программиста ==
   * Оформление кода
