@@ -32,22 +32,23 @@ using namespace log4cxx::helpers;
 using namespace boost::algorithm;
 using namespace boost::filesystem;
 
-WeHtmlFactory  weHtmlFactory;
-WeTransportFactory weTransportFactory;
+namespace webEngine {
+
+HtmlFactory  weHtmlFactory;
+TransportFactory weTransportFactory;
 static bool isLibInited = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void WeLibInit(void)
+/// @fn	void LibInit(void)
 ///
 /// @brief  WebEngine library initialize.
 /// @throw  WeError if cURL library doesn't initialized
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeLibInit(const string& config /*= ""*/)
+void LibInit(const string& config /*= ""*/)
 {
     CURLcode    cCode;
     string      cfgFile;
 
-    FUNCTION;
     try {
         cfgFile = config;
         if (cfgFile == "") {
@@ -75,7 +76,7 @@ void WeLibInit(const string& config /*= ""*/)
             throw WeError("Can't initialize logging subsystem!");
         }
     };
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeLibInit status = " << isLibInited);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "LibInit status = " << isLibInited);
     if (!isLibInited)
     {
         weHtmlFactory.Init();
@@ -89,14 +90,13 @@ void WeLibInit(const string& config /*= ""*/)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void WeLibClose(void)
+/// @fn	void LibClose(void)
 ///
 /// @brief  WebEngine library finalization.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeLibClose(void)
+void LibClose(void)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeLibClose status = " << isLibInited);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "LibClose status = " << isLibInited);
     if (!isLibInited) {
         return;
     }
@@ -106,7 +106,7 @@ void WeLibClose(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn string WeScreenXML(const string& xml)
+/// @fn string ScreenXML(const string& xml)
 ///
 /// @brief  Screens the XML entities in the input string. 
 ///
@@ -114,7 +114,7 @@ void WeLibClose(void)
 ///
 /// @retval	string - screened data. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-string WeScreenXML( const string& xml )
+string ScreenXML( const string& xml )
 {
     string retval = xml;
     const char* pre_expression = "(<)|(>)|(&)|(')|(\")";
@@ -128,7 +128,7 @@ string WeScreenXML( const string& xml )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn string WeUnscreenXML(const string& xml)
+/// @fn string UnscreenXML(const string& xml)
 ///
 /// @brief  Unscreens the XML entities in the input string.  
 ///
@@ -136,7 +136,7 @@ string WeScreenXML( const string& xml )
 ///
 /// @retval	string - unscreened data. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-string WeUnscreenXML(const string& xml)
+string UnscreenXML(const string& xml)
 {
     string retval = xml;
     const char* pre_expression = "(&lt;)|(&gt;)|(&amp;)|(&#39;)|(&quot;)";
@@ -153,91 +153,83 @@ string WeUnscreenXML(const string& xml)
 //////////////////////////////////////////////////////////////////////////
 // HTML elements creation functions
 //////////////////////////////////////////////////////////////////////////
-static WeHtmlEntity* weCreateRefObj(iweEntity* prnt)
+static HtmlEntity* weCreateRefObj(iEntity* prnt)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeRefrenceObject");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeRefrenceObject");
     return new WeRefrenceObject(prnt);
 }
 
-static WeHtmlEntity* weCreateText(iweEntity* prnt)
+static HtmlEntity* weCreateText(iEntity* prnt)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeInnerText");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeInnerText");
     return new WeInnerText(prnt);
 }
 
-static WeHtmlEntity* weCreateComment(iweEntity* prnt)
+static HtmlEntity* weCreateComment(iEntity* prnt)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeHtmlComment");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeHtmlComment");
     return new WeHtmlComment(prnt);
 }
 
-static WeHtmlEntity* weCreateCData(iweEntity* prnt)
+static HtmlEntity* weCreateCData(iEntity* prnt)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeCData");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeCData");
     return new WeCData(prnt);
 }
 
-static WeHtmlEntity* weCreatePhpInc(iweEntity* prnt)
+static HtmlEntity* weCreatePhpInc(iEntity* prnt)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WePhpInclude");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WePhpInclude");
     return new WePhpInclude(prnt);
 }
 
-static WeHtmlEntity* weCreateDocument(iweEntity* prnt)
+static HtmlEntity* weCreateDocument(iEntity* prnt)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeHtmlDocument");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeHtmlDocument");
     return NULL; //new WeDocument(prnt);
 }
 
-static WeHtmlEntity* weCreateScript(iweEntity* prnt)
+static HtmlEntity* weCreateScript(iEntity* prnt)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory: create WeScript");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeScript");
     return new WeScript(prnt);
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Transport creation functions
 //////////////////////////////////////////////////////////////////////////
-static iweTransport* weCreateFile(WeDispatch* krnl)
+static iTransport* weCreateFile(Dispatch* krnl)
 {
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTransportFactory: create WeFile");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "TransportFactory: create WeFile");
     return NULL; //new WeFile();
 }
 #endif //__DOXYGEN__
 
 
-WeHtmlFactory::WeHtmlFactory() :
-    WeLinkedList<string, EntityFactory>()
+HtmlFactory::HtmlFactory() :
+    LinkedList<string, fnEntityFactory>()
 {
-    data = new WeLinkedListElem<string, EntityFactory>;
+    data = new LinkedListElem<string, fnEntityFactory>;
     data->Key("");
     data->Value(NULL);
     data->Link(NULL);
 }
 
-void WeHtmlFactory::Add( string name, EntityFactory func )
+void HtmlFactory::Add( string name, fnEntityFactory func )
 {
-    WeLinkedListElem<string, EntityFactory>* obj;
+    LinkedListElem<string, fnEntityFactory>* obj;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "new EntityFactory added for " << name);
-    obj = new WeLinkedListElem<string, EntityFactory>();
+    LOG4CXX_TRACE(iLogger::GetLogger(), "new EntityFactory added for " << name);
+    obj = new LinkedListElem<string, fnEntityFactory>();
     obj->Key(name);
     obj->Value(func);
     data->Add(obj);
 }
 
-void WeHtmlFactory::Init()
+void HtmlFactory::Init()
 {
     Clear();
-    data = new WeLinkedListElem<string, EntityFactory>;
+    data = new LinkedListElem<string, fnEntityFactory>;
     data->Key("");
     data->Value(NULL);
     data->Link(NULL);
@@ -254,22 +246,21 @@ void WeHtmlFactory::Init()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iweEntity* WeHtmlFactory::CreateEntity(string tagName, WeHtmlEntity* prnt)
+/// @fn	iEntity* HtmlFactory::CreateEntity(string tagName, HtmlEntity* prnt)
 ///
-/// @brief  Create WeHtmlEntity by the given TAG name.
+/// @brief  Create HtmlEntity by the given TAG name.
 /// @param  tagName - Name of the html tag.
 /// @param  prnt    - Parent of the newly created object
-/// @retval	null if it fails, pointer to WeHtmlEntity ot it's successor else.
+/// @retval	null if it fails, pointer to HtmlEntity ot it's successor else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHtmlEntity* WeHtmlFactory::CreateEntity( string tagName, WeHtmlEntity* prnt )
+HtmlEntity* HtmlFactory::CreateEntity( string tagName, HtmlEntity* prnt )
 {
-    EntityFactory func;
+    fnEntityFactory func;
 
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeHtmlFactory::CreateEntity => " << tagName);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory::CreateEntity => " << tagName);
     func = FindFirst(tagName);
     if (func == NULL) {
-        return new WeHtmlEntity(prnt);
+        return new HtmlEntity(prnt);
     }
     return func(prnt);
 }
@@ -277,21 +268,21 @@ WeHtmlEntity* WeHtmlFactory::CreateEntity( string tagName, WeHtmlEntity* prnt )
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-WeTransportFactory::WeTransportFactory() :
-    WeLinkedList<string, TransportFactory>()
+TransportFactory::TransportFactory() :
+    LinkedList<string, fnTransportFactory>()
 {
-    data = new WeLinkedListElem<string, TransportFactory>;
+    data = new LinkedListElem<string, fnTransportFactory>;
     data->Key("");
     data->Value(NULL);
     data->Link(NULL);
 }
 
-void WeTransportFactory::Add( string name, TransportFactory func )
+void TransportFactory::Add( string name, fnTransportFactory func )
 {
-    WeLinkedListElem<string, TransportFactory>* obj;
+    LinkedListElem<string, fnTransportFactory>* obj;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "new TransportFactory added for " << name);
-    obj = new WeLinkedListElem<string, TransportFactory>();
+    LOG4CXX_TRACE(iLogger::GetLogger(), "new TransportFactory added for " << name);
+    obj = new LinkedListElem<string, fnTransportFactory>();
     obj->Key(name);
     obj->Value(func);
     curr = data;
@@ -311,31 +302,31 @@ void WeTransportFactory::Add( string name, TransportFactory func )
     }
 }
 
-void WeTransportFactory::Init()
+void TransportFactory::Init()
 {
     Clear();
-    data = new WeLinkedListElem<string, TransportFactory>;
+    data = new LinkedListElem<string, fnTransportFactory>;
     data->Key("");
     data->Value(NULL);
     data->Link(NULL);
     Add("file",     weCreateFile);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iweTransport* WeTransportFactory::CreateTransport(string tagName)
+/// @fn	iTransport* TransportFactory::CreateTransport(string tagName)
 ///
 /// @brief  Create iweTrasport by the given name.
 /// @param  tagName - Name of the transport.
-/// @retval	null if it fails, pointer to iweTransport ot it's successor else.
+/// @retval	null if it fails, pointer to iTransport ot it's successor else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iweTransport* WeTransportFactory::CreateTransport( string tagName, WeDispatch* krnl)
+iTransport* TransportFactory::CreateTransport( string tagName, Dispatch* krnl)
 {
-    TransportFactory func;
+    fnTransportFactory func;
 
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeTransportFactory::CreateTransport => " << tagName);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "TransportFactory::CreateTransport => " << tagName);
     func = FindFirst(tagName);
     if (func == NULL) {
         return NULL;
     }
     return func(krnl);
 }
+} // namespace webEngine

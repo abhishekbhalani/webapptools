@@ -25,39 +25,41 @@
 
 using namespace std;
 
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeURL
+/// @class  URL
 ///
 /// @brief  URL storage and operations  
 ///
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeURL
+class URL
 {
 public:
-    WeURL();
-    WeURL(const string url);
-    WeURL(const WeURL& url);
-    ~WeURL();
+    URL();
+    URL(const string url);
+    URL(const URL& url);
+    ~URL();
 
-    WeURL& operator=(const string& url)  { Assign(url); return *this; };
-    WeURL& operator=(const WeURL& url);
+    URL& operator=(const string& url)  { Assign(url); return *this; };
+    URL& operator=(const URL& url);
 
     string ToString(bool noDefPort = true);
     string ToStringNoParam(bool noDefPort = true);
 
     void Assign(const string& url);
-    void Restore(const string& url, WeURL* base = NULL);
+    void Restore(const string& url, URL* base = NULL);
 
     const bool Equals(const string& url);
-    const bool Equals(const WeURL& url);
+    const bool Equals(const URL& url);
 
     const bool IsHostEquals(const string& url);
-    const bool IsHostEquals(const WeURL& url);
+    const bool IsHostEquals(const URL& url);
 
     const bool IsDomainEquals(const string& url);
-    const bool IsDomainEquals(const WeURL& url);
+    const bool IsDomainEquals(const URL& url);
 
     bool IsValid(void);
 
@@ -85,5 +87,7 @@ private:
         ar & BOOST_SERIALIZATION_NVP(password);
     };
 };
+
+} // namespace webEngine
 
 #endif //__WEURL_H__

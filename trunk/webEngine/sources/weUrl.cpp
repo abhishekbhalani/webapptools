@@ -27,6 +27,8 @@
 
 using namespace boost::algorithm;
 
+namespace webEngine {
+
 #ifndef __DOXYGEN__
 static string& fixDoubleSlash(string& req)
 {
@@ -50,7 +52,7 @@ static string& fixDoubleSlash(string& req)
 }
 #endif //__DOXYGEN__
 
-WeURL::WeURL()
+URL::URL()
 {
     port = -1;
     host = "";
@@ -58,7 +60,7 @@ WeURL::WeURL()
     valid = false;
 }
 
-WeURL::WeURL( const string url )
+URL::URL( const string url )
 {
     port = -1;
     host = "";
@@ -67,7 +69,7 @@ WeURL::WeURL( const string url )
     Assign(url);
 }
 
-WeURL::WeURL( const WeURL& url )
+URL::URL( const URL& url )
 {
     protocol = url.protocol;
     host = url.host;
@@ -79,12 +81,12 @@ WeURL::WeURL( const WeURL& url )
     valid = url.valid;
 }
 
-WeURL::~WeURL()
+URL::~URL()
 {
     // nothing special
 }
 
-WeURL& WeURL::operator=( const WeURL& url )
+URL& URL::operator=( const URL& url )
 {
     protocol = url.protocol;
     host = url.host;
@@ -97,7 +99,7 @@ WeURL& WeURL::operator=( const WeURL& url )
     return *this;
 }
 
-string WeURL::ToString(bool noDefPort /*= true*/)
+string URL::ToString(bool noDefPort /*= true*/)
 {
     string *retval = new string;
 
@@ -121,7 +123,7 @@ string WeURL::ToString(bool noDefPort /*= true*/)
     return *retval;
 }
 
-void WeURL::Assign(const string& url )
+void URL::Assign(const string& url )
 {
     string temp = url;
     size_t pos;
@@ -205,7 +207,7 @@ void WeURL::Assign(const string& url )
     valid = true;
 }
 
-void WeURL::Restore( const string& url_, WeURL* base /*= NULL*/ )
+void URL::Restore( const string& url_, URL* base /*= NULL*/ )
 {
     string  temp;
     size_t  pos;
@@ -280,21 +282,21 @@ void WeURL::Restore( const string& url_, WeURL* base /*= NULL*/ )
     }
 }
 
-bool WeURL::IsValid( void )
+bool URL::IsValid( void )
 {
     bool retval = (valid && !host.empty() && !request.empty() && port > 0 && port < 65535);
     valid = retval;
     return retval;
 }
 
-const bool WeURL::Equals( const string& url )
+const bool URL::Equals( const string& url )
 {
-    WeURL tmp;
+    URL tmp;
     tmp.Assign(url);
     return Equals(tmp);
 }
 
-const bool WeURL::Equals( const WeURL& url )
+const bool URL::Equals( const URL& url )
 {
     bool retval = true;
 
@@ -330,14 +332,14 @@ const bool WeURL::Equals( const WeURL& url )
     return retval;
 }
 
-const bool WeURL::IsHostEquals( const string& url )
+const bool URL::IsHostEquals( const string& url )
 {
-    WeURL tmp;
+    URL tmp;
     tmp.Assign(url);
     return IsHostEquals(tmp);
 }
 
-const bool WeURL::IsHostEquals( const WeURL& url )
+const bool URL::IsHostEquals( const URL& url )
 {
     bool retval = true;
 
@@ -352,14 +354,14 @@ const bool WeURL::IsHostEquals( const WeURL& url )
     return retval;
 }
 
-const bool WeURL::IsDomainEquals( const string& url )
+const bool URL::IsDomainEquals( const string& url )
 {
-    WeURL tmp;
+    URL tmp;
     tmp.Assign(url);
     return IsDomainEquals(tmp);
 }
 
-const bool WeURL::IsDomainEquals( const WeURL& url )
+const bool URL::IsDomainEquals( const URL& url )
 {
     bool retval = true;
     string second_level;
@@ -390,7 +392,7 @@ const bool WeURL::IsDomainEquals( const WeURL& url )
     return retval;
 }
 
-string WeURL::ToStringNoParam( bool noDefPort /*= true*/ )
+string URL::ToStringNoParam( bool noDefPort /*= true*/ )
 {
     string *retval = new string;
 
@@ -409,3 +411,5 @@ string WeURL::ToStringNoParam( bool noDefPort /*= true*/ )
     *retval += request;
     return *retval;
 }
+
+} // namespace webEngine

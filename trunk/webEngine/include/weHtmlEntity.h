@@ -25,8 +25,10 @@
 
 using namespace std;
 
-class WeHtmlDocument;
-class WeHtmlEntity;
+namespace webEngine {
+
+class HtmlDocument;
+class HtmlEntity;
 
 /// @file   weHtmlEntity.h
 /// @brief  HTML processing classes declarations
@@ -42,20 +44,20 @@ class WeHtmlEntity;
 /// @author	A.Abramov
 /// @date 26.05.2009.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeHtmlEntity: virtual public iweEntity
+class HtmlEntity: virtual public iEntity
 {
 public:
-    WeHtmlEntity(iweEntity* prnt = NULL);
-    WeHtmlEntity(WeHtmlEntity& entity);
-    ~WeHtmlEntity();
+    HtmlEntity(iEntity* prnt = NULL);
+    HtmlEntity(HtmlEntity& entity);
+    ~HtmlEntity();
 
 	virtual const string &InnerText(void);
     virtual const string &OuterText(void);
 
-    virtual WeCmpResults* Diff(iweEntity& cmp, weCmpMode mode);
-    virtual weCmpState Compare(iweEntity& cmp, weCmpMode mode);
+    virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
+    virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
 
-    virtual WeScannerToken Parse(string tagName, WeTagScanner& scanner, iweTransport* processor = NULL);
+    virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,16 +65,16 @@ public:
 ///
 /// @brief  HTML entity to store plain text .
 ///
-/// Special kind of WeHtmlEntity - plain text inside other entities. It contains only one attribute
+/// Special kind of HtmlEntity - plain text inside other entities. It contains only one attribute
 /// and no children. The attribute name is ignored in the user calls and stored as '\#text' in the
 /// collection.
 ///
 /// @author A. Abramov
 /// @date   26.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeInnerText : public WeHtmlEntity {
+class WeInnerText : public HtmlEntity {
 public:
-    WeInnerText(iweEntity* prnt = NULL);
+    WeInnerText(iEntity* prnt = NULL);
     WeInnerText(WeInnerText& entity);
     ~WeInnerText();
 
@@ -82,16 +84,16 @@ public:
     virtual const string &InnerText(void);
     virtual const string &OuterText(void);
 
-    virtual WeCmpResults* Diff(iweEntity& cmp, weCmpMode mode);
-    virtual weCmpState Compare(iweEntity& cmp, weCmpMode mode);
+    virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
+    virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
 
-    virtual WeHtmlEntity* Child(int idx) {return (NULL);}       ///< Placeholder to avoid children manipulations
-    virtual WeHtmlEntity* Child(string type) {return (NULL);}   ///< Placeholder to avoid children manipulations
+    virtual HtmlEntity* Child(int idx) {return (NULL);}       ///< Placeholder to avoid children manipulations
+    virtual HtmlEntity* Child(string type) {return (NULL);}   ///< Placeholder to avoid children manipulations
     /// @brief Placeholder to avoid children manipulations
     /// @throw runtime_error with description
-    virtual WeEntityList& Children() {
+    virtual EntityList& Children() {
         throw runtime_error("WeInnerText: Children property is not accessible");
-        return *((WeEntityList*)NULL);
+        return *((EntityList*)NULL);
     }
 };
 
@@ -105,7 +107,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class WeHtmlComment : public WeInnerText {
 public:
-    WeHtmlComment(iweEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#comment"; };
+    WeHtmlComment(iEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#comment"; };
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +120,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class WeCData : public WeInnerText {
 public:
-    WeCData(iweEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#cdata"; };
+    WeCData(iEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#cdata"; };
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,45 +133,45 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class WePhpInclude : public WeInnerText {
 public:
-    WePhpInclude(iweEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#php"; };
+    WePhpInclude(iEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#php"; };
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeHtmlDocument
+/// @class  HtmlDocument
 ///
 /// @brief  Web document. Entry point to parsed document.
 ///
-/// Special kind of WeHtmlEntity - whole web document. It may contains some other WeHtmlEntity, such
-/// as page layout elements, or (and) other WeHtmlDocument's. For example, if the root document contains
+/// Special kind of HtmlEntity - whole web document. It may contains some other HtmlEntity, such
+/// as page layout elements, or (and) other HtmlDocument's. For example, if the root document contains
 /// frames, the frames sources will be added to root document as the child documents.
 /// @author	A. Abramov
 /// @date	26.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma warning (disable: 4250)
-class WeHtmlDocument : public iweDocument, public WeHtmlEntity
+class HtmlDocument : public iDocument, public HtmlEntity
 {
 public:
-    WeHtmlDocument(iweEntity* prnt = NULL);
-    WeHtmlDocument(WeHtmlDocument& entity);
-    ~WeHtmlDocument();
+    HtmlDocument(iEntity* prnt = NULL);
+    HtmlDocument(HtmlDocument& entity);
+    ~HtmlDocument();
 
     virtual const string &InnerText(void);
     virtual const string &OuterText(void);
 
-    virtual WeCmpResults* Diff(iweEntity& cmp, weCmpMode mode);
-    virtual weCmpState Compare(iweEntity& cmp, weCmpMode mode);
+    virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
+    virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
 
     /// @brief  Access the Data
     ///
     /// Data property represents downloaded data of the linked object.
     /// Images, script sources and other data may be stored here. @n
-    virtual WeBlob& Data(void);
+    virtual Blob& Data(void);
 
-    virtual bool ParseData(iweResponse* resp, iweTransport* processor = NULL);
+    virtual bool ParseData(iResponse* resp, iTransport* processor = NULL);
 
 #ifndef __DOXYGEN__
 protected:
-    WeHttpResponse* response;
+    HttpResponse* response;
 #endif //__DOXYGEN__
 };
 
@@ -184,10 +186,10 @@ protected:
 /// @author A. Abramov
 /// @date   27.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeRefrenceObject : public WeHtmlDocument
+class WeRefrenceObject : public HtmlDocument
 {
 public:
-    WeRefrenceObject(iweEntity* prnt = NULL);
+    WeRefrenceObject(iEntity* prnt = NULL);
     WeRefrenceObject(WeRefrenceObject& entity);
     ~WeRefrenceObject();
 
@@ -198,8 +200,8 @@ public:
     /// following format: @n
     /// - @b empty - no linked data stored, only remote copy is available
     /// - @b data - linked object is stored inside the blob
-    /// - @b \<EntityID\> - linked object stored in the WeHtmlEntity. The ID of the
-    ///   WeHtmlEntity points the object that contains data.
+    /// - @b \<EntityID\> - linked object stored in the HtmlEntity. The ID of the
+    ///   HtmlEntity points the object that contains data.
 	string LocalLink(void) const    { return(m_localLink);  };
 	void LocalLink(string local)    { m_localLink = local;  };
     //@}
@@ -231,11 +233,11 @@ protected:
 class WeScript : public WeRefrenceObject
 {
 public:
-    WeScript(iweEntity* prnt = NULL);
+    WeScript(iEntity* prnt = NULL);
     WeScript(WeScript& entity);
     ~WeScript();
 
-    virtual WeScannerToken Parse(string tagName, WeTagScanner& scanner, WeHTTP* processor = NULL);
+    virtual ScannerToken Parse(string tagName, TagScanner& scanner, HttpTransport* processor = NULL);
 
     bool SetEngine(void *engine = NULL);
     void* Execute();
@@ -245,5 +247,7 @@ protected:
     void*  scriptEngine;
 #endif //__DOXYGEN__
 };
+
+} // namespace webEngine
 
 #endif //__HTMLENTITY_H__

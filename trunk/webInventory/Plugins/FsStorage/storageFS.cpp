@@ -37,8 +37,8 @@ static char* tables[] = {weObjTypeTask,
                         weObjTypeProfile,
                         NULL}; // close the list with NULL
 
-FsStorage::FsStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
-    iweStorage(krnl, handle)
+FsStorage::FsStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
+    iStorage(krnl, handle)
 {
     pluginInfo.IfaceName = "FsStorage";
     pluginInfo.IfaceList.push_back("FsStorage");
@@ -63,7 +63,7 @@ void* FsStorage::GetInterface( const string& ifName )
         usageCount++;
         return (void*)(this);
     }
-    return iweStorage::GetInterface(ifName);
+    return iStorage::GetInterface(ifName);
 }
 
 const string FsStorage::GetSetupUI( void )
@@ -155,7 +155,7 @@ int FsStorage::Query(const string& objType, const string& objId, Operation op, c
     }
     FileSave(locker, "lock", "1");
     dir_path /= objType;
-    if (op == iweStorage::remove)
+    if (op == iStorage::remove)
     {
         retval += FileRemove(dir_path, objId);
     }

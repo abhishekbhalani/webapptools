@@ -24,8 +24,8 @@
 #include "demoPlugin.xpm"
 #include "demoPlugin.xrc"
 
-DemoPlugin::DemoPlugin( WeDispatch* krnl, void* handle /*= NULL*/ ) :
-    iwePlugin(krnl, handle)
+DemoPlugin::DemoPlugin( Dispatch* krnl, void* handle /*= NULL*/ ) :
+    iPlugin(krnl, handle)
 {
     pluginInfo.IfaceName = "demoPlugin";
     pluginInfo.IfaceList.push_back("demoPlugin");
@@ -45,7 +45,7 @@ void* DemoPlugin::GetInterface( const string& ifName )
         usageCount++;
         return (void*)(this);
     }
-    return iwePlugin::GetInterface(ifName);
+    return iPlugin::GetInterface(ifName);
 }
 
 const string DemoPlugin::GetSetupUI( void )

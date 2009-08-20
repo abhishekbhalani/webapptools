@@ -25,6 +25,8 @@
 #include "weScan.h"
 #include <boost/thread.hpp>
 
+using namespace webEngine;
+
 class locked_data
 {
 public:
@@ -32,7 +34,7 @@ public:
     ~locked_data();
     void destroy();
 
-    WeTask* load_task(const string& id);
+    Task* load_task(const string& id);
     void save_task( void );
     bool check_state();
 
@@ -41,10 +43,10 @@ public:
     bool            pause;
     boost::condition_variable cond;
 
-    WeDispatch* dispatcher;
-    WeTask*     task_info;
-    WeScan*     scan_info;
-    vector<iwePlugin*> plugins;
+    Dispatch* dispatcher;
+    Task*     task_info;
+    ScanInfo*     scan_info;
+    vector<iPlugin*> plugins;
 };
 
 extern locked_data  globalData;

@@ -23,25 +23,27 @@
 #pragma once
 #include "weiPlugin.h"
 
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iweStorage
+/// @interface  iStorage
 ///
 /// @brief  Interface for storage subsystem.
 ///
 /// @author A. Abramov, A. Yudin
 /// @date	14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweStorage :
-    public iwePlugin
+class iStorage :
+    public iPlugin
 {
 public:
-    iweStorage(WeDispatch* krnl, void* handle = NULL);
-    virtual ~iweStorage(void);
+    iStorage(Dispatch* krnl, void* handle = NULL);
+    virtual ~iStorage(void);
 
-    // iwePlugin functions
+    // iPlugin functions
     virtual void* GetInterface(const string& ifName);
 
-    // iweStorage functions
+    // iStorage functions
     typedef enum { mask = 0xff} Operation;
     static const Operation insert = (Operation)0x01;
     static const Operation update = (Operation)0x02;
@@ -57,11 +59,11 @@ public:
 
     virtual int Delete(const string& objType, const string& xmlData);
 
-    virtual int TaskSave(const string& xmlData, Operation op = iweStorage::autoop);
-    virtual int DictionarySave(const string& xmlData, Operation op = iweStorage::autoop);
-    virtual int AuthorizationSave(const string& xmlData, Operation op = iweStorage::autoop);
-    virtual int SystemOptionsSave(const string& xmlData, Operation op = iweStorage::autoop);
-    virtual int ScanSave(const string& xmlData, Operation op = iweStorage::autoop);
+    virtual int TaskSave(const string& xmlData, Operation op = iStorage::autoop);
+    virtual int DictionarySave(const string& xmlData, Operation op = iStorage::autoop);
+    virtual int AuthorizationSave(const string& xmlData, Operation op = iStorage::autoop);
+    virtual int SystemOptionsSave(const string& xmlData, Operation op = iStorage::autoop);
+    virtual int ScanSave(const string& xmlData, Operation op = iStorage::autoop);
 
     virtual int TaskReport(const string& xmlData, string& result);
     virtual int DictionaryReport(const string& xmlData, string& result);
@@ -71,9 +73,11 @@ public:
 
 protected:
     virtual int ObjectReport(const string& objType, const string& xmlData, string& result);
-    virtual int ObjectQuery(const string& objType, const string& xmlData, Operation op = iweStorage::autoop);
+    virtual int ObjectQuery(const string& objType, const string& xmlData, Operation op = iStorage::autoop);
     static int lastId;
 };
+
+} // namespace webEngine
 
 #define weObjTypeTask       "task"
 #define weObjTypeSysOption  "sysopt"

@@ -25,25 +25,28 @@
 #include "weiPlugin.h"
 #include "weMemStorage.h"
 
+
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeNullStorage
+/// @class  NullStorage
 ///
-/// @brief  null storage for the iweStorage placeholder.
+/// @brief  null storage for the iStorage placeholder.
 ///
 /// @author A. Abramov
 /// @date   23.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeNullStorage :
-    public iweStorage
+class NullStorage :
+    public iStorage
 {
 public:
-    WeNullStorage(WeDispatch* krnl, void* handle = NULL);
-    ~WeNullStorage(void);
+    NullStorage(Dispatch* krnl, void* handle = NULL);
+    ~NullStorage(void);
 
-    // iwePlugin functions
+    // iPlugin functions
     virtual void* GetInterface(const string& ifName);
 
-    // iweStorage functions
+    // iStorage functions
     virtual bool InitStorage(const string& params) { return true; };
     virtual void Flush(const string& params = "") { return; };
     virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData) { return 0; };
@@ -51,29 +54,24 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeDispatch
+/// @class  Dispatch
 ///
 /// @brief  Dispatcher for tasks processing and system options storage.
 ///
 /// @author A. Abramov
 /// @date   16.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeDispatch :
-    public iweOptionsProvider
+class Dispatch :
+    public iOptionsProvider
 {
 public:
-    WeDispatch(void);
-    virtual ~WeDispatch(void);
+    Dispatch(void);
+    virtual ~Dispatch(void);
 
-    // iweOptionsProvider
-    virtual WeOption& Option(const string& name);
-    virtual bool IsSet(const string& name);
-    virtual void Option(const string& name, WeOptionVal val);
-
-    // WeDispatch
+    // Dispatch
     // Access the Storage
-    iweStorage* Storage(void) const  { return(storage);  };
-    void Storage(const iweStorage* store);
+    iStorage* Storage(void) const  { return(storage);  };
+    void Storage(const iStorage* store);
 
     void Flush();
 
@@ -82,19 +80,21 @@ public:
     void RefreshPluginList(boost::filesystem::path& baseDir);
 
     // Provide Logger to plugins
-    log4cxx::LoggerPtr GetLogger() { return WeLogger::GetLogger(); };
+    log4cxx::LoggerPtr GetLogger() { return iLogger::GetLogger(); };
 
-    iwePlugin* LoadPlugin(string id);
+    iPlugin* LoadPlugin(string id);
 
 #ifndef __DOXYGEN__
 protected:
     WePluginList pluginList;
-    iweStorage* storage;
+    iStorage* storage;
 
 private:
-    WeDispatch(WeDispatch&) {};               ///< Avoid object copying
-    WeDispatch& operator=(WeDispatch&) { return *this; };    ///< Avoid object copying
+    Dispatch(Dispatch&) {};               ///< Avoid object copying
+    Dispatch& operator=(Dispatch&) { return *this; };    ///< Avoid object copying
 #endif // __DOXYGEN__
 };
+
+}; // namespace webEngine
 
 #endif //__WEDISPATCH_H__

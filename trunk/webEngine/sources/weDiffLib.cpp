@@ -22,10 +22,12 @@
 #include <boost/lexical_cast.hpp>
 #include "externals/dtl.hpp"
 
-WeDiffLibWordList* WeDiffLibTextToList(string txt, weCmpMode mode)
+namespace webEngine {
+
+DiffLibWordList* DiffLibTextToList(string txt, weCmpMode mode)
 {
-    WeDiffLibWordList*  lst = new WeDiffLibWordList;
-    WeDiffLibWord *wObj;
+    DiffLibWordList*  lst = new DiffLibWordList;
+    DiffLibWord *wObj;
     bool currSpace;
     unsigned idx, last;
     string word;
@@ -46,7 +48,7 @@ WeDiffLibWordList* WeDiffLibTextToList(string txt, weCmpMode mode)
             else {
                 word += txt.substr(last, idx - 1 - last);
             }
-            wObj = new WeDiffLibWord;
+            wObj = new DiffLibWord;
             wObj->mode = mode;
             wObj->word = word;
             lst->push_back(*wObj);
@@ -62,7 +64,7 @@ WeDiffLibWordList* WeDiffLibTextToList(string txt, weCmpMode mode)
         }
     }
     if (!word.empty()) {
-        wObj = new WeDiffLibWord;
+        wObj = new DiffLibWord;
         wObj->mode = mode;
         wObj->word = word;
         lst->push_back(*wObj);
@@ -70,25 +72,25 @@ WeDiffLibWordList* WeDiffLibTextToList(string txt, weCmpMode mode)
     return lst;    
 }
 
-WeCmpResults* WeTextDiff(string txt1, string txt2, weCmpMode mode/* = weCmpDefault*/)
+CmpResults* TextDiff(string txt1, string txt2, weCmpMode mode/* = weCmpDefault*/)
 {
-    WeCmpResults* retval;
+    CmpResults* retval;
     string        txt;
     unsigned      idx;
-    WeDiffLibWordList* lst1;
-    WeDiffLibWordList* lst2;
+    DiffLibWordList* lst1;
+    DiffLibWordList* lst2;
 
     // compose lists from text
-    lst1 = WeDiffLibTextToList(txt1, mode);
-    lst2 = WeDiffLibTextToList(txt2, mode);
+    lst1 = DiffLibTextToList(txt1, mode);
+    lst2 = DiffLibTextToList(txt2, mode);
 
-    dtl::Diff<WeDiffLibWord, WeDiffLibWordList> d(*lst1, *lst2);
+    dtl::Diff<DiffLibWord, DiffLibWordList> d(*lst1, *lst2);
     d.compose();
-    dtl::Ses<WeDiffLibWord> ses = d.getSes();
-    vector< pair<WeDiffLibWord, dtl::elemInfo> > ses_v = ses.getSequence();
+    dtl::Ses<DiffLibWord> ses = d.getSes();
+    vector< pair<DiffLibWord, dtl::elemInfo> > ses_v = ses.getSequence();
 
     // produce combined output
-    retval = new WeCmpResults;
+    retval = new CmpResults;
     for (idx = 0; idx < ses_v.size(); idx++) {
         if (idx == 0) {
             retval->push_back(new WeCmpBlock());
@@ -117,3 +119,5 @@ WeCmpResults* WeTextDiff(string txt1, string txt2, weCmpMode mode/* = weCmpDefau
 
     return retval;
 }
+
+} // namespace webEngine

@@ -24,8 +24,10 @@
 
 using namespace std;
 
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeBlob
+/// @class  Blob
 ///
 /// @brief  BLOB manipulations 
 ///
@@ -33,47 +35,47 @@ using namespace std;
 /// @author A. Abramov
 /// @date   27.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeBlob : public vector<unsigned char>
+class Blob : public vector<unsigned char>
 {
 public:
-    WeBlob()                        { clear(); }
-    ~WeBlob()                       { clear(); }
+    Blob()                        { clear(); }
+    ~Blob()                       { clear(); }
 
-    WeBlob(unsigned int cb)         { clear(); resize(cb); zero(); }
-    WeBlob(unsigned char* p,
+    Blob(unsigned int cb)         { clear(); resize(cb); zero(); }
+    Blob(unsigned char* p,
         unsigned int cb)            { clear(); assign(p, cb); }
-    WeBlob(const WeBlob& b)         { clear(); assign(b); }
-    WeBlob(char* s)                 { clear(); assign(s); }
+    Blob(const Blob& b)         { clear(); assign(b); }
+    Blob(char* s)                 { clear(); assign(s); }
 
     void zero()                     { vector<unsigned char>::assign(size(), 0); }
     void assign(unsigned char* p,
         unsigned int cb)            { resize(cb); vector<unsigned char>::assign(p, p+cb); }
-    void assign(const WeBlob& b)    { vector<unsigned char>::assign(b.begin(), b.end()); }
+    void assign(const Blob& b)    { vector<unsigned char>::assign(b.begin(), b.end()); }
     void assign(char* s)            { vector<unsigned char>::assign(s, s + strlen(s)+1); }
     bool read(istream& file);
     bool write(ostream& file);
-    WeInStream* stream();
+    InStream* stream();
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeBlobStream
+/// @class  BlobStream
 ///
 /// @brief  BLOB stream for WeTagScanner.
 ///
-/// This class translates WeBlob to the WeInStream for parsing.
+/// This class translates Blob to the InStream for parsing.
 ///
 /// @author	A. Abramov
 /// @date   02.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeBlobStream : public WeInStream
+class BlobStream : public InStream
 {
     const char* p;
     const char* start;
     const char* end; 
 public:
-    WeBlobStream(const WeBlob& src)
+    BlobStream(const Blob& src)
     {
         start = (const char*)&src.front();
         end = (const char*)&src.back();
@@ -83,5 +85,7 @@ public:
     virtual void PushBack(char c) {if(p > start) {p--;}}
     virtual size_t GetPos() { return p - start; };
 };
+
+} // namespace webEngine
 
 #endif //__WEBLOB_H__

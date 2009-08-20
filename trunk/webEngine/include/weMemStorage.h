@@ -23,41 +23,45 @@
 #pragma once
 #include "weiStorage.h"
 
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeMemStorage :
+/// @class  MemStorage :
 ///
-/// @brief  Memory storage class. Provides iweStorage interface with keeping data in memory
+/// @brief  Memory storage class. Provides iStorage interface with keeping data in memory
 ///         and abilities to save/load state into the file(s)
 ///
 /// @author A. Abramov
 /// @date   14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeMemStorage :
-    public iweStorage
+class MemStorage :
+    public iStorage
 {
 public:
-    WeMemStorage(WeDispatch* krnl, void* handle = NULL);
-    ~WeMemStorage(void);
+    MemStorage(Dispatch* krnl, void* handle = NULL);
+    ~MemStorage(void);
 
     // iwePlugin functions
     virtual void* GetInterface(const string& ifName);
 
-    // iweStorage functions
+    // iStorage functions
     virtual bool InitStorage(const string& params);
     virtual void Flush(const string& params = "");
     virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData);
     virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result);
 
-    // WeMemStorage functions
+    // MemStorage functions
     void Save(const string& fileName);
     void Load(const string& fileName);
 
 protected:
     string fileName;
-    WeStringMap tasks;
-    WeStringMap dicts;
-    WeStringMap auths;
-    WeStringMap sysopts;
+    StringMap tasks;
+    StringMap dicts;
+    StringMap auths;
+    StringMap sysopts;
 };
+
+} // namespace webEngine
 
 #endif //__WEMEMSTORAGE_H__

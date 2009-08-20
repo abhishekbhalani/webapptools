@@ -22,22 +22,22 @@
 #include <weiStorage.h>
 #include "weObject.h"
 
-std::string WeScanObject::ToXml( void )
+std::string ScanObject::ToXml( void )
 {
     string retval;
     string strData;
 
     retval = "";
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeScanObject::ToXml");
-    retval += "<object id='" + WeScreenXML(ObjectId) + "'>\n";
-    retval += "  <obj_name>" + WeScreenXML(ObjName) + "</obj_name>\n";
-    retval += "  <host_addr>" + WeScreenXML(Address) + "</host_addr>\n";
+    LOG4CXX_TRACE(iLogger::GetLogger(), "ScanObject::ToXml");
+    retval += "<object id='" + ScreenXML(ObjectId) + "'>\n";
+    retval += "  <obj_name>" + ScreenXML(ObjName) + "</obj_name>\n";
+    retval += "  <host_addr>" + ScreenXML(Address) + "</host_addr>\n";
     retval += "</object>\n";
     return retval;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void WeScanObject::FromXml( string input )
+/// @fn void ScanObject::FromXml( string input )
 ///
 /// @brief  Initializes this object from the given from XML. 
 ///
@@ -45,23 +45,23 @@ std::string WeScanObject::ToXml( void )
 ///
 /// @param  input - The input XML. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeScanObject::FromXml( string input )
+void ScanObject::FromXml( string input )
 {
-    WeStrStream st(input.c_str());
-    WeTagScanner sc(st);
+    StrStream st(input.c_str());
+    TagScanner sc(st);
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeScanObject::FromXml - string");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "ScanObject::FromXml - string");
     FromXml(sc);
 }
 
-void WeScanObject::FromXml( WeTagScanner& sc, int token /*= -1 */ )
+void ScanObject::FromXml( TagScanner& sc, int token /*= -1 */ )
 {
     int pos;
     int parseLevel = 0;
     bool inParsing = true;
     string name, val, dat;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeScanObject::FromXml - WeTagScanner");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "ScanObject::FromXml - TagScanner");
     while (inParsing)
     {
         pos = sc.GetPos();
@@ -71,11 +71,11 @@ void WeScanObject::FromXml( WeTagScanner& sc, int token /*= -1 */ )
         switch(token)
         {
         case wstError:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "WeScanObject::FromXml parsing error");
+            LOG4CXX_WARN(iLogger::GetLogger(), "ScanObject::FromXml parsing error");
             inParsing = false;
             break;
         case wstEof:
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "WeScanObject::FromXml - EOF");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "ScanObject::FromXml - EOF");
             inParsing = false;
             break;
         case wstTagStart:
@@ -88,7 +88,7 @@ void WeScanObject::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                     dat = "";
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "WeScanObject::FromXml unexpected tagStart: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "ScanObject::FromXml unexpected tagStart: " << name);
                     inParsing = false;
                 }
                 break;
@@ -99,7 +99,7 @@ void WeScanObject::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                 dat = "";
                 break;
             }
-            LOG4CXX_WARN(WeLogger::GetLogger(), "WeScanObject::FromXml unexpected tagStart: " << name);
+            LOG4CXX_WARN(iLogger::GetLogger(), "ScanObject::FromXml unexpected tagStart: " << name);
             inParsing = false;
             break;
         case wstTagEnd:
@@ -113,13 +113,13 @@ void WeScanObject::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                     inParsing = false;
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "WeScanObject::FromXml unexpected wstTagEnd: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "ScanObject::FromXml unexpected wstTagEnd: " << name);
                     inParsing = false;
                 }
             }
             if (parseLevel == 2)
             {
-                dat = WeUnscreenXML(dat);
+                dat = UnscreenXML(dat);
                 if (iequals(name, "obj_name"))
                 {
                     ObjName = dat;
@@ -134,7 +134,7 @@ void WeScanObject::FromXml( WeTagScanner& sc, int token /*= -1 */ )
         case wstAttr:
             name = sc.GetAttrName();
             val = sc.GetValue();
-            val = WeUnscreenXML(val);
+            val = UnscreenXML(val);
             if (parseLevel == 1)
             {
                 if (iequals(name, "id"))

@@ -44,19 +44,21 @@ The copy of the code was obtained from CodeProject.com
 
 using namespace std;
 
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class	WeInStream
+/// @class	InStream
 ///
-/// @brief  WeTagScanner's input stream.
+/// @brief  TagScanner's input stream.
 ///
-/// This is the base class for input data into the WeTagScanner. This class is abstract and can't
+/// This is the base class for input data into the TagScanner. This class is abstract and can't
 /// be used directly. Inherit this class and override the GetChar function to implement your own
 /// input stream.
 ///
 /// @author	A. Abramov
 /// @date	26.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeInStream {
+class InStream {
 public:
     virtual char GetChar() = 0;
     virtual void PushBack(char c) = 0;
@@ -64,28 +66,28 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class	WeStrStream
+/// @class	StrStream
 ///
-/// @brief	WeTagScanner's input string.
+/// @brief	TagScanner's input string.
 ///
 /// This class implements input stream based on string.
 ///
 /// @author	A. Abramov
 /// @date	26.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeStrStream : public WeInStream
+class StrStream : public InStream
 {
     char* p;
     const char* start;
     const char* end;
 public:
-    WeStrStream(const char* src): p((char*)src), start(src), end(src + strlen(src)) {}
+    StrStream(const char* src): p((char*)src), start(src), end(src + strlen(src)) {}
     virtual char GetChar() { return p < end? *p++: 0; }
     virtual void PushBack(char c) {if(p > start) {p--;}}
     virtual size_t GetPos() { return p - start; };
 };
 
-enum WeScannerToken {
+enum ScannerToken {
     wstError = -1,
     wstEof = 0,
     wstTagStart,
@@ -101,7 +103,7 @@ enum WeScannerToken {
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class	WeTagScanner
+/// @class	TagScanner
 ///
 /// @brief	TAG scanner for parsing markup languages (XML or HTML).
 ///
@@ -109,30 +111,30 @@ enum WeScannerToken {
 /// @author	Aabramov
 /// @date	26.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeTagScanner {
+class TagScanner {
 public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn	WeTagScanner(WeInStream& is)
+    /// @fn	TagScanner(InStream& is)
     /// @brief  Constructor.
     /// @param  is - the input stream to parse.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    WeTagScanner(WeInStream& is):
+    TagScanner(InStream& is):
             input(is),
             input_char(0),
 //            value_length(0),
 //            tag_name_length(0),
 //            attr_name_length(0),
-            got_tail(false) { c_scan = &WeTagScanner::ScanBody; }
-    virtual ~WeTagScanner(){};
+            got_tail(false) { c_scan = &TagScanner::ScanBody; }
+    virtual ~TagScanner(){};
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////
-      /// @fn	WeScannerToken GetToken()
+      /// @fn	ScannerToken GetToken()
       ///
       /// @brief	Gets the next token from stream.
       /// @return	The token.
       ////////////////////////////////////////////////////////////////////////////////////////////////////
-      WeScannerToken    GetToken() { return (this->*c_scan)(); }
+      ScannerToken    GetToken() { return (this->*c_scan)(); }
       const char*       GetValue();
       const char*       GetAttrName();
       const char*       GetTagName();
@@ -156,7 +158,7 @@ private:
     static const int MAX_NAME_SIZE = 128;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @typedef WeScannerToken (WeTagScanner::*fnScan)()
+    /// @typedef ScannerToken (TagScanner::*fnScan)()
     ///
     ///
     /// @brief	WebEngine scanner token parser function.
@@ -164,18 +166,18 @@ private:
     /// This type defines pointer to the scanner function. Used to switch scanner function to parse
     /// different regions of the source file.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    typedef WeScannerToken (WeTagScanner::*fnScan)();
+    typedef ScannerToken (TagScanner::*fnScan)();
     fnScan        c_scan; // current 'reader'
 
     /* methods */
     // content 'readers'
-    WeScannerToken  ScanBody();
-    WeScannerToken  ScanHead();
-    WeScannerToken  ScanComment();
-    WeScannerToken  ScanCdata();
-    WeScannerToken  ScanPi();
-    WeScannerToken  ScanTag();
-    WeScannerToken  ScanEntityDecl();
+    ScannerToken  ScanBody();
+    ScannerToken  ScanHead();
+    ScannerToken  ScanComment();
+    ScannerToken  ScanCdata();
+    ScannerToken  ScanPi();
+    ScannerToken  ScanTag();
+    ScannerToken  ScanEntityDecl();
 
     char            SkipWhitespace();
     char            GetChar();
@@ -189,7 +191,7 @@ private:
 
     /* data */
 #ifndef __DOXYGEN__
-    WeScannerToken  token;
+    ScannerToken  token;
 
     vector<char>    value;
     //int             value_length;
@@ -200,10 +202,13 @@ private:
     vector<char>    attr_name;
     //int             attr_name_length;
 
-    WeInStream&     input;              ///< input stream for scanning
+    InStream&     input;              ///< input stream for scanning
     char            input_char;         ///< current input char
 
     bool            got_tail;           ///< aux flag used in scan_comment, etc.
 #endif //__DOXYGEN__
 };
+
+} // namespace webEngine
+
 #endif //__TAGSCANNER_H__

@@ -27,29 +27,31 @@
 using namespace boost;
 using namespace std;
 
-struct WePluginInfo
+namespace webEngine {
+
+struct PluginInfo
 {
     string  PluginId;
     string  PluginDesc;
     string  IfaceName;
-    WeStringList IfaceList;
-    WeStringList PluginIcon;
+    StringList IfaceList;
+    StringList PluginIcon;
     int     PluginStatus;
     string  PluginPath;
 };
 
 // forward declaration
-class WeDispatch;
+class Dispatch;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iwePlugin
+/// @interface  iPlugin
 ///
 /// @brief  Basic interface for the plugins.
 ///
-/// iwePlugin is the basic interface for the plugins.
+/// iPlugin is the basic interface for the plugins.
 ///
 /// Plugin is the interface to the external dynamic library. The library provides method to
-/// create the contained plugin as the basic iwePlugin interface. Other interfaces may be
+/// create the contained plugin as the basic iPlugin interface. Other interfaces may be
 /// requested from the plugin by calling the GetInterface function. Plugin object can't be copied,
 /// use the GetInterface function instead to obtain pointer to the plugin or copy the existing
 /// pointer if you are sure to control the object's lifetime. Program must avoid the explicit
@@ -60,12 +62,12 @@ class WeDispatch;
 /// @author A. Abramov
 /// @date   19.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iwePlugin
+class iPlugin
 {
 public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn iwePlugin(void* handle = NULL)
+    /// @fn iPlugin(void* handle = NULL)
     ///
     /// @brief  Constructor.
     ///
@@ -73,7 +75,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn iwePlugin(WeDispatch* krnl,
+    /// @fn iPlugin(Dispatch* krnl,
     /// 	void* handle = NULL)
     ///
     /// @brief  Constructor. 
@@ -81,14 +83,14 @@ public:
     /// @param  krnl   - Back link to the kernel
     /// @param  handle - The handle to the contained library. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    iwePlugin(WeDispatch* krnl, void* handle = NULL);
+    iPlugin(Dispatch* krnl, void* handle = NULL);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual ~iwePlugin()
+    /// @fn virtual ~iPlugin()
     ///
     /// @brief  Destructor.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual ~iwePlugin() {};
+    virtual ~iPlugin() {};
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual void* GetInterface(const string& ifName)
@@ -123,13 +125,13 @@ public:
     virtual const string InterfaceName();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual WeStringList InterfaceList()
+    /// @fn virtual StringList InterfaceList()
     ///
     /// @brief  Gets the list of supported Interfaces. 
     ///
     /// @retval strings list. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual WeStringList InterfaceList();
+    virtual StringList InterfaceList();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual const string& GetDesc()
@@ -161,16 +163,16 @@ public:
     ///
     /// @retval null if no icon, else the icon.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual WeStringList GetIcon();
+    virtual StringList GetIcon();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn	const WePluginInfo* Info(void)
+    /// @fn	const PluginInfo* Info(void)
     ///
     /// @brief	Returns information about this object. 
     ///
-    /// @retval	null if it fails, WePluginInfo else. 
+    /// @retval	null if it fails, PluginInfo else. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    const WePluginInfo* Info(void) { return &pluginInfo; };
+    const PluginInfo* Info(void) { return &pluginInfo; };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual const string GetSetupUI( void )
@@ -194,17 +196,17 @@ public:
 protected:
     int usageCount;
     void* libHandle;
-    WePluginInfo pluginInfo;
-    WeDispatch* kernel;
+    PluginInfo pluginInfo;
+    Dispatch* kernel;
     log4cxx::LoggerPtr logger;
 
 private:
-    iwePlugin(iwePlugin&) {};               ///< Avoid object copying
-    iwePlugin& operator=(iwePlugin&) { return *this; };    ///< Avoid object copying
+    iPlugin(iPlugin&) {};               ///< Avoid object copying
+    iPlugin& operator=(iPlugin&) { return *this; };    ///< Avoid object copying
 #endif // __DOXYGEN__
 };
 
-typedef vector<WePluginInfo> WePluginList;
+typedef vector<PluginInfo> WePluginList;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @typedef    void* (*fnWePluginFactory)(void)
@@ -217,7 +219,7 @@ typedef vector<WePluginInfo> WePluginList;
 typedef void* (*fnWePluginFactory)(void* kernel, void* handle);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn WeStringList WeXpmToStringList(char** xpm,
+/// @fn StringList WeXpmToStringList(char** xpm,
 /// 	int lines)
 ///
 /// @brief  Convetrs XPM to string list. 
@@ -230,6 +232,8 @@ typedef void* (*fnWePluginFactory)(void* kernel, void* handle);
 ///
 /// @retval	. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeStringList WeXpmToStringList(char** xpm, int lines);
+StringList WeXpmToStringList(char** xpm, int lines);
+
+} // namespace webEngine
 
 #endif //__WEIPLUGIN_H__

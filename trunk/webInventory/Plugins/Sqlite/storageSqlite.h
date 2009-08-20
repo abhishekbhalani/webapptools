@@ -20,11 +20,13 @@
 #pragma once
 #include <weiStorage.h>
 
+using namespace webEngine;
+
 class SqliteStorage :
-    public iweStorage
+    public iStorage
 {
 public:
-    SqliteStorage(WeDispatch* krnl, void* handle = NULL);
+    SqliteStorage(Dispatch* krnl, void* handle = NULL);
     virtual ~SqliteStorage(void);
 
     // iwePlugin functions

@@ -34,6 +34,8 @@ using namespace boost;
 /// @brief  Difference building operations and structures
 /// @example difflib.cpp
 
+namespace webEngine {
+
 enum weCmpState{
     weCmpNonComparable = -99,  ///< comparison can't be performed, or error occurred
     weCmpDeleted    = -2,
@@ -43,8 +45,8 @@ enum weCmpState{
     weCmpInserted   = 2
 } ;
 
-class iweEntity;  // forward declaration for pointer
-typedef variant<string, iweEntity*> WeCmpEntity;
+class iEntity;  // forward declaration for pointer
+typedef variant<string, iEntity*> WeCmpEntity;
 
 struct WeCmpBlock
 {
@@ -52,7 +54,7 @@ struct WeCmpBlock
     WeCmpEntity entity;
 };
 
-typedef vector<WeCmpBlock*> WeCmpResults;
+typedef vector<WeCmpBlock*> CmpResults;
 
 enum weCmpMode {
     CmpMask = 0xFFFFFFFF
@@ -71,19 +73,19 @@ static const weCmpMode weCmpChildrenTree    = (weCmpMode)0x0080;
 static const weCmpMode weCmpDefault         = (weCmpMode)0xffff;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @struct WeDiffLibWord
+/// @struct DiffLibWord
 ///
 /// @brief  Text element to compare.
 ///
 /// @author A. Abramov
 /// @date   25.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct WeDiffLibWord
+struct DiffLibWord
 {
 #ifndef __DOXYGEN__
     string word;
     weCmpMode mode;
-    bool operator==(WeDiffLibWord& cpy)
+    bool operator==(DiffLibWord& cpy)
     {
         if (mode & weCmpCaseInsens)
         {
@@ -94,9 +96,11 @@ struct WeDiffLibWord
 #endif // __DOXYGEN__
 };
 
-typedef vector<WeDiffLibWord>   WeDiffLibWordList;
+typedef vector<DiffLibWord>   DiffLibWordList;
 
-extern WeDiffLibWordList* WeDiffLibTextToList(string txt, weCmpMode mode);
-extern WeCmpResults* WeTextDiff(string txt1, string txt2, weCmpMode mode = weCmpDefault);
+extern DiffLibWordList* DiffLibTextToList(string txt, weCmpMode mode);
+extern CmpResults* TextDiff(string txt1, string txt2, weCmpMode mode = weCmpDefault);
+
+} // namespace webEngine
 
 #endif //__WEIDIFFLIB_H__

@@ -20,14 +20,16 @@
 #pragma once
 #include <weiPlugin.h>
 
+using namespace webEngine;
+
 class DemoPlugin :
-    public iwePlugin
+    public iPlugin
 {
 public:
-    DemoPlugin(WeDispatch* krnl, void* handle = NULL);
+    DemoPlugin(Dispatch* krnl, void* handle = NULL);
     virtual ~DemoPlugin(void);
 
-    // iwePlugin functions
+    // iPlugin functions
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual void* GetInterface(const string& ifName)
     ///

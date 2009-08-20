@@ -26,6 +26,8 @@
 #include <weBlob.h>
 // #include "messages.h"
 
+using namespace webEngine;
+
 void server::handle_accept(session* new_session,
                    const boost::system::error_code& error)
 {
@@ -39,7 +41,7 @@ void server::handle_accept(session* new_session,
     }
     else
     {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "Server: accept failed - " << error);
+        LOG4CXX_WARN(iLogger::GetLogger(), "Server: accept failed - " << error);
         delete new_session;
     }
 }
@@ -47,7 +49,7 @@ void server::handle_accept(session* new_session,
 
 void session::start()
 {
-    LOG4CXX_INFO(WeLogger::GetLogger(), "Session: connection accepted - " << socket_.remote_endpoint().address());
+    LOG4CXX_INFO(iLogger::GetLogger(), "Session: connection accepted - " << socket_.remote_endpoint().address());
 
     socket_.async_read_some(boost::asio::buffer(&datalen, sizeof(size_t)),
         boost::bind(&session::handle_read_datalen, this,
@@ -67,7 +69,7 @@ void session::handle_read_datalen(const boost::system::error_code& error, size_t
     }
     else
     {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "Session: read failed - " << error);
+        LOG4CXX_WARN(iLogger::GetLogger(), "Session: read failed - " << error);
         delete this;
     }
 }
@@ -86,18 +88,18 @@ void session::handle_read_data(const boost::system::error_code& error, size_t by
         }
         else if (res == 0)
         {
-            LOG4CXX_WARN(WeLogger::GetLogger(), "Session: close session");
+            LOG4CXX_WARN(iLogger::GetLogger(), "Session: close session");
             delete this;
         }
         else // res == -1
         {
-            LOG4CXX_WARN(WeLogger::GetLogger(), "Session: exit requested");
+            LOG4CXX_WARN(iLogger::GetLogger(), "Session: exit requested");
             socket_.io_service().stop();
         }
     }
     else
     {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "Session: read failed - " << error);
+        LOG4CXX_WARN(iLogger::GetLogger(), "Session: read failed - " << error);
         delete this;
     }
 }
@@ -115,7 +117,7 @@ void session::handle_write(const boost::system::error_code& error)
     }
     else
     {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "Session: write failed - " << error);
+        LOG4CXX_WARN(iLogger::GetLogger(), "Session: write failed - " << error);
         delete this;
     }
 }

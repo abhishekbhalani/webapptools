@@ -24,58 +24,60 @@
 #include "weiStorage.h"
 #include "iweStorage.xpm"
 
-int iweStorage::lastId = 0;
+using namespace webEngine;
 
-iweStorage::iweStorage(WeDispatch* krnl, void* handle /*= NULL*/) :
-    iwePlugin(krnl, handle)
+int iStorage::lastId = 0;
+
+iStorage::iStorage(Dispatch* krnl, void* handle /*= NULL*/) :
+    iPlugin(krnl, handle)
 {
-    pluginInfo.IfaceName = "iweStorage";
-    pluginInfo.IfaceList.push_back("iweStorage");
+    pluginInfo.IfaceName = "iStorage";
+    pluginInfo.IfaceList.push_back("iStorage");
     pluginInfo.PluginDesc = "Base plugin interface";
     pluginInfo.PluginId = "C7F595160595";
     pluginInfo.PluginIcon = WeXpmToStringList(iweStorage_xpm, sizeof(iweStorage_xpm) / sizeof(char*) );
     lastId = rand();
 }
 
-iweStorage::~iweStorage(void)
+iStorage::~iStorage(void)
 {
 }
 
-void* iweStorage::GetInterface( const string& ifName )
+void* iStorage::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "iweStorage"))
+    if (iequals(ifName, "iStorage"))
     {
         usageCount++;
-        return (void*)((iweStorage*)this);
+        return (void*)((iStorage*)this);
     }
-    return iwePlugin::GetInterface(ifName);
+    return iPlugin::GetInterface(ifName);
 }
 
-std::string iweStorage::GenerateID( const string& objType /*= ""*/ )
+std::string iStorage::GenerateID( const string& objType /*= ""*/ )
 {
     return lexical_cast<string>(++lastId);
 }
 
-int iweStorage::Query( const string& objType, const string& objId, Operation op, const string& xmlData )
+int iStorage::Query( const string& objType, const string& objId, Operation op, const string& xmlData )
 {
     /// @todo Implement this!
-    LOG4CXX_FATAL(WeLogger::GetLogger(), "iweStorage::Query - Not implemented");
+    LOG4CXX_FATAL(iLogger::GetLogger(), "iStorage::Query - Not implemented");
     return -1;
 }
 
-int iweStorage::Report( const string& repType, const string& objId, const string& xmlData, string& result )
+int iStorage::Report( const string& repType, const string& objId, const string& xmlData, string& result )
 {
     /// @todo Implement this!
-    LOG4CXX_FATAL(WeLogger::GetLogger(), "iweStorage::Report - Not implemented");
+    LOG4CXX_FATAL(iLogger::GetLogger(), "iStorage::Report - Not implemented");
     return -1;
 }
 
-int iweStorage::Delete( const string& objType, const string& xmlData )
+int iStorage::Delete( const string& objType, const string& xmlData )
 {
     int retval = 0;
     bool inTask = false;
-    WeStrStream st(xmlData.c_str());
-    WeTagScanner sc(st);
+    StrStream st(xmlData.c_str());
+    TagScanner sc(st);
     int pos;
     int tagStart;
     string id;
@@ -88,11 +90,11 @@ int iweStorage::Delete( const string& objType, const string& xmlData )
         switch(t)
         {
         case wstError:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::Delete - parsing error");
+            LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::Delete - parsing error");
             goto FINISH;
             break;
         case wstEof:
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::Delete - parsing EOF");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "iStorage::Delete - parsing EOF");
             goto FINISH;
             break;
         case wstTagStart:
@@ -103,7 +105,7 @@ int iweStorage::Delete( const string& objType, const string& xmlData )
                 tagStart = pos;
             }
             else {
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::Delete - unexpected tag: " << tag);
+                LOG4CXX_TRACE(iLogger::GetLogger(), "iStorage::Delete - unexpected tag: " << tag);
                 goto FINISH;
             }
             break;
@@ -114,7 +116,7 @@ int iweStorage::Delete( const string& objType, const string& xmlData )
                 inTask = false;
                 pos += 2; // at least strlen("/>") for simple cases. Not well-formed XML for complex queries, but it will be parsed
                 if (!id.empty()) {
-                    retval += Query(objType, id, iweStorage::remove, xmlData.substr(tagStart, pos - tagStart));
+                    retval += Query(objType, id, iStorage::remove, xmlData.substr(tagStart, pos - tagStart));
                 }
             }
             break;
@@ -129,7 +131,7 @@ int iweStorage::Delete( const string& objType, const string& xmlData )
             }
             break;
         default:
-            //LOG4CXX_WARN("iweStorage::TaskSave - unexpected token: " << t);
+            //LOG4CXX_WARN("iStorage::TaskSave - unexpected token: " << t);
             break;
         };
     };
@@ -137,61 +139,61 @@ FINISH:
     return retval;
 }
 
-int iweStorage::TaskSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+int iStorage::TaskSave( const string& xmlData, Operation op /*= iStorage::autoop*/ )
 {
     return ObjectQuery(weObjTypeTask, xmlData, op);
 }
 
-int iweStorage::DictionarySave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+int iStorage::DictionarySave( const string& xmlData, Operation op /*= iStorage::autoop*/ )
 {
     return ObjectQuery(weObjTypeDictionary, xmlData, op);
 }
 
-int iweStorage::AuthorizationSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+int iStorage::AuthorizationSave( const string& xmlData, Operation op /*= iStorage::autoop*/ )
 {
     return ObjectQuery(weObjTypeAuthInfo, xmlData, op);
 }
 
-int iweStorage::SystemOptionsSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+int iStorage::SystemOptionsSave( const string& xmlData, Operation op /*= iStorage::autoop*/ )
 {
     return Query(weObjTypeSysOption, "0", op, xmlData);
 }
 
-int iweStorage::ScanSave( const string& xmlData, Operation op /*= iweStorage::autoop*/ )
+int iStorage::ScanSave( const string& xmlData, Operation op /*= iStorage::autoop*/ )
 {
     return ObjectQuery(weObjTypeScan, xmlData, op);
 }
 
-int iweStorage::TaskReport( const string& xmlData, string& result )
+int iStorage::TaskReport( const string& xmlData, string& result )
 {
     return ObjectReport(weObjTypeTask, xmlData, result);
 }
 
-int iweStorage::DictionaryReport( const string& xmlData, string& result )
+int iStorage::DictionaryReport( const string& xmlData, string& result )
 {
     return ObjectReport(weObjTypeDictionary, xmlData, result);
 }
 
-int iweStorage::AuthorizationReport( const string& xmlData, string& result )
+int iStorage::AuthorizationReport( const string& xmlData, string& result )
 {
     return ObjectReport(weObjTypeAuthInfo, xmlData, result);
 }
 
-int iweStorage::SystemOptionsReport( const string& xmlData, string& result )
+int iStorage::SystemOptionsReport( const string& xmlData, string& result )
 {
     return Report(weObjTypeSysOption, "0", xmlData, result);
 }
 
-int iweStorage::ScanReport( const string& xmlData, string& result )
+int iStorage::ScanReport( const string& xmlData, string& result )
 {
     return ObjectReport(weObjTypeScan, xmlData, result);
 }
 
-int iweStorage::ObjectReport( const string& objType, const string& xmlData, string& result )
+int iStorage::ObjectReport( const string& objType, const string& xmlData, string& result )
 {
     int retval = 0;
-    WeStrStream st(xmlData.c_str());
-    WeTagScanner sc(st);
+    StrStream st(xmlData.c_str());
+    TagScanner sc(st);
     bool inObject = false;
     bool inReport = false;
     bool inParse = true;
@@ -206,11 +208,11 @@ int iweStorage::ObjectReport( const string& objType, const string& xmlData, stri
         switch(t)
         {
         case wstError:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - parsing error");
+            LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectReport - parsing error");
             inParse = false;
             break;
         case wstEof:
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::ObjectReport - parsing EOF");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "iStorage::ObjectReport - parsing EOF");
             inParse = false;
             break;
         case wstTagStart:
@@ -224,7 +226,7 @@ int iweStorage::ObjectReport( const string& objType, const string& xmlData, stri
                 }
                 else
                 {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag " << tag);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectReport - unexpected tag " << tag);
                 }
             }
             else
@@ -236,7 +238,7 @@ int iweStorage::ObjectReport( const string& objType, const string& xmlData, stri
                 }
                 else
                 {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag " << tag);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectReport - unexpected tag " << tag);
                 }
             }
             break;
@@ -252,7 +254,7 @@ int iweStorage::ObjectReport( const string& objType, const string& xmlData, stri
                 }
                 else
                 {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag " << tag);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectReport - unexpected tag " << tag);
                     inParse = false;
                     break;
                 }
@@ -265,11 +267,11 @@ int iweStorage::ObjectReport( const string& objType, const string& xmlData, stri
                 }
                 else
                 {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag " << tag);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectReport - unexpected tag " << tag);
                 }
             }
             else {
-                LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected tag" << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectReport - unexpected tag" << tag);
                 inParse = false;
                 break;
             }
@@ -291,7 +293,7 @@ int iweStorage::ObjectReport( const string& objType, const string& xmlData, stri
             }
             break;
         default:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectReport - unexpected token: " << t);
+            LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectReport - unexpected token: " << t);
             break;
         };
     }
@@ -300,19 +302,19 @@ int iweStorage::ObjectReport( const string& objType, const string& xmlData, stri
     return retval;
 }
 
-int iweStorage::ObjectQuery( const string& objType, const string& xmlData, Operation op /*= autoop*/ )
+int iStorage::ObjectQuery( const string& objType, const string& xmlData, Operation op /*= autoop*/ )
 {
     int retval = 0;
     bool inObject = false;
     bool inParse = true;
-    WeStrStream st(xmlData.c_str());
-    WeTagScanner sc(st);
+    StrStream st(xmlData.c_str());
+    TagScanner sc(st);
     int pos;
     int objStart;
     string id;
     string tag;
 
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "iweStorage::ObjectQuery - saving " << objType);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "iStorage::ObjectQuery - saving " << objType);
     while(inParse)
     {
         pos = st.GetPos();
@@ -320,11 +322,11 @@ int iweStorage::ObjectQuery( const string& objType, const string& xmlData, Opera
         switch(t)
         {
         case wstError:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectQuery - parsing error");
+            LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectQuery - parsing error");
             inParse = false;
             break;
         case wstEof:
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::ObjectQuery - parsing EOF");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "iStorage::ObjectQuery - parsing EOF");
             inParse = false;
             break;
         case wstTagStart:
@@ -337,7 +339,7 @@ int iweStorage::ObjectQuery( const string& objType, const string& xmlData, Opera
                     retval++;
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweStorage::ObjectQuery - not an object of type " << objType);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iStorage::ObjectQuery - not an object of type " << objType);
                     inParse = false;
                 }
             }
@@ -350,7 +352,7 @@ int iweStorage::ObjectQuery( const string& objType, const string& xmlData, Opera
                     pos += objType.length() + 3; // strlen("</objType>") if the XML is wellformed
                     if (!id.empty()) {
                         Query(objType, id, op, xmlData.substr(objStart, pos - objStart));
-                        LOG4CXX_TRACE(WeLogger::GetLogger(), "iweStorage::ObjectQuery - " << objType << " ID=" << id << " saved(updated)");
+                        LOG4CXX_TRACE(iLogger::GetLogger(), "iStorage::ObjectQuery - " << objType << " ID=" << id << " saved(updated)");
                     }
                 }
             }
@@ -366,7 +368,7 @@ int iweStorage::ObjectQuery( const string& objType, const string& xmlData, Opera
             }
             break;
         default:
-            //LOG4CXX_WARN("iweStorage::TaskSave - unexpected token: " << t);
+            //LOG4CXX_WARN("iStorage::TaskSave - unexpected token: " << t);
             break;
         };
     }

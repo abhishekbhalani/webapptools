@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     string cfgFile;
     string taskID;
     WeProfile profile;
-    WeScanObject object;
+    ScanObject object;
     string query;
     string report;
     int objs;
@@ -104,8 +104,8 @@ int main(int argc, char* argv[])
             cerr << "Trace configuration file must be present!" << endl;
             return 1;
         }
-        WeLibInit(traceName); // for initialize logging
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Application started");
+        LibInit(traceName); // for initialize logging
+        LOG4CXX_INFO(iLogger::GetLogger(), "Application started");
         string vers = AutoVersion::FULLVERSION_STRING;
 #ifdef _WIN32_WINNT
         vers += " (Windows)";
@@ -116,41 +116,41 @@ int main(int argc, char* argv[])
         vers += " SVN build " + boost::lexical_cast<std::string>(AutoVersion::BUILDS_COUNT);
 #endif
 
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Version is " << vers);
+        LOG4CXX_INFO(iLogger::GetLogger(), "Version is " << vers);
 
         if (vm.count("config")) {
             cfgFile = vm["config"].as<string>();
-            LOG4CXX_INFO(WeLogger::GetLogger(), "Config file is "
+            LOG4CXX_INFO(iLogger::GetLogger(), "Config file is "
                 << cfgFile);
             if (!configuration.load_from_file(cfgFile))
             {
-                LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
+                LOG4CXX_WARN(iLogger::GetLogger(), "Can't read config from " << cfgFile);
                 cfgFile = "";
             }
         } else {
             cfgFile = "";
-            LOG4CXX_INFO(WeLogger::GetLogger(), "Config is default, no files readed");
+            LOG4CXX_INFO(iLogger::GetLogger(), "Config is default, no files readed");
         }
 
         if (vm.count("storage")) {
-            LOG4CXX_INFO(WeLogger::GetLogger(), "Override storage plugin from command-line parameter");
+            LOG4CXX_INFO(iLogger::GetLogger(), "Override storage plugin from command-line parameter");
             configuration.storageIface = vm["storage"].as<string>();
-            LOG4CXX_INFO(WeLogger::GetLogger(), "Storage interface is " << configuration.storageIface);
+            LOG4CXX_INFO(iLogger::GetLogger(), "Storage interface is " << configuration.storageIface);
         }
 
         if (vm.count("id")) {
             taskID = vm["id"].as<string>();
-            LOG4CXX_DEBUG(WeLogger::GetLogger(), "Given task ID is " << taskID);
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "Given task ID is " << taskID);
         }
         else {
             // skip all other code - just finalize execution
             throw std::runtime_error("No task identifier given - exiting!");
         }
 
-        globalData.dispatcher = new WeDispatch;
+        globalData.dispatcher = new Dispatch;
         if (globalData.dispatcher != NULL)
         {
-            LOG4CXX_DEBUG(WeLogger::GetLogger(), "Dispatcher created successfully");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "Dispatcher created successfully");
             fs::path cfgPath;
             cfgPath = argv[0];
             cfgPath = cfgPath.remove_filename();
@@ -160,12 +160,12 @@ int main(int argc, char* argv[])
             }
             globalData.dispatcher->RefreshPluginList(cfgPath);
 
-            iwePlugin* plugin = globalData.dispatcher->LoadPlugin(configuration.storageIface);
+            iPlugin* plugin = globalData.dispatcher->LoadPlugin(configuration.storageIface);
 
             if (plugin != NULL) {
-                LOG4CXX_INFO(WeLogger::GetLogger(), "Storage plugin loaded successfully.");
-                LOG4CXX_INFO(WeLogger::GetLogger(), "Plugin ID=" << plugin->GetID() << "; Description: " << plugin->GetDesc());
-                iweStorage* storage = (iweStorage*)plugin->GetInterface("iweStorage");
+                LOG4CXX_INFO(iLogger::GetLogger(), "Storage plugin loaded successfully.");
+                LOG4CXX_INFO(iLogger::GetLogger(), "Plugin ID=" << plugin->GetID() << "; Description: " << plugin->GetDesc());
+                iStorage* storage = (iStorage*)plugin->GetInterface("iStorage");
 
                 if (storage != NULL)
                 {
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
                         string msg = "Can't create scan information - exiting!";
                         throw std::runtime_error(msg.c_str());
                     }
-                    WeOption opt = globalData.task_info->Option(weoParentID);
+                    wOption opt = globalData.task_info->Option(weoParentID);
                     string objectID;
                     SAFE_GET_OPTION_VAL(opt, objectID, "0");
                     globalData.scan_info->objectID = objectID;
@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
                     globalData.task_info->CopyOptions(&profile);
 
                     globalData.scan_info->scanID = globalData.dispatcher->Storage()->GenerateID(weObjTypeScan);
-                    LOG4CXX_INFO(WeLogger::GetLogger(), "Scan information ID=" << globalData.scan_info->scanID
+                    LOG4CXX_INFO(iLogger::GetLogger(), "Scan information ID=" << globalData.scan_info->scanID
                         << "; start time: " << posix_time::to_simple_string(globalData.scan_info->startTime));
 
                     // load plugins
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
                     int pos = query.find(';');
                     while (pos != string::npos) {
                         string pid = query.substr(0, pos);
-                        iwePlugin* plg = globalData.dispatcher->LoadPlugin(pid);
+                        iPlugin* plg = globalData.dispatcher->LoadPlugin(pid);
                         if (plg != NULL)
                         {
                             globalData.plugins.push_back(plg);
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
                         pos = query.find(';');
                     }
                     if (query != "") {
-                        iwePlugin* plg = globalData.dispatcher->LoadPlugin(query);
+                        iPlugin* plg = globalData.dispatcher->LoadPlugin(query);
                         if (plg != NULL)
                         {
                             globalData.plugins.push_back(plg);
@@ -264,29 +264,29 @@ int main(int argc, char* argv[])
                     globalData.dispatcher->Storage()->Delete(weObjTypeTask, report);
                 }
                 else {
-                    LOG4CXX_FATAL(WeLogger::GetLogger(), "No iweStorage interface in the plugin " << plugin->GetID());
+                    LOG4CXX_FATAL(iLogger::GetLogger(), "No iStorage interface in the plugin " << plugin->GetID());
                 }
             }
             else {
-                LOG4CXX_FATAL(WeLogger::GetLogger(), "Can't load the plugin " << configuration.storageIface);
+                LOG4CXX_FATAL(iLogger::GetLogger(), "Can't load the plugin " << configuration.storageIface);
             }
         }
         else {
-            LOG4CXX_ERROR(WeLogger::GetLogger(), "Can't create dispatcher");
+            LOG4CXX_ERROR(iLogger::GetLogger(), "Can't create dispatcher");
         }
     }
     catch (std::exception& e)
     {
-        LOG4CXX_FATAL(WeLogger::GetLogger(), "Exception: " << e.what());
+        LOG4CXX_FATAL(iLogger::GetLogger(), "Exception: " << e.what());
         // postprocess
         if (globalData.dispatcher != NULL)
         {
             if (globalData.scan_info != NULL)
             {
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "Exception handler: save scan information");
-                if (globalData.scan_info->status != WeScan::weScanFinished && globalData.scan_info->status != WeScan::weScanStopped)
+                LOG4CXX_TRACE(iLogger::GetLogger(), "Exception handler: save scan information");
+                if (globalData.scan_info->status != ScanInfo::weScanFinished && globalData.scan_info->status != ScanInfo::weScanStopped)
                 {
-                    globalData.scan_info->status = WeScan::weScanError;
+                    globalData.scan_info->status = ScanInfo::weScanError;
                 }
                 if (globalData.scan_info->finishTime == posix_time::not_a_date_time)
                 {
@@ -297,7 +297,7 @@ int main(int argc, char* argv[])
             }
             if (globalData.task_info != NULL)
             {
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "Exception handler: save task information");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "Exception handler: save task information");
                 globalData.task_info->Option(weoTaskStatus, WI_TSK_IDLE);
                 globalData.task_info->Option(weoTaskCompletion, 0);
                 globalData.save_task();
@@ -305,8 +305,8 @@ int main(int argc, char* argv[])
         }
     }
 
-    LOG4CXX_INFO(WeLogger::GetLogger(), "Application finished");
-    WeLibClose();
+    LOG4CXX_INFO(iLogger::GetLogger(), "Application finished");
+    LibClose();
 
     // remove trace configuration
     fs::remove(traceName);

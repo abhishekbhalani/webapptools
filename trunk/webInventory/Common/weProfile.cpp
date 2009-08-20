@@ -27,11 +27,11 @@ std::string WeProfile::ToXml( void )
     string result;
     string sdata;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeProfile::ToXml");
-    WeOption opt = Option(weoID);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeProfile::ToXml");
+    wOption opt = Option(weoID);
     SAFE_GET_OPTION_VAL(opt, sdata, "0");
     result = "<profile id='" + sdata + "'>\n";
-    result += iweOptionsProvider::ToXml();
+    result += iOptionsProvider::ToXml();
     result += "</profile>\n";
 
     return result;
@@ -48,21 +48,21 @@ std::string WeProfile::ToXml( void )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void WeProfile::FromXml( string input )
 {
-    WeStrStream st(input.c_str());
-    WeTagScanner sc(st);
+    StrStream st(input.c_str());
+    TagScanner sc(st);
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeProfile::FromXml - string");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeProfile::FromXml - string");
     FromXml(sc);
 }
 
-void WeProfile::FromXml( WeTagScanner& sc, int token /*= -1 */ )
+void WeProfile::FromXml( TagScanner& sc, int token /*= -1 */ )
 {
     int pos;
     int parseLevel = 0;
     bool inParsing = true;
     string name, val, dat;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeProfile::FromXml - WeTagScanner");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeProfile::FromXml - TagScanner");
     while (inParsing)
     {
         pos = sc.GetPos();
@@ -72,11 +72,11 @@ void WeProfile::FromXml( WeTagScanner& sc, int token /*= -1 */ )
         switch(token)
         {
         case wstError:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "WeProfile::FromXml parsing error");
+            LOG4CXX_WARN(iLogger::GetLogger(), "WeProfile::FromXml parsing error");
             inParsing = false;
             break;
         case wstEof:
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "WeProfile::FromXml - EOF");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeProfile::FromXml - EOF");
             inParsing = false;
             break;
         case wstTagStart:
@@ -89,7 +89,7 @@ void WeProfile::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                     dat = "";
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "WeProfile::FromXml unexpected tagStart: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "WeProfile::FromXml unexpected tagStart: " << name);
                     inParsing = false;
                 }
                 break;
@@ -99,13 +99,13 @@ void WeProfile::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                 parseLevel = 2;
                 if (iequals(name, "options"))
                 {
-                    iweOptionsProvider::FromXml(sc, token);
+                    iOptionsProvider::FromXml(sc, token);
                     parseLevel = 1;
                 }
                 dat = "";
                 break;
             }
-            LOG4CXX_WARN(WeLogger::GetLogger(), "WeProfile::FromXml unexpected tagStart: " << name);
+            LOG4CXX_WARN(iLogger::GetLogger(), "WeProfile::FromXml unexpected tagStart: " << name);
             inParsing = false;
             break;
         case wstTagEnd:
@@ -119,7 +119,7 @@ void WeProfile::FromXml( WeTagScanner& sc, int token /*= -1 */ )
                     inParsing = false;
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "WeProfile::FromXml unexpected wstTagEnd: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "WeProfile::FromXml unexpected wstTagEnd: " << name);
                     inParsing = false;
                 }
             }
@@ -131,7 +131,7 @@ void WeProfile::FromXml( WeTagScanner& sc, int token /*= -1 */ )
         case wstAttr:
             name = sc.GetAttrName();
             val = sc.GetValue();
-            val = WeUnscreenXML(val);
+            val = UnscreenXML(val);
             if (parseLevel == 1)
             {
                 if (iequals(name, "id"))

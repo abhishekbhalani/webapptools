@@ -24,8 +24,8 @@
 #include "sqliteStorage.xpm"
 //#include "demoPlugin.xrc"
 
-SqliteStorage::SqliteStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
-    iweStorage(krnl, handle)
+SqliteStorage::SqliteStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
+    iStorage(krnl, handle)
 {
     pluginInfo.IfaceName = "SqliteStorage";
     pluginInfo.IfaceList.push_back("SqliteStorage");
@@ -45,7 +45,7 @@ void* SqliteStorage::GetInterface( const string& ifName )
         usageCount++;
         return (void*)(this);
     }
-    return iweStorage::GetInterface(ifName);
+    return iStorage::GetInterface(ifName);
 }
 
 const string SqliteStorage::GetSetupUI( void )

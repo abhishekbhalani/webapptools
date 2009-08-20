@@ -28,16 +28,19 @@
 #include <boost/shared_ptr.hpp>
 
 using namespace boost;
-class iweTransport;
 
-class iweOperation;
-class iweResponse;
-typedef shared_ptr<iweOperation> iweOperationPtr;
-typedef void (fnProcessResponse)(iweResponse *resp, void* context);
+namespace webEngine {
+
+class iTransport;
+
+class iOperation;
+class iResponse;
+typedef shared_ptr<iOperation> iweOperationPtr;
+typedef void (fnProcessResponse)(iResponse *resp, void* context);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  iweOperation
+/// @class  iOperation
 ///
 /// @brief  Abstraction for transport operation.
 ///
@@ -47,11 +50,11 @@ typedef void (fnProcessResponse)(iweResponse *resp, void* context);
 /// @author A. Abramov
 /// @date   16.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweOperation
+class iOperation
 {
 public:
-    iweOperation() { usageCount = 0; context = NULL; processor = NULL; };
-    virtual ~iweOperation();
+    iOperation() { usageCount = 0; context = NULL; processor = NULL; };
+    virtual ~iOperation();
 
     virtual iweOperationPtr& GetRef() { return (* new iweOperationPtr(this)); };
 
@@ -61,9 +64,9 @@ public:
     /// @brief  Access the BaseUrl property
     ///
     /// This property represents the base URL of the document, as it's given by user.
-    WeURL &BaseUrl(void)            { return(baseUrl);	};
+    URL &BaseUrl(void)            { return(baseUrl);	};
     void BaseUrl(const string &url) { baseUrl = url;    };
-    void BaseUrl(const WeURL &url)  { baseUrl = url;    };
+    void BaseUrl(const URL &url)  { baseUrl = url;    };
     //@}
 
     //@{
@@ -81,56 +84,56 @@ public:
 #ifndef __DOXYGEN__
 protected:
     int usageCount;
-    WeURL baseUrl;
-    iweOperation* previous;
+    URL baseUrl;
+    iOperation* previous;
     vector<iweOperationPtr*> children;
     string identifier;
 private:
-    iweOperation(iweOperation&) {};               ///< Avoid object coping
-    iweOperation& operator=(iweOperation&) { return *this; };    ///< Avoid object coping
+    iOperation(iOperation&) {};               ///< Avoid object coping
+    iOperation& operator=(iOperation&) { return *this; };    ///< Avoid object coping
 #endif //__DOXYGEN__
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iweRequest
+/// @interface  iRequest
 ///
-/// @brief  Request to iweTransport to receive data.
+/// @brief  Request to iTransport to receive data.
 ///
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweRequest : virtual public iweOperation
+class iRequest : virtual public iOperation
 {
 public:
-    iweRequest() {};
-    iweRequest(string url) {};
-    virtual ~iweRequest() {};
+    iRequest() {};
+    iRequest(string url) {};
+    virtual ~iRequest() {};
 
     //@{
     /// @brief  Access the ReqUrl property.
     ///
     /// @throw  WeError if given URL is malformed and can't be reconstructed from the WeHttpResponse
-    virtual WeURL  &RequestUrl(void)  { return(baseUrl);   };
-    virtual void RequestUrl(const string &ReqUrl, iweOperation* resp = NULL) = 0;
-    virtual void RequestUrl(const WeURL &ReqUrl, iweOperation* resp = NULL) = 0;
+    virtual URL  &RequestUrl(void)  { return(baseUrl);   };
+    virtual void RequestUrl(const string &ReqUrl, iOperation* resp = NULL) = 0;
+    virtual void RequestUrl(const URL &ReqUrl, iOperation* resp = NULL) = 0;
     //@}
 };
 
-typedef vector<iweRequest*> WeRequestList;
+typedef vector<iRequest*> WeRequestList;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  iweResponse
+/// @class  iResponse
 ///
-/// @brief  Response from the iweTransport.
+/// @brief  Response from the iTransport.
 ///
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweResponse : virtual public iweOperation
+class iResponse : virtual public iOperation
 {
 public:
-    iweResponse() {};
-    virtual ~iweResponse() {};
+    iResponse() {};
+    virtual ~iResponse() {};
 
     //@{
     /// @brief  Access the RealUrl property
@@ -138,9 +141,9 @@ public:
     /// This property represents the URL of the document, from which the resulting
     /// data was downloaded. It may differs from the BaseUrl, if relocations
     /// presents.
-    WeURL &RealUrl(void)            { return(realUrl);	};
+    URL &RealUrl(void)            { return(realUrl);	};
     void RealUrl(const string &url) { realUrl = url;    };
-    void RealUrl(const WeURL &url)  { realUrl = url;    };
+    void RealUrl(const URL &url)  { realUrl = url;    };
     //@}
 
     //@{
@@ -162,55 +165,55 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @brief Unstructured data for the request
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    WeBlob& Data()  { return data;  };
+    Blob& Data()  { return data;  };
 
     int DownloadTime(void)        { return(downTime);   };
 
-    virtual void Process(iweTransport* proc) = 0;
+    virtual void Process(iTransport* proc) = 0;
 
 #ifndef __DOXYGEN__
 protected:
-    WeURL realUrl;
+    URL realUrl;
     unsigned int relocCount;
-    WeBlob data;
+    Blob data;
     int downTime;
     bool processed;
 #endif //__DOXYGEN__
 };
 
-typedef vector<iweResponse*> WeResponseList;
+typedef vector<iResponse*> ResponseList;
 
 // forward declaration
-class WeTransportFactory;
+class TransportFactory;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iweTransport
+/// @interface  iTransport
 ///
 /// @brief  Transport for data receiving.
 ///
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweTransport : virtual public iweOptionsProvider,
-    public iwePlugin
+class iTransport : virtual public iOptionsProvider,
+    public iPlugin
 {
 public:
-    iweTransport(WeDispatch* krnl, void* handle = NULL );
-    virtual ~iweTransport() {};
+    iTransport(Dispatch* krnl, void* handle = NULL );
+    virtual ~iTransport() {};
 
-    virtual iweResponse* Request(string url, iweResponse *resp = NULL) = 0;
-    virtual iweResponse* Request(iweRequest* req, iweResponse *resp = NULL) = 0;
+    virtual iResponse* Request(string url, iResponse *resp = NULL) = 0;
+    virtual iResponse* Request(iRequest* req, iResponse *resp = NULL) = 0;
 
     /// @brief  Process pending requests
     virtual const int ProcessRequests(void) = 0;
 
-    virtual WeOption& Option(const string& name);
+    virtual wOption& Option(const string& name);
     virtual bool IsSet(const string& name);
-    virtual void Option(const string& name, WeOptionVal val);
+    virtual void Option(const string& name, wOptionVal val);
 
-    // iwePlugin functions
+    // iPlugin functions
     virtual void* GetInterface(const string& ifName);
-    virtual void Register(WeTransportFactory* factory) = 0;
+    virtual void Register(TransportFactory* factory) = 0;
 
     //@{
     /// @brief  Access the BaseUrl property
@@ -220,8 +223,8 @@ public:
     /// if not valid.
     /// @param bUrl - URL to set as base
     /// @throw  WeError if given URL is malformed
-    const WeURL &BaseUrl(void) const    { return(baseUrl);  };
-    void BaseUrl(const WeURL &bUrl);
+    const URL &BaseUrl(void) const    { return(baseUrl);  };
+    void BaseUrl(const URL &bUrl);
     void BaseUrl(const string &bUrl);
     //@}
 
@@ -243,22 +246,24 @@ public:
     void SiteDepth(const unsigned int& sDepth)  { siteDepth = sDepth;   };
     //@}
 
-    void SetOptionProvider(iweOptionsProvider* prov)    { parent = prov; };
+    void SetOptionProvider(iOptionsProvider* prov)    { parent = prov; };
     virtual string& GetName() = 0;
     virtual bool IsOwnProtocol(string& proto) = 0;
 
 #ifndef __DOXYGEN__
 protected:
-    WeURL           baseUrl;
+    URL           baseUrl;
     unsigned int    relocCount;
     unsigned int    siteDepth;
-    WeResponseList  responces;
-    iweOptionsProvider* parent;
+    ResponseList  responces;
+    iOptionsProvider* parent;
 
 private:
 #endif //__DOXYGEN__
 };
 
-iweTransport* WeCreateNamedTransport(string name, WeDispatch* krnl);
+} // namespace webEngine
+
+webEngine::iTransport* WeCreateNamedTransport(string name, webEngine::Dispatch* krnl);
 
 #endif // __WEITRANSPORT_H__

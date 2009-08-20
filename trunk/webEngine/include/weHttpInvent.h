@@ -18,22 +18,31 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#ifndef __WEHTTPINVENTORY_H__
+#define __WEHTTPINVENTORY_H__
+
 #include <weiInventory.h>
 
-class WeHttpInvent :
-    public iweInventory
+namespace webEngine {
+
+class HttpInventory :
+    public iInventory
 {
 public:
-    WeHttpInvent(WeDispatch* krnl, void* handle = NULL);
-    virtual ~WeHttpInvent(void);
+    HttpInventory(Dispatch* krnl, void* handle = NULL);
+    virtual ~HttpInventory(void);
 
     // iwePlugin functions
     virtual void* GetInterface(const string& ifName);
     virtual const string GetSetupUI( void );
 
-    // iweInventory functions
-    void Start(WeTask* tsk);
-    void ProcessResponse(iweResponse *resp);
+    // iInventory functions
+    void Start(Task* tsk);
+    void ProcessResponse(iResponse *resp);
 protected:
     map<string, bool> tasklist;
 };
+
+} // namespace webEngine
+
+#endif //__WEHTTPINVENTORY_H__

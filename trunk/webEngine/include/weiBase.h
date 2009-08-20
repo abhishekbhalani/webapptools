@@ -36,8 +36,10 @@
 
 using namespace std;
 
+namespace webEngine {
+
 #define DECLARE_SERIALIZATOR \
-    friend class boost::serialization::access; \
+    friend class ::boost::serialization::access; \
     template<class Archive> \
     void serialize(Archive & ar, const unsigned int version)
 // #ifndef __DOXYGEN__
@@ -54,7 +56,7 @@ using namespace std;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeLinkedListElem
+/// @class  LinkedListElem
 ///
 /// @brief  Element of the linked list of objects.
 ///
@@ -62,16 +64,16 @@ using namespace std;
 /// @date   27.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename _Key, typename _Val>
-class WeLinkedListElem
+class LinkedListElem
 {
 public:
-    WeLinkedListElem() :
+    LinkedListElem() :
       first(), second()
       {
           next = NULL;
       };
 
-      WeLinkedListElem( WeLinkedListElem<_Key, _Val> &elem ) :
+      LinkedListElem( LinkedListElem<_Key, _Val> &elem ) :
       first(), second()
       {
           first = elem.first;
@@ -79,21 +81,21 @@ public:
           next = NULL;
       };
 
-      ~WeLinkedListElem()
+      ~LinkedListElem()
       {
           next = NULL;
       }
 
-      void Add(WeLinkedListElem<_Key, _Val> *elem)
+      void Add(LinkedListElem<_Key, _Val> *elem)
       {
-          WeLinkedListElem<_Key, _Val> *curr = next;
+          LinkedListElem<_Key, _Val> *curr = next;
           next = elem;
           elem->next = curr;
       }
 
 
-      void Link(WeLinkedListElem<_Key, _Val> *elem)   { next = elem; };
-      WeLinkedListElem<_Key, _Val>* Next() {return next;};
+      void Link(LinkedListElem<_Key, _Val> *elem)   { next = elem; };
+      LinkedListElem<_Key, _Val>* Next() {return next;};
 
       // Access the Key
       const _Key &Key(void) const   { return(first);  };
@@ -106,7 +108,7 @@ public:
 protected:
     _Key    first;
     _Val    second;
-    WeLinkedListElem<_Key, _Val> *next;
+    LinkedListElem<_Key, _Val> *next;
 
 private:
     DECLARE_SERIAL_BASE;
@@ -127,7 +129,7 @@ private:
         ar & BOOST_SERIALIZATION_NVP(second);
         ar & BOOST_SERIALIZATION_NVP(last);
         if (!last) {
-            next = new WeLinkedListElem<_Key, _Val>;
+            next = new LinkedListElem<_Key, _Val>;
             ar & BOOST_SERIALIZATION_NVP(next);
         }
     };
@@ -135,7 +137,7 @@ private:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeLinkedList
+/// @class  LinkedList
 ///
 /// @brief  List of linked objects.
 ///
@@ -143,31 +145,31 @@ private:
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename _Key, typename _Val>
-class WeLinkedList
+class LinkedList
 {
 public:
-    WeLinkedList()
+    LinkedList()
     {
         data = NULL;
         curr = NULL;
     };
-    WeLinkedList(WeLinkedList<_Key, _Val>& lst)
+    LinkedList(LinkedList<_Key, _Val>& lst)
     {
-        WeLinkedListElem<_Key, _Val> *obj;
+        LinkedListElem<_Key, _Val> *obj;
 
         data = NULL;
         curr = NULL;
         obj = lst.First();
-        data = new WeLinkedListElem<_Key, _Val>(*obj);
+        data = new LinkedListElem<_Key, _Val>(*obj);
         curr = data;
         obj = lst++;
         while (obj != NULL) {
-            curr->Add(new WeLinkedListElem<_Key, _Val>(*obj));
+            curr->Add(new LinkedListElem<_Key, _Val>(*obj));
             curr = curr->Next();
             obj = lst++;
         }
     };
-    virtual ~WeLinkedList()
+    virtual ~LinkedList()
     {
         Clear();
         data = NULL;
@@ -176,7 +178,7 @@ public:
 
     virtual _Val& FindFirst(_Key name)
     {
-        WeLinkedListElem<_Key, _Val>* elem = curr;
+        LinkedListElem<_Key, _Val>* elem = curr;
 
         curr = data;
         while (curr != NULL) {
@@ -194,7 +196,7 @@ public:
 
     virtual _Val& FindNext(_Key name)
     {
-        WeLinkedListElem<_Key, _Val>* elem = curr;
+        LinkedListElem<_Key, _Val>* elem = curr;
 
         if (curr != NULL) {
             curr = curr->Next();
@@ -214,10 +216,10 @@ public:
 
     void Append(_Key name, _Val value)
     {
-        WeLinkedListElem<_Key, _Val>* elem;
-        WeLinkedListElem<_Key, _Val>* obj;
+        LinkedListElem<_Key, _Val>* elem;
+        LinkedListElem<_Key, _Val>* obj;
 
-        obj = new WeLinkedListElem<_Key, _Val>();
+        obj = new LinkedListElem<_Key, _Val>();
         obj->Key(name);
         obj->Value(value);
         if (data == NULL) {
@@ -233,9 +235,9 @@ public:
     };
     void Insert(_Key name, _Val value)
     {
-        WeLinkedListElem<_Key, _Val>* obj;
+        LinkedListElem<_Key, _Val>* obj;
 
-        obj = new WeLinkedListElem<_Key, _Val>();
+        obj = new LinkedListElem<_Key, _Val>();
         obj->Key(name);
         obj->Value(value);
         if (data == NULL) {
@@ -256,8 +258,8 @@ public:
         }
     };
 
-    WeLinkedListElem<_Key, _Val>* First() { curr = data; return (curr); };
-    WeLinkedListElem<_Key, _Val>* Last()
+    LinkedListElem<_Key, _Val>* First() { curr = data; return (curr); };
+    LinkedListElem<_Key, _Val>* Last()
     {
         if (curr == NULL) {
             return curr;
@@ -267,10 +269,10 @@ public:
         }
         return curr;
     };
-    WeLinkedListElem<_Key, _Val>* Current() { return curr;  };
+    LinkedListElem<_Key, _Val>* Current() { return curr;  };
     void Erase()
     {
-        WeLinkedListElem<_Key, _Val>* obj;
+        LinkedListElem<_Key, _Val>* obj;
 
         if (curr == NULL) {
             return;
@@ -288,12 +290,12 @@ public:
         obj->Link(curr->Next());
 
     };
-    WeLinkedListElem<_Key, _Val>* operator++(int) { if(curr != NULL) { curr = curr->Next(); } return curr;    };
+    LinkedListElem<_Key, _Val>* operator++(int) { if(curr != NULL) { curr = curr->Next(); } return curr;    };
 
 protected:
 #ifndef __DOXYGEN__
-    WeLinkedListElem<_Key, _Val>* data;
-    WeLinkedListElem<_Key, _Val>* curr;
+    LinkedListElem<_Key, _Val>* data;
+    LinkedListElem<_Key, _Val>* curr;
 #endif //__DOXYGEN__
 private:
     DECLARE_SERIAL_BASE;
@@ -310,7 +312,7 @@ private:
         bool last;
         ar & BOOST_SERIALIZATION_NVP(last);
         if (! last) {
-            data = new WeLinkedListElem<_Key, _Val>;
+            data = new LinkedListElem<_Key, _Val>;
             ar & BOOST_SERIALIZATION_NVP(data);
         }
         else {
@@ -391,5 +393,7 @@ protected:
     valvector   values;
     mapkeys     keys;
 };
+
+} // namespace webEngine
 
 #endif //__WEIBASE_H__

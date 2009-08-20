@@ -28,7 +28,9 @@
 
 using namespace std;
 
-typedef boost::variant< char,
+namespace webEngine {
+
+typedef ::boost::variant< char,
                         unsigned char,
                         int,
                         unsigned int,
@@ -36,22 +38,22 @@ typedef boost::variant< char,
                         unsigned long,
                         bool,
                         double,
-                        string> WeOptionVal;
+                        string> wOptionVal;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeOption
+/// @class  wOption
 ///
 /// @brief  Options for the WeTask and whole process
 ///
 /// @author A. Abramov
 /// @date   09.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeOption
+class wOption
 {
 public:
-    WeOption() { empty = true; };
-    WeOption(string nm) { name = nm; empty = true; };
-    ~WeOption() {};
+    wOption() { empty = true; };
+    wOption(string nm) { name = nm; empty = true; };
+    ~wOption() {};
 
     //@{
     /// @brief  Access the Name property
@@ -72,11 +74,11 @@ public:
 
     bool IsEmpty(void)                          { return empty;   };            ///< Is the value empty
     string GetTypeName(void)                    { return val.type().name();};   ///< Gets the value type name
-    const std::type_info& GetType(void) const   { return val.type();  };        ///< Gets the value type
+    const ::std::type_info& GetType(void) const   { return val.type();  };        ///< Gets the value type
     const int Which(void) const                 { return val.which();  };       ///< Gets the internal type
 
     /// @brief Assignment operator
-    WeOption& operator=(WeOption& cpy)
+    wOption& operator=(wOption& cpy)
     {   name = cpy.name;
     val = cpy.val;
     empty = cpy.empty;
@@ -85,7 +87,7 @@ public:
 #ifndef __DOXYGEN__
 protected:
     string      name;
-    WeOptionVal val;
+    wOptionVal val;
     bool        empty;
 #endif //__DOXYGEN__
 
@@ -98,45 +100,43 @@ private:
     };
 };
 
-BOOST_CLASS_TRACKING(WeOption, boost::serialization::track_never)
-
-typedef map<string, WeOption*> WeOptions;
+typedef map<string, wOption*> wOptions;
 
 #define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (...) { (var) = (def); };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iweOptionsProvider
+/// @interface  iOptionsProvider
 ///
 /// @brief  options storage.
 ///
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweOptionsProvider
+class iOptionsProvider
 {
 public:
-    iweOptionsProvider() {};
-    virtual ~iweOptionsProvider() {};
+    iOptionsProvider() {};
+    virtual ~iOptionsProvider() {};
 
-    virtual WeOption& Option(const string& name);
+    virtual wOption& Option(const string& name);
     virtual bool IsSet(const string& name);
-    virtual void Option(const string& name, WeOptionVal val);
+    virtual void Option(const string& name, wOptionVal val);
     virtual void Erase(const string& name)
     {
-        WeOptions::iterator it;
+        wOptions::iterator it;
         it = options.find(name);
         if (it != options.end()) {
             options.erase(it);
         }
     };
 
-    void CopyOptions(iweOptionsProvider* cpy);
+    void CopyOptions(iOptionsProvider* cpy);
 
     string ToXml( void );
     void FromXml( string input );
-    void FromXml( WeTagScanner& sc, int token = -1 );
+    void FromXml( TagScanner& sc, int token = -1 );
 #ifndef __DOXYGEN__
 protected:
-    WeOptions       options;
+    wOptions       options;
 #endif //__DOXYGEN__
 
 private:
@@ -145,6 +145,9 @@ private:
         ar & BOOST_SERIALIZATION_NVP(options);
     };
 };
+
+} // namespace webEngine
+BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
 
 //////////////////////////////////////////////////////////////////////////
 // Define options names
@@ -195,6 +198,8 @@ private:
 #define weoParentID          "ParentId"
 /// identifiers of the profile object (string)
 #define weoProfileID          "ProfileId"
+/// signal to the task (int)
+#define weoTaskSignal          "signal"
 //////////////////////////////////////////////////////////////////////////
 // Define options typenames
 //////////////////////////////////////////////////////////////////////////

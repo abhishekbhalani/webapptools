@@ -24,12 +24,14 @@
 
 using namespace boost::algorithm;
 
+namespace webEngine {
+
 #ifndef __DOXYGEN__
-weCmpMode iweEntity::compareMode = weCmpDefault;
+weCmpMode iEntity::compareMode = weCmpDefault;
 #endif // __DOXYGEN__
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string iweEntity::Attr(string )
+/// @fn	string iEntity::Attr(string )
 ///
 /// @brief  Gets the attribute value.
 ///
@@ -38,9 +40,9 @@ weCmpMode iweEntity::compareMode = weCmpDefault;
 /// @retval attribute value if the attribute exist,
 ///         empty string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string iweEntity::Attr(string name)
+const string iEntity::Attr(string name)
 {
-    WeAttrMap::iterator it;
+    AttrMap::iterator it;
 
     it = attributes.find(name);
     if (it != attributes.end())
@@ -51,29 +53,29 @@ const string iweEntity::Attr(string name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void iweEntity::Attr(string , string )
+/// @fn	void iEntity::Attr(string , string )
 ///
 /// @brief  Sets the attribute.
 ///
 /// @param  name - The attribute name.
 /// @param  value - The attribute value.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void iweEntity::Attr(string name, string value)
+void iEntity::Attr(string name, string value)
 {
     attributes[name] = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void iweEntity::Child(string type)
+/// @fn	void iEntity::Child(string type)
 ///
 /// @brief  Access to children by entity name.
 /// @param  type - name of the child in the collection
 /// @retval null if it no children of such type, the pointer to the WeHtmlEntity else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iweEntity* iweEntity::Child(string type)
+iEntity* iEntity::Child(string type)
 {
-    iweEntity* retval = NULL;
-    WeEntityList::iterator  it;
+    iEntity* retval = NULL;
+    EntityList::iterator  it;
 
     for(it = chldList.begin(); it != chldList.end(); it++) {
         if((*it)->Name() == type) {
@@ -85,13 +87,13 @@ iweEntity* iweEntity::Child(string type)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iweEntity* iweEntity::Child(int idx)
+/// @fn	iEntity* iEntity::Child(int idx)
 ///
 /// @brief  Access to children by index.
 /// @param  idx - index of the child in the collection
 /// @retval null if it fails, the pointer to the WeHtmlEntity else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iweEntity* iweEntity::Child(int idx)
+iEntity* iEntity::Child(int idx)
 {
     if (idx < 0 || idx >= (int)chldList.size()) {
         return(NULL);
@@ -100,14 +102,14 @@ iweEntity* iweEntity::Child(int idx)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void iweEntity::GenerateId(void)
+/// @fn	void iEntity::GenerateId(void)
 ///
 /// @brief  Generates an identifier.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma warning(push)
 #pragma warning(disable : 4311)
 #pragma warning(disable : 4996)
-void iweEntity::GenerateId(void)
+void iEntity::GenerateId(void)
 {
     // Entity format (like GUID): {B46FF8A5-F2E9-4297-9F73-2894AABBB740}
     unsigned int first;
@@ -141,7 +143,7 @@ void iweEntity::GenerateId(void)
 #pragma warning(pop)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iweEntity* iweEntity::FindID(string id)
+/// @fn	iEntity* iEntity::FindID(string id)
 ///
 /// @brief  Finds the entity with given ID.
 ///
@@ -150,10 +152,10 @@ void iweEntity::GenerateId(void)
 /// @param  id - The entity identifier.
 /// @retval	null if it no objects found, pointer to the object else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iweEntity* iweEntity::FindID(string id)
+iEntity* iEntity::FindID(string id)
 {
-    WeEntityList::iterator  chld;
-    iweEntity* retval;
+    EntityList::iterator  chld;
+    iEntity* retval;
 
     if (id == m_entityId) {
         return this;
@@ -168,7 +170,7 @@ iweEntity* iweEntity::FindID(string id)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeEntityList& iweEntity::FindTags(string tag)
+/// @fn	EntityList& iEntity::FindTags(string tag)
 ///
 /// @brief  Finds the entity with given tag name.
 ///
@@ -177,16 +179,16 @@ iweEntity* iweEntity::FindID(string id)
 /// @param  tag - The tag name to search.
 /// @retval	empty list if it no objects found, list of the objects else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeEntityList& iweEntity::FindTags(string tag)
+EntityList& iEntity::FindTags(string tag)
 {
-    WeEntityList* retval = new WeEntityList;
-    WeEntityList::iterator  chld;
+    EntityList* retval = new EntityList;
+    EntityList::iterator  chld;
 
     if (iequals(tag, entityName)) {
         retval->push_back(this);
     }
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
-        WeEntityList& chlds = (*chld)->FindTags(tag);
+        EntityList& chlds = (*chld)->FindTags(tag);
         while (chlds.size() > 0) {
             retval->push_back(chlds.back());
             chlds.pop_back();
@@ -196,16 +198,16 @@ WeEntityList& iweEntity::FindTags(string tag)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void iweEntity::ClearChildren( void )
+/// @fn	void iEntity::ClearChildren( void )
 ///
 /// @brief  Clears a children.
 ///
 /// @author A. Abramov
 /// @date   28.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void iweEntity::ClearChildren( void )
+void iEntity::ClearChildren( void )
 {
-    WeEntityList::iterator  chld;
+    EntityList::iterator  chld;
 
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
         delete (*chld); 
@@ -214,31 +216,31 @@ void iweEntity::ClearChildren( void )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeDocument* iweEntity::GetRootDocument( void )
+/// @fn	WeDocument* iEntity::GetRootDocument( void )
 ///
 /// @brief  Gets the root document.
 /// @retval	null if no root document found, else the pointer to root document.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iweDocument* iweEntity::GetRootDocument( void )
+iDocument* iEntity::GetRootDocument( void )
 {
     if (entityName == "#document") {
-        return dynamic_cast<iweDocument*>(this);
+        return dynamic_cast<iDocument*>(this);
     }
     if (parent == NULL) {
-        return (iweDocument*)NULL;
+        return (iDocument*)NULL;
     }
     return parent->GetRootDocument();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn bool iweEntity::IsParentTag( string tag )
+/// @fn bool iEntity::IsParentTag( string tag )
 ///
 /// @brief  Query if 'tag' is parent tag.
 ///
 /// @param  tag	 - The tag name.
 /// @retval	true if tag is in the parent tree, false if not.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool iweEntity::IsParentTag( string tag )
+bool iEntity::IsParentTag( string tag )
 {
     if (iequals(tag, entityName)) {
         return true;
@@ -248,3 +250,5 @@ bool iweEntity::IsParentTag( string tag )
     }
     return parent->IsParentTag(tag);
 }
+
+} // namespace webEngine

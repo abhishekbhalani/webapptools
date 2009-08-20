@@ -37,8 +37,9 @@
 using namespace std;
 using namespace boost::filesystem;
 namespace po = boost::program_options;
+using namespace webEngine;
 
-WeDispatch* globalDispatcher = NULL;
+Dispatch* globalDispatcher = NULL;
 string cfgFile;
 
 int main(int argc, char* argv[])
@@ -95,8 +96,8 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        WeLibInit(); // for initialize logging
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Application started");
+        LibInit(); // for initialize logging
+        LOG4CXX_INFO(iLogger::GetLogger(), "Application started");
         string vers = AutoVersion::FULLVERSION_STRING;
 #ifdef _WIN32_WINNT
         vers += " (Windows)";
@@ -107,29 +108,29 @@ int main(int argc, char* argv[])
         vers += " SVN build " + boost::lexical_cast<std::string>(AutoVersion::BUILDS_COUNT);
 #endif
 
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Version is " << vers);
+        LOG4CXX_INFO(iLogger::GetLogger(), "Version is " << vers);
         if (vm.count("config")) {
             cfgFile = vm["config"].as<string>();
-            LOG4CXX_INFO(WeLogger::GetLogger(), "Config file is "
+            LOG4CXX_INFO(iLogger::GetLogger(), "Config file is "
                 << cfgFile);
             if (!configuration.load_from_file(cfgFile))
             {
-                LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
+                LOG4CXX_WARN(iLogger::GetLogger(), "Can't read config from " << cfgFile);
                 cfgFile = "";
             }
         } else {
             cfgFile = "";
-            LOG4CXX_INFO(WeLogger::GetLogger(), "Config is default, no files readed");
+            LOG4CXX_INFO(iLogger::GetLogger(), "Config is default, no files readed");
         }
         taskDbDir = configuration.dbDir;
-        LOG4CXX_INFO(WeLogger::GetLogger(), "DB directory is " << configuration.dbDir);
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Listener port is " << configuration.port);
+        LOG4CXX_INFO(iLogger::GetLogger(), "DB directory is " << configuration.dbDir);
+        LOG4CXX_INFO(iLogger::GetLogger(), "Listener port is " << configuration.port);
         boost::asio::io_service io_service;
 
-        globalDispatcher = new WeDispatch;
+        globalDispatcher = new Dispatch;
         if (globalDispatcher != NULL)
         {
-            LOG4CXX_INFO(WeLogger::GetLogger(), "Dispatcher created successfully");
+            LOG4CXX_INFO(iLogger::GetLogger(), "Dispatcher created successfully");
             path cfgPath;
 
             cfgPath = argv[0];
@@ -140,12 +141,12 @@ int main(int argc, char* argv[])
             }
             globalDispatcher->RefreshPluginList(cfgPath);
 
-            iwePlugin* plugin = globalDispatcher->LoadPlugin(configuration.storageIface);
+            iPlugin* plugin = globalDispatcher->LoadPlugin(configuration.storageIface);
 
             if (plugin != NULL) {
-                LOG4CXX_INFO(WeLogger::GetLogger(), "Storage plugin loaded successfully.");
-                LOG4CXX_INFO(WeLogger::GetLogger(), "Plugin ID=" << plugin->GetID() << "; Description: " << plugin->GetDesc());
-                iweStorage* storage = (iweStorage*)plugin->GetInterface("iweStorage");
+                LOG4CXX_INFO(iLogger::GetLogger(), "Storage plugin loaded successfully.");
+                LOG4CXX_INFO(iLogger::GetLogger(), "Plugin ID=" << plugin->GetID() << "; Description: " << plugin->GetDesc());
+                iStorage* storage = (iStorage*)plugin->GetInterface("iStorage");
 
                 if (storage != NULL)
                 {
@@ -157,21 +158,21 @@ int main(int argc, char* argv[])
                     io_service.run();
                 }
                 else {
-                    LOG4CXX_FATAL(WeLogger::GetLogger(), "No iweStorage interface in the plugin " << plugin->GetID());
+                    LOG4CXX_FATAL(iLogger::GetLogger(), "No iStorage interface in the plugin " << plugin->GetID());
                 }
             }
             else {
-                LOG4CXX_FATAL(WeLogger::GetLogger(), "Can't load the plugin " << configuration.storageIface);
+                LOG4CXX_FATAL(iLogger::GetLogger(), "Can't load the plugin " << configuration.storageIface);
             }
         }
     }
     catch (std::exception& e)
     {
-        LOG4CXX_INFO(WeLogger::GetLogger(), "Exception: " << e.what());
+        LOG4CXX_INFO(iLogger::GetLogger(), "Exception: " << e.what());
     }
 
-    LOG4CXX_INFO(WeLogger::GetLogger(), "Application finished");
-    WeLibClose();
+    LOG4CXX_INFO(iLogger::GetLogger(), "Application finished");
+    LibClose();
     return 0;
 }
 
@@ -184,14 +185,14 @@ string save_cfg_storage(const string& id)
     {
         if (! configuration.load_from_file(cfgFile) )
         {
-            LOG4CXX_WARN(WeLogger::GetLogger(), "Can't read config from " << cfgFile);
+            LOG4CXX_WARN(iLogger::GetLogger(), "Can't read config from " << cfgFile);
             cfgFile = "";
             return retval;
         }
         configuration.storageIface = id;
         if (! configuration.save_to_file(cfgFile) )
         {
-            LOG4CXX_WARN(WeLogger::GetLogger(), "Can't save config to " << cfgFile);
+            LOG4CXX_WARN(iLogger::GetLogger(), "Can't save config to " << cfgFile);
             cfgFile = "";
             return retval;
         }

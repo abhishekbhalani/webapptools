@@ -71,6 +71,8 @@
 #define weoParentID          "ParentId"
 /// identifiers of the profile object (string)
 #define weoProfileID          "ProfileId"
+/// signal to the task (int)
+#define weoTaskSignal          "signal"
 //////////////////////////////////////////////////////////////////////////
 // Define options typenames
 //////////////////////////////////////////////////////////////////////////

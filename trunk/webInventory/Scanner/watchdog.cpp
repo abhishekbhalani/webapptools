@@ -57,7 +57,7 @@ void locked_data::destroy()
     }
 }
 
-WeTask* locked_data::load_task(const string& id)
+Task* locked_data::load_task(const string& id)
 {
     string req;
     string report = "";
@@ -68,15 +68,15 @@ WeTask* locked_data::load_task(const string& id)
     req = "<report><task value='" + id + "' /></report>";
     tasks = globalData.dispatcher->Storage()->TaskReport(req, report);
     if (globalData.task_info == NULL) {
-        globalData.task_info = new WeTask;
+        globalData.task_info = new Task;
     }
     if (tasks > 0)
     {   // parse the response
         bool in_parsing = true;
         int parsing_level = 0;
         int xml_pos;
-        WeStrStream st(report.c_str());
-        WeTagScanner sc(st);
+        StrStream st(report.c_str());
+        TagScanner sc(st);
         string tag;
 
         while(in_parsing) {
@@ -85,11 +85,11 @@ WeTask* locked_data::load_task(const string& id)
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task - parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_task - parsing error");
                 in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "load_task - parsing EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "load_task - parsing EOF");
                 in_parsing = false;
                 break;
             case wstTagStart:
@@ -110,7 +110,7 @@ WeTask* locked_data::load_task(const string& id)
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task - unexpected tag: " << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_task - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:
@@ -161,58 +161,58 @@ void watch_dog_thread(const string& id)
 
     while(in_process) {
         boost::this_thread::sleep(boost::posix_time::seconds(5));
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "Watchdog timer. Refresh task state.");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Watchdog timer. Refresh task state.");
         {
             boost::lock_guard<boost::mutex> lock(globalData.locker);
             globalData.load_task(id);
             if (globalData.task_info != NULL)
             {
-                WeOption opt = globalData.task_info->Option(weoTaskStatus);
+                wOption opt = globalData.task_info->Option(weoTaskSignal);
                 int idata;
                 SAFE_GET_OPTION_VAL(opt, idata, -1);
-                if (idata == WI_TSK_IDLE) {
-                    LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Stop the task.");
+                if (idata == WE_TASK_SIGNAL_STOP) {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "Watchdog timer. Stop the task.");
                     globalData.execution = false;
                     globalData.pause = false;
                     in_process = false;
                     globalData.task_info->Option(weoTaskCompletion, 0);
                     globalData.task_info->Stop();
-                    if (globalData.scan_info->status != WeScan::weScanFinished)
+                    if (globalData.scan_info->status != ScanInfo::weScanFinished)
                     {
-                        globalData.scan_info->status = WeScan::weScanStopped;
+                        globalData.scan_info->status = ScanInfo::weScanStopped;
                     }
                 }
-                if (idata == WI_TSK_PAUSED) {
-                    LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Pause the task.");
+                if (idata == WE_TASK_SIGNAL_PAUSE) {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "Watchdog timer. Pause the task.");
                     globalData.execution = true;
                     globalData.pause = true;
                     globalData.task_info->Pause();
-                    if (globalData.scan_info->status != WeScan::weScanFinished && globalData.scan_info->status != WeScan::weScanStopped)
+                    if (globalData.scan_info->status != ScanInfo::weScanFinished && globalData.scan_info->status != ScanInfo::weScanStopped)
                     {
-                        globalData.scan_info->status = WeScan::weScanPaused;
+                        globalData.scan_info->status = ScanInfo::weScanPaused;
                     }
                 }
-                if (idata == WI_TSK_RUN) {
-                    LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Continue task execution.");
+                if (idata == WE_TASK_SIGNAL_RUN) {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "Watchdog timer. Continue task execution.");
                     globalData.execution = true;
                     globalData.pause = false;
                     globalData.task_info->Pause(false);
-                    if (globalData.scan_info->status != WeScan::weScanFinished && globalData.scan_info->status != WeScan::weScanStopped)
+                    if (globalData.scan_info->status != ScanInfo::weScanFinished && globalData.scan_info->status != ScanInfo::weScanStopped)
                     {
-                        globalData.scan_info->status = WeScan::weScanRunning;
+                        globalData.scan_info->status = ScanInfo::weScanRunning;
                     }
                     globalData.cond.notify_all();
                 }
             }
             else {
-                LOG4CXX_ERROR(WeLogger::GetLogger(), "Watchdog timer. Task not loaded!");
+                LOG4CXX_ERROR(iLogger::GetLogger(), "Watchdog timer. Task not loaded!");
                 in_process = false;
                 globalData.execution = false;
                 globalData.pause = false;
-                globalData.scan_info->status = WeScan::weScanError;
+                globalData.scan_info->status = ScanInfo::weScanError;
             }
             // Save scan information (watchdog ping)
-            LOG4CXX_DEBUG(WeLogger::GetLogger(), "Watchdog timer. Update scan information.");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "Watchdog timer. Update scan information.");
             globalData.scan_info->pingTime = posix_time::second_clock::local_time();
             string report = globalData.scan_info->ToXml();
             globalData.dispatcher->Storage()->ScanSave(report);

@@ -21,14 +21,16 @@
 #include <weDispatch.h>
 #include "externals/shared_object.hpp"
 
-iwePlugin::iwePlugin( WeDispatch* krnl, void* handle /*= NULL*/ )
+namespace webEngine {
+
+iPlugin::iPlugin( Dispatch* krnl, void* handle /*= NULL*/ )
 {
     kernel = krnl;
     usageCount = 0;
     libHandle = handle;
-    pluginInfo.IfaceName = "iwePlugin";
+    pluginInfo.IfaceName = "iPlugin";
     pluginInfo.IfaceList.clear();
-    pluginInfo.IfaceList.push_back("iwePlugin");
+    pluginInfo.IfaceList.push_back("iPlugin");
     pluginInfo.PluginDesc = "Base plugin interface";
     pluginInfo.PluginId = "C665E995E5B4";
     pluginInfo.PluginIcon.clear();
@@ -37,51 +39,51 @@ iwePlugin::iwePlugin( WeDispatch* krnl, void* handle /*= NULL*/ )
         logger = krnl->GetLogger();
     }
     else {
-        logger = WeLogger::GetLogger();
+        logger = iLogger::GetLogger();
     }
 }
 
-const string iwePlugin::InterfaceName()
+const string iPlugin::InterfaceName()
 {
     return pluginInfo.IfaceName;
 }
 
-WeStringList iwePlugin::InterfaceList()
+StringList iPlugin::InterfaceList()
 {
     return pluginInfo.IfaceList;
 }
 
-void* iwePlugin::GetInterface( const string& ifName )
+void* iPlugin::GetInterface( const string& ifName )
 {
-    if (ifName == "iwePlugin") {
+    if (ifName == "iPlugin") {
         usageCount++;
         return this;
     }
     return NULL;
 }
 
-const string iwePlugin::GetDesc()
+const string iPlugin::GetDesc()
 {
     return pluginInfo.PluginDesc;
 }
 
-const string iwePlugin::GetID()
+const string iPlugin::GetID()
 {
     return pluginInfo.PluginId;
 }
 
-WeStringList iwePlugin::GetIcon()
+StringList iPlugin::GetIcon()
 {
     return pluginInfo.PluginIcon;
 }
 
-void iwePlugin::Release()
+void iPlugin::Release()
 {
     if (usageCount == 0)
     {
         if (libHandle != NULL)
         {
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "iwePlugin::Release: (" << pluginInfo.PluginId << ") free the shared library");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "iPlugin::Release: (" << pluginInfo.PluginId << ") free the shared library");
             delete ((dyn::shared_object*)libHandle);
         }
         delete this;
@@ -91,9 +93,9 @@ void iwePlugin::Release()
     }
 }
 
-WeStringList WeXpmToStringList( char** xpm, int lines )
+StringList WeXpmToStringList( char** xpm, int lines )
 {
-    WeStringList retval;
+    StringList retval;
     retval.clear();
 
     for (int i = 0; i < lines; i++)
@@ -102,3 +104,5 @@ WeStringList WeXpmToStringList( char** xpm, int lines )
     }
     return retval;
 }
+
+} // namespace webEngine

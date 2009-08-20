@@ -26,42 +26,44 @@
 #include "weMemStorage.h"
 #include "weiBase.h"
 
-WeMemStorage::WeMemStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
-    iweStorage(krnl, handle)
+namespace webEngine {
+
+MemStorage::MemStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
+    iStorage(krnl, handle)
 {
-    pluginInfo.IfaceName = "WeMemStorage";
-    pluginInfo.IfaceList.push_back("WeMemStorage");
+    pluginInfo.IfaceName = "MemStorage";
+    pluginInfo.IfaceList.push_back("MemStorage");
     pluginInfo.PluginDesc = "In-memory storage";
     pluginInfo.PluginId = "D82B31419339";
     fileName = "";
 }
 
-WeMemStorage::~WeMemStorage(void)
+MemStorage::~MemStorage(void)
 {
     Flush(fileName);
 }
 
-void* WeMemStorage::GetInterface( const string& ifName )
+void* MemStorage::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "iweStorage"))
+    if (iequals(ifName, "iStorage"))
     {
         usageCount++;
-        return (void*)((iweStorage*)this);
+        return (void*)((iStorage*)this);
     }
-    if (iequals(ifName, "WeMemStorage"))
+    if (iequals(ifName, "MemStorage"))
     {
         usageCount++;
-        return (void*)((WeMemStorage*)this);
+        return (void*)((MemStorage*)this);
     }
-    return iweStorage::GetInterface(ifName);
+    return iStorage::GetInterface(ifName);
 }
 
-int WeMemStorage::Query( const string& objType, const string& objId, Operation op, const string& xmlData )
+int MemStorage::Query( const string& objType, const string& objId, Operation op, const string& xmlData )
 {
     int retval = 0;
     if (iequals(objType, weObjTypeTask))
     {
-        if (op == iweStorage::remove)
+        if (op == iStorage::remove)
         {
             if (objId == "*")
             {
@@ -69,7 +71,7 @@ int WeMemStorage::Query( const string& objType, const string& objId, Operation o
                 tasks.clear();
             }
             else {
-                WeStringMap::iterator tsk = tasks.find(objId);
+                StringMap::iterator tsk = tasks.find(objId);
                 if (tsk != tasks.end())
                 {
                     tasks.erase(tsk);
@@ -84,17 +86,17 @@ int WeMemStorage::Query( const string& objType, const string& objId, Operation o
     }
     else {
         /// @todo Implement other types of data except task
-        LOG4CXX_WARN(WeLogger::GetLogger(), "WeMemStorage::Query: Not implemented: " << objType);
+        LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::Query: Not implemented: " << objType);
     }
     return retval;
 }
 
-int WeMemStorage::Report( const string& repType, const string& objId, const string& xmlData, string& result )
+int MemStorage::Report( const string& repType, const string& objId, const string& xmlData, string& result )
 {
     int retval = 0;
     if (iequals(repType, weObjTypeTask))
     {
-        WeStringMap::iterator tsk;
+        StringMap::iterator tsk;
         result = "";
         if (objId == "*")
         {
@@ -115,15 +117,15 @@ int WeMemStorage::Report( const string& repType, const string& objId, const stri
     }
     else {
         /// @todo Implement other types of data except task
-        LOG4CXX_WARN(WeLogger::GetLogger(), "WeMemStorage::Report: Not implemented: " << repType);
+        LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::Report: Not implemented: " << repType);
     }
     return retval;
 }
 
-void WeMemStorage::Save( const string& fileName )
+void MemStorage::Save( const string& fileName )
 {
     try {
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeMemStorage::Save");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Save");
         std::ofstream ofs(fileName.c_str());
         // save data to archive
         {
@@ -139,15 +141,15 @@ void WeMemStorage::Save( const string& fileName )
     }
     catch(std::exception& e)
     {
-        LOG4CXX_ERROR(WeLogger::GetLogger(), "WeMemStorage::Save error: " << e.what());
+        LOG4CXX_ERROR(iLogger::GetLogger(), "MemStorage::Save error: " << e.what());
     }
     return;
 }
 
-void WeMemStorage::Load( const string& fileName )
+void MemStorage::Load( const string& fileName )
 {
     try{
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeMemStorage::Load");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Load");
         std::ifstream ifs(fileName.c_str());
 
         // save data to archive
@@ -164,27 +166,27 @@ void WeMemStorage::Load( const string& fileName )
     }
     catch(std::exception& e)
     {
-        LOG4CXX_ERROR(WeLogger::GetLogger(), "WeMemStorage::Load error: " << e.what());
+        LOG4CXX_ERROR(iLogger::GetLogger(), "MemStorage::Load error: " << e.what());
     }
     return;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn bool WeMemStorage::InitStorage( const string& params )
+/// @fn bool MemStorage::InitStorage( const string& params )
 ///
 /// @brief  Initializes the storage. 
 ///
 /// @param  params - Pathname for the storage file.
 /// @retval	true if it succeeds, false if it fails. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool WeMemStorage::InitStorage( const string& params )
+bool MemStorage::InitStorage( const string& params )
 {
     fileName = params;
     Load(fileName);
     return true;
 }
 
-void WeMemStorage::Flush( const string& params /*= ""*/)
+void MemStorage::Flush( const string& params /*= ""*/)
 {
     if (params != "")
     {
@@ -192,7 +194,9 @@ void WeMemStorage::Flush( const string& params /*= ""*/)
     }
     if (fileName != "")
     {
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeMemStorage::Flush: filename not empty, save data");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Flush: filename not empty, save data");
         Save(fileName);
     }
 }
+
+} // namespace webEngine
