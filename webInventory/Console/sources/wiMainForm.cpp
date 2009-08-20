@@ -640,7 +640,7 @@ void wiMainForm::OnAddObject( wxCommandEvent& event )
 {
     wiObjDialog objDlg(this);
     wxString name, url;
-    ObjectInfo objInfo;
+    ObjectInf objInfo;
 
     if (objDlg.ShowModal() == wxOK) {
         // save new object
@@ -658,10 +658,10 @@ void wiMainForm::OnEditObject( wxCommandEvent& event )
 {
     wiObjDialog objDlg(this);
     wxString name, url;
-    ObjectInfo* obj;
+    ObjectInf* obj;
 
     if (m_selectedObject > -1) {
-        obj = (ObjectInfo*)m_lstObjectList->GetItemData(m_selectedObject);
+        obj = (ObjectInf*)m_lstObjectList->GetItemData(m_selectedObject);
         objDlg.m_txtObjName->SetValue(FromStdString(obj->Name));
         objDlg.m_txtBaseURL->SetValue(FromStdString(obj->Address));
         if (objDlg.ShowModal() == wxOK) {
@@ -680,7 +680,7 @@ void wiMainForm::OnDelObject( wxCommandEvent& event )
 {
     wxString name;
     wxListItem info;
-    ObjectInfo* obj;
+    ObjectInf* obj;
 
     if (m_selectedObject > -1)
     {
@@ -691,7 +691,7 @@ void wiMainForm::OnDelObject( wxCommandEvent& event )
         name = wxString::Format(_("Are you sure to delete object '%s'?"), info.GetText().c_str());
         int res = wxMessageBox(name, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
         if (res == wxYES) {
-            obj = (ObjectInfo*)m_lstObjectList->GetItemData(m_selectedObject);
+            obj = (ObjectInf*)m_lstObjectList->GetItemData(m_selectedObject);
             m_client->DoCmd(wxT("delobj"), FromStdString(obj->ObjectId));
             //ProcessObjects();
         }
@@ -759,14 +759,14 @@ void wiMainForm::OnDelTask( wxCommandEvent& event )
 void wiMainForm::OnRunTask( wxCommandEvent& event )
 {
     wxListItem info;
-    ObjectInfo* objInfo;
-    ProfileInfo* profInfo;
+    ObjectInf* objInfo;
+    ProfileInf* profInfo;
     wxString content;
 
     if (m_selectedObject > -1)
     {
         wxString tskName = m_lstObjectList->GetItemText(m_selectedObject);
-        objInfo = (ObjectInfo*)m_lstObjectList->GetItemData(m_selectedObject);
+        objInfo = (ObjectInf*)m_lstObjectList->GetItemData(m_selectedObject);
         if (objInfo == NULL) {
             ::wxLogError(_("Can't get information about object %s (id=%s)"), tskName.c_str(), objInfo->ObjectId);
             return;
@@ -776,7 +776,7 @@ void wiMainForm::OnRunTask( wxCommandEvent& event )
             tskName += wxT(" [");
             tskName += m_chProfile->GetString(m_selectedProf);
             tskName += wxT("]");
-            profInfo = (ProfileInfo*)m_chProfile->GetClientData(m_selectedProf);
+            profInfo = (ProfileInf*)m_chProfile->GetClientData(m_selectedProf);
             if (objInfo == NULL) {
                 ::wxLogError(_("Can't get information about profile %s (id=%s)"), m_chProfile->GetString(m_selectedProf).c_str(), profInfo->ObjectId);
                 return;
@@ -973,7 +973,7 @@ void wiMainForm::GetPluginList()
     m_pluginsDock->Thaw();
 }
 
-wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
+wxPanel* wiMainForm::LoadPluginSettings( PluginInf* plg )
 {
     wxString id = FromStdString(plg->PluginId);
     wxPanel* panel = NULL;
@@ -1013,19 +1013,19 @@ wxPanel* wiMainForm::LoadPluginSettings( PluginInfo* plg )
     wxString pageLabel;
     int pageIdx = 0;
 
-    if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iweTransport") != plg->IfaceList.end())
+    if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iTransport") != plg->IfaceList.end())
     {   // add plugins to the transport list
         pageLabel = _("Transports");
     }
-    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iweInventory") != plg->IfaceList.end())
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iInventory") != plg->IfaceList.end())
     {   // add plugins to the inventory list
         pageLabel = _("Inventory");
     }
-    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iweAudit") != plg->IfaceList.end())
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iAudit") != plg->IfaceList.end())
     {   // add plugins to the audit list
         pageLabel = _("Audit");
     }
-    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iweVulner") != plg->IfaceList.end())
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iVulner") != plg->IfaceList.end())
     {   // add plugins to the vulnerabilities list
         pageLabel = _("Vulnerabilities");
     }
@@ -1109,14 +1109,14 @@ void wiMainForm::GetTaskOptions(const wxString& taskID)
                             int pos = text.Find(wxT(';'));
                             while (pos != wxNOT_FOUND) {
                                 wxString pid = text.Mid(0, pos);
-                                PluginInfo *plg = FoundPlugin(pid);
+                                PluginInf *plg = FoundPlugin(pid);
                                 if (plg != NULL) {
                                     LoadPluginSettings(plg);
                                 }
                                 text = text.Mid(pos + 1);
                                 pos = text.Find(wxT(';'));
                             }
-                            PluginInfo *plg = FoundPlugin(text);
+                            PluginInf *plg = FoundPlugin(text);
                             if (plg != NULL) {
                                 wxPanel* panel = LoadPluginSettings(plg);
                             }
@@ -1178,7 +1178,7 @@ void wiMainForm::FillObjectFilter()
     long taskID;
     int taskIndex, tskSelected, tskID;
     wxString idStr;
-    ObjectInfo* obj;
+    ObjectInf* obj;
 
     m_chTaskFilter->Clear();
     if (! m_cfgEngine.Read(wxT("ObjectFilter"), &tskID)) {
@@ -1191,7 +1191,7 @@ void wiMainForm::FillObjectFilter()
     }
     tasks = m_lstObjectList->GetItemCount();
     for (i = 0; i < tasks; i++) {
-        obj = (ObjectInfo*)m_lstObjectList->GetItemData(i);
+        obj = (ObjectInf*)m_lstObjectList->GetItemData(i);
         idStr = FromStdString(obj->ObjectId);
         idStr.ToLong(&taskID, 16);
         idStr = FromStdString(obj->Name);
@@ -1233,7 +1233,7 @@ void wiMainForm::RebuildReportsTree()
     wxString idStr;
     wxTreeItemId root;
     wxTreeItemId task;
-    ObjectInfo* obj;
+    ObjectInf* obj;
 
     m_treeScans->Freeze();
     m_treeScans->DeleteAllItems();
@@ -1245,7 +1245,7 @@ void wiMainForm::RebuildReportsTree()
     tasks = m_lstObjectList->GetItemCount();
     root = m_treeScans->AddRoot(wxT("root"));
     for (i = 0; i < tasks; i++) {
-        obj = (ObjectInfo*)m_lstObjectList->GetItemData(i);
+        obj = (ObjectInf*)m_lstObjectList->GetItemData(i);
         idStr = FromStdString(obj->ObjectId);
         idStr.ToLong(&taskID, 16);
         if ( !isFilter || taskID == tskID || tskID == -1) {
@@ -1370,7 +1370,7 @@ void wiMainForm::OnReportsLoad( wxCommandEvent& event )
 void wiMainForm::ProcessProfileList(const wxString& criteria /*= wxT("")*/)
 {
     ProfileList* lst;
-    ProfileInfo* dat;
+    ProfileInf* dat;
     size_t lstSize;
     int idx = 0;
     int selected;
@@ -1378,7 +1378,7 @@ void wiMainForm::ProcessProfileList(const wxString& criteria /*= wxT("")*/)
 
     selected = m_chProfile->GetSelection();
     if (selected > -1) {
-        dat = (ProfileInfo*)m_chProfile->GetClientData(selected);
+        dat = (ProfileInf*)m_chProfile->GetClientData(selected);
         idSelect = FromStdString(dat->ObjectId);
     }
     if(m_client != NULL) {
@@ -1423,7 +1423,7 @@ void wiMainForm::OnAddProfile( wxCommandEvent& event )
 
 void wiMainForm::OnCopyProfile( wxCommandEvent& event )
 {
-    ProfileInfo* dat;
+    ProfileInf* dat;
     int selected;
     wxString idSelect;
     wxString idPrev;
@@ -1431,7 +1431,7 @@ void wiMainForm::OnCopyProfile( wxCommandEvent& event )
 
     selected = m_chProfile->GetSelection();
     if (selected > -1) {
-        dat = (ProfileInfo*)m_chProfile->GetClientData(selected);
+        dat = (ProfileInf*)m_chProfile->GetClientData(selected);
         idSelect = FromStdString(dat->Name) + wxT(" copy");
         if(m_client != NULL) {
             idSelect = m_client->DoCmd(wxT("addprofile"), idSelect);
@@ -1451,14 +1451,14 @@ void wiMainForm::OnCopyProfile( wxCommandEvent& event )
 void wiMainForm::OnDelProfile( wxCommandEvent& event )
 {
     wxString name;
-    ProfileInfo* dat;
+    ProfileInf* dat;
     int selected;
 
     selected = m_chProfile->GetSelection();
     if (selected > -1)
     {
         name = m_chProfile->GetString(selected);
-        dat = (ProfileInfo*)m_chProfile->GetClientData(selected);
+        dat = (ProfileInf*)m_chProfile->GetClientData(selected);
         name = wxString::Format(_("Are you sure to delete profile '%s'?"), name.c_str());
         int res = wxMessageBox(name, _("Confirm"), wxYES_NO | wxICON_QUESTION, this);
         if (res == wxYES) {
@@ -1472,12 +1472,12 @@ void wiMainForm::OnDelProfile( wxCommandEvent& event )
 
 void wiMainForm::OnTaskApply( wxCommandEvent& event )
 {
-    ProfileInfo* dat;
+    ProfileInf* dat;
     wxString profID;
 
     // save profile data
     if (m_selectedProf > -1) {
-        dat = (ProfileInfo*)m_chProfile->GetClientData(m_selectedProf);
+        dat = (ProfileInf*)m_chProfile->GetClientData(m_selectedProf);
         profID.Empty();
         if (dat != NULL) {
             profID = FromStdString(dat->ObjectId);
@@ -1524,7 +1524,7 @@ void wiMainForm::OnChangeProfile( wxCommandEvent& event )
 {
     wxListItem info;
     int prevID = m_selectedProf;
-    ProfileInfo* dat;
+    ProfileInf* dat;
 
     m_selectedProf = m_chProfile->GetSelection();
 
@@ -1534,7 +1534,7 @@ void wiMainForm::OnChangeProfile( wxCommandEvent& event )
     if (m_selectedProf > -1) {
         m_bpAddPlugin->Enable(true);
         m_bpDelPlugin->Enable(true);
-        dat = (ProfileInfo*)m_chProfile->GetClientData(m_selectedProf);
+        dat = (ProfileInf*)m_chProfile->GetClientData(m_selectedProf);
         GetTaskOptions(FromStdString(dat->ObjectId));
     }
     else {
@@ -1662,9 +1662,9 @@ void wiMainForm::OnRemovePlugin( wxCommandEvent& event )
     }
 }
 
-PluginInfo* wiMainForm::FoundPlugin( const wxString& id)
+PluginInf* wiMainForm::FoundPlugin( const wxString& id)
 {
-    PluginInfo* retval = NULL;
+    PluginInf* retval = NULL;
 
     if (m_plugList != NULL) {
         for (size_t lstSize = 0; lstSize < m_plugList->size(); lstSize++) {

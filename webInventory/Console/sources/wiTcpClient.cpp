@@ -268,7 +268,7 @@ ObjectList* wiTcpClient::GetObjectList(const wxString& criteria /*= wxT("")*/)
     return lst;
 }
 
-wxString wiTcpClient::UpdateObject(ObjectInfo& objInfo)
+wxString wiTcpClient::UpdateObject(ObjectInf& objInfo)
 {
     wxString retval = wxT("");
     try

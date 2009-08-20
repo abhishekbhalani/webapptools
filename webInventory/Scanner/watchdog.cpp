@@ -145,14 +145,19 @@ void locked_data::save_task( void )
 
 bool locked_data::check_state()
 {
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Watchdog check_state.");
     if (execution)
     {
-        boost::unique_lock<boost::mutex> lock(globalData.locker);
+        boost::unique_lock<boost::mutex> lock(locker);
         while(pause) {
             cond.wait(lock);
         }
     }
-    return execution;
+    if (task_info)
+    {
+        return task_info->IsReady();
+    }
+    return false;
 }
 
 void watch_dog_thread(const string& id)

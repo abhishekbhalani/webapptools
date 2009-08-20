@@ -345,11 +345,17 @@ const bool URL::IsHostEquals( const URL& url )
 
     if (protocol != url.protocol)
     {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsHostEquals - protocols doesn't match");
         retval = false;
     }
     if (host != url.host)
     {
-        retval = false;
+        LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsHostEquals - hostnames doesn't match: " << url.host << " != " << host);
+        if (host != "www." + url.host )
+        {
+            LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsHostEquals - hostnames doesn't match: www." << url.host << " != " << host);
+            retval = false;
+        }
     }
     return retval;
 }
@@ -369,11 +375,13 @@ const bool URL::IsDomainEquals( const URL& url )
 
     if (protocol != url.protocol)
     {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsDomainEquals - protocols doesn't match");
         retval = false;
     }
     dot_pos = find_nth(host, ".", -2);
     if (dot_pos.size() != 0) {
         string::iterator pos = dot_pos.begin();
+        pos++; // skip the dot
         second_level = "";
         while(pos != host.end())
         {
@@ -384,8 +392,10 @@ const bool URL::IsDomainEquals( const URL& url )
     else {
         second_level = host;
     }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsDomainEquals - compare " << second_level << " and " << url.host);
     if (!iends_with(url.host, second_level))
     {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsDomainEquals - iends_with returns fasle");
         retval = false;
     }
 

@@ -108,10 +108,10 @@ protected:
 
     void FillObjectFilter();
     void GetTaskOptions(const wxString& taskID);
-    wxPanel* LoadPluginSettings( PluginInfo* plg );
+    wxPanel* LoadPluginSettings( PluginInf* plg );
     void RebuildOptionsView();
     void RebuildReportsTree();
-    PluginInfo* FoundPlugin( const wxString& id);
+    PluginInf* FoundPlugin( const wxString& id);
 
     CConfigEngine m_cfgEngine;
     wiTcpClient* m_client;
