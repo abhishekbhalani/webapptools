@@ -68,6 +68,7 @@ int exec_child(const string cmd)
 #ifdef WIN32
     return _spawnl(_P_NOWAIT, "tskScanner", cmd.c_str(), NULL);
 #else // UNIX (POSIX) implementation
+    string line = string("./") + cmd;
     pid_t pid = vfork();
     if (pid < 0)
     {   // error
@@ -81,10 +82,10 @@ int exec_child(const string cmd)
     char* args[2];
     char* envs[1];
 
-    args[0] = strdup(cmd.c_str());
+    args[0] = strdup(line.c_str());
     args[1] = NULL;
     envs[0] = NULL;
-    execve("tskScanner", args, envs);
+    execve("./tskScanner", args, envs);
 #endif //WIN32
 }
 
@@ -209,7 +210,7 @@ Task* load_task( const string& id )
                         // go back to the start of the TAG
                         tsk->FromXml(sc, t);
                         // stop parsing - only first task need
-                        in_parsing = false; 
+                        in_parsing = false;
                         break;
                     }
                 }
@@ -504,7 +505,7 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
     size_t tpos = crit.find(',');
     while (tpos != string::npos) {
         //query += "<object value='" + crit.substr(0, tpos) + "' />";
-        i = globalDispatcher->Storage()->Report(weObjTypeObject, crit.substr(0,tpos), "", report); 
+        i = globalDispatcher->Storage()->Report(weObjTypeObject, crit.substr(0,tpos), "", report);
         if(i > 0) {
             tasks += i;
             result += report;
@@ -513,7 +514,7 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
         tpos = crit.find(',');
     }
     //query += "<object value='" + crit + "' />";
-    i = globalDispatcher->Storage()->Report(weObjTypeObject, crit, "", report); 
+    i = globalDispatcher->Storage()->Report(weObjTypeObject, crit, "", report);
     if(i > 0) {
         tasks += i;
         result += report;
@@ -627,7 +628,7 @@ WeProfile* get_profile(const string& id)
 
     tasks = 0;
     result = "<report>\n";
-    i = globalDispatcher->Storage()->Report(weObjTypeProfile, id, "", report); 
+    i = globalDispatcher->Storage()->Report(weObjTypeProfile, id, "", report);
     if(i > 0) {
         tasks += i;
         result += report;
@@ -787,7 +788,7 @@ ProfileList* get_profile_list(const string& criteria = "")
     size_t tpos = crit.find(',');
     while (tpos != string::npos) {
         //query += "<profile value='" + crit.substr(0, tpos) + "' />";
-        i = globalDispatcher->Storage()->Report(weObjTypeProfile, crit.substr(0,tpos), "", report); 
+        i = globalDispatcher->Storage()->Report(weObjTypeProfile, crit.substr(0,tpos), "", report);
         if(i > 0) {
             tasks += i;
             result += report;
@@ -796,7 +797,7 @@ ProfileList* get_profile_list(const string& criteria = "")
         tpos = crit.find(',');
     }
     //query += "<profile value='" + crit + "' />";
-    i = globalDispatcher->Storage()->Report(weObjTypeProfile, crit, "", report); 
+    i = globalDispatcher->Storage()->Report(weObjTypeProfile, crit, "", report);
     if(i > 0) {
         tasks += i;
         result += report;
