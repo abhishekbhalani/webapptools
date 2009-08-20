@@ -29,13 +29,15 @@
 
 using namespace boost::algorithm;
 
-class WeHTTP;
-class WeHttpRequest;
+namespace webEngine {
+
+class HttpTransport;
+class HttpRequest;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  WeProxy
 ///
-/// @brief  Proxy definition for WeHttpRequest.
+/// @brief  Proxy definition for HttpRequest.
 ///
 /// @author A. Abramov
 /// @date   01.06.2009
@@ -43,12 +45,12 @@ class WeHttpRequest;
 class WeProxy
 {
 public:
-    WeURL   proxyAddr;
+    URL   proxyAddr;
     curl_proxytype type;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeHttpResponse
+/// @class  HttpResponse
 ///
 /// @brief  HTTP response.
 ///
@@ -57,21 +59,21 @@ public:
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeHttpResponse : public iweResponse
+class HttpResponse : public iResponse
 {
 public:
-    WeHttpResponse();
-    ~WeHttpResponse();
+    HttpResponse();
+    ~HttpResponse();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @brief  HTTP headers of the document.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    WeStringLinks& Headers(void)     { return (headers); };
+    StringLinks& Headers(void)     { return (headers); };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @brief  HTTP cookies of the document.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    WeStringLinks& Cookies(void)     { return (cookies); };
+    StringLinks& Cookies(void)     { return (cookies); };
 
     //@{
     /// @brief  HTTP response code for the document.
@@ -89,10 +91,10 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @brief Sets the options of CURL handle
-    /// @param req  - The WeHttpRequest, if not NULL - sets the request options, else sets only
+    /// @param req  - The HttpRequest, if not NULL - sets the request options, else sets only
     ///               default options
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    void CurlSetOpts(WeHttpRequest* req = NULL);
+    void CurlSetOpts(HttpRequest* req = NULL);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @brief  Gets the CURLcode - the last cURL operation status.
@@ -109,7 +111,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     bool CurlInit(void);
 
-    void Process(iweTransport* proc);
+    void Process(iTransport* proc);
 
 protected:
     static size_t Receiver(void *ptr, size_t size, size_t nmemb, void *ourpointer);
@@ -117,53 +119,53 @@ protected:
 
 #ifndef __DOXYGEN__
 protected:
-    WeStringLinks headers;
-    WeStringLinks cookies;
+    StringLinks headers;
+    StringLinks cookies;
     int httpCode;
-    WeBlob headData;
+    Blob headData;
     CURL* curlHandle;
     CURLcode lastError;
     char errorBuff[CURL_ERROR_SIZE];
 
 // private:
-//     WeHttpResponse(WeHttpResponse&) {};             ///< Avoid object coping
-//     WeHttpResponse& operator=(WeHttpResponse&) {};  ///< Avoid object coping
+//     HttpResponse(HttpResponse&) {};             ///< Avoid object coping
+//     HttpResponse& operator=(HttpResponse&) {};  ///< Avoid object coping
 #endif //__DOXYGEN__
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeHttpRequest
+/// @class  HttpRequest
 ///
 /// @brief  HTTP request.
 ///
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeHttpRequest : public iweRequest
+class HttpRequest : public iRequest
 {
 public:
     /* types and constants */
     enum weHttpMethod {wemGet, wemPost, wemPut, wemHead, wemTrace};
     enum {composeOverwrite, composeAdd};
 public:
-    WeHttpRequest();
-    WeHttpRequest(string url, weHttpMethod meth = wemGet, WeHttpResponse* resp = NULL);
+    HttpRequest();
+    HttpRequest(string url, weHttpMethod meth = wemGet, HttpResponse* resp = NULL);
 
-    virtual WeURL  &RequestUrl(void)  { return(reqUrl);   };
-    virtual void RequestUrl(const string &ReqUrl, iweOperation* resp = NULL);
-    virtual void RequestUrl(const WeURL &ReqUrl, iweOperation* resp = NULL);
+    virtual URL  &RequestUrl(void)  { return(reqUrl);   };
+    virtual void RequestUrl(const string &ReqUrl, iOperation* resp = NULL);
+    virtual void RequestUrl(const URL &ReqUrl, iOperation* resp = NULL);
 
     void ComposePost(int method = composeOverwrite);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @brief Unstructured data for the request
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    WeBlob& Data()  { return data;  };
+    Blob& Data()  { return data;  };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @brief POST method structured data
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    WeStringLinks& PostData()    { return postData;  };
+    StringLinks& PostData()    { return postData;  };
 
     //@{
     /// @brief  Access the Method property.
@@ -180,34 +182,34 @@ public:
 #ifndef __DOXYGEN__
 protected:
     weHttpMethod    method;
-    WeURL           reqUrl;
-    WeBlob          data;
-    WeStringLinks    postData;
+    URL           reqUrl;
+    Blob          data;
+    StringLinks    postData;
     WeProxy         *proxy;
 #endif //__DOXYGEN__
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeHTTP
+/// @class  HttpTransport
 ///
 /// @brief  The HTTP processor.
 ///
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeHTTP : public iweTransport
+class HttpTransport : public iTransport
 {
 public:
-    WeHTTP(WeDispatch* krnl, void* handle = NULL);
-    ~WeHTTP();
+    HttpTransport(Dispatch* krnl, void* handle = NULL);
+    ~HttpTransport();
 
     virtual void* GetInterface( const string& ifName );
     virtual const string GetSetupUI( void );
-    virtual void Register(WeTransportFactory* factory);
+    virtual void Register(TransportFactory* factory);
 
-    virtual iweResponse* Request(iweRequest* req, iweResponse* resp = NULL);
-    virtual iweResponse* Request(string url, iweResponse* resp = NULL);
-    virtual iweResponse* Request(WeURL& url, iweResponse* resp = NULL);
+    virtual iResponse* Request(iRequest* req, iResponse* resp = NULL);
+    virtual iResponse* Request(string url, iResponse* resp = NULL);
+    virtual iResponse* Request(URL& url, iResponse* resp = NULL);
 
     /// @brief  Gets the CURLMcode - the last cURL operation status.
     const CURLMcode &GetLastError(void) const   { return(lastError);    };
@@ -227,5 +229,7 @@ private:
     static string   protoName;
 #endif //__DOXYGEN__
 };
+
+} // namespace webEngine
 
 #endif //__WEHTTP_H__

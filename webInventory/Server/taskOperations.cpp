@@ -55,7 +55,7 @@
 
 namespace fs = boost::filesystem;
 
-extern WeDispatch* globalDispatcher;
+extern Dispatch* globalDispatcher;
 extern string cfgFile;
 
 string taskDbDir = ".";
@@ -88,7 +88,7 @@ int exec_child(const string cmd)
 #endif //WIN32
 }
 
-void load_task_list( vector<WeTask*>& task_list )
+void load_task_list( vector<Task*>& task_list )
 {
     string report = "";
     int tasks = 0;
@@ -99,9 +99,9 @@ void load_task_list( vector<WeTask*>& task_list )
         bool in_parsing = true;
         int parsing_level = 0;
         size_t xml_pos;
-        WeStrStream st(report.c_str());
-        WeTagScanner sc(st);
-        WeTask* tsk;
+        StrStream st(report.c_str());
+        TagScanner sc(st);
+        Task* tsk;
         string tag;
 
         while(in_parsing) {
@@ -110,11 +110,11 @@ void load_task_list( vector<WeTask*>& task_list )
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task_list - parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_task_list - parsing error");
                 in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "load_task_list - parsing EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "load_task_list - parsing EOF");
                 in_parsing = false;
                 break;
             case wstTagStart:
@@ -129,14 +129,14 @@ void load_task_list( vector<WeTask*>& task_list )
                 }
                 if (parsing_level == 1) {
                     if (iequals(tag, "task")) {
-                        tsk = new WeTask();
+                        tsk = new Task();
                         // go back to the start of the TAG
                         tsk->FromXml(sc, t);
                         task_list.push_back(tsk);
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task_list - unexpected tag: " << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_task_list - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:
@@ -153,7 +153,7 @@ void load_task_list( vector<WeTask*>& task_list )
     }
 }
 
-void save_task( WeTask* tsk )
+void save_task( Task* tsk )
 {
     string taskRep;
 
@@ -162,12 +162,12 @@ void save_task( WeTask* tsk )
     globalDispatcher->Storage()->Flush();
 }
 
-WeTask* load_task( const string& id )
+Task* load_task( const string& id )
 {
     string req;
     string report = "";
     int tasks = 0;
-    WeTask* tsk;
+    Task* tsk;
 
     req = "<report><task value='" + id + "' /></report>";
     tasks = globalDispatcher->Storage()->TaskReport(req, report);
@@ -177,8 +177,8 @@ WeTask* load_task( const string& id )
         bool in_parsing = true;
         int parsing_level = 0;
         size_t xml_pos;
-        WeStrStream st(report.c_str());
-        WeTagScanner sc(st);
+        StrStream st(report.c_str());
+        TagScanner sc(st);
         string tag;
 
         while(in_parsing) {
@@ -187,11 +187,11 @@ WeTask* load_task( const string& id )
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task - parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_task - parsing error");
                 in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "load_task - parsing EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "load_task - parsing EOF");
                 in_parsing = false;
                 break;
             case wstTagStart:
@@ -205,7 +205,7 @@ WeTask* load_task( const string& id )
                 }
                 if (parsing_level == 1) {
                     if (iequals(tag, "task")) {
-                        tsk = new WeTask();
+                        tsk = new Task();
                         // go back to the start of the TAG
                         tsk->FromXml(sc, t);
                         // stop parsing - only first task need
@@ -213,7 +213,7 @@ WeTask* load_task( const string& id )
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_task - unexpected tag: " << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_task - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:
@@ -233,10 +233,10 @@ WeTask* load_task( const string& id )
 
 TaskList* get_task_list(const string& criteria/* = ""*/)
 {
-    vector<WeTask*>  task_list;
+    vector<Task*>  task_list;
     TaskList    *lst = NULL;
     TaskRecord  *tsk = NULL;
-    WeOption    opt;
+    wOption    opt;
     string sdata;
     int idata;
     size_t t;
@@ -274,9 +274,9 @@ string add_task(const string& name)
     string retval;
     string fName;
     TaskList    *lst = NULL;
-    WeTask *tsk = NULL;
+    Task *tsk = NULL;
 
-    tsk = new WeTask;
+    tsk = new Task;
     retval = globalDispatcher->Storage()->GenerateID("task");
     tsk->Option(weoID, retval);
     tsk->Option(weoName, name);
@@ -303,17 +303,17 @@ bool del_task(const string& id)
 bool run_task(const string& id)
 {
     bool retval = false;
-    WeOption opt;
+    wOption opt;
     string sdata;
     int idata;
-    WeTask* tsk;
+    Task* tsk;
 
     tsk = load_task(id);
     if (tsk != NULL)
     {
         opt = tsk->Option(weoTaskStatus);
         SAFE_GET_OPTION_VAL(opt, idata, 0);
-        if (idata == WI_TSK_IDLE || idata == WI_TSK_PAUSED)
+        if (idata == WI_TSK_IDLE)
         {
             // prepare task to run
             // tsk->Option(weoTaskStatus, WI_TSK_RUN);
@@ -351,19 +351,25 @@ bool run_task(const string& id)
                 cmdline += " --config " + cfgFile;
             }
             cmdline += " --storage " + globalDispatcher->Storage()->GetID();
-            LOG4CXX_DEBUG(WeLogger::GetLogger(), "run_task: " << cmdline);
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "run_task: " << cmdline);
             int err = exec_child(cmdline);
             if (err != -1) {
                 retval = true;
             }
             else {
-                LOG4CXX_ERROR(WeLogger::GetLogger(), "run_task failed: (" << err << ") ERRNO=" << errno);
+                LOG4CXX_ERROR(iLogger::GetLogger(), "run_task failed: (" << err << ") ERRNO=" << errno);
                 fs::remove(fname + ".trace");
             }
         }
+        else if (idata == WI_TSK_PAUSED)
+        {
+            tsk->Option(weoTaskSignal, WE_TASK_SIGNAL_RUN);
+            retval = true;
+            save_task(tsk);
+        }
     }
     else {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "run_task - task not found: " << id);
+        LOG4CXX_WARN(iLogger::GetLogger(), "run_task - task not found: " << id);
     }
 
     return retval;
@@ -372,10 +378,10 @@ bool run_task(const string& id)
 bool pause_task(const string& id)
 {
     bool retval = false;
-    WeOption opt;
+    wOption opt;
     string sdata;
     int idata;
-    WeTask* tsk;
+    Task* tsk;
 
     tsk = load_task(id);
     if (tsk != NULL)
@@ -384,14 +390,14 @@ bool pause_task(const string& id)
         SAFE_GET_OPTION_VAL(opt, idata, 0);
         if (idata == WI_TSK_RUN)
         {
-            tsk->Option(weoTaskStatus, WI_TSK_PAUSED);
+            tsk->Option(weoTaskSignal, WE_TASK_SIGNAL_PAUSE);
             retval = true;
             // @todo Pause process which executes this task
             save_task(tsk);
         }
     }
     else {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "pause_task - task not found: " << id);
+        LOG4CXX_WARN(iLogger::GetLogger(), "pause_task - task not found: " << id);
     }
     return retval;
 }
@@ -399,10 +405,10 @@ bool pause_task(const string& id)
 bool cancel_task(const string& id)
 {
     bool retval = false;
-    WeOption opt;
+    wOption opt;
     string sdata;
     int idata;
-    WeTask* tsk;
+    Task* tsk;
 
     tsk = load_task(id);
     if (tsk != NULL)
@@ -411,14 +417,14 @@ bool cancel_task(const string& id)
         SAFE_GET_OPTION_VAL(opt, idata, 0);
         if (idata == WI_TSK_RUN)
         {
-            tsk->Option(weoTaskStatus, WI_TSK_IDLE);
+            tsk->Option(weoTaskSignal, WE_TASK_SIGNAL_STOP);
             retval = true;
             // @todo Cancel process which executes this task
             save_task(tsk);
         }
     }
     else {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "cancel_task - task not found: " << id);
+        LOG4CXX_WARN(iLogger::GetLogger(), "cancel_task - task not found: " << id);
     }
     return retval;
 }
@@ -426,20 +432,20 @@ bool cancel_task(const string& id)
 string get_task_opts (const string& id)
 {
     string retval = "";
-    WeOption opt;
+    wOption opt;
     string sdata;
-    WeTask* tsk;
+    Task* tsk;
 
     tsk = load_task(id);
     if (tsk != NULL)
     {
-        // need to call exactly iweOptionsProvider::ToXml()
+        // need to call exactly iOptionsProvider::ToXml()
         // 'cause it gets all options in the one pack in difference
-        // of structured output of WeTask::ToXml()
-        retval = ((iweOptionsProvider*)tsk)->ToXml();
+        // of structured output of Task::ToXml()
+        retval = ((iOptionsProvider*)tsk)->ToXml();
     }
     else {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "get_task_opts - task not found: " << id);
+        LOG4CXX_WARN(iLogger::GetLogger(), "get_task_opts - task not found: " << id);
     }
     return retval;
 }
@@ -449,10 +455,10 @@ bool set_task_opts (const string& dat)
     bool retval = false;
     string id;
     string xml;
-    WeOption opt;
+    wOption opt;
     string sdata;
     size_t t;
-    WeTask* tsk;
+    Task* tsk;
 
     t = dat.find(';');
     if (t != string::npos) {
@@ -461,15 +467,15 @@ bool set_task_opts (const string& dat)
         tsk = load_task(id);
         if (tsk != NULL)
         {
-            // need to call exactly iweOptionsProvider::FromXml()
+            // need to call exactly iOptionsProvider::FromXml()
             // 'cause it gets all options in the one pack in difference
-            // of structured processing of WeTask::FromXml()
-            ((iweOptionsProvider*)tsk)->FromXml(xml);
+            // of structured processing of Task::FromXml()
+            ((iOptionsProvider*)tsk)->FromXml(xml);
             save_task(tsk);
             retval = true;
         }
         else {
-            LOG4CXX_WARN(WeLogger::GetLogger(), "get_task_opts - task not found: " << id);
+            LOG4CXX_WARN(iLogger::GetLogger(), "get_task_opts - task not found: " << id);
         }
     }
     return retval;
@@ -483,7 +489,7 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
     string query = "";
     int tasks = 0, i;
     ObjectList* lst;
-    ObjectInfo* obj;
+    ObjectInf* obj;
 
     if (criteria == "") {
         crit = "*";
@@ -520,9 +526,9 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
         bool in_parsing = true;
         int parsing_level = 0;
         size_t xml_pos;
-        WeStrStream st(result.c_str());
-        WeTagScanner sc(st);
-        WeScanObject tsk;
+        StrStream st(result.c_str());
+        TagScanner sc(st);
+        ScanObject tsk;
         string tag;
 
         while(in_parsing) {
@@ -531,11 +537,11 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "get_object_list - parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "get_object_list - parsing error");
                 in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "get_object_list - parsing EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "get_object_list - parsing EOF");
                 in_parsing = false;
                 break;
             case wstTagStart:
@@ -553,7 +559,7 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
                     if (iequals(tag, weObjTypeObject)) {
                         // go back to the start of the TAG
                         tsk.FromXml(sc, t);
-                        obj = new ObjectInfo;
+                        obj = new ObjectInf;
                         obj->ObjectId = tsk.ObjectId;
                         obj->Name = tsk.ObjName;
                         obj->Address = tsk.Address;
@@ -561,7 +567,7 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "get_object_list - unexpected tag: " << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "get_object_list - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:
@@ -579,9 +585,9 @@ ObjectList* get_object_list(const string& criteria /*= ""*/)
     return lst;
 }
 
-string update_object(ObjectInfo& obj)
+string update_object(ObjectInf& obj)
 {
-    WeScanObject tsk;
+    ScanObject tsk;
     string result;
 
     if (obj.ObjectId == "0")
@@ -592,7 +598,7 @@ string update_object(ObjectInfo& obj)
     tsk.ObjName = obj.Name;
     tsk.Address = obj.Address;
     result = tsk.ToXml();
-    globalDispatcher->Storage()->Query(weObjTypeObject, obj.ObjectId, iweStorage::autoop, result);
+    globalDispatcher->Storage()->Query(weObjTypeObject, obj.ObjectId, iStorage::autoop, result);
     return obj.ObjectId;
 }
 
@@ -633,9 +639,9 @@ WeProfile* get_profile(const string& id)
         bool in_parsing = true;
         int parsing_level = 0;
         size_t xml_pos;
-        WeStrStream st(result.c_str());
-        WeTagScanner sc(st);
-        WeOption opt;
+        StrStream st(result.c_str());
+        TagScanner sc(st);
+        wOption opt;
         string sdata;
         string tag;
 
@@ -645,11 +651,11 @@ WeProfile* get_profile(const string& id)
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "get_profile - parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "get_profile - parsing error");
                 in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "get_profile - parsing EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "get_profile - parsing EOF");
                 in_parsing = false;
                 break;
             case wstTagStart:
@@ -670,7 +676,7 @@ WeProfile* get_profile(const string& id)
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "get_profile - unexpected tag: " << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "get_profile - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:
@@ -703,7 +709,7 @@ string get_profile_opts (const string& id)
         retval += result;
     }
     else {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "get_profile_opts - profile not found: " << id);
+        LOG4CXX_WARN(iLogger::GetLogger(), "get_profile_opts - profile not found: " << id);
     }
     retval += "</report>";
     return retval;
@@ -724,20 +730,20 @@ bool set_profile_opts (const string& dat)
         prof = get_profile(id);
         if (prof != NULL)
         {
-            // need to call exactly iweOptionsProvider::FromXml()
+            // need to call exactly iOptionsProvider::FromXml()
             // 'cause it gets all options in the one pack in difference
             // of structured processing of WeProfile::FromXml()
-            ((iweOptionsProvider*)prof)->FromXml(xml);
+            ((iOptionsProvider*)prof)->FromXml(xml);
             xml = prof->ToXml();
-            if (globalDispatcher->Storage()->Query(weObjTypeProfile, id, iweStorage::autoop, xml) > 0) {
+            if (globalDispatcher->Storage()->Query(weObjTypeProfile, id, iStorage::autoop, xml) > 0) {
                 retval = true;
             }
             else {
-                LOG4CXX_WARN(WeLogger::GetLogger(), "set_profile_opts - profile " << id << " not saved!");
+                LOG4CXX_WARN(iLogger::GetLogger(), "set_profile_opts - profile " << id << " not saved!");
             }
         }
         else {
-            LOG4CXX_WARN(WeLogger::GetLogger(), "set_profile_opts - profile not found: " << id);
+            LOG4CXX_WARN(iLogger::GetLogger(), "set_profile_opts - profile not found: " << id);
         }
     }
     return retval;
@@ -753,7 +759,7 @@ bool del_profile (const string& id)
         retval = true;
     }
     else {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "del_profile - profile " << id << " not deleted!");
+        LOG4CXX_WARN(iLogger::GetLogger(), "del_profile - profile " << id << " not deleted!");
     }
     return retval;
 }
@@ -766,7 +772,7 @@ ProfileList* get_profile_list(const string& criteria = "")
     string query = "";
     int tasks = 0, i;
     ProfileList* lst;
-    ProfileInfo* obj;
+    ProfileInf* obj;
 
     if (criteria == "") {
         crit = "*";
@@ -803,9 +809,9 @@ ProfileList* get_profile_list(const string& criteria = "")
         bool in_parsing = true;
         int parsing_level = 0;
         size_t xml_pos;
-        WeStrStream st(result.c_str());
-        WeTagScanner sc(st);
-        WeOption opt;
+        StrStream st(result.c_str());
+        TagScanner sc(st);
+        wOption opt;
         string sdata;
         WeProfile tsk;
         string tag;
@@ -816,11 +822,11 @@ ProfileList* get_profile_list(const string& criteria = "")
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "get_profile_list - parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "get_profile_list - parsing error");
                 in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "get_profile_list - parsing EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "get_profile_list - parsing EOF");
                 in_parsing = false;
                 break;
             case wstTagStart:
@@ -838,7 +844,7 @@ ProfileList* get_profile_list(const string& criteria = "")
                     if (iequals(tag, weObjTypeProfile)) {
                         // go back to the start of the TAG
                         tsk.FromXml(sc, t);
-                        obj = new ProfileInfo;
+                        obj = new ProfileInf;
                         opt = tsk.Option(weoID);
                         SAFE_GET_OPTION_VAL(opt, sdata, "0");
                         obj->ObjectId = sdata;
@@ -849,7 +855,7 @@ ProfileList* get_profile_list(const string& criteria = "")
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "get_profile_list - unexpected tag: " << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "get_profile_list - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:

@@ -22,40 +22,44 @@
 #include <weiInventory.h>
 #include "iweInventory.xpm"
 
-iweInventory::iweInventory(WeDispatch* krnl, void* handle /*= NULL*/) :
-    iwePlugin(krnl, handle)
+namespace webEngine {
+
+iInventory::iInventory(Dispatch* krnl, void* handle /*= NULL*/) :
+    iPlugin(krnl, handle)
 {
-    pluginInfo.IfaceName = "iweInventory";
-    pluginInfo.IfaceList.push_back("iweInventory");
+    pluginInfo.IfaceName = "iInventory";
+    pluginInfo.IfaceList.push_back("iInventory");
     pluginInfo.PluginDesc = "Abstract inventory interface";
     pluginInfo.PluginId = "5C20963DFD87"; //{51038E5D-5948-47ab-9A2A-5C20963DFD87}
     pluginInfo.PluginIcon = WeXpmToStringList(iweInventory_xpm, sizeof(iweInventory_xpm) / sizeof(char*) );
 }
 
-iweInventory::~iweInventory(void)
+iInventory::~iInventory(void)
 {
 }
 
-void* iweInventory::GetInterface( const string& ifName )
+void* iInventory::GetInterface( const string& ifName )
 {
-    LOG4CXX_TRACE(logger, "iweInventory::GetInterface " << ifName);
-    if (iequals(ifName, "iweInventory"))
+    LOG4CXX_TRACE(logger, "iInventory::GetInterface " << ifName);
+    if (iequals(ifName, "iInventory"))
     {
-        LOG4CXX_DEBUG(logger, "iweInventory::GetInterface found!");
+        LOG4CXX_DEBUG(logger, "iInventory::GetInterface found!");
         usageCount++;
         return (void*)(this);
     }
-    return iwePlugin::GetInterface(ifName);
+    return iPlugin::GetInterface(ifName);
 }
 
-void iweInventory::ResponseDispatcher( iweResponse *resp, void* context )
+void iInventory::ResponseDispatcher( iResponse *resp, void* context )
 {
-    iweInventory* object = (iweInventory*)context;
+    iInventory* object = (iInventory*)context;
 //     if (object->ProcessResponse) {
         object->ProcessResponse(resp);
 //     }
 //     else
 //     {
-//         LOG4CXX_ERROR(object->logger, "iweInventory::ResponseDispatcher: invalid context, or abstract class - ProcessResponse == NULL");
+//         LOG4CXX_ERROR(object->logger, "iInventory::ResponseDispatcher: invalid context, or abstract class - ProcessResponse == NULL");
 //     }
 }
+
+} // namespace webEngine

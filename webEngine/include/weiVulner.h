@@ -18,20 +18,29 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#ifndef __WEIVULNER_H__
+#define __WEIVULNER_H__
+
 #include <weiPlugin.h>
 
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iweVulner
+/// @interface  iVulner
 ///
 /// @brief  Interface for the vulnerabilities plugins. 
 ///
 /// @author A. Abramov
 /// @date   19.08.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweVulner :
-    public iwePlugin
+class iVulner :
+    public iPlugin
 {
 public:
-    iweVulner(WeDispatch* krnl, void* handle = NULL);
-    virtual ~iweVulner(void);
+    iVulner(Dispatch* krnl, void* handle = NULL);
+    virtual ~iVulner(void);
 };
+
+} // namespace webEngine
+
+#endif //__WEIVULNER_H__

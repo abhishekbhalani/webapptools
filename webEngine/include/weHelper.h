@@ -37,44 +37,46 @@ also presented in this module.
 #include "weiTransport.h"
 #include "weHtmlEntity.h"
 
-typedef WeHtmlEntity* (*EntityFactory)(iweEntity* prnt);
-typedef iweTransport* (*TransportFactory)(WeDispatch* krnl);
+namespace webEngine {
+
+typedef HtmlEntity* (*fnEntityFactory)(iEntity* prnt);
+typedef iTransport* (*fnTransportFactory)(Dispatch* krnl);
 
 // typedef WeLinkedListElem<string, EntityFactory> WeHtmlFuncList;
 // typedef WeLinkedListElem<string, TransportFactory> WeTranspFuncList;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeHtmlFactory
+/// @class  HtmlFactory
 ///
-/// @brief  The WeHtmlEntity creator. 
+/// @brief  The HtmlEntity creator. 
 ///
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeHtmlFactory : public WeLinkedList<string, EntityFactory>
+class HtmlFactory : public LinkedList<string, fnEntityFactory>
 {
 public:
-    WeHtmlFactory();
+    HtmlFactory();
     void Init();
-    void Add(string name, EntityFactory func);
-    WeHtmlEntity* CreateEntity(string tagName, WeHtmlEntity* prnt);
+    void Add(string name, fnEntityFactory func);
+    HtmlEntity* CreateEntity(string tagName, HtmlEntity* prnt);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeTransportFactory
+/// @class  TransportFactory
 ///
-/// @brief  The iweTransport creator. 
+/// @brief  The iTransport creator. 
 ///
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeTransportFactory : public WeLinkedList<string, TransportFactory>
+class TransportFactory : public LinkedList<string, fnTransportFactory>
 {
 public:
-    WeTransportFactory();
+    TransportFactory();
     void Init();
-    void Add(string name, TransportFactory func);
-    iweTransport* CreateTransport(string tagName, WeDispatch* krnl);
+    void Add(string name, fnTransportFactory func);
+    iTransport* CreateTransport(string tagName, Dispatch* krnl);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,16 +101,18 @@ public:
     WeError(string const& msg)
         :	runtime_error(string("WebEngine error") + (msg.empty() ? "" : ": ") + msg)
     {
-        LOG4CXX_ERROR(WeLogger::GetLogger(), "WebEngine error" << (msg.empty() ? "" : ": ") << msg )
+        LOG4CXX_ERROR(iLogger::GetLogger(), "WebEngine error" << (msg.empty() ? "" : ": ") << msg )
     }
 };
 
-extern WeHtmlFactory  weHtmlFactory;
-extern WeTransportFactory weTransportFactory;
+extern HtmlFactory  weHtmlFactory;
+extern TransportFactory weTransportFactory;
 
-void WeLibInit(const string& config = "");
-void WeLibClose(void);
-string WeScreenXML(const string& xml);
-string WeUnscreenXML(const string& xml);
+void LibInit(const string& config = "");
+void LibClose(void);
+string ScreenXML(const string& xml);
+string UnscreenXML(const string& xml);
+
+} // namespace webEngine
 
 #endif //__WEHELPER_H__

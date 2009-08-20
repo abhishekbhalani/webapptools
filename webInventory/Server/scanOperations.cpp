@@ -51,10 +51,11 @@
 #endif
 
 namespace fs = boost::filesystem;
+using namespace webEngine;
 
-extern WeDispatch* globalDispatcher;
+extern Dispatch* globalDispatcher;
 
-void load_scan_list( vector<WeScan*>& scans_list, string criteria = "" )
+void load_scan_list( vector<ScanInfo*>& scans_list, string criteria = "" )
 {
     string report = "";
     int scans = 0;
@@ -65,9 +66,9 @@ void load_scan_list( vector<WeScan*>& scans_list, string criteria = "" )
         bool in_parsing = true;
         int parsing_level = 0;
         int xml_pos;
-        WeStrStream st(report.c_str());
-        WeTagScanner sc(st);
-        WeScan* scn;
+        StrStream st(report.c_str());
+        TagScanner sc(st);
+        ScanInfo* scn;
         string tag;
 
         while(in_parsing) {
@@ -76,11 +77,11 @@ void load_scan_list( vector<WeScan*>& scans_list, string criteria = "" )
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_scan_list - parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_scan_list - parsing error");
                 in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "load_scan_list - parsing EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "load_scan_list - parsing EOF");
                 in_parsing = false;
                 break;
             case wstTagStart:
@@ -95,14 +96,14 @@ void load_scan_list( vector<WeScan*>& scans_list, string criteria = "" )
                 }
                 if (parsing_level == 1) {
                     if (iequals(tag, "scan")) {
-                        scn = new WeScan();
+                        scn = new ScanInfo();
                         // go back to the start of the TAG
                         scn->FromXml(sc, t);
                         scans_list.push_back(scn);
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_scan_list - unexpected tag: " << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_scan_list - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:
@@ -119,12 +120,12 @@ void load_scan_list( vector<WeScan*>& scans_list, string criteria = "" )
     }
 }
 
-WeScan* load_scan( const string& id )
+ScanInfo* load_scan( const string& id )
 {
     string req;
     string report = "";
     int tasks = 0;
-    WeScan* tsk;
+    ScanInfo* tsk;
 
     req = "<report><scan value='" + id + "' /></report>";
     tasks = globalDispatcher->Storage()->ScanReport(req, report);
@@ -134,8 +135,8 @@ WeScan* load_scan( const string& id )
         bool in_parsing = true;
         int parsing_level = 0;
         int xml_pos;
-        WeStrStream st(report.c_str());
-        WeTagScanner sc(st);
+        StrStream st(report.c_str());
+        TagScanner sc(st);
         string tag;
 
         while(in_parsing) {
@@ -144,11 +145,11 @@ WeScan* load_scan( const string& id )
             switch(t)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_scan - parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_scan - parsing error");
                 in_parsing = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "load_scan - parsing EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "load_scan - parsing EOF");
                 in_parsing = false;
                 break;
             case wstTagStart:
@@ -162,7 +163,7 @@ WeScan* load_scan( const string& id )
                 }
                 if (parsing_level == 1) {
                     if (iequals(tag, "scan")) {
-                        tsk = new WeScan();
+                        tsk = new ScanInfo();
                         // go back to the start of the TAG
                         tsk->FromXml(sc, t);
                         // stop parsing - only first task need
@@ -170,7 +171,7 @@ WeScan* load_scan( const string& id )
                         break;
                     }
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "load_scan - unexpected tag: " << tag);
+                LOG4CXX_WARN(iLogger::GetLogger(), "load_scan - unexpected tag: " << tag);
                 in_parsing = false;
                 break;
             case wstTagEnd:
@@ -190,10 +191,10 @@ WeScan* load_scan( const string& id )
 
 ScanList* get_scan_list(const string& criteria/* = ""*/)
 {
-    vector<WeScan*>  scan_list;
+    vector<ScanInfo*>  scan_list;
     ScanList *lst = NULL;
-    ScanInfo *tsk = NULL;
-    WeOption    opt;
+    ScanInf *tsk = NULL;
+    wOption    opt;
     string sdata;
     size_t t;
 
@@ -201,7 +202,7 @@ ScanList* get_scan_list(const string& criteria/* = ""*/)
     lst = new ScanList;
     for(t = 0; t < scan_list.size(); t++)
     {
-        tsk = new ScanInfo;
+        tsk = new ScanInf;
 
         tsk->ScanId = scan_list[t]->scanID;
         tsk->ObjectId = scan_list[t]->objectID;

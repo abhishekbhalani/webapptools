@@ -23,13 +23,15 @@
 #include "weHTTP.h"
 #include "weOptions.h"
 
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHttpResponse::WeHttpResponse()
+/// @fn	HttpResponse::HttpResponse()
 ///
 /// @brief  Default constructor.
 /// @throw  WeError if curl_easy_init failed
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHttpResponse::WeHttpResponse() :
+HttpResponse::HttpResponse() :
 headers(": ", "[\\n\\r]+"), cookies("=", "; ")
 {
     curlHandle = NULL;
@@ -46,11 +48,11 @@ headers(": ", "[\\n\\r]+"), cookies("=", "; ")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHttpResponse::~WeHttpResponse()
+/// @fn	HttpResponse::~HttpResponse()
 ///
 /// @brief  Destructor. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHttpResponse::~WeHttpResponse()
+HttpResponse::~HttpResponse()
 {
     if (curlHandle != NULL) {
         curl_easy_cleanup(curlHandle);
@@ -60,13 +62,13 @@ WeHttpResponse::~WeHttpResponse()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn bool WeHttpResponse::CurlInit( void )
+/// @fn bool HttpResponse::CurlInit( void )
 ///
 /// @brief  CURL initialize. 
 ///
 /// @retval	true if it succeeds, false if it fails. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool WeHttpResponse::CurlInit( void )
+bool HttpResponse::CurlInit( void )
 {
     /// @todo reset handle without recreate connection
     if (curlHandle != NULL) {
@@ -82,27 +84,27 @@ bool WeHttpResponse::CurlInit( void )
     curl_easy_setopt(curlHandle, CURLOPT_ERRORBUFFER, errorBuff);
     curl_easy_setopt(curlHandle, CURLOPT_HTTP_TRANSFER_DECODING, 1);
     curl_easy_setopt(curlHandle, CURLOPT_PROXY, "");
-    curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, &WeHttpResponse::Receiver);
+    curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, &HttpResponse::Receiver);
     curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, this);
-    curl_easy_setopt(curlHandle, CURLOPT_HEADERFUNCTION, &WeHttpResponse::HeadersRecv);
+    curl_easy_setopt(curlHandle, CURLOPT_HEADERFUNCTION, &HttpResponse::HeadersRecv);
     curl_easy_setopt(curlHandle, CURLOPT_WRITEHEADER, this);
     return true;
 }
 
-void WeHttpResponse::CurlSetOpts(WeHttpRequest* req /*= NULL*/)
+void HttpResponse::CurlSetOpts(HttpRequest* req /*= NULL*/)
 {
     if (req != NULL) {
         /// @todo Sets the request options
         curl_easy_setopt(curlHandle, CURLOPT_URL, req->RequestUrl().ToString().c_str());
-        if (req->Method() == WeHttpRequest::wemGet) {
+        if (req->Method() == HttpRequest::wemGet) {
             curl_easy_setopt(curlHandle, CURLOPT_HTTPGET, 1);
         }
-        if (req->Method() == WeHttpRequest::wemPost) {
+        if (req->Method() == HttpRequest::wemPost) {
             curl_easy_setopt(curlHandle, CURLOPT_POST, 1);
             curl_easy_setopt(curlHandle, CURLOPT_POSTFIELDS, &(req->Data()[0]));
             curl_easy_setopt(curlHandle, CURLOPT_POSTFIELDSIZE, req->Data().size());
         }
-        if (req->Method() == WeHttpRequest::wemPut) {
+        if (req->Method() == HttpRequest::wemPut) {
             curl_easy_setopt(curlHandle, CURLOPT_UPLOAD, 1);
             curl_easy_setopt(curlHandle, CURLOPT_READDATA, &(req->Data()[0]));
             curl_easy_setopt(curlHandle, CURLOPT_INFILESIZE, req->Data().size());
@@ -115,7 +117,7 @@ void WeHttpResponse::CurlSetOpts(WeHttpRequest* req /*= NULL*/)
     }
 }
 
-void WeHttpResponse::Process(iweTransport* proc)
+void HttpResponse::Process(iTransport* proc)
 {
     char *st;
     double tminf;
@@ -152,7 +154,7 @@ void WeHttpResponse::Process(iweTransport* proc)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn size_t WeHttpResponse::Receiver( void *ptr,
+/// @fn size_t HttpResponse::Receiver( void *ptr,
 /// 	        size_t size, size_t nmemb, void *ourpointer )
 ///
 /// @brief  Receives the document body. 
@@ -160,23 +162,23 @@ void WeHttpResponse::Process(iweTransport* proc)
 /// @param  ptr			 - The pointer to received data.
 /// @param  size		 - The size of the data element. 
 /// @param  nmemb		 - The number of the elements in the data.
-/// @param  ourpointer	 - The pointer to the WeHttpResponse object, that receives data. 
+/// @param  ourpointer	 - The pointer to the HttpResponse object, that receives data. 
 ///
 /// @retval	amount of processed data 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t WeHttpResponse::Receiver( void *ptr, size_t size, size_t nmemb, void *ourpointer )
+size_t HttpResponse::Receiver( void *ptr, size_t size, size_t nmemb, void *ourpointer )
 {
     if (ourpointer == NULL)
         return 0;
 
-    WeHttpResponse* object = (WeHttpResponse*)ourpointer;
+    HttpResponse* object = (HttpResponse*)ourpointer;
     size_t last = object->data.size();
     object->data.insert(object->data.end(), (unsigned char*)ptr, (unsigned char*)ptr + (size * nmemb));
     return (object->data.size() - last);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn size_t WeHttpResponse::HeadersRecv( void *ptr,
+/// @fn size_t HttpResponse::HeadersRecv( void *ptr,
 /// 	        size_t size, size_t nmemb, void *ourpointer )
 ///
 /// @brief  Receives the document headers. 
@@ -184,18 +186,20 @@ size_t WeHttpResponse::Receiver( void *ptr, size_t size, size_t nmemb, void *our
 /// @param  ptr			 - The pointer to received data.
 /// @param  size		 - The size of the data element. 
 /// @param  nmemb		 - The number of the elements in the data.
-/// @param  ourpointer	 - The pointer to the WeHttpResponse object, that receives data. 
+/// @param  ourpointer	 - The pointer to the HttpResponse object, that receives data. 
 ///
 /// @retval	amount of processed data 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t WeHttpResponse::HeadersRecv( void *ptr, size_t size, size_t nmemb, void *ourpointer )
+size_t HttpResponse::HeadersRecv( void *ptr, size_t size, size_t nmemb, void *ourpointer )
 {
     if (ourpointer == NULL)
         return 0;
 
-    WeHttpResponse* object = (WeHttpResponse*)ourpointer;
+    HttpResponse* object = (HttpResponse*)ourpointer;
     size_t last = object->headData.size();
     object->headData.resize(last + (size * nmemb));
     memcpy(&(object->headData[last]), (unsigned char*)ptr, (size * nmemb));
     return (object->headData.size() - last);
 }
+
+} // namespace webEngine

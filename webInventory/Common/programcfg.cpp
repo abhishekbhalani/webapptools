@@ -27,6 +27,7 @@
 #include <fstream>
 
 namespace fs = boost::filesystem;
+using namespace webEngine;
 
 const string ProgramConfig::cfg_version = "0.1";
 
@@ -59,11 +60,11 @@ bool ProgramConfig::save_to_file( const string& filename )
     string result = "";
     map<string, string>::iterator obj;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "ProgramConfig::save_to_file " << filename);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "ProgramConfig::save_to_file " << filename);
     result  = "<program_config version='" + cfg_version + "'>\n";
     result += "  <port>" + boost::lexical_cast<string>(port) + "</port>\n";
-    result += "  <dbDir>" + WeScreenXML(dbDir) + "</dbDir>\n";
-    result += "  <storage>" + WeScreenXML(storageIface) + "</storage>\n";
+    result += "  <dbDir>" + ScreenXML(dbDir) + "</dbDir>\n";
+    result += "  <storage>" + ScreenXML(storageIface) + "</storage>\n";
     for (obj = options.begin(); obj != options.end(); obj++)
     {
         result += "  <plugin_setting plugin_cfg='" + obj->first + "'>";
@@ -76,11 +77,11 @@ bool ProgramConfig::save_to_file( const string& filename )
         ofstream ofs(filename.c_str());
         ofs << result;
         retval = true;
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "ProgramConfig::save_to_file - saved");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "ProgramConfig::save_to_file - saved");
     }
     catch(const std::exception& e)
     {
-        LOG4CXX_ERROR(WeLogger::GetLogger(), "ProgramConfig::save_to_file can't save " << filename << " : " << e.what());
+        LOG4CXX_ERROR(iLogger::GetLogger(), "ProgramConfig::save_to_file can't save " << filename << " : " << e.what());
         retval = false;
     }
 
@@ -93,7 +94,7 @@ bool ProgramConfig::load_from_file( const string& filename )
     string xml = "";
     size_t sz;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "ProgramConfig::load_from_file " << filename);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "ProgramConfig::load_from_file " << filename);
     try {
         sz = fs::file_size(filename);
         if (sz > 0) {
@@ -105,17 +106,17 @@ bool ProgramConfig::load_from_file( const string& filename )
             xml = content;
             delete content;
         }
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "ProgramConfig::load_from_file - file loaded");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "ProgramConfig::load_from_file - file loaded");
     }
     catch(const std::exception& e)
     {
-        LOG4CXX_ERROR(WeLogger::GetLogger(), "ProgramConfig::load_from_file can't read from " << filename << " : " << e.what());
+        LOG4CXX_ERROR(iLogger::GetLogger(), "ProgramConfig::load_from_file can't read from " << filename << " : " << e.what());
         retval = false;
     }
     if (retval)
     {
-        WeStrStream st(xml.c_str());
-        WeTagScanner sc(st);
+        StrStream st(xml.c_str());
+        TagScanner sc(st);
         size_t pos_last, pos;
         int parseLevel = 0;
         bool inParsing = true;
@@ -129,12 +130,12 @@ bool ProgramConfig::load_from_file( const string& filename )
             switch(token)
             {
             case wstError:
-                LOG4CXX_WARN(WeLogger::GetLogger(), "ProgramConfig::load_from_file parsing error");
+                LOG4CXX_WARN(iLogger::GetLogger(), "ProgramConfig::load_from_file parsing error");
                 inParsing = false;
                 retval = false;
                 break;
             case wstEof:
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "ProgramConfig::load_from_file - EOF");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "ProgramConfig::load_from_file - EOF");
                 inParsing = false;
                 break;
             case wstTagStart:
@@ -147,7 +148,7 @@ bool ProgramConfig::load_from_file( const string& filename )
                         dat = "";
                     }
                     else {
-                        LOG4CXX_WARN(WeLogger::GetLogger(), "ProgramConfig::load_from_file unexpected tagStart: " << name);
+                        LOG4CXX_WARN(iLogger::GetLogger(), "ProgramConfig::load_from_file unexpected tagStart: " << name);
                         retval = false;
                         inParsing = false;
                     }
@@ -195,7 +196,7 @@ bool ProgramConfig::load_from_file( const string& filename )
                     // skip all in plugin_setting
                     break;
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "ProgramConfig::load_from_file unexpected tagStart: " << name);
+                LOG4CXX_WARN(iLogger::GetLogger(), "ProgramConfig::load_from_file unexpected tagStart: " << name);
                 retval = false;
                 inParsing = false;
                 break;
@@ -210,7 +211,7 @@ bool ProgramConfig::load_from_file( const string& filename )
                         inParsing = false;
                     }
                     else {
-                        LOG4CXX_WARN(WeLogger::GetLogger(), "ProgramConfig::load_from_file unexpected wstTagEnd: " << name);
+                        LOG4CXX_WARN(iLogger::GetLogger(), "ProgramConfig::load_from_file unexpected wstTagEnd: " << name);
                         retval = false;
                         inParsing = false;
                     }
@@ -218,7 +219,7 @@ bool ProgramConfig::load_from_file( const string& filename )
                 }
                 if (parseLevel == 2)
                 {
-                    dat = WeUnscreenXML(dat);
+                    dat = UnscreenXML(dat);
                     if (iequals(name, "port"))
                     {
                         port = boost::lexical_cast<short>(dat);
@@ -247,21 +248,21 @@ bool ProgramConfig::load_from_file( const string& filename )
                     }
                     break;
                 }
-                LOG4CXX_WARN(WeLogger::GetLogger(), "ProgramConfig::load_from_file unexpected wstTagEnd: " << name);
+                LOG4CXX_WARN(iLogger::GetLogger(), "ProgramConfig::load_from_file unexpected wstTagEnd: " << name);
                 retval = false;
                 inParsing = false;
                 break;
             case wstAttr:
                 name = sc.GetAttrName();
                 val = sc.GetValue();
-                val = WeUnscreenXML(val);
+                val = UnscreenXML(val);
                 if (parseLevel == 1)
                 {
                     if (iequals(name, "version"))
                     {
                         if (cfg_version != val)
                         {
-                            LOG4CXX_WARN(WeLogger::GetLogger(), "ProgramConfig::load_from_file read file version " << val <<
+                            LOG4CXX_WARN(iLogger::GetLogger(), "ProgramConfig::load_from_file read file version " << val <<
                                 " to object version " << cfg_version);
                         }
                     }

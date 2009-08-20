@@ -23,60 +23,61 @@
 #include "weHTTP.h"
 #include "weHttp.xrc"
 
+namespace webEngine {
+
 #ifndef __DOXYGEN__
-string WeHTTP::protoName = "http";
+string HttpTransport::protoName = "http";
 #endif // __DOXYGEN__
 
 //////////////////////////////////////////////////////////////////////////
 // Transport creation functions
 //////////////////////////////////////////////////////////////////////////
-static iweTransport* weCreateHttp(WeDispatch* krnl)
+static iTransport* weCreateHttp(Dispatch* krnl)
 {
-    FUNCTION;
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeTransportFactory: create WeHTTP");
-    return new WeHTTP(krnl); //new WeHTTP();
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "TransportFactory: create HttpTransport");
+    return new HttpTransport(krnl); //new HttpTransport();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn WeHttpRequest::WeHttpRequest()
+/// @fn HttpRequest::HttpRequest()
 ///
 /// @brief  Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHttpRequest::WeHttpRequest()
+HttpRequest::HttpRequest()
 {
     /// @todo set appropriate proxy
     proxy = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn WeHttpRequest::WeHttpRequest( string url,
-///     weHttpMethod meth , WeHttpResponse* resp )
+/// @fn HttpRequest::HttpRequest( string url,
+///     weHttpMethod meth , HttpResponse* resp )
 ///
-/// @brief  Constructs the object from the previous WeHttpResponse.
+/// @brief  Constructs the object from the previous HttpResponse.
 /// @param	url	 - The url.
 /// @param	meth - The request method. Default - wemGet.
-/// @param	resp - If non-null, the WeHttpResponse, to create chained WeHttpRequest to.
-/// @throw  WeError if given URL is malformed and can't be reconstructed from the WeHttpResponse
+/// @param	resp - If non-null, the HttpResponse, to create chained HttpRequest to.
+/// @throw  WeError if given URL is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHttpRequest::WeHttpRequest( string url, WeHttpRequest::weHttpMethod meth /*= wemGet*/, WeHttpResponse* resp /*= NULL*/ )
+HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*/, HttpResponse* resp /*= NULL*/ )
 {
     /// @todo set appropriate proxy
     proxy = NULL;
     method = meth;
     RequestUrl(url, resp);
     /// @todo Implement this!
-    LOG4CXX_WARN(WeLogger::GetLogger(), "WeHttpRequest::WeHttpRequest(string, weHttpMethod, WeHttpResponse*) - Not implemented");
+    LOG4CXX_WARN(iLogger::GetLogger(), "HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented");
 }
 
-void WeHttpRequest::RequestUrl( const string &ReqUrl, iweOperation* resp /*= NULL*/ )
+void HttpRequest::RequestUrl( const string &ReqUrl, iOperation* resp /*= NULL*/ )
 {
-    WeURL   weurl;
+    URL   weurl;
 
     weurl = ReqUrl;
     return RequestUrl(weurl, resp);
 }
 
-void WeHttpRequest::RequestUrl( const WeURL &ReqUrl, iweOperation* resp /*= NULL*/ )
+void HttpRequest::RequestUrl( const URL &ReqUrl, iOperation* resp /*= NULL*/ )
 {
     reqUrl = ReqUrl;
     if (resp != NULL) {
@@ -84,20 +85,20 @@ void WeHttpRequest::RequestUrl( const WeURL &ReqUrl, iweOperation* resp /*= NULL
     }
 }
 
-void WeHttpRequest::ComposePost( int method /*= composeOverwrite*/ )
+void HttpRequest::ComposePost( int method /*= composeOverwrite*/ )
 {
     if (method == wemPost || method == wemPut) {
         /// @todo Compose POST data
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHTTP::WeHTTP()
+/// @fn	HttpTransport::HttpTransport()
 ///
 /// @brief  Default constructor.
 /// @throw  WeError if the curl initialization failed
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHTTP::WeHTTP(WeDispatch* krnl, void* handle /*= NULL*/) :
-    iweTransport(krnl, handle)
+HttpTransport::HttpTransport(Dispatch* krnl, void* handle /*= NULL*/) :
+    iTransport(krnl, handle)
 {
     transferHandle = curl_multi_init();
     if (transferHandle == NULL) {
@@ -105,26 +106,26 @@ WeHTTP::WeHTTP(WeDispatch* krnl, void* handle /*= NULL*/) :
     }
     responces.clear();
     // iwePlugin structure
-    pluginInfo.IfaceName = "WeHTTP";
-    pluginInfo.IfaceList.push_back("WeHTTP");
+    pluginInfo.IfaceName = "HttpTransport";
+    pluginInfo.IfaceList.push_back("HttpTransport");
     pluginInfo.PluginDesc = "HTTP transport interface";
     pluginInfo.PluginId = "A44A9A1E7C25";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHTTP::~WeHTTP()
+/// @fn	HttpTransport::~HttpTransport()
 ///
 /// @brief  Destructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHTTP::~WeHTTP()
+HttpTransport::~HttpTransport()
 {
-    WeResponseList::iterator hnd;
-    WeHttpResponse* point;
+    ResponseList::iterator hnd;
+    HttpResponse* point;
 
     if (transferHandle != NULL) {
         for (hnd = responces.begin(); hnd != responces.end(); hnd++) {
             try {
-                point = dynamic_cast<WeHttpResponse*>(*hnd);
+                point = dynamic_cast<HttpResponse*>(*hnd);
                 curl_multi_remove_handle(transferHandle, point->CURLHandle());
                 delete point;
             }
@@ -134,36 +135,36 @@ WeHTTP::~WeHTTP()
     }
 }
 
-void* WeHTTP::GetInterface( const string& ifName )
+void* HttpTransport::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "WeHTTP"))
+    if (iequals(ifName, "HttpTransport"))
     {
         usageCount++;
         return (void*)(this);
     }
-    if (iequals(ifName, "iweTransport"))
+    if (iequals(ifName, "iTransport"))
     {
         usageCount++;
-        return (void*)((iweTransport*)this);
+        return (void*)((iTransport*)this);
     }
-    return iweTransport::GetInterface(ifName);
+    return iTransport::GetInterface(ifName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn iweResponse* WeHTTP::Request( iweRequest* req,
-///     iweResponse* resp )
+/// @fn iResponse* HttpTransport::Request( iRequest* req,
+///     iResponse* resp )
 ///
 /// @brief  Requests.
 ///
 /// @param  req  - If non-null, the HTTP request.
-/// @param  resp - If non-null, the HTTP response to store results, else - the new WeHttpResponse
+/// @param  resp - If non-null, the HTTP response to store results, else - the new HttpResponse
 ///                will be creaded.
-/// @retval	null if it fails, pointer to the WeHttpResponse else.
+/// @retval	null if it fails, pointer to the HttpResponse else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iweResponse* WeHTTP::Request( iweRequest* req, iweResponse* resp /*= NULL*/ )
+iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
 {
-    WeHttpResponse* retval;
-    WeOption opt;
+    HttpResponse* retval;
+    wOption opt;
     int portNum;
 
     if (!req->RequestUrl().IsValid()) {
@@ -183,7 +184,7 @@ iweResponse* WeHTTP::Request( iweRequest* req, iweResponse* resp /*= NULL*/ )
             req->RequestUrl().port = portNum;
         }
     }
-    LOG4CXX_DEBUG(WeLogger::GetLogger(), "WeHTTP::Request: url=" << req->RequestUrl().ToString());
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "HttpTransport::Request: url=" << req->RequestUrl().ToString());
 
     if (!req->RequestUrl().IsValid()) {
         // bad luck! still not valid request... :(
@@ -191,12 +192,12 @@ iweResponse* WeHTTP::Request( iweRequest* req, iweResponse* resp /*= NULL*/ )
     }
 
     if (resp == NULL) {
-        retval = new WeHttpResponse();
+        retval = new HttpResponse();
         retval->BaseUrl(req->RequestUrl());
         retval->RelocCount(0);
     }
     else {
-        retval = dynamic_cast<WeHttpResponse*>(resp);
+        retval = dynamic_cast<HttpResponse*>(resp);
         if (!retval->BaseUrl().IsValid()) {
             retval->BaseUrl(req->RequestUrl());
         }
@@ -207,7 +208,7 @@ iweResponse* WeHTTP::Request( iweRequest* req, iweResponse* resp /*= NULL*/ )
     }
 
     try {
-        WeHttpRequest* r = dynamic_cast<WeHttpRequest*>(req);
+        HttpRequest* r = dynamic_cast<HttpRequest*>(req);
         retval->CurlSetOpts(r);
     }
     catch (...) {}; // just skip
@@ -219,25 +220,25 @@ iweResponse* WeHTTP::Request( iweRequest* req, iweResponse* resp /*= NULL*/ )
         curl_multi_add_handle(transferHandle, retval->CURLHandle());
         ProcessRequests();
     }
-    return (iweResponse*)retval;
+    return (iResponse*)retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn iweResponse* WeHTTP::Request( string url,
-///     iweResponse* resp )
+/// @fn iResponse* HttpTransport::Request( string url,
+///     iResponse* resp )
 ///
 /// @brief  Requests.
 /// @param	url	 - The url.
 /// @param	resp - If non-null, the resp.
-/// @retval	null if it fails, pointer to the WeHttpResponse else.
-/// @throw  WeError if given URL is malformed and can't be reconstructed from the WeHttpResponse
+/// @retval	null if it fails, pointer to the HttpResponse else.
+/// @throw  WeError if given URL is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iweResponse* WeHTTP::Request( string url, iweResponse* resp /*= NULL*/ )
+iResponse* HttpTransport::Request( string url, iResponse* resp /*= NULL*/ )
 {
-    WeHttpRequest* req = new WeHttpRequest;
+    HttpRequest* req = new HttpRequest;
 
     if (req == NULL) {
-        throw WeError(string("Can't create WeHttpRequest! ") + __FILE__ + boost::lexical_cast<std::string>(__LINE__));
+        throw WeError(string("Can't create HttpRequest! ") + __FILE__ + boost::lexical_cast<std::string>(__LINE__));
         return NULL;
     }
     req->RequestUrl(url, resp);
@@ -246,40 +247,40 @@ iweResponse* WeHTTP::Request( string url, iweResponse* resp /*= NULL*/ )
             req->RequestUrl().Restore(url, &(resp->RealUrl()));
         }
     }
-    req->Method(WeHttpRequest::wemGet);
+    req->Method(HttpRequest::wemGet);
     return Request(req, resp);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn iweResponse* WeHTTP::Request( WeURL& url,
-///     iweResponse* resp )
+/// @fn iResponse* HttpTransport::Request( URL& url,
+///     iResponse* resp )
 ///
 /// @brief  Requests.
 /// @param	url	 - The url.
 /// @param	resp - If non-null, the resp.
-/// @retval	null if it fails, pointer to the WeHttpResponse else.
-/// @throw  WeError if given URL is malformed and can't be reconstructed from the WeHttpResponse
+/// @retval	null if it fails, pointer to the HttpResponse else.
+/// @throw  WeError if given URL is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iweResponse* WeHTTP::Request( WeURL& url, iweResponse* resp /*= NULL*/ )
+iResponse* HttpTransport::Request( URL& url, iResponse* resp /*= NULL*/ )
 {
-    WeHttpRequest* req = new WeHttpRequest;
+    HttpRequest* req = new HttpRequest;
 
     if (req == NULL) {
-        throw WeError(string("Can't create WeHttpRequest! ") + __FILE__ + boost::lexical_cast<std::string>(__LINE__));
+        throw WeError(string("Can't create HttpRequest! ") + __FILE__ + boost::lexical_cast<std::string>(__LINE__));
         return NULL;
     }
     req->RequestUrl(url, resp);
-    req->Method(WeHttpRequest::wemGet);
+    req->Method(HttpRequest::wemGet);
     return Request(req, resp);
 }
 
-const int WeHTTP::ProcessRequests( void )
+const int HttpTransport::ProcessRequests( void )
 {
     int running_handles;
     int msgs_in_queue;
     CURLMsg *cmsg;
-    WeResponseList::iterator hnd;
-    WeHttpResponse* resp;
+    ResponseList::iterator hnd;
+    HttpResponse* resp;
 
     if (transferHandle != NULL) {
         lastError = curl_multi_perform(transferHandle, &running_handles);
@@ -296,7 +297,7 @@ const int WeHTTP::ProcessRequests( void )
                 // find the response
                 for (hnd = responces.begin(); hnd != responces.end();) {
                     try {
-                        resp = dynamic_cast<WeHttpResponse*>(*hnd);
+                        resp = dynamic_cast<HttpResponse*>(*hnd);
                         if ( resp->CURLHandle() == cmsg->easy_handle) {
                             responces.erase(hnd);
                             hnd = responces.begin();
@@ -319,12 +320,14 @@ const int WeHTTP::ProcessRequests( void )
     return lastError;
 }
 
-void WeHTTP::Register( WeTransportFactory* factory )
+void HttpTransport::Register( TransportFactory* factory )
 {
     factory->Add(protoName, weCreateHttp);
 }
 
-const string WeHTTP::GetSetupUI( void )
+const string HttpTransport::GetSetupUI( void )
 {
     return xrc;
 }
+
+} // namespace webEngine

@@ -63,7 +63,7 @@ private:
 
 typedef vector<TaskRecord> TaskList;
 
-class PluginInfo
+class PluginInf
 {
 public:
     string  PluginId;
@@ -86,9 +86,9 @@ private:
     };
 };
 
-typedef vector<PluginInfo> PluginList;
+typedef vector<::PluginInf> PluginList;
 
-class ScanInfo
+class ScanInf
 {
 public:
     string  ScanId;
@@ -109,9 +109,9 @@ private:
     };
 };
 
-typedef vector<ScanInfo> ScanList;
+typedef vector<ScanInf> ScanList;
 
-class ObjectInfo
+class ObjectInf
 {
 public:
     string  ObjectId;
@@ -128,9 +128,9 @@ private:
     };
 };
 
-typedef vector<ObjectInfo> ObjectList;
+typedef vector<ObjectInf> ObjectList;
 
-class ProfileInfo
+class ProfileInf
 {
 public:
     string  ObjectId;
@@ -145,6 +145,6 @@ private:
     };
 };
 
-typedef vector<ProfileInfo> ProfileList;
+typedef vector<ProfileInf> ProfileList;
 
 #endif //__MESSAGES_H__

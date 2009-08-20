@@ -31,53 +31,55 @@
 
 using namespace std;
 
-class iweTransport;
-class iweResponse;
+namespace webEngine {
 
-class iweEntity;
-class iweDocument;
-typedef vector<iweEntity*> WeEntityList;
+class iTransport;
+class iResponse;
+
+class iEntity;
+class iDocument;
+typedef vector<iEntity*> EntityList;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iweEntity
+/// @interface  iEntity
 ///
 /// @brief  Processing Entity interface. 
 ///
 /// @author A. Abramov
 /// @date   08.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweEntity
+class iEntity
 {
 public:
-    virtual ~iweEntity() { ClearChildren(); };
+    virtual ~iEntity() { ClearChildren(); };
 
     virtual const string Attr(string);
     virtual void Attr(string, string);
     void ClearAttr(void)    { attributes.clear(); };        ///< Clears all attributes
 
-    virtual iweEntity* Child(string type);
-    virtual iweEntity* Child(int idx);
-    virtual WeEntityList& Children() { return chldList; };  ///< Direct access to the children collection
+    virtual iEntity* Child(string type);
+    virtual iEntity* Child(int idx);
+    virtual EntityList& Children() { return chldList; };  ///< Direct access to the children collection
     void ClearChildren(void);
 
     virtual const string &InnerText(void) = 0;
     virtual const string &OuterText(void) = 0;
 
-    iweEntity* FindID(string id);
-    WeEntityList& FindTags(string tag);
+    iEntity* FindID(string id);
+    EntityList& FindTags(string tag);
 
-    virtual WeScannerToken Parse(string tagName, WeTagScanner& scanner, iweTransport* processor = NULL) { return wstError; };
+    virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL) { return wstError; };
 
-    virtual WeCmpResults* Diff(iweEntity& cmp, weCmpMode mode = weCmpDefault) = 0;
-    virtual weCmpState Compare(iweEntity& cmp, weCmpMode mode = weCmpDefault) = 0;
-    virtual bool operator==(iweEntity& cmp) { return (Compare(cmp) == weCmpEqual); };
+    virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode = weCmpDefault) = 0;
+    virtual weCmpState Compare(iEntity& cmp, weCmpMode mode = weCmpDefault) = 0;
+    virtual bool operator==(iEntity& cmp) { return (Compare(cmp) == weCmpEqual); };
 
-    iweDocument* GetRootDocument(void);
+    iDocument* GetRootDocument(void);
 
     //@{
     /// @brief Access the Parent
-    const iweEntity* Parent(void) const	{ return(parent);   };
-    void Parent(iweEntity* prnt)  { parent = prnt;    };
+    const iEntity* Parent(void) const	{ return(parent);   };
+    void Parent(iEntity* prnt)  { parent = prnt;    };
     //}
 
     //@{
@@ -112,9 +114,9 @@ protected:
 
 #ifndef __DOXYGEN__
 protected:
-    iweEntity*      parent;
-    WeAttrMap       attributes;
-    WeEntityList    chldList;
+    iEntity*      parent;
+    AttrMap       attributes;
+    EntityList    chldList;
     string          entityName;
     string          m_entityId;
     static weCmpMode compareMode;
@@ -123,17 +125,19 @@ protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface	iweDocument
+/// @interface	iDocument
 ///
 /// @brief  Parsing results document. 
 ///
 /// @author A. Abramov
 /// @date   08.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweDocument : virtual public iweEntity
+class iDocument : virtual public iEntity
 {
-    virtual bool ParseData(iweResponse* resp, iweTransport* processor = NULL) = 0;
-    virtual WeBlob& Data(void) = 0;
+    virtual bool ParseData(iResponse* resp, iTransport* processor = NULL) = 0;
+    virtual Blob& Data(void) = 0;
 };
+
+} // namespace webEngine
 
 #endif //__WEIDOCUMENT_H__

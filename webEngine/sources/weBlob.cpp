@@ -20,8 +20,10 @@
 #include <iostream>
 #include "weBlob.h"
 
+using namespace webEngine;
+
 // Read BLOB data from a stream.
-bool WeBlob::read(istream& file)
+bool Blob::read(istream& file)
 {
     if (file.bad())
     {
@@ -40,7 +42,7 @@ bool WeBlob::read(istream& file)
 }
 
 // Write BLOB data to the stream.
-bool WeBlob::write(ostream& file)
+bool Blob::write(ostream& file)
 {
     size_t cb = size();
     file.write((const char*)&cb, 4);
@@ -53,12 +55,12 @@ bool WeBlob::write(ostream& file)
 }
 
 template<class Archive>
-void WeBlob::serialize(Archive &ar, const unsigned int version)
+void Blob::serialize(Archive &ar, const unsigned int version)
 {
 //    ar & (std::vector*)this;
 }
 
-WeInStream* WeBlob::stream()
+InStream* Blob::stream()
 {
-    return new WeBlobStream(*this);
+    return new BlobStream(*this);
 }

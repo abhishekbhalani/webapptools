@@ -41,7 +41,7 @@ extern string get_task_opts (const string& id);
 extern bool set_task_opts (const string& xml);
 
 extern ObjectList* get_object_list(const string& criteria = "");
-extern string update_object(ObjectInfo& obj);
+extern string update_object(ObjectInf& obj);
 extern bool del_object(const string& id);
 
 extern string get_profile_opts (const string& id);

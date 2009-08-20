@@ -23,33 +23,35 @@
 
 using namespace boost;
 
-WeStringLinks::WeStringLinks( string sep /*= "="*/, string delim /*= "\n\r"*/ ) :
-    WeLinkedList<string, string>()
+namespace webEngine {
+
+StringLinks::StringLinks( string sep /*= "="*/, string delim /*= "\n\r"*/ ) :
+    LinkedList<string, string>()
 {
     separator = sep;
     delimiter = delim;
 }
 
-WeStringLinks::WeStringLinks( WeStringLinks& lst )
+StringLinks::StringLinks( StringLinks& lst )
 {
-    WeLinkedString  *obj;
+    LinkedString  *obj;
 
     data = NULL;
     curr = NULL;
     separator = lst.separator;
     delimiter = lst.delimiter;
     obj = lst.First();
-    data = new WeLinkedString(*obj);
+    data = new LinkedString(*obj);
     curr = data;
     obj = lst++;
     while (obj != NULL) {
-        curr->Add(new WeLinkedString(*obj));
+        curr->Add(new LinkedString(*obj));
         curr = curr->Next();
         obj = lst++;
     }
 }
 
-void WeStringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/ )
+void StringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/ )
 {
     string process;
     string head;
@@ -96,9 +98,9 @@ void WeStringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""
     }
 }
 
-string& WeStringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
+string& StringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
 {
-    WeLinkedString* elem = data;
+    LinkedString* elem = data;
     string *retval = new string("");
 
     if (delim.empty()) {
@@ -116,3 +118,5 @@ string& WeStringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
     }
     return *retval;
 }
+
+} // namespace webEngine

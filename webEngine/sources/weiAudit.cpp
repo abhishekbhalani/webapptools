@@ -20,11 +20,15 @@
 
 #include <weiAudit.h>
 
-iweAudit::iweAudit(WeDispatch* krnl, void* handle /*= NULL*/) :
-    iwePlugin(krnl, handle)
+namespace webEngine {
+
+iAudit::iAudit(Dispatch* krnl, void* handle /*= NULL*/) :
+    iPlugin(krnl, handle)
 {
 }
 
-iweAudit::~iweAudit(void)
+iAudit::~iAudit(void)
 {
 }
+
+} // namespace webEngine

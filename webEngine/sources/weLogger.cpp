@@ -19,4 +19,4 @@
 */
 #include "weLogger.h"
 
-log4cxx::LoggerPtr	WeLogger::m_logger = log4cxx::Logger::getLogger("webEngine");
+log4cxx::LoggerPtr	webEngine::iLogger::m_logger = log4cxx::Logger::getLogger("webEngine");

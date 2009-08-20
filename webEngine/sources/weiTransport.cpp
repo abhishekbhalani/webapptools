@@ -22,7 +22,9 @@
 #include "weHelper.h"
 #include "iweTransport.xpm"
 
-iweTransport* WeCreateNamedTransport( string name, WeDispatch* krnl )
+using namespace webEngine;
+
+iTransport* WeCreateNamedTransport( string name, Dispatch* krnl )
 {
     return weTransportFactory.CreateTransport(name, krnl);
 }
@@ -30,24 +32,24 @@ iweTransport* WeCreateNamedTransport( string name, WeDispatch* krnl )
 //////////////////////////////////////////////////////////////////////////
 //             i w e T r a n s p o r t    c l a s s
 //////////////////////////////////////////////////////////////////////////
-iweTransport::iweTransport(WeDispatch* krnl, void* handle /*= NULL*/ ) :
-    iwePlugin(krnl, handle)
+iTransport::iTransport(Dispatch* krnl, void* handle /*= NULL*/ ) :
+    iPlugin(krnl, handle)
 {
     parent = NULL;
     relocCount = 0;
     siteDepth = 0;
     responces.clear();
-    // iwePlugin structure
-    pluginInfo.IfaceName = "iweTransport";
-    pluginInfo.IfaceList.push_back("iweTransport");
+    // iPlugin structure
+    pluginInfo.IfaceName = "iTransport";
+    pluginInfo.IfaceList.push_back("iTransport");
     pluginInfo.PluginDesc = "Abstract transport interface";
     pluginInfo.PluginId = "14826EDC8653";
     pluginInfo.PluginIcon = WeXpmToStringList(iweTransport_xpm, sizeof(iweTransport_xpm) / sizeof(char*) );
 }
 
-WeOption& iweTransport::Option(const  string& name )
+wOption& iTransport::Option(const  string& name )
 {
-    WeOptions::iterator it;
+    wOptions::iterator it;
 
     it = options.find(name);
     if (it != options.end()) {
@@ -58,14 +60,14 @@ WeOption& iweTransport::Option(const  string& name )
         return parent->Option(name);
     }
 
-    return *(new WeOption);
+    return *(new wOption);
 }
 
-bool iweTransport::IsSet(const  string& name )
+bool iTransport::IsSet(const  string& name )
 {
     bool retval = false;
-    WeOptions::iterator it;
-    WeOption* opt;
+    wOptions::iterator it;
+    wOption* opt;
 
     try
     {
@@ -89,10 +91,10 @@ bool iweTransport::IsSet(const  string& name )
     return retval;
 }
 
-void iweTransport::Option(const  string& name, WeOptionVal val )
+void iTransport::Option(const  string& name, wOptionVal val )
 {
-    WeOptions::iterator it;
-    WeOption* opt;
+    wOptions::iterator it;
+    wOption* opt;
 
     it = options.find(name);
     if (it != options.end())
@@ -101,27 +103,27 @@ void iweTransport::Option(const  string& name, WeOptionVal val )
         opt->SetValue(val);
     }
     else {
-        opt = new WeOption();
+        opt = new wOption();
         opt->Name(name);
         opt->SetValue(val);
         options[name] = opt;
     }
 }
 
-void* iweTransport::GetInterface( const string& ifName )
+void* iTransport::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "iweTransport"))
+    if (iequals(ifName, "iTransport"))
     {
         usageCount++;
-        return (void*)((iweTransport*)this);
+        return (void*)((iTransport*)this);
     }
-    return iwePlugin::GetInterface(ifName);
+    return iPlugin::GetInterface(ifName);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //              i w e O p e r a t i o n    c l a s s
 //////////////////////////////////////////////////////////////////////////
-iweOperation::~iweOperation()
+iOperation::~iOperation()
 {
     vector<iweOperationPtr*>::iterator it;
 
@@ -131,7 +133,7 @@ iweOperation::~iweOperation()
     children.clear();
 }
 
-void iweOperation::AddChild( iweOperationPtr* chld )
+void iOperation::AddChild( iweOperationPtr* chld )
 {
     vector<iweOperationPtr*>::iterator it;
 
@@ -142,7 +144,7 @@ void iweOperation::AddChild( iweOperationPtr* chld )
     (*chld)->previous = this;
 }
 
-void iweOperation::RemoveChild( iweOperationPtr* chld )
+void iOperation::RemoveChild( iweOperationPtr* chld )
 {
     vector<iweOperationPtr*>::iterator it;
 

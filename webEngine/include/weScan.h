@@ -24,16 +24,18 @@
 
 using namespace boost;
 
-class WeScanData;
+namespace webEngine {
 
-class WeScan
+class ScanData;
+
+class ScanInfo
 {
 public:
     enum weScanStatus {
         ScanStatusMask = 0xFFFFFFFF
     };
-    WeScan();
-    ~WeScan();
+    ScanInfo();
+    ~ScanInfo();
 
     static const weScanStatus weScanIdle     = (weScanStatus)0x0000;
     static const weScanStatus weScanRunning  = (weScanStatus)0x0001;
@@ -50,20 +52,20 @@ public:
     posix_time::ptime pingTime;
     weScanStatus      status;  
 
-    void push_back(WeScanData* elem) { scan_data.push_back(elem);}
+    void push_back(ScanData* elem) { scan_data.push_back(elem);}
 
     string ToXml( void );
     void FromXml( string input );
-    void FromXml( WeTagScanner& sc, int token = -1 );
+    void FromXml( TagScanner& sc, int token = -1 );
 
-    WeScanData* GetScanData(const string& baseUrl, const string& realUrl);
-    void SetScanData(WeScanData* scData);
+    ScanData* GetScanData(const string& baseUrl, const string& realUrl);
+    void SetScanData(ScanData* scData);
 
 protected:
-    vector<WeScanData*> scan_data;
+    vector<ScanData*> scan_data;
 };
 
-class WeScanData
+class ScanData
 {
 public:
     string  dataID;
@@ -77,6 +79,9 @@ public:
 
     string ToXml( void );
     void FromXml( string input );
-    void FromXml( WeTagScanner& sc, int token = -1 );
+    void FromXml( TagScanner& sc, int token = -1 );
 };
+
+} // namespace webEngine
+
 #endif //__WESCAN_H__

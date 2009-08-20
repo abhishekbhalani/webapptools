@@ -17,22 +17,23 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "externals/shared_object.hpp"
 #include "weiBase.h"
 #include "weHTTP.h"
 #include "weHttpInvent.h"
 #include "weDispatch.h"
-#include "externals/shared_object.hpp"
 
 using namespace boost::filesystem;
+using namespace webEngine;
 
 #ifndef __DOXYGEN__
-static const WeOption empty_option("_empty_");
+static const wOption empty_option("_empty_");
 #endif //__DOXYGEN_ _
 
-static WeStringList FindFiles ( path baseDir)
+static StringList FindFiles ( path baseDir)
 {
-    WeStringList files;
-    WeStringList subs;
+    StringList files;
+    StringList subs;
 
     files.clear();
     if ( exists( baseDir ) ) {
@@ -55,44 +56,44 @@ static WeStringList FindFiles ( path baseDir)
     return files;
 }
 
-WeNullStorage::WeNullStorage( WeDispatch* krnl, void* handle /*= NULL*/ ) :
-    iweStorage(krnl, handle)
+NullStorage::NullStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
+    iStorage(krnl, handle)
 {
-    pluginInfo.IfaceName = "WeNullStorage";
-    pluginInfo.IfaceList.push_back("WeNullStorage");
+    pluginInfo.IfaceName = "NullStorage";
+    pluginInfo.IfaceList.push_back("NullStorage");
     pluginInfo.PluginDesc = "Placeholder storage";
     pluginInfo.PluginId = "7CB7A5F18348";
 }
 
-WeNullStorage::~WeNullStorage()
+NullStorage::~NullStorage()
 {
 }
 
-void* WeNullStorage::GetInterface( const string& ifName )
+void* NullStorage::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "iweStorage"))
+    if (iequals(ifName, "iStorage"))
     {
         usageCount++;
-        return (void*)((iweStorage*)this);
+        return (void*)((iStorage*)this);
     }
-    if (iequals(ifName, "WeNullStorage"))
+    if (iequals(ifName, "NullStorage"))
     {
         usageCount++;
-        return (void*)((WeNullStorage*)this);
+        return (void*)((NullStorage*)this);
     }
-    return iweStorage::GetInterface(ifName);
+    return iStorage::GetInterface(ifName);
 }
 
 //////////////////////////////////////////////////////////////////////////
-// WeDispatch class
+// Dispatch class
 //////////////////////////////////////////////////////////////////////////
-WeDispatch::WeDispatch(void)
+Dispatch::Dispatch(void)
 {
-    storage = new WeNullStorage(this);
+    storage = new NullStorage(this);
     pluginList.clear();
 }
 
-WeDispatch::~WeDispatch(void)
+Dispatch::~Dispatch(void)
 {
     if (storage != NULL)
     {
@@ -102,111 +103,27 @@ WeDispatch::~WeDispatch(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeOption& WeDispatch::Option(const string& name )
-///
-/// @brief	Returns the Option with given name or empty option.
-///
-/// @param  name - The option name.
-///
-/// @retval WeOption.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-WeOption& WeDispatch::Option(const  string& name )
-{
-    WeOptions::iterator it;
-
-    FUNCTION;
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::Option(" << name << ")");
-    it = options.find(name);
-    if (it != options.end())
-    {
-        return *(it->second);
-    }
-    return *((WeOption*)&empty_option);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void WeDispatch::Option(const string& name,
-/// 	WeOptionVal val)
-///
-/// @brief  Sets the value of the options with given name.
-///
-/// @param  name - The option name.
-/// @param  val	 - The option value.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeDispatch::Option(const string& name, WeOptionVal val)
-{
-    WeOptions::iterator it;
-    WeOption* opt;
-
-    FUNCTION;
-    it = options.find(name);
-    if (it != options.end())
-    {
-        opt = it->second;
-        opt->SetValue(val);
-    }
-    else {
-        opt = new WeOption();
-        opt->Name(name);
-        opt->SetValue(val);
-        options[name] = opt;
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	bool WeDispatch::IsSet(const string& name )
-///
-/// @brief	Query if bool options 'name' is set to true.
-///
-/// @param	name - The option name.
-///
-/// @retval	true if set, false if not.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-bool WeDispatch::IsSet(const string& name )
-{
-    WeOptions::iterator it;
-    WeOption* opt;
-    bool retval = false;
-
-    FUNCTION;
-    it = options.find(name);
-    if (it != options.end())
-    {
-        opt = it->second;
-        try
-        {
-            opt->GetValue(retval);
-        }
-        catch (...)
-        {
-            retval = false;
-        }
-    }
-    return retval;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void WeDispatch::RefreshPluginList( void )
+/// @fn void Dispatch::RefreshPluginList( void )
 ///
 /// @brief  Refresh plugin list. Rebuilds list of the available plugins even embedded or external
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeDispatch::RefreshPluginList( boost::filesystem::path& baseDir )
+void Dispatch::RefreshPluginList( boost::filesystem::path& baseDir )
 {
-    WePluginInfo *info;
-    iwePlugin *plg;
+    PluginInfo *info;
+    iPlugin *plg;
 
     pluginList.clear();
 
-    WeMemStorage memStore(this);
-    pluginList.push_back(*(WePluginInfo*)memStore.Info());
-    WeHTTP httpTrans(this);
-    pluginList.push_back(*(WePluginInfo*)httpTrans.Info());
-    WeHttpInvent httpInvent(this);
-    pluginList.push_back(*(WePluginInfo*)httpInvent.Info());
+    MemStorage memStore(this);
+    pluginList.push_back(*(PluginInfo*)memStore.Info());
+    HttpTransport httpTrans(this);
+    pluginList.push_back(*(PluginInfo*)httpTrans.Info());
+    HttpInventory httpInvent(this);
+    pluginList.push_back(*(PluginInfo*)httpInvent.Info());
 
     // search for dynamic libraries with plugin interface
-    WeStringList files = FindFiles(baseDir.string());
-    WeStringList::iterator fl;
+    StringList files = FindFiles(baseDir.string());
+    StringList::iterator fl;
     for (fl = files.begin(); fl != files.end(); fl++)
     {
         // load library, get info, free library
@@ -215,31 +132,31 @@ void WeDispatch::RefreshPluginList( boost::filesystem::path& baseDir )
             dyn::shared_object so((*fl).c_str());
             fnWePluginFactory ptr = NULL;
             so.get_symbol("WePluginFactory", ptr);
-            plg = (iwePlugin*)ptr(this, NULL); // not need to store SO link
+            plg = (iPlugin*)ptr(this, NULL); // not need to store SO link
             if (plg != NULL)
             {
-                info = (WePluginInfo*)plg->Info();
+                info = (PluginInfo*)plg->Info();
                 info->PluginPath = *fl;
                 pluginList.push_back(*info);
-                LOG4CXX_INFO(WeLogger::GetLogger(), "WeDispatch::RefreshPluginList: loaded plugin " << *fl);
-                LOG4CXX_TRACE(WeLogger::GetLogger(), ">>>> ID=" << info->PluginId << "; Desc=" << info->PluginDesc);
+                LOG4CXX_INFO(iLogger::GetLogger(), "Dispatch::RefreshPluginList: loaded plugin " << *fl);
+                LOG4CXX_TRACE(iLogger::GetLogger(), ">>>> ID=" << info->PluginId << "; Desc=" << info->PluginDesc);
                 plg->Release();
                 plg = NULL;
             }
             else {
-                LOG4CXX_WARN(WeLogger::GetLogger(), "WeDispatch::RefreshPluginList: can't get information from plugin " <<*fl);
+                LOG4CXX_WARN(iLogger::GetLogger(), "Dispatch::RefreshPluginList: can't get information from plugin " <<*fl);
             }
         }
         catch (std::exception& e)
         {
-            LOG4CXX_ERROR(WeLogger::GetLogger(), "WeDispatch::RefreshPluginList: can't load plugin " << *fl << ". Error: " << e.what());
+            LOG4CXX_ERROR(iLogger::GetLogger(), "Dispatch::RefreshPluginList: can't load plugin " << *fl << ". Error: " << e.what());
         }
     }
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iwePlugin* WeDispatch::LoadPlugin( string id )
+/// @fn	iPlugin* Dispatch::LoadPlugin( string id )
 ///
 /// @brief	Loads a plugin form shared library or internal implementation.
 ///
@@ -247,25 +164,25 @@ void WeDispatch::RefreshPluginList( boost::filesystem::path& baseDir )
 ///
 /// @retval	null if it fails, else the plugin interface.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iwePlugin* WeDispatch::LoadPlugin( string id )
+iPlugin* Dispatch::LoadPlugin( string id )
 {
-    iwePlugin* retval = NULL;
+    iPlugin* retval = NULL;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::LoadPlugin " << id);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin " << id);
     if (id == "D82B31419339") {
-        // WeMemStorage interface
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::LoadPlugin - embedded plugin: WeMemStorage");
-        retval = new WeMemStorage(this);
+        // MemStorage interface
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - embedded plugin: MemStorage");
+        retval = new MemStorage(this);
     }
     if (id == "A44A9A1E7C25") {
-        // WeHTTP interface
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::LoadPlugin - embedded plugin: WeHTTP");
-        retval = new WeHTTP(this);
+        // HttpTransport interface
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - embedded plugin: HttpTransport");
+        retval = new HttpTransport(this);
     }
     if (id == "AB7ED6E5A7B3") {
-        // WeMemStorage interface
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::LoadPlugin - embedded plugin: WeHttpInvent");
-        retval = new WeHttpInvent(this);
+        // MemStorage interface
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - embedded plugin: HttpInventory");
+        retval = new HttpInventory(this);
     }
 
     if (retval == NULL) {
@@ -275,17 +192,17 @@ iwePlugin* WeDispatch::LoadPlugin( string id )
         for (size_t i = 0; i < pluginList.size(); i++)
         {
             if (pluginList[i].PluginId == id) {
-                LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::LoadPlugin - found plugin: " << pluginList[i].PluginDesc);
+                LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - found plugin: " << pluginList[i].PluginDesc);
                 try
                 {
                     dyn::shared_object* so = new dyn::shared_object(pluginList[i].PluginPath.c_str());
                     fnWePluginFactory ptr = NULL;
                     so->get_symbol("WePluginFactory", ptr);
-                    retval = (iwePlugin*)ptr(this, so);
+                    retval = (iPlugin*)ptr(this, so);
                 }
                 catch (std::exception& e)
                 {
-                	LOG4CXX_ERROR(WeLogger::GetLogger(), "WeDispatch::LoadPlugin: can't load plugin " << pluginList[i].PluginPath << ". Error: " << e.what());
+                	LOG4CXX_ERROR(iLogger::GetLogger(), "Dispatch::LoadPlugin: can't load plugin " << pluginList[i].PluginPath << ". Error: " << e.what());
                 }
                 break;
             }
@@ -293,43 +210,43 @@ iwePlugin* WeDispatch::LoadPlugin( string id )
     }
     if (retval == NULL)
     {
-        LOG4CXX_WARN(WeLogger::GetLogger(), "WeDispatch::LoadPlugin: '" << id << "' not found!");
+        LOG4CXX_WARN(iLogger::GetLogger(), "Dispatch::LoadPlugin: '" << id << "' not found!");
     }
     return retval;
 }
 
-void WeDispatch::Storage( const iweStorage* store )
+void Dispatch::Storage( const iStorage* store )
 {
     if (storage != NULL)
     {
         storage->Release();
     }
 
-    storage = (iweStorage*)store;
+    storage = (iStorage*)store;
     if (storage == NULL)
     {
-        storage = new WeNullStorage(this);
+        storage = new NullStorage(this);
     }
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::SetStorage - plugin: " << storage->GetDesc());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::SetStorage - plugin: " << storage->GetDesc());
     string xml;
     storage->SystemOptionsReport("", xml);
-    iweOptionsProvider::FromXml(xml);
+    iOptionsProvider::FromXml(xml);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void WeDispatch::Flush()
+/// @fn void Dispatch::Flush()
 ///
 /// @brief  Stores the options into the storage.
 ///
 /// @author A. Abramov
 /// @date   23.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeDispatch::Flush()
+void Dispatch::Flush()
 {
     if (storage != NULL)
     {
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "WeDispatch::Flush ");
-        string xml = iweOptionsProvider::ToXml();
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::Flush ");
+        string xml = iOptionsProvider::ToXml();
         storage->SystemOptionsSave(xml);
     }
 }

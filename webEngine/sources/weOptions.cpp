@@ -22,8 +22,10 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+namespace webEngine {
+
 #ifndef __DOXYGEN__
-static const WeOption empty_option("_empty_");
+static const wOption empty_option("_empty_");
 #endif //__DOXYGEN__
 
 
@@ -38,13 +40,13 @@ static const WeOption empty_option("_empty_");
 ///
 /// @retval This object as a std::string. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string iweOptionsProvider::ToXml( void )
+std::string iOptionsProvider::ToXml( void )
 {
     string retval;
     string optList;
     int optCount;
     int optType;
-    WeOption optVal;
+    wOption optVal;
     string strData;
     int    intData;
     unsigned int uintData;
@@ -54,7 +56,7 @@ std::string iweOptionsProvider::ToXml( void )
     unsigned long ulongData;
     bool    boolData;
     double  doubleData;
-    WeOptions::iterator it;
+    wOptions::iterator it;
 
     retval = "";
 
@@ -112,7 +114,7 @@ std::string iweOptionsProvider::ToXml( void )
             strData = "";
         }
         optCount++;
-        strData = WeScreenXML(strData);
+        strData = ScreenXML(strData);
         optList += "  <option name='" + it->first + "' type='" + boost::lexical_cast<string>(optType) + "'>" + strData + "</option>\n";
     }
     if (optCount > 0)
@@ -124,16 +126,16 @@ std::string iweOptionsProvider::ToXml( void )
     return retval;
 }
 
-void iweOptionsProvider::FromXml( string input )
+void iOptionsProvider::FromXml( string input )
 {
-    WeStrStream st(input.c_str());
-    WeTagScanner sc(st);
+    StrStream st(input.c_str());
+    TagScanner sc(st);
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::FromXml - string");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::FromXml - string");
     FromXml(sc);
 }
 
-void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
+void iOptionsProvider::FromXml( TagScanner& sc, int token /*= -1*/ )
 {
     bool inParsing = true;
     int  parseLevel = 0;
@@ -150,7 +152,7 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
     bool    boolData;
     double  doubleData;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::FromXml - WeTagScanner");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::FromXml - TagScanner");
     while (inParsing)
     {
         if (token == -1)
@@ -160,11 +162,11 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
         switch(token)
         {
         case wstError:
-            LOG4CXX_WARN(WeLogger::GetLogger(), "iweOptionsProvider::FromXml parsing error");
+            LOG4CXX_WARN(iLogger::GetLogger(), "iOptionsProvider::FromXml parsing error");
             inParsing = false;
             break;
         case wstEof:
-            LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::FromXml - EOF");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::FromXml - EOF");
             inParsing = false;
             break;
         case wstTagStart:
@@ -182,7 +184,7 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
                     dat = "";
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweOptionsProvider::FromXml unexpected tagStart: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iOptionsProvider::FromXml unexpected tagStart: " << name);
                     inParsing = false;
                 }
             }
@@ -196,7 +198,7 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
                     optType = -1;
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweOptionsProvider::FromXml unexpected tagStart: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iOptionsProvider::FromXml unexpected tagStart: " << name);
                     inParsing = false;
                 }
             }
@@ -220,7 +222,7 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
                     inParsing = false;
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweOptionsProvider::FromXml unexpected tagEnd: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iOptionsProvider::FromXml unexpected tagEnd: " << name);
                     inParsing = false;
                 }
             }
@@ -229,8 +231,8 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
                 if (iequals(name, "option"))
                 {
                     // save option
-                    dat = WeUnscreenXML(dat);
-                    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::FromXml save option "
+                    dat = UnscreenXML(dat);
+                    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::FromXml save option "
                                 << optName << "(" << optType << ") = " << dat);
                     switch(optType)
                     {
@@ -275,7 +277,7 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
                     parseLevel = 1;
                 }
                 else {
-                    LOG4CXX_WARN(WeLogger::GetLogger(), "iweOptionsProvider::FromXml unexpected tagEnd: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), "iOptionsProvider::FromXml unexpected tagEnd: " << name);
                     inParsing = false;
                 }
             }
@@ -283,7 +285,7 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
         case wstAttr:
             name = sc.GetAttrName();
             val = sc.GetValue();
-            val = WeUnscreenXML(val);
+            val = UnscreenXML(val);
             if (parseLevel == 2)
             {
                 if (iequals(name, "name"))
@@ -305,25 +307,25 @@ void iweOptionsProvider::FromXml( WeTagScanner& sc, int token /*= -1*/ )
     }
 }
 
-WeOption& iweOptionsProvider::Option( const string& name )
+wOption& iOptionsProvider::Option( const string& name )
 {
-    WeOptions::iterator it;
+    wOptions::iterator it;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::Option(" << name << ")");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::Option(" << name << ")");
     it = options.find(name);
     if (it != options.end())
     {
         return *(it->second);
     }
-    return *((WeOption*)&empty_option);
+    return *((wOption*)&empty_option);
 }
 
-void iweOptionsProvider::Option( const string& name, WeOptionVal val )
+void iOptionsProvider::Option( const string& name, wOptionVal val )
 {
-    WeOptions::iterator it;
-    WeOption* opt;
+    wOptions::iterator it;
+    wOption* opt;
 
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::Option(" << name << ") set value=" << val);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::Option(" << name << ") set value=" << val);
     it = options.find(name);
     if (it != options.end())
     {
@@ -331,7 +333,7 @@ void iweOptionsProvider::Option( const string& name, WeOptionVal val )
         opt->SetValue(val);
     }
     else {
-        opt = new WeOption();
+        opt = new wOption();
         opt->Name(name);
         opt->SetValue(val);
         options[name] = opt;
@@ -347,10 +349,10 @@ void iweOptionsProvider::Option( const string& name, WeOptionVal val )
 ///
 /// @retval	true if set, false if not.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool iweOptionsProvider::IsSet( const string& name )
+bool iOptionsProvider::IsSet( const string& name )
 {
-    WeOptions::iterator it;
-    WeOption* opt;
+    wOptions::iterator it;
+    wOption* opt;
     bool retval = false;
 
     it = options.find(name);
@@ -366,16 +368,18 @@ bool iweOptionsProvider::IsSet( const string& name )
             retval = false;
         }
     }
-    LOG4CXX_TRACE(WeLogger::GetLogger(), "iweOptionsProvider::IsSet(" << name << ") value=" << retval);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::IsSet(" << name << ") value=" << retval);
     return retval;
 }
 
-void iweOptionsProvider::CopyOptions( iweOptionsProvider* cpy )
+void iOptionsProvider::CopyOptions( iOptionsProvider* cpy )
 {
-    WeOptions::iterator it;
+    wOptions::iterator it;
 
     for (it = cpy->options.begin(); it != cpy->options.end(); it++)
     {
         options[it->first] = it->second;
     }
 }
+
+} // namespace webEngine

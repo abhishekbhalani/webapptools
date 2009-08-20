@@ -23,13 +23,14 @@
 #include <weTagScanner.h>
 
 using namespace boost;
+using namespace webEngine;
 
-class WeProfile : public iweOptionsProvider
+class WeProfile : public iOptionsProvider
 {
 public:
     string ToXml( void );
     void FromXml( string input );
-    void FromXml( WeTagScanner& sc, int token = -1 );
+    void FromXml( TagScanner& sc, int token = -1 );
 };
 
 #endif //__WEPROFILE_H__

@@ -22,7 +22,9 @@
 #include <log4cxx/logger.h>
 #include <log4cxx/ndc.h>
 
-class WeLogger
+namespace webEngine {
+
+class iLogger
 {
 public:
     static void SetBlock(const std::string& block)
@@ -48,7 +50,6 @@ private:
     static log4cxx::LoggerPtr	m_logger;
 };
 
-#define FUNCTION		
-//    log4cxx::NDC __pt_function_(__FUNCTION__)
+} // namespace webEngine
 
 #endif //__WELOGGING_H__

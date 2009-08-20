@@ -29,8 +29,10 @@
 using namespace boost;
 using namespace boost::algorithm;
 
+using namespace webEngine;
+
 #ifndef __DOXYGEN__
-//WeCompareMode WeHtmlEntity::compareMode = WeCompatreStrict;
+//WeCompareMode HtmlEntity::compareMode = WeCompatreStrict;
 #endif //__DOXYGEN__
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,11 +95,11 @@ static bool WeParseNeedToBreakTag(const string& tagName, const string& nextTag)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHtmlEntity::WeHtmlEntity(iweEntity* prnt)
+/// @fn	HtmlEntity::HtmlEntity(iEntity* prnt)
 ///
 /// @brief	Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHtmlEntity::WeHtmlEntity(iweEntity* prnt /*= NULL*/) // :
+HtmlEntity::HtmlEntity(iEntity* prnt /*= NULL*/) // :
 //    chldList(), attributes()
 {
     chldList.resize(0);
@@ -108,13 +110,13 @@ WeHtmlEntity::WeHtmlEntity(iweEntity* prnt /*= NULL*/) // :
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHtmlEntity::WeHtmlEntity(WeHtmlEntity &entity)
+/// @fn	HtmlEntity::HtmlEntity(HtmlEntity &entity)
 ///
 /// @brief  Copy constructor.
 ///
 /// @param  entity - the entity to make the copy of.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHtmlEntity::WeHtmlEntity(WeHtmlEntity &entity)
+HtmlEntity::HtmlEntity(HtmlEntity &entity)
 {
     chldList = entity.chldList;
     attributes = entity.attributes;
@@ -124,28 +126,28 @@ WeHtmlEntity::WeHtmlEntity(WeHtmlEntity &entity)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHtmlEntity::~WeHtmlEntity(void)
+/// @fn	HtmlEntity::~HtmlEntity(void)
 ///
 /// @brief  Destructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHtmlEntity::~WeHtmlEntity(void)
+HtmlEntity::~HtmlEntity(void)
 {
     ClearAttr();
     ClearChildren();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string& WeHtmlEntity::InnerText(void)
+/// @fn	string& HtmlEntity::InnerText(void)
 ///
 /// @brief	Inner text.
 /// Just a plain text inside this entity.
 ///
 /// @retval	null if something wrong, inner text string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& WeHtmlEntity::InnerText(void)
+const string& HtmlEntity::InnerText(void)
 {
     string *retval = new string;
-    WeEntityList::iterator  chld;
+    EntityList::iterator  chld;
 
     *retval = "";
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
@@ -158,7 +160,7 @@ const string& WeHtmlEntity::InnerText(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string& WeHtmlEntity::OuterText(void)
+/// @fn	string& HtmlEntity::OuterText(void)
 ///
 /// @brief  Outer text.
 ///
@@ -167,11 +169,11 @@ const string& WeHtmlEntity::InnerText(void)
 ///         string that represents the HTML-encoded entity, includes own tags and all child
 ///         entities otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& WeHtmlEntity::OuterText(void)
+const string& HtmlEntity::OuterText(void)
 {
     string *retval = new string;
-    WeEntityList::iterator chld;
-    WeAttrMap::iterator attr;
+    EntityList::iterator chld;
+    AttrMap::iterator attr;
     char quote = '"';
 
     *retval = "<";
@@ -207,7 +209,7 @@ const string& WeHtmlEntity::OuterText(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	weCmpState WeHtmlEntity::Compare(iweEntity& entity,
+/// @fn	weCmpState HtmlEntity::Compare(iEntity& entity,
 ///     weCmpMode mode)
 ///
 /// @brief  Query if 'entity' is equal.
@@ -217,7 +219,7 @@ const string& WeHtmlEntity::OuterText(void)
 ///
 /// @retval true if equal, false if not.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-weCmpState WeHtmlEntity::Compare(iweEntity& entity, weCmpMode mode)
+weCmpState HtmlEntity::Compare(iEntity& entity, weCmpMode mode)
 {
     if (mode == weCmpDefault) {
         mode = compareMode;
@@ -228,23 +230,23 @@ weCmpState WeHtmlEntity::Compare(iweEntity& entity, weCmpMode mode)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeScannerToken WeHtmlEntity::Parse( string tagName,
-/// 	WeTagScanner& scanner, iweTransport* processor )
+/// @fn	ScannerToken HtmlEntity::Parse( string tagName,
+/// 	TagScanner& scanner, iTransport* processor )
 ///
 /// @brief  Parses the given stream.
 ///
-/// This function goes through the input stream by the WeTagScanner and creates HTML entity.
+/// This function goes through the input stream by the TagScanner and creates HTML entity.
 /// All child entities are created recursively.
 ///
 /// @param  tagName - name of the tag.
 /// @param  scanner - the scanner.
-/// @param  processor - WeHTTP object with processing options and network connection
-/// @retval	WeScannerToken that represents current scanner's state.
+/// @param  processor - HttpTransport object with processing options and network connection
+/// @retval	ScannerToken that represents current scanner's state.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeScannerToken WeHtmlEntity::Parse( string tagName, WeTagScanner& scanner, iweTransport* processor /*= NULL*/ )
+ScannerToken HtmlEntity::Parse( string tagName, TagScanner& scanner, iTransport* processor /*= NULL*/ )
 {
-    WeScannerToken  state;
-    WeHtmlEntity    *chld;
+    ScannerToken  state;
+    HtmlEntity    *chld;
     WeInnerText     *txt;
     string           txtAttr;
 
@@ -258,8 +260,8 @@ WeScannerToken WeHtmlEntity::Parse( string tagName, WeTagScanner& scanner, iweTr
         // opts = processor->Options();
     }
     else {
-        // if no WeHTTP given - use default options? but no follow the links
-        //opts = WeHTTP::weoDefault & (~WeHTTP::weoFollowLinks);
+        // if no HttpTransport given - use default options? but no follow the links
+        //opts = HttpTransport::weoDefault & (~HttpTransport::weoFollowLinks);
     }
     startPos = scanner.GetPos() - tagName.length();
     if (tagName.length() > 0) {
@@ -341,7 +343,7 @@ parseRestart:
 //-DBG: printf("TAG START: %s\n", scanner.GetTagName());
             chld = weHtmlFactory.CreateEntity(scanner.GetTagName(), this);
             if (chld != NULL) {
-                WeScannerToken chldState;
+                ScannerToken chldState;
                 chldList.push_back(chld);
                 chldState = chld->Parse(scanner.GetTagName(), scanner, processor);
                 if (iequals(string("form"), string(scanner.GetTagName()))) {
@@ -376,7 +378,7 @@ parseRestart:
                 txt = new WeInnerText(this);
                 txtAttr = "";
             }
-            if (state == wstSpace && processor != NULL && processor->IsSet(weoCollapseSpaces)) { //WeHTTP::weoCollapseSpaces)) {
+            if (state == wstSpace && processor != NULL && processor->IsSet(weoCollapseSpaces)) { //HttpTransport::weoCollapseSpaces)) {
                 txtAttr += " ";
             }
             else {
@@ -435,19 +437,19 @@ parseRestart:
     return state;
 }
 
-WeCmpResults* WeHtmlEntity::Diff( iweEntity& cmp, weCmpMode mode )
+CmpResults* HtmlEntity::Diff( iEntity& cmp, weCmpMode mode )
 {
     /// @todo Implement this
     return NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeInnerText::WeInnerText(iweEntity* prnt)
+/// @fn	WeInnerText::WeInnerText(iEntity* prnt)
 ///
 /// @brief  Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeInnerText::WeInnerText(iweEntity* prnt /*= NULL*/) :
-    WeHtmlEntity(prnt)
+WeInnerText::WeInnerText(iEntity* prnt /*= NULL*/) :
+    HtmlEntity(prnt)
 {
     entityName = "#text";
     attributes["#text"] = "";
@@ -461,7 +463,7 @@ WeInnerText::WeInnerText(iweEntity* prnt /*= NULL*/) :
 /// @param  entity  - the entity.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WeInnerText::WeInnerText(WeInnerText& entity) :
-    WeHtmlEntity()
+    HtmlEntity()
 {
     entityName = "#text";
     attributes["#text"] = entity.attributes["#text"];
@@ -489,7 +491,7 @@ WeInnerText::~WeInnerText()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 const string WeInnerText::Attr(string name)
 {
-    WeAttrMap::iterator it;
+    AttrMap::iterator it;
 
     it = attributes.find("#text");
     if (it != attributes.end())
@@ -520,7 +522,7 @@ void WeInnerText::Attr(string name, string value)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 const string& WeInnerText::InnerText(void)
 {
-    WeAttrMap::iterator it;
+    AttrMap::iterator it;
 
     it = attributes.find(string("#text"));
     if (it != attributes.end())
@@ -541,7 +543,7 @@ const string& WeInnerText::InnerText(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 const string& WeInnerText::OuterText(void)
 {
-    WeAttrMap::iterator it;
+    AttrMap::iterator it;
 
     it = attributes.find(string("#text"));
     if (it != attributes.end())
@@ -552,20 +554,20 @@ const string& WeInnerText::OuterText(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn WeCmpResults* WeInnerText::Diff(iweEntity& cmp,
+/// @fn CmpResults* WeInnerText::Diff(iEntity& cmp,
 /// 	weCmpMode mode)
 ///
 /// @brief  Builds difference between two texts. 
 ///
-/// @param  cmp  - iweEntity to be compared. 
+/// @param  cmp  - iEntity to be compared. 
 /// @param  mode - The mode. 
 ///
 /// @retval	null if it fails, the list of the compares else. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeCmpResults* WeInnerText::Diff(iweEntity& cmp, weCmpMode mode)
+CmpResults* WeInnerText::Diff(iEntity& cmp, weCmpMode mode)
 {
     WeInnerText* ptr;
-    WeCmpResults* retval = NULL;
+    CmpResults* retval = NULL;
     string s1, s2;
     regex repl("\\s+");
 
@@ -576,7 +578,7 @@ WeCmpResults* WeInnerText::Diff(iweEntity& cmp, weCmpMode mode)
         ptr = reinterpret_cast<WeInnerText*>(&cmp);
         s1 = attributes["#text"];
         s2 = ptr->attributes["#text"];
-        retval = WeTextDiff(s1, s2, mode);
+        retval = TextDiff(s1, s2, mode);
     } catch (...) {
         if (retval != NULL) {
             delete retval;
@@ -588,19 +590,19 @@ WeCmpResults* WeInnerText::Diff(iweEntity& cmp, weCmpMode mode)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn weCmpState WeInnerText::Compare(iweEntity& cmp,
+/// @fn weCmpState WeInnerText::Compare(iEntity& cmp,
 ///     weCmpMode mode)
 ///
-/// @brief  Compares two iweEntity& objects to determine
+/// @brief  Compares two iEntity& objects to determine
 ///         their relative ordering. 
 ///
-/// @param  cmp  - iweEntity to be compared. 
+/// @param  cmp  - iEntity to be compared. 
 /// @param  mode - comparison mode. 
 ///
 /// @retval Negative if 'cmp' is less than this object, 0 if they are equal, or positive if it
 ///         is greater. See the weCmpState enum for symbolic constants.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-weCmpState WeInnerText::Compare(iweEntity& cmp, weCmpMode mode)
+weCmpState WeInnerText::Compare(iEntity& cmp, weCmpMode mode)
 {
     WeInnerText* ptr;
     string s1, s2;
@@ -648,12 +650,12 @@ weCmpState WeInnerText::Compare(iweEntity& cmp, weCmpMode mode)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHtmlDocument::WeHtmlDocument(iweEntity* prnt)
+/// @fn	HtmlDocument::HtmlDocument(iEntity* prnt)
 ///
 /// @brief	Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHtmlDocument::WeHtmlDocument(iweEntity* prnt /*= NULL*/) //:
-//    WeHtmlEntity(prnt), WeHttpResponse()
+HtmlDocument::HtmlDocument(iEntity* prnt /*= NULL*/) //:
+//    HtmlEntity(prnt), HttpResponse()
 {
     entityName = "#document";
 //     baseUrl = "";
@@ -662,42 +664,42 @@ WeHtmlDocument::WeHtmlDocument(iweEntity* prnt /*= NULL*/) //:
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHtmlDocument::WeHtmlDocument(WeHtmlDocument& entity)
+/// @fn	HtmlDocument::HtmlDocument(HtmlDocument& entity)
 ///
 /// @brief  Copy constructor.
 ///
 /// @param  entity  - the document to make copy of.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHtmlDocument::WeHtmlDocument(WeHtmlDocument& entity) //:
-//    WeHtmlEntity(), WeHttpResponse()
+HtmlDocument::HtmlDocument(HtmlDocument& entity) //:
+//    HtmlEntity(), HttpResponse()
 {
     entityName = "#document";
     response = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeHtmlDocument::~WeHtmlDocument(void)
+/// @fn	HtmlDocument::~HtmlDocument(void)
 ///
 /// @brief  Destructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeHtmlDocument::~WeHtmlDocument(void)
+HtmlDocument::~HtmlDocument(void)
 {
     // nothing special for this class, just base classes
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string& WeHtmlDocument::InnerText(void)
+/// @fn	string& HtmlDocument::InnerText(void)
 ///
 /// @brief	Inner text.
 /// @retval	null if something wrong, inner text string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& WeHtmlDocument::InnerText(void)
+const string& HtmlDocument::InnerText(void)
 {
     return OuterText();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string& WeHtmlDocument::OuterText(void)
+/// @fn	string& HtmlDocument::OuterText(void)
 ///
 /// @brief  Outer text.
 ///
@@ -705,10 +707,10 @@ const string& WeHtmlDocument::InnerText(void)
 ///         string that represents the HTML-encoded entity, includes own tags and all child
 ///         entities otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& WeHtmlDocument::OuterText(void)
+const string& HtmlDocument::OuterText(void)
 {
     string *retval = new string;
-    WeEntityList::iterator  chld;
+    EntityList::iterator  chld;
 
     *retval = "";
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
@@ -719,24 +721,24 @@ const string& WeHtmlDocument::OuterText(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn bool WeHtmlDocument::ParseData(iweResponse* resp, iweTransport* processor = NULL )
+/// @fn bool HtmlDocument::ParseData(iResponse* resp, iTransport* processor = NULL )
 ///
 /// @brief  Parse data stored inside WeHttpResponce.
 ///
-/// @param  processor - iweTransport object with processing options and network connection
-/// @param  resp - iweResponse object with received data to parse
+/// @param  processor - iTransport object with processing options and network connection
+/// @param  resp - iResponse object with received data to parse
 /// @retval	true if it succeeds, false if it fails.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool WeHtmlDocument::ParseData(iweResponse* resp, iweTransport* processor /*= NULL*/)
+bool HtmlDocument::ParseData(iResponse* resp, iTransport* processor /*= NULL*/)
 {
     bool retval = false;
 
     try
     {
-        response = dynamic_cast<WeHttpResponse*>(resp);
-        WeInStream* stream = response->Data().stream();
+        response = dynamic_cast<HttpResponse*>(resp);
+        InStream* stream = response->Data().stream();
         if (stream) {
-            WeTagScanner scanner(*stream);
+            TagScanner scanner(*stream);
             retval = (Parse("", scanner, processor) != wstError);
         }
         return retval;
@@ -747,12 +749,12 @@ bool WeHtmlDocument::ParseData(iweResponse* resp, iweTransport* processor /*= NU
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeBlob & WeHtmlDocument::Data( void )
+/// @fn	Blob & HtmlDocument::Data( void )
 ///
 /// @brief	Grants access to the linked response data. 
-/// @throw  WeError if no iweResponse assigned
+/// @throw  WeError if no iResponse assigned
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeBlob& WeHtmlDocument::Data( void )
+Blob& HtmlDocument::Data( void )
 {
     if (response != NULL) {
         return response->Data();
@@ -760,24 +762,24 @@ WeBlob& WeHtmlDocument::Data( void )
     throw WeError("WeRefrenceObject::Data - no data linked!");
 }
 
-WeCmpResults* WeHtmlDocument::Diff( iweEntity& cmp, weCmpMode mode )
+CmpResults* HtmlDocument::Diff( iEntity& cmp, weCmpMode mode )
 {
     /// @todo Implement this!
     return NULL;
 }
 
-weCmpState WeHtmlDocument::Compare( iweEntity& cmp, weCmpMode mode )
+weCmpState HtmlDocument::Compare( iEntity& cmp, weCmpMode mode )
 {
     /// @todo Implement this!
     return weCmpNonComparable;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeRefrenceObject::WeRefrenceObject(iweEntity* prnt)
+/// @fn	WeRefrenceObject::WeRefrenceObject(iEntity* prnt)
 ///
 /// @brief  Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeRefrenceObject::WeRefrenceObject(iweEntity* prnt /*= NULL*/) :
-    WeHtmlDocument(prnt)
+WeRefrenceObject::WeRefrenceObject(iEntity* prnt /*= NULL*/) :
+    HtmlDocument(prnt)
 {
     /// @todo Implement this!
 }
@@ -806,13 +808,13 @@ WeRefrenceObject::~WeRefrenceObject()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeScript::WeScript( iweEntity* prnt )
+/// @fn	WeScript::WeScript( iEntity* prnt )
 ///
 /// @brief  Default constructor.
 ///
 /// @param  prnt - If non-null, the prnt.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeScript::WeScript( iweEntity* prnt /*= NULL*/ ) :
+WeScript::WeScript( iEntity* prnt /*= NULL*/ ) :
     WeRefrenceObject(prnt)
 {
     /// @todo Implement this!
@@ -841,8 +843,8 @@ WeScript::~WeScript()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeScannerToken WeScript::Parse( string tagName,
-/// 	WeTagScanner& scanner, WeHTTP* processor )
+/// @fn	ScannerToken WeScript::Parse( string tagName,
+/// 	TagScanner& scanner, HttpTransport* processor )
 ///
 /// @brief  Parses the given stream.
 ///
@@ -850,12 +852,12 @@ WeScript::~WeScript()
 ///
 /// @param  tagName - name of the tag.
 /// @param  scanner - the scanner.
-/// @param  processor - WeHTTP object with processing options and network connection
-/// @retval	WeScannerToken that represents current scanner's state.
+/// @param  processor - HttpTransport object with processing options and network connection
+/// @retval	ScannerToken that represents current scanner's state.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeScannerToken WeScript::Parse( string tagName, WeTagScanner& scanner, WeHTTP* processor /*= NULL*/ )
+ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, HttpTransport* processor /*= NULL*/ )
 {
-    WeScannerToken  state;
+    ScannerToken  state;
     string          txtAttr;
     bool            inOurTag;
     bool            inOtherTag;
@@ -871,8 +873,8 @@ WeScannerToken WeScript::Parse( string tagName, WeTagScanner& scanner, WeHTTP* p
         //opts = processor->Options();
     }
     else {
-        // if no WeHTTP given - use default options? but no follow the links
-        // opts = WeHTTP::weoDefault & (~WeHTTP::weoFollowLinks);
+        // if no HttpTransport given - use default options? but no follow the links
+        // opts = HttpTransport::weoDefault & (~HttpTransport::weoFollowLinks);
     }
     attributes.clear();
     ClearChildren();
@@ -953,7 +955,7 @@ WeScannerToken WeScript::Parse( string tagName, WeTagScanner& scanner, WeHTTP* p
             }
             inOtherTag = false;
 
-            if (state == wstSpace && processor->IsSet(weoCollapseSpaces)) { //WeHTTP::weoCollapseSpaces)) {
+            if (state == wstSpace && processor->IsSet(weoCollapseSpaces)) { //HttpTransport::weoCollapseSpaces)) {
                 txtAttr += " ";
             }
             else {

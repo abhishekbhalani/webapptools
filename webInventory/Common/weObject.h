@@ -23,9 +23,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 using namespace boost;
+using namespace webEngine;
 
-
-class WeScanObject
+class ScanObject
 {
 public:
     string  ObjectId;
@@ -34,7 +34,7 @@ public:
 
     string ToXml( void );
     void FromXml( string input );
-    void FromXml( WeTagScanner& sc, int token = -1 );
+    void FromXml( TagScanner& sc, int token = -1 );
 };
 
 #endif //__WEOBJECT_H__

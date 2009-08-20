@@ -35,7 +35,9 @@
 #include "taskOperations.h"
 #include "scanOperations.h"
 
-extern WeDispatch* globalDispatcher;
+using namespace webEngine;
+
+extern Dispatch* globalDispatcher;
 string get_plugin_list(string filter);
 string get_plugin_ui(string filter);
 
@@ -55,7 +57,7 @@ int process_message(char* buff, size_t buffSz, session* sess)
             boost::archive::xml_iarchive ia(data);
             ia >> BOOST_SERIALIZATION_NVP(msg);
         }
-        LOG4CXX_TRACE(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] process_message: " <<  msg.cmd);
+        LOG4CXX_TRACE(iLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] process_message: " <<  msg.cmd);
         retval = 0;
         sess->last = posix_time::second_clock::local_time();
 
@@ -88,7 +90,7 @@ int process_message(char* buff, size_t buffSz, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "version"))
         {
-            LOG4CXX_INFO(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] version requested");
+            LOG4CXX_INFO(iLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] version requested");
             msg.data = AutoVersion::FULLVERSION_STRING;
             msg.data += " ";
             msg.data += AutoVersion::STATUS;
@@ -259,7 +261,7 @@ int process_message(char* buff, size_t buffSz, session* sess)
             prof.Option(weoID, id);
             prof.Option(weoName, msg.data);
             xml = prof.ToXml();
-            globalDispatcher->Storage()->Query(weObjTypeProfile, id, iweStorage::autoop, xml);
+            globalDispatcher->Storage()->Query(weObjTypeProfile, id, iStorage::autoop, xml);
             msg.data = id;
             retval = 1;
             processed = true;
@@ -305,20 +307,20 @@ int process_message(char* buff, size_t buffSz, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (iequals(msg.cmd, "setstorage"))
         {
-            LOG4CXX_INFO(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] request storage change to " << msg.data);
+            LOG4CXX_INFO(iLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] request storage change to " << msg.data);
             string id = msg.data;
-            iwePlugin* newStorage = globalDispatcher->LoadPlugin(id);
+            iPlugin* newStorage = globalDispatcher->LoadPlugin(id);
             msg.data = "0";
             if (newStorage != NULL)
             {
-                iweStorage* store = (iweStorage*)newStorage->GetInterface("iweStorage");
+                iStorage* store = (iStorage*)newStorage->GetInterface("iStorage");
                 if (store != NULL)
                 {
                     string config = save_cfg_storage(id);
                     store->InitStorage(config);
                     globalDispatcher->Storage(store);
                     msg.data = "1";
-                    LOG4CXX_INFO(WeLogger::GetLogger(), "storage changed to " << store->GetDesc());
+                    LOG4CXX_INFO(iLogger::GetLogger(), "storage changed to " << store->GetDesc());
                 }
             }
             retval = 1;
@@ -386,7 +388,7 @@ int process_message(char* buff, size_t buffSz, session* sess)
         if (iequals(msg.cmd, "updateobj"))
         {
             msg.cmd = "updateobj";
-            ObjectInfo obj;
+            ObjectInf obj;
 
             {// auto-destroy block for streams
                 istrstream data(msg.data.c_str(), msg.data.length());
@@ -415,7 +417,7 @@ int process_message(char* buff, size_t buffSz, session* sess)
         //////////////////////////////////////////////////////////////////////////
         if (!processed)
         {
-            LOG4CXX_WARN(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] unknown command: " <<  msg.cmd);
+            LOG4CXX_WARN(iLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] unknown command: " <<  msg.cmd);
         }
         {// auto-destroy block for streams
             ostrstream oss;
@@ -426,7 +428,7 @@ int process_message(char* buff, size_t buffSz, session* sess)
     }
     catch (std::exception &e)
     {
-        LOG4CXX_ERROR(WeLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] process_message failed: " <<  e.what());
+        LOG4CXX_ERROR(iLogger::GetLogger(), "[" << sess->socket().remote_endpoint().address() << "] process_message failed: " <<  e.what());
         retval = 0;
     }
 
@@ -439,12 +441,12 @@ string get_plugin_list(string filter)
     string retval = "";
     WePluginList lst = globalDispatcher->PluginList();
     PluginList respList;
-    PluginInfo *info;
+    PluginInf *info;
     WePluginList::iterator plugs;
     
     for(plugs = lst.begin(); plugs != lst.end(); plugs++)
     {
-        info = new PluginInfo();
+        info = new PluginInf();
         info->PluginId = (*plugs).PluginId;
         info->PluginDesc = (*plugs).PluginDesc;
         info->IfaceName = (*plugs).IfaceName;
@@ -468,7 +470,7 @@ string get_plugin_ui(string filter)
 {
     string retval = "";
 
-    iwePlugin* plg = globalDispatcher->LoadPlugin(filter);
+    iPlugin* plg = globalDispatcher->LoadPlugin(filter);
     if (plg != NULL) {
         retval = plg->GetSetupUI();
         plg->Release();

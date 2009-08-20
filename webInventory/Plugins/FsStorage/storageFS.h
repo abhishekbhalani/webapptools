@@ -23,12 +23,13 @@
 #include <boost/filesystem/operations.hpp>
 
 namespace fs = boost::filesystem;
+using namespace webEngine;
 
 class FsStorage :
-    public iweStorage
+    public iStorage
 {
 public:
-    FsStorage(WeDispatch* krnl, void* handle = NULL);
+    FsStorage(Dispatch* krnl, void* handle = NULL);
     virtual ~FsStorage(void);
 
     // iwePlugin functions

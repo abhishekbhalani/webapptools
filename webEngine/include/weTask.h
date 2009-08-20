@@ -30,73 +30,79 @@ using boost::any_cast;
 using namespace boost;
 using namespace std;
 
-// forward declarations
-class iweTransport;
-class iweInventory;
-class iweAudit;
-class iweVulner;
-class iweRequest;
-class WeScanData;
-class WeScan;
+namespace webEngine {
 
-#define WE_VERSION_ID   0
+// forward declarations
+class iTransport;
+class iInventory;
+class iAudit;
+class iVulner;
+class iRequest;
+class ScanData;
+class ScanInfo;
+
+#define WE_TASK_SIGNAL_NO       0
+#define WE_TASK_SIGNAL_RUN      1
+#define WE_TASK_SIGNAL_PAUSE    2
+#define WE_TASK_SIGNAL_STOP     3
+#define WE_TASK_SIGNAL_SUSSPEND 4
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  WeTask
+/// @class  Task
 ///
 /// @brief  Entry point to execute any actions with webEngine
 ///
 /// @author A. Abramov
 /// @date   09.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeTask : public iweOptionsProvider
+class Task : public iOptionsProvider
 {
 public:
-    WeTask();
-    WeTask(WeTask& cpy);
-    ~WeTask();
+    Task();
+    Task(Task& cpy);
+    ~Task();
 
-    void AddTransport(iweTransport* plugin);
-    void AddInventory(iweInventory* plugin);
-    void AddAuditor(iweAudit* plugin);
-    void AddVulner(iweVulner* plugin);
-    void StorePlugins(vector<iwePlugin*>& plugins);
+    void AddTransport(iTransport* plugin);
+    void AddInventory(iInventory* plugin);
+    void AddAuditor(iAudit* plugin);
+    void AddVulner(iVulner* plugin);
+    void StorePlugins(vector<iPlugin*>& plugins);
 
     void Run();
     void Pause(const bool& state = true);
     void Stop();
 
     bool IsReady();
-    iweResponse* GetRequest(iweRequest* req);
-    void GetRequestAsync(iweRequest* req);
+    iResponse* GetRequest(iRequest* req);
+    void GetRequestAsync(iRequest* req);
 
     string ToXml( void );
     void FromXml( string input );
-    void FromXml( WeTagScanner& sc, int token = -1 );
+    void FromXml( TagScanner& sc, int token = -1 );
 
     void WaitForData();
     void CalcStatus();
 
-    WeScan* GetScan() { return scanInfo; };
-    WeScanData* GetScanData(const string& baseUrl, const string& realUrl);
-    void SetScanData(WeScanData* scData);
+    ScanInfo* GetScan() { return scanInfo; };
+    ScanData* GetScanData(const string& baseUrl, const string& realUrl);
+    void SetScanData(ScanData* scData);
 
 #ifndef __DOXYGEN__
 protected:
-    typedef map<string, iweRequest*> WeRequestMap;
-    vector<iweTransport*> transports;
-    vector<iweInventory*> inventories;
-    vector<iweAudit*> auditors;
-    vector<iweVulner*> vulners;
+    typedef map<string, iRequest*> WeRequestMap;
+    vector<iTransport*> transports;
+    vector<iInventory*> inventories;
+    vector<iAudit*> auditors;
+    vector<iVulner*> vulners;
     bool processThread;
     bool isRunning;
     void* mutex_ptr;
     void* event_ptr;
     size_t taskQueueSize;
     size_t taskListSize;
-    vector<iweRequest*> taskList;
-    vector<iweResponse*> taskQueue;
-    WeScan* scanInfo;
+    vector<iRequest*> taskList;
+    vector<iResponse*> taskQueue;
+    ScanInfo* scanInfo;
 #endif //__DOXYGEN__
 
 private:
@@ -104,9 +110,11 @@ private:
     {
         ar & BOOST_SERIALIZATION_NVP(options);
     };
-    friend void WeTaskProcessor(WeTask* tsk);
+    friend void TaskProcessor(Task* tsk);
 };
 
-BOOST_CLASS_TRACKING(WeTask, boost::serialization::track_never)
+} // namespace webEngine
+
+BOOST_CLASS_TRACKING(webEngine::Task, boost::serialization::track_never)
 
 #endif //__WETASK_H__

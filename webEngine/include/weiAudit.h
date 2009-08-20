@@ -18,23 +18,31 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#ifndef __WEIAUDIT_H__
+#define __WEIAUDIT_H__
+
 #include <weiPlugin.h>
 
+namespace webEngine {
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iweAudit
+/// @interface  iAudit
 ///
 /// @brief  Interface for the audit plugins. 
 ///
 /// @author A. Abramov
 /// @date   19.08.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iweAudit :
-    public iwePlugin
+class iAudit :
+    public iPlugin
 {
 public:
-    iweAudit(WeDispatch* krnl, void* handle = NULL);
-    virtual ~iweAudit(void);
+    iAudit(Dispatch* krnl, void* handle = NULL);
+    virtual ~iAudit(void);
 
-    // iwePlugin functions
+    // iPlugin functions
 
 };
+
+} // namespace webEngine
+#endif //__WEIAUDIT_H__

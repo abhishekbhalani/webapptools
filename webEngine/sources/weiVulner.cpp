@@ -19,11 +19,15 @@
 */
 #include <weiVulner.h>
 
-iweVulner::iweVulner(WeDispatch* krnl, void* handle /*= NULL*/) :
-    iwePlugin(krnl, handle)
+namespace webEngine {
+
+iVulner::iVulner(Dispatch* krnl, void* handle /*= NULL*/) :
+    iPlugin(krnl, handle)
 {
 }
 
-iweVulner::~iweVulner(void)
+iVulner::~iVulner(void)
 {
 }
+
+} // namespace webEngine

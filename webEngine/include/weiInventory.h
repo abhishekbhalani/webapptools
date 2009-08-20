@@ -20,17 +20,19 @@
 #pragma once
 #include "weiPlugin.h"
 
-class WeTask;
-class iweResponse;
+namespace webEngine {
 
-class iweInventory :
-    public iwePlugin
+class Task;
+class iResponse;
+
+class iInventory :
+    public iPlugin
 {
 public:
-    iweInventory(WeDispatch* krnl, void* handle = NULL);
-    virtual ~iweInventory(void);
+    iInventory(Dispatch* krnl, void* handle = NULL);
+    virtual ~iInventory(void);
 
-    // iwePlugin functions
+    // iPlugin functions
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual void* GetInterface(const string& ifName)
     ///
@@ -46,25 +48,25 @@ public:
     virtual void* GetInterface(const string& ifName);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void Start(WeTask* tsk)
+    /// @fn void Start(Task* tsk)
     ///
     /// @brief  Starts the inventory process. 
     ///
     /// @param  tsk	 - If non-null, the pointer to task what handles the process. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void Start(WeTask* tsk) = 0;
+    virtual void Start(Task* tsk) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void ProcessResponse(iweResponse *resp)
+    /// @fn void ProcessResponse(iResponse *resp)
     ///
     /// @brief  Process the transport response described by resp.
     /// 		
     /// @param  resp - If non-null, the resp. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void ProcessResponse(iweResponse *resp) = 0;
+    virtual void ProcessResponse(iResponse *resp) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn static void ResponseDispatcher(iweResponse *resp, void* context)
+    /// @fn static void ResponseDispatcher(iResponse *resp, void* context)
     ///
     /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
     ///         by the context
@@ -72,8 +74,10 @@ public:
     /// @param  resp	 - If non-null, the resp. 
     /// @param  context	 - If non-null, the context. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    static void ResponseDispatcher(iweResponse *resp, void* context);
+    static void ResponseDispatcher(iResponse *resp, void* context);
 
 protected:
-    WeTask* task;
+    Task* task;
 };
+
+} // namespace webEngine
