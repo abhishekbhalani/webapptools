@@ -41,6 +41,7 @@ using namespace webEngine;
 
 Dispatch* globalDispatcher = NULL;
 string cfgFile;
+string workDir;
 
 int main(int argc, char* argv[])
 {
@@ -139,6 +140,7 @@ int main(int argc, char* argv[])
             {
                 cfgPath = "./";
             }
+            workDir = cfgPath.string();
             globalDispatcher->RefreshPluginList(cfgPath);
 
             iPlugin* plugin = globalDispatcher->LoadPlugin(configuration.storageIface);

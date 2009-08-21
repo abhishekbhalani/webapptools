@@ -352,7 +352,7 @@ void Task::CalcStatus()
     size_t count = taskList.size();
     int idata = (taskListSize - count) * 100 / taskListSize;
     LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: rest " << count << " queries  from " <<
-        taskListSize << " (" << idata << "%)");
+        taskListSize << " (" << (taskListSize - count) << ": " << idata << "%)");
     Option(weoTaskCompletion, idata);
     // set task status
     if (taskList.size() == 0 && taskQueue.size() == 0) {
