@@ -57,6 +57,7 @@ namespace fs = boost::filesystem;
 
 extern Dispatch* globalDispatcher;
 extern string cfgFile;
+extern string workDir;
 
 string taskDbDir = ".";
 
@@ -320,7 +321,9 @@ bool run_task(const string& id)
             // tsk->Option(weoTaskStatus, WI_TSK_RUN);
             // save_task(tsk);
             // make base filename
-            string fname = id + "_" + posix_time::to_iso_string(posix_time::second_clock::local_time());
+            opt = tsk->Option(weoParentID);
+            SAFE_GET_OPTION_VAL(opt, sdata, "");
+            string fname = sdata + "_" + posix_time::to_iso_string(posix_time::second_clock::local_time());
 
             opt = tsk->Option(weoLogLevel);
             SAFE_GET_OPTION_VAL(opt, idata, 0);
@@ -346,8 +349,8 @@ bool run_task(const string& id)
                 tr << "log4j.logger.webEngine=" << trace_modes[idata] << ", R" << endl;
             }
             // compose command line arguments
-            string cmdline = "tskScanner --id " + id;
-            cmdline += " --trace " + fname + ".trace";
+            string cmdline = workDir + "tskScanner --id " + id;
+            cmdline += " --trace " + workDir + fname + ".trace";
             if (cfgFile != "") {
                 cmdline += " --config " + cfgFile;
             }

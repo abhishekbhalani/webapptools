@@ -190,7 +190,11 @@ void HttpInventory::ProcessResponse( iResponse *resp )
         HtmlDocument parser;
         EntityList lst;
 
+        boost::posix_time::ptime pretm = boost::posix_time::microsec_clock::local_time();
         parser.ParseData(resp);
+        boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
+        boost::posix_time::time_period duration(pretm, postm);
+        LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse " << htResp->Data().size() << "bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
         LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: search for links");
         lst = parser.FindTags("a");
         if (lst.size() == 0) {

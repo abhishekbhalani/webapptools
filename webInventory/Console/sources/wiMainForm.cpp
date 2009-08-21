@@ -762,6 +762,7 @@ void wiMainForm::OnRunTask( wxCommandEvent& event )
     ObjectInf* objInfo;
     ProfileInf* profInfo;
     wxString content;
+    int idata;
 
     if (m_selectedObject > -1)
     {
@@ -795,6 +796,9 @@ void wiMainForm::OnRunTask( wxCommandEvent& event )
 
                     content = FromStdString(profInfo->ObjectId);
                     weRttiOptions::SaveTaskOption (root, wxT(weoProfileID), wxT("8"), content);
+
+                    idata = m_chLogLevel->GetSelection();
+                    weRttiOptions::SaveTaskOptionInt(root, wxT(weoLogLevel), idata);
 
                     opt.SetRoot(root);
                     wxMemoryOutputStream outp;
