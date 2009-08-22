@@ -27,11 +27,11 @@
    * Tasks dispatching
    * GUI for tasks dispatching
    * webEngine plugins
-     * [iwePlugin iwePlugin interface]
-     * iweOptionsProvider interface
-     * iweStorage interface
-     * iweTransport interface
-     * iweInventory interface
-     * iweAudit interface
-     * iweVulner interface
+     * [iPlugin iPlugin interface]
+     * iOptionsProvider interface
+     * iStorage interface
+     * iTransport interface
+     * iInventory interface
+     * iAudit interface
+     * iVulner interface
   * Sources documentation
