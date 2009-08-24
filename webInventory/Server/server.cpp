@@ -85,7 +85,7 @@ void session::handle_read_data(const boost::system::error_code& error, size_t by
             boost::asio::async_write(socket_, boost::asio::buffer(data_, datalen),
                 boost::bind(&session::handle_write, this,
                 boost::asio::placeholders::error));
-        }
+        }
         else if (res == 0)
         {
             LOG4CXX_WARN(iLogger::GetLogger(), "Session: close session");
