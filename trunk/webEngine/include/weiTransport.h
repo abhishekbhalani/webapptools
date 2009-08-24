@@ -213,7 +213,6 @@ namespace webEngine {
 
         // iPlugin functions
         virtual void* GetInterface(const string& ifName);
-        virtual void Register(TransportFactory* factory) = 0;
 
         //@{
         /// @brief  Access the BaseUrl property

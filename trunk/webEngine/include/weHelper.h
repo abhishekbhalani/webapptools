@@ -40,7 +40,6 @@ also presented in this module.
 namespace webEngine {
 
 typedef HtmlEntity* (*fnEntityFactory)(iEntity* prnt);
-typedef iTransport* (*fnTransportFactory)(Dispatch* krnl);
 
 // typedef WeLinkedListElem<string, EntityFactory> WeHtmlFuncList;
 // typedef WeLinkedListElem<string, TransportFactory> WeTranspFuncList;
@@ -60,23 +59,6 @@ public:
     void Init();
     void Add(string name, fnEntityFactory func);
     HtmlEntity* CreateEntity(string tagName, HtmlEntity* prnt);
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  TransportFactory
-///
-/// @brief  The iTransport creator. 
-///
-/// @author A. Abramov
-/// @date   10.06.2009
-////////////////////////////////////////////////////////////////////////////////////////////////////
-class TransportFactory : public LinkedList<string, fnTransportFactory>
-{
-public:
-    TransportFactory();
-    void Init();
-    void Add(string name, fnTransportFactory func);
-    iTransport* CreateTransport(string tagName, Dispatch* krnl);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

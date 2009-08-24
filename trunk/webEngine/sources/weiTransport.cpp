@@ -24,11 +24,6 @@
 
 using namespace webEngine;
 
-iTransport* WeCreateNamedTransport( string name, Dispatch* krnl )
-{
-    return weTransportFactory.CreateTransport(name, krnl);
-}
-
 //////////////////////////////////////////////////////////////////////////
 //             i w e T r a n s p o r t    c l a s s
 //////////////////////////////////////////////////////////////////////////

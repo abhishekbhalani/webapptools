@@ -111,6 +111,11 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         bool CurlInit(void);
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @brief  Gets the content type.
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        const string ContentType(void) { return(contentType);    };
+
         void Process(iTransport* proc);
 
     protected:
@@ -123,6 +128,7 @@ namespace webEngine {
         StringLinks cookies;
         int httpCode;
         Blob headData;
+        string contentType;
         CURL* curlHandle;
         CURLcode lastError;
         char errorBuff[CURL_ERROR_SIZE];
@@ -205,7 +211,6 @@ namespace webEngine {
 
         virtual void* GetInterface( const string& ifName );
         virtual const string GetSetupUI( void );
-        virtual void Register(TransportFactory* factory);
 
         virtual iResponse* Request(iRequest* req, iResponse* resp = NULL);
         virtual iResponse* Request(string url, iResponse* resp = NULL);

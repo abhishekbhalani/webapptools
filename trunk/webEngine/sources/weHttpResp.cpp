@@ -41,6 +41,7 @@ headers(": ", "[\\n\\r]+"), cookies("=", "; ")
     processed = false;
     httpCode = 0;
     data.clear();
+    contentType = "";
     headData.clear();
     if (!CurlInit()) {
         throw WeError("curl_easy_init failed!");
@@ -123,6 +124,10 @@ void HttpResponse::Process(iTransport* proc)
     double tminf;
 
     if (curlHandle) {
+        lastError = curl_easy_getinfo(curlHandle, CURLINFO_CONTENT_TYPE, &st);
+        if (lastError == CURLE_OK && st != NULL) {
+            contentType = st;
+        }
         lastError = curl_easy_getinfo(curlHandle, CURLINFO_RESPONSE_CODE, &httpCode);
         lastError = curl_easy_getinfo(curlHandle, CURLINFO_EFFECTIVE_URL, &st);
         lastError = curl_easy_getinfo(curlHandle, CURLINFO_TOTAL_TIME, &tminf);

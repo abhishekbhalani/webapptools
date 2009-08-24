@@ -251,7 +251,10 @@ void weRttiOptions::SetOptions(wxWindow* panel, wxXmlNode* root, bool verbose /*
                         // todo - set string
                     }
                     else {
-                        // todo - set index
+                        value.ToLong(&iData);
+                        if (iData > 0 && iData < ((wxChoice*)winchld)->GetCount()) {
+                            ((wxChoice*)winchld)->SetSelection(iData);
+                        }
                     }
                 }
                 else if (className == wxT("wxComboBox"))
@@ -260,7 +263,10 @@ void weRttiOptions::SetOptions(wxWindow* panel, wxXmlNode* root, bool verbose /*
                         // todo - set string
                     }
                     else {
-                        // todo - set index
+                        value.ToLong(&iData);
+                        if (iData > 0 && iData < ((wxComboBox*)winchld)->GetCount()) {
+                            ((wxComboBox*)winchld)->SetSelection(iData);
+                        }
                     }
                 }
                 else

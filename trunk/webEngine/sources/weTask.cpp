@@ -359,6 +359,9 @@ void Task::CalcStatus()
         LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: finish!");
         processThread = false;
         Option(weoTaskStatus, WI_TSK_IDLE);
+        boost::mutex *mt = (boost::mutex*)mutex_ptr;
+        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
+        cond->notify_all();
     }
 }
 

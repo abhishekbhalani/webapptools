@@ -92,7 +92,10 @@ void task_executor(const string& taskID)
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task_executor: task completed");
         globalData.execution = false;
         globalData.scan_info->finishTime = posix_time::second_clock::local_time();
-        globalData.scan_info->status = ScanInfo::weScanFinished;
+        if (globalData.scan_info->status == ScanInfo::weScanRunning || globalData.scan_info->status == ScanInfo::weScanIdle)
+        {   // set "finished" status only if scan have non-forced finish
+            globalData.scan_info->status = ScanInfo::weScanFinished;
+        }
         globalData.task_info->Option(weoTaskStatus, WI_TSK_IDLE);
         globalData.task_info->Option(weoTaskCompletion, 0);
         in_process = false;

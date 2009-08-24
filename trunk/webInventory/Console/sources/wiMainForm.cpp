@@ -540,6 +540,10 @@ void wiMainForm::ProcessObjects(const wxString& criteria /*= wxT("")*/)
             }
 
             FillObjectFilter();
+            if (m_selectedObject >= m_lstObjectList->GetItemCount()) {
+                m_selectedObject = m_lstObjectList->GetItemCount() - 1;
+            }
+            m_lstObjectList->SetItemState(m_selectedObject, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
         }
         else {
             m_statusBar->SetImage(wiSTATUS_BAR_NO);
@@ -634,6 +638,9 @@ void wiMainForm::Connected(bool mode)
 void wiMainForm::OnSelectObject( wxListEvent& event )
 {
     m_selectedObject = event.GetIndex();
+    if (m_selectedObject > -1) {
+        m_toolBarObject->EnableTool(wxID_TOOLDEL, true);
+    }
 }
 
 void wiMainForm::OnAddObject( wxCommandEvent& event )

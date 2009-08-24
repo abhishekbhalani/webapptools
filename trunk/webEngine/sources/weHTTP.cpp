@@ -320,11 +320,6 @@ const int HttpTransport::ProcessRequests( void )
     return lastError;
 }
 
-void HttpTransport::Register( TransportFactory* factory )
-{
-    factory->Add(protoName, weCreateHttp);
-}
-
 const string HttpTransport::GetSetupUI( void )
 {
     return xrc;
