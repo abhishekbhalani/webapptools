@@ -20,23 +20,5 @@ http://webapptools.googlecode.com/svn/wiki/images/iweplugin_graph.png [GraphLege
 Данная схема не является окончательным отображением структуры и может быть дополнена в любой момент. Схема предназначена для наглядного понимания иерархии наследования интерфейсов плагинов.
 
 = Описание интерфейса =
-== Функции ==
-=== iwePlugin ===
-Конструктор. 
-{{{
-iwePlugin::iwePlugin ( WeDispatch* krnl, void* handle = NULL ); 	
-}}}
-*Параметры:*
-    _krnl_      - Обратная ссылка на ядро системы
-    
-    _handle_    - Хэндл динамической библиотеки содержащей плагин (может быть *NULL*).
 
-=== ~iwePlugin ===
-Деструктор
-{{{
-iwePlugin::~iwePlugin ( ) [inline, virtual]
-}}}
-
-== Атрибуты ==
-== Защищенные Атрибуты ==
-== Закрытые Функции ==
+[http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html Doxygen-документация]

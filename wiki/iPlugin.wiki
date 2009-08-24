@@ -19,46 +19,5 @@ http://webapptools.googlecode.com/svn/wiki/images/iweplugin_graph.png [GraphLege
 
 
 = Interface description =
-== Functions ==
-=== iwePlugin ===
-Constructor. 
-{{{
-iwePlugin::iwePlugin ( WeDispatch* krnl, void* handle = NULL ); 	
-}}}
-*Parameters:*
-    _krnl_      - Back-link to the kernel 
-    
-    _handle_    - The handle to the dynamic library. (may be *NULL*).
 
-=== ~iwePlugin ===
-Destructor
-{{{
-iwePlugin::~iwePlugin ( ) [inline, virtual]
-}}}
-----
-
-=== ApplySettings ===
-Applies the settings described by xmlData. 
-{{{
-void iwePlugin::ApplySettings ( const string & xmlData ) [inline, virtual]
-}}}
-----
-*Parameters:*
-    _xmlData_ 	- Plugin settings describing the XML.
-----
-Implemented in !DemoPlugin, !FsStorage, and !SqliteStorage.
-----
-
-=== GetDesc ===
-Gets the plugin description.
-{{{
-const string iwePlugin::GetDesc ( ) [virtual]
-}}}
-----
-*Return values:*
-    The description. 
-----
-
-== Attributes ==
-== Protected Attributes ==
-== Private Functions ==
+[http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html Doxygen documentation]

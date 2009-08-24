@@ -44,7 +44,7 @@ class Inherited : public PublicBase,
 
 This will result in the following graph:
 
-http://webapptools.googlecode.com/svn/wiki/images/graph_legend.png
+http://webapptools.googlecode.com/svn/wiki/doxygen/graph_legend.png
 
 The boxes in the above graph have the following meaning:
 

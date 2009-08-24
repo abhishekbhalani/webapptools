@@ -26,6 +26,16 @@
    * [TaskExecution Task execution]
    * Tasks dispatching
    * GUI for tasks dispatching
+<<<<<<< .mine
+   * webEngine plugins ([http://webapptools.googlecode.com/svn/wiki/doxygen/classes.html full list of classes])
+     * [iwePlugin iwePlugin interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html documentation])
+     * iweOptionsProvider interface
+     * iweStorage interface
+     * iweTransport interface
+     * iweInventory interface
+     * iweAudit interface
+     * iweVulner interface
+=======
    * webEngine plugins
      * [iPlugin iPlugin interface]
      * iOptionsProvider interface
@@ -34,4 +44,5 @@
      * iInventory interface
      * iAudit interface
      * iVulner interface
+>>>>>>> .r111
   * Sources documentation

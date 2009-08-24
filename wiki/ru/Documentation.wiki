@@ -25,8 +25,8 @@
    * [TaskExecution выполнение задач]
    * управление задачами
    * GUI для управления задачами
-   * плагины webEngine
-     * [iwePlugin iwePlugin interface]
+   * плагины webEngine ([http://webapptools.googlecode.com/svn/wiki/doxygen/classes.html полный список классов])
+     * [iwePlugin iwePlugin interface] (([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html документация]))
      * iweOptionsProvider interface
      * iweStorage interface
      * iweTransport interface

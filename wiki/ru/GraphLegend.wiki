@@ -44,7 +44,7 @@ class Inherited : public PublicBase,
 
 Если MAX_DOT_GRAPH_HEIGHT в конфигурационном файле установлен в 240, получится следующий граф:
 
-http://webapptools.googlecode.com/svn/wiki/images/graph_legend.png
+http://webapptools.googlecode.com/svn/wiki/doxygen/graph_legend.png
 
 Прямоугольники в этом графе имеют следующее значение:
 
