@@ -26,11 +26,11 @@
    * управление задачами
    * GUI для управления задачами
    * плагины webEngine ([http://webapptools.googlecode.com/svn/wiki/doxygen/classes.html полный список классов])
-     * [iwePlugin iwePlugin interface] (([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html документация]))
-     * iweOptionsProvider interface
-     * iweStorage interface
-     * iweTransport interface
-     * iweInventory interface
-     * iweAudit interface
-     * iweVulner interface
+     * [iPlugin iPlugin interface] (([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html документация]))
+     * iOptionsProvider interface
+     * iStorage interface
+     * iTransport interface
+     * iInventory interface
+     * iAudit interface
+     * iVulner interface
   * Документированный исходный код
