@@ -54,6 +54,22 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  PluginFactory
+///
+/// @brief  The iPlugin creator for "in-memory" plugins. 
+///
+/// @author A. Abramov
+/// @date   10.06.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class PluginFactory : public LinkedList<string, fnWePluginFactory>
+{
+public:
+    PluginFactory();
+    void Add(string name, fnWePluginFactory func);
+    void* CreatePlugin(string pluginID, Dispatch* krnl);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  Dispatch
 ///
 /// @brief  Dispatcher for tasks processing and system options storage.
@@ -83,6 +99,8 @@ public:
     log4cxx::LoggerPtr GetLogger() { return iLogger::GetLogger(); };
 
     iPlugin* LoadPlugin(string id);
+
+    PluginFactory pluginFactory;
 
 #ifndef __DOXYGEN__
 protected:

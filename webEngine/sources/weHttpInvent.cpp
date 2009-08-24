@@ -186,81 +186,127 @@ void HttpInventory::ProcessResponse( iResponse *resp )
     /// @todo select appropriate parser
     if (htResp->HttpCode() >= 200 && htResp->HttpCode() < 300)
     {
-        LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: parse document");
-        HtmlDocument parser;
-        EntityList lst;
+        string cType = htResp->ContentType();
+        wOption opt = task->Option("httpInventory/AllowedCType");
+        int cTypeMethod;
+        SAFE_GET_OPTION_VAL(opt, cTypeMethod, 0); // default - any type
+        LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: content-type analyze method = " << cTypeMethod);
+        bool cTypeProcess = false;
+        switch(cTypeMethod)
+        {
+        case 0: // any content-type
+            cTypeProcess = true;
+            break;
+        case 1: // empty and "text/*"
+            if (cType == "" || starts_with(cType, "text/"))
+            {
+                cTypeProcess = true;
+            }
+        	break;
+        case 2: // only "text/*"
+            if (starts_with(cType, "text/"))
+            {
+                cTypeProcess = true;
+            }
+        	break;
+        case 3: // empty and "text/html"
+            if (cType == "" || starts_with(cType, "text/html"))
+            {
+                cTypeProcess = true;
+            }
+            break;
+        case 4: // only "text/*"
+            if (starts_with(cType, "text/html"))
+            {
+                cTypeProcess = true;
+            }
+            break;
+        default:
+            cTypeProcess = false;
+            LOG4CXX_WARN(logger, "HttpInventory::ProcessResponse: unknown content-type analyze method = " << cTypeMethod);
+            break;
+        }
+        if (cTypeProcess)
+        {
+            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: parse document");
+            HtmlDocument parser;
+            EntityList lst;
 
-        boost::posix_time::ptime pretm = boost::posix_time::microsec_clock::local_time();
-        parser.ParseData(resp);
-        boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
-        boost::posix_time::time_period duration(pretm, postm);
-        LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse " << htResp->Data().size() << "bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
-        LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: search for links");
-        lst = parser.FindTags("a");
-        if (lst.size() == 0) {
-            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: no <a ...> tags");
+            boost::posix_time::ptime pretm = boost::posix_time::microsec_clock::local_time();
+            parser.ParseData(resp);
+            boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
+            boost::posix_time::time_period duration(pretm, postm);
+            LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse " << htResp->Data().size() << "bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
+            LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: search for links");
+            lst = parser.FindTags("a");
+            if (lst.size() == 0) {
+                LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: no <a ...> tags");
+            }
+            else {
+                iEntity* ent = NULL;
+                EntityList::iterator iEnt;
+                string href;
+                bool to_process;
+                for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
+                    to_process = true;
+                    href = (*iEnt)->Attr("href");
+                    if (href != "") {
+                        URL link;
+                        link.Restore(href, &(htResp->RealUrl()));
+                        LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: <a href...> tag. url=" << link.ToString());
+                        if (!link.IsHostEquals(htResp->RealUrl()))
+                        {
+                            if (task->IsSet("httpInventory/"weoStayInHost))
+                            {
+                                to_process = false;
+                            }
+                            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInHost check " << to_process << " (" << link.ToString() << ")");
+                        }
+                        if (!link.IsDomainEquals(htResp->RealUrl()))
+                        {
+                            if (task->IsSet("httpInventory/"weoStayInDomain))
+                            {
+                                to_process = false;
+                            }
+                            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInDomain check << " << to_process << " (" << link.ToString() << ")");
+                        }
+
+                        if (to_process)
+                        {
+                            string u_req = link.ToString();
+                            if (task->IsSet("httpInventory/"weoIgnoreUrlParam)) {
+                                u_req = link.ToStringNoParam();
+                            }
+                            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoIgnoreUrlParam check << " << u_req);
+                            if (tasklist.find(u_req) == tasklist.end())
+                            {
+                                LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: add link to task list. url=" << link.ToString());
+                                HttpRequest* new_url = new HttpRequest(link.ToString());
+                                new_url->ID(scData->dataID);
+                                tasklist[u_req] = true;
+                                new_url->processor = HttpInventory::ResponseDispatcher;
+                                new_url->context = (void*)this;
+                                task->GetRequestAsync(new_url);
+                            }
+                            else
+                            {
+                                // add parent to existing scan data
+                            }
+                        }
+                    } // end href attribute
+                } // end <a ...> loop
+            } // end <a ...> tags processing
+            // todo: process other kind of links
+            // CSS
+            // scripts
+            // objects
+            // images
+            // frames
+            // etc ???
         }
         else {
-            iEntity* ent = NULL;
-            EntityList::iterator iEnt;
-            string href;
-            bool to_process;
-            for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
-                to_process = true;
-                href = (*iEnt)->Attr("href");
-                if (href != "") {
-                    URL link;
-                    link.Restore(href, &(htResp->RealUrl()));
-                    LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: <a href...> tag. url=" << link.ToString());
-                    if (!link.IsHostEquals(htResp->RealUrl()))
-                    {
-                        if (task->IsSet("httpInventory/"weoStayInHost))
-                        {
-                            to_process = false;
-                        }
-                        LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInHost check " << to_process);
-                    }
-                    if (!link.IsDomainEquals(htResp->RealUrl()))
-                    {
-                        if (task->IsSet("httpInventory/"weoStayInDomain))
-                        {
-                            to_process = false;
-                        }
-                        LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInDomain check << " << to_process);
-                    }
-
-                    if (to_process)
-                    {
-                        string u_req = link.ToString();
-                        if (task->IsSet("httpInventory/"weoIgnoreUrlParam)) {
-                            u_req = link.ToStringNoParam();
-                        }
-                        LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoIgnoreUrlParam check << " << u_req);
-                        if (tasklist.find(u_req) == tasklist.end())
-                        {
-                            LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: add link to task list. url=" << link.ToString());
-                            HttpRequest* new_url = new HttpRequest(link.ToString());
-                            new_url->ID(scData->dataID);
-                            tasklist[u_req] = true;
-                            new_url->processor = HttpInventory::ResponseDispatcher;
-                            new_url->context = (void*)this;
-                            task->GetRequestAsync(new_url);
-                        }
-                        else
-                        {
-                            // add parent to existing scan data
-                        }
-                    }
-                } // end href attribute
-            } // end <a ...> loop
-        } // end <a ...> tags processing
-        // todo: process other kind of links
-        // CSS
-        // scripts
-        // objects
-        // images
-        // frames
-        // etc ???
+            LOG4CXX_WARN(logger, "HttpInventory::ProcessResponse: inconsistent content-type: " << cType);
+        }
     }
     task->SetScanData(scData);
 }

@@ -169,21 +169,8 @@ iPlugin* Dispatch::LoadPlugin( string id )
     iPlugin* retval = NULL;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin " << id);
-    if (id == "D82B31419339") {
-        // MemStorage interface
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - embedded plugin: MemStorage");
-        retval = new MemStorage(this);
-    }
-    if (id == "A44A9A1E7C25") {
-        // HttpTransport interface
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - embedded plugin: HttpTransport");
-        retval = new HttpTransport(this);
-    }
-    if (id == "AB7ED6E5A7B3") {
-        // MemStorage interface
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - embedded plugin: HttpInventory");
-        retval = new HttpInventory(this);
-    }
+    // first step - in-memory plugins
+    retval = (iPlugin*)pluginFactory.CreatePlugin(id, this);
 
     if (retval == NULL) {
         // external plugins
@@ -249,4 +236,86 @@ void Dispatch::Flush()
         string xml = iOptionsProvider::ToXml();
         storage->SystemOptionsSave(xml);
     }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+static void* CreateNullStorage(void* krnl, void* handle = NULL)
+{
+    return (void*) (new NullStorage((Dispatch*)krnl, handle));
+}
+
+static void* CreateMemStorage(void* krnl, void* handle = NULL)
+{
+    return (void*) (new MemStorage((Dispatch*)krnl, handle));
+}
+
+static void* CreateHttpTransport(void* krnl, void* handle = NULL)
+{
+    return (void*) (new HttpTransport((Dispatch*)krnl, handle));
+}
+
+static void* CreateHttpInventory(void* krnl, void* handle = NULL)
+{
+    return (void*) (new HttpInventory((Dispatch*)krnl, handle));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn PluginFactory::PluginFactory()
+///
+/// @brief  Default constructor. 
+///
+/// @author A. Abramov
+/// @date   24.08.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+PluginFactory::PluginFactory() :
+    LinkedList<string, fnWePluginFactory>()
+{
+    data = new LinkedListElem<string, fnWePluginFactory>;
+    data->Key("");
+    data->Value(NULL);
+    data->Link(NULL);
+    // add "default" plugins
+    Add("7CB7A5F18348", CreateNullStorage);
+    Add("D82B31419339", CreateMemStorage);
+    Add("A44A9A1E7C25", CreateHttpTransport);
+    Add("AB7ED6E5A7B3", CreateHttpInventory);
+}
+
+void PluginFactory::Add( string name, fnWePluginFactory func )
+{
+    LinkedListElem<string, fnWePluginFactory>* obj;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "new PluginFactory added for " << name);
+    obj = new LinkedListElem<string, fnWePluginFactory>();
+    obj->Key(name);
+    obj->Value(func);
+    curr = data;
+    while (curr != NULL) {
+        if (curr->Key() == name)
+        {
+            break;
+        }
+        curr = curr->Next();
+    }
+    if (curr != NULL)
+    {
+        curr->Value(func);
+    }
+    else {
+        data->Add(obj);
+    }
+}
+
+void* PluginFactory::CreatePlugin( string pluginID, Dispatch* krnl )
+{
+    fnWePluginFactory func;
+
+    func = FindFirst(pluginID);
+    if (func == NULL) {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "PluginFactory::CreatePlugin plugin doesn't register in memory");
+        return NULL;
+    }
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "PluginFactory::CreatePlugin " << pluginID);
+    return func(krnl, NULL);
 }

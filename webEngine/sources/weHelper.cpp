@@ -35,7 +35,6 @@ using namespace boost::filesystem;
 namespace webEngine {
 
 HtmlFactory  weHtmlFactory;
-TransportFactory weTransportFactory;
 static bool isLibInited = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +79,6 @@ void LibInit(const string& config /*= ""*/)
     if (!isLibInited)
     {
         weHtmlFactory.Init();
-        weTransportFactory.Init();
         cCode = curl_global_init(CURL_GLOBAL_ALL);
         if (cCode != 0) {
             throw WeError(string("cURL initialization failed : ") + boost::lexical_cast<std::string>(cCode));
@@ -195,17 +193,6 @@ static HtmlEntity* weCreateScript(iEntity* prnt)
     return new WeScript(prnt);
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Transport creation functions
-//////////////////////////////////////////////////////////////////////////
-static iTransport* weCreateFile(Dispatch* krnl)
-{
-    LOG4CXX_TRACE(iLogger::GetLogger(), "TransportFactory: create WeFile");
-    return NULL; //new WeFile();
-}
-#endif //__DOXYGEN__
-
-
 HtmlFactory::HtmlFactory() :
     LinkedList<string, fnEntityFactory>()
 {
@@ -244,6 +231,7 @@ void HtmlFactory::Init()
 //     Add("script",       weCreateScript);
 //     Add("a",            weCreateRefObj);
 }
+#endif //__DOXYGEN__
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	iEntity* HtmlFactory::CreateEntity(string tagName, HtmlEntity* prnt)
@@ -265,68 +253,4 @@ HtmlEntity* HtmlFactory::CreateEntity( string tagName, HtmlEntity* prnt )
     return func(prnt);
 }
 
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-TransportFactory::TransportFactory() :
-    LinkedList<string, fnTransportFactory>()
-{
-    data = new LinkedListElem<string, fnTransportFactory>;
-    data->Key("");
-    data->Value(NULL);
-    data->Link(NULL);
-}
-
-void TransportFactory::Add( string name, fnTransportFactory func )
-{
-    LinkedListElem<string, fnTransportFactory>* obj;
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "new TransportFactory added for " << name);
-    obj = new LinkedListElem<string, fnTransportFactory>();
-    obj->Key(name);
-    obj->Value(func);
-    curr = data;
-    while (curr != NULL) {
-        if (curr->Key() == name)
-        {
-            break;
-        }
-        curr = curr->Next();
-    }
-    if (curr != NULL)
-    {
-        curr->Value(func);
-    }
-    else {
-        data->Add(obj);
-    }
-}
-
-void TransportFactory::Init()
-{
-    Clear();
-    data = new LinkedListElem<string, fnTransportFactory>;
-    data->Key("");
-    data->Value(NULL);
-    data->Link(NULL);
-    Add("file",     weCreateFile);
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iTransport* TransportFactory::CreateTransport(string tagName)
-///
-/// @brief  Create iweTrasport by the given name.
-/// @param  tagName - Name of the transport.
-/// @retval	null if it fails, pointer to iTransport ot it's successor else.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-iTransport* TransportFactory::CreateTransport( string tagName, Dispatch* krnl)
-{
-    fnTransportFactory func;
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "TransportFactory::CreateTransport => " << tagName);
-    func = FindFirst(tagName);
-    if (func == NULL) {
-        return NULL;
-    }
-    return func(krnl);
-}
 } // namespace webEngine
