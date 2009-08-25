@@ -1,7 +1,10 @@
 #summary Выполнение задачи
+#labels Phase-Design
 
 = Общая информация =
 
 = Логика выполнения задачи = 
 
 = Используемые классы и интерфейсы =
+
+[http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1_task.html Doxygen documentation]
