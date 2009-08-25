@@ -36,7 +36,7 @@
   * webEngine plugins
      * [iPlugin iPlugin interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html documentation])
      * [iOptionsProvider iOptionsProvider interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_options_provider.html documentation])
-     * [iStorage iStorage interface]
+     * [iStorage iStorage interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_storage.html documentation])
      * [iTransport iTransport interface]
      * [iInventory iInventory interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_inventory.html documentation])
      * [iAudit iAudit interface]
