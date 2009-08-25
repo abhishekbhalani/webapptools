@@ -5,18 +5,18 @@
 
 == General documents and compilation issues ==
   * *Project team*
-    * Andrew "Stinger" Abramov ([http://en.securitylab.ru/lab/ Positive Technologies Research Team])
-    * Alex Yudin ([http://en.securitylab.ru/lab/ Positive Technologies Research Team])
+    * *Andrew "Stinger" Abramov*. Technical issues and project's maintaining. Main developer and project's architect.
+    * *Alex Yudin* Strategic issues and planning. Project's architect and developer.
 
   * *Used libraries list*
     * [http://www.boost.org/ boost library]. The version 1.37 or greater of the boost is used in this project. The used subsystems list:
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/date_time.html Boost.Date_Time]
-        * boost_filesystem
+        * [http://www.boost.org/doc/libs/1_38_0/libs/filesystem/doc/index.htm Boost.Filesystem]
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/program_options.html Boost.Program_options]
-        * boost_regex
-        * boost_serialization
-        * boost_system
-        * boost_thread
+        * [http://www.boost.org/doc/libs/1_38_0/libs/regex/doc/html/index.html Boost.Regex]
+        * [http://www.boost.org/doc/libs/1_38_0/libs/serialization/doc/index.html Boost.Serialization]
+        * [http://www.boost.org/doc/libs/1_38_0/libs/system/doc/index.html Boost.System]
+        * [http://www.boost.org/doc/libs/1_38_0/doc/html/thread.html Boost.Thread]
     * [http://curl.haxx.se/libcurl/ cURL library]. Web operations are performed through the cURL library.
     * [http://code.google.com/p/dtl-cpp/ dtl - Diff Template Library]. Copyright © 2008-2009 Tatsuhiko Kubo <cubicdaiya@gmail.com>. This code adopted into webEngine structure.
     * [http://logging.apache.org/log4cxx/index.html log4cxx library] used for logging operations.
@@ -29,16 +29,16 @@
 == Programmers documentation ==
   * Coding style
   * Project structure
-  * [WebEngine webEngine library]
-  * [TaskExecution Task execution]
-  * Tasks dispatching
-  * GUI for tasks dispatching
+     * [WebEngine webEngine library]
+     * [TaskExecution Task execution]
+     * Tasks dispatching
+     * [Console GUI for tasks dispatching]
   * webEngine plugins
      * [iPlugin iPlugin interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html documentation])
-     * [iOptionsProvider iOptionsProvider interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html documentation])
+     * [iOptionsProvider iOptionsProvider interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_options_provider.html documentation])
      * [iStorage iStorage interface]
      * [iTransport iTransport interface]
-     * [iInventory iInventory interface]
+     * [iInventory iInventory interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_inventory.html documentation])
      * [iAudit iAudit interface]
      * [iVulner iVulner interface]
   * [http://webapptools.googlecode.com/svn/wiki/doxygen/classes.html Sources documentation]

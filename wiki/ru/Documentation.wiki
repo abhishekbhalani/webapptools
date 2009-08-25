@@ -1,21 +1,22 @@
 #summary Проектная документация.
+#labels Phase-Design,Phase-Requirements
 
 = Список документов по категориям =
 
 == Общая документация и вопросы компиляции ==
   * *Команда проекта*
-    * Andrew "Stinger" Abramov ([http://en.securitylab.ru/lab/ Positive Technologies Research Team])
-    * Alex Yudin ([http://en.securitylab.ru/lab/ Positive Technologies Research Team])
+    * *Andrew "Stinger" Abramov*. Технические вопросы и поддержка проекта. Главный разработчик, архитектор проекта.
+    * *Alex Yudin*. Стратегические вопросы и планирование. Архитектор и разработчик проетка.
 
   * *Список используемых библиотек*
     * [http://www.boost.org/ boost library]. Версия 1.37 или выше. Используется при компиляции. Список подсистем:
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/date_time.html Boost.Date_Time]
-        * boost_filesystem
+        * [http://www.boost.org/doc/libs/1_38_0/libs/filesystem/doc/index.htm Boost.Filesystem]
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/program_options.html Boost.Program_options]
-        * boost_regex
-        * boost_serialization
-        * boost_system
-        * boost_thread
+        * [http://www.boost.org/doc/libs/1_38_0/libs/regex/doc/html/index.html Boost.Regex]
+        * [http://www.boost.org/doc/libs/1_38_0/libs/serialization/doc/index.html Boost.Serialization]
+        * [http://www.boost.org/doc/libs/1_38_0/libs/system/doc/index.html Boost.System]
+        * [http://www.boost.org/doc/libs/1_38_0/doc/html/thread.html Boost.Thread]
     * [http://curl.haxx.se/libcurl/ cURL library]. Используется для операций с HTTP(s) и FTP протоколами.
     * [http://code.google.com/p/dtl-cpp/ dtl - Diff Template Library]. Copyright © 2008-2009 Tatsuhiko Kubo <cubicdaiya@gmail.com>. Данный код включен в структуру webEngine.
     * [http://logging.apache.org/log4cxx/index.html log4cxx library] используется для логирования работы системы.
@@ -28,16 +29,16 @@
 == Документация программиста ==
   * Оформление кода
   * Структура проекта
-  * [WebEngine библиотека webEngine]
-  * [TaskExecution выполнение задач]
-  * управление задачами
-  * GUI для управления задачами
+     * [WebEngine библиотека webEngine]
+     * [TaskExecution выполнение задач]
+     * Управление задачами
+     * [Console GUI для управления задачами]
   * плагины webEngine
      * [iPlugin iPlugin interface] (([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html документация]))
-     * [iOptionsProvider iOptionsProvider interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html документация])
+     * [iOptionsProvider iOptionsProvider interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_options_provider.html документация])
      * [iStorage iStorage interface]
      * [iTransport iTransport interface]
-     * [iInventory iInventory interface]
+     * [iInventory iInventory interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_inventory.html документация])
      * [iAudit iAudit interface]
      * [iVulner iVulner interface]
   * [http://webapptools.googlecode.com/svn/wiki/doxygen/classes.html Документированный исходный код]

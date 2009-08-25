@@ -1,3 +1,5 @@
+#summary Информация для разработчиков и инвесторов
+#labels Phase-Support
 
 We are looking for sponsorship from Enterprise users and Internet community.We expect any software volunteer and strategic Enterprise sponsor to help *!WebAppTools* project. You can reach out to the project administrator to discuss your sponsor plan. You can either join the software development/testing or providing servers (building machines,test bed) for building up physical software environment or other helps which you can think of. Again, your generosity is highly appreciated! 
 
@@ -6,3 +8,5 @@ We are looking for sponsorship from Enterprise users and Internet community.We e
   * Ваше мнение очень важно для нас - мы будем рады комментариям и предложениям по поводу проекта.
   * Вы можете присоединиться к проекту как разработчик, тестировщик, дизайнер интерфейса или технический писатель.
   * Так же вы можете спонсировать проект для поддержки привлеченных разработчиков или реализации специфической функциональности
+  * Вы можете отслеживать текущие задачи проекта в *[http://code.google.com/p/webapptools/issues/list?q=label:Enhancement+OR+label:Task Списке задач]*
+  * Информируйте нас о найденных недочетах через *[http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Багтрекер] проекта*.
