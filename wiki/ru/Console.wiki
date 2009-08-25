@@ -1,4 +1,4 @@
-#summary GUI для управления задачами.
+#summary GUI РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ Р·Р°РґР°С‡Р°РјРё.
 #labels Phase-Design,Phase-Implementation
 
 = Introduction =
