@@ -47,6 +47,8 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-Wno-write-strings" />
+			<Add option="-Wno-deprecated" />
 			<Add directory="../../../webEngine/include" />
 		</Compiler>
 		<Unit filename="dlExport.def" />

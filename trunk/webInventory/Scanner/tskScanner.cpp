@@ -48,7 +48,9 @@ int main(int argc, char* argv[])
     string query;
     string report;
     int objs;
+    char buf[1024];
 
+    cerr << "Cwd: " << getcwd(buf, 1024) << endl;
     try
     {
         // initialization

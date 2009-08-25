@@ -10,6 +10,7 @@
 		</Project>
 		<Project filename="../Scanner/tskScanner.cbp">
 			<Depends filename="../../webEngine/webEngine.cbp" />
+			<Depends filename="../Plugins/FsStorage/storageFS.cbp" />
 		</Project>
 		<Project filename="scanServer.cbp" active="1">
 			<Depends filename="../../webEngine/webEngine.cbp" />
