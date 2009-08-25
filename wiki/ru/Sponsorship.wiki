@@ -1,0 +1,8 @@
+
+We are looking for sponsorship from Enterprise users and Internet community.We expect any software volunteer and strategic Enterprise sponsor to help *!WebAppTools* project. You can reach out to the project administrator to discuss your sponsor plan. You can either join the software development/testing or providing servers (building machines,test bed) for building up physical software environment or other helps which you can think of. Again, your generosity is highly appreciated! 
+
+===Мы рады различной помощи в нашем проекте.===
+  * Вы можете обратиться за помощью или технической поддержкой.
+  * Ваше мнение очень важно для нас - мы будем рады комментариям и предложениям по поводу проекта.
+  * Вы можете присоединиться к проекту как разработчик, тестировщик, дизайнер интерфейса или технический писатель.
+  * Так же вы можете спонсировать проект для поддержки привлеченных разработчиков или реализации специфической функциональности

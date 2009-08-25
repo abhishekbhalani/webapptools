@@ -9,7 +9,14 @@
     * Alex Yudin ([http://en.securitylab.ru/lab/ Positive Technologies Research Team])
 
   * *Used libraries list*
-    * [http://www.boost.org/ boost library]. The version 1.37 or greater of the boost is used in this project.
+    * [http://www.boost.org/ boost library]. The version 1.37 or greater of the boost is used in this project. The used subsystems list:
+        * [http://www.boost.org/doc/libs/1_38_0/doc/html/date_time.html Boost.Date_Time]
+        * boost_filesystem
+        * [http://www.boost.org/doc/libs/1_38_0/doc/html/program_options.html Boost.Program_options]
+        * boost_regex
+        * boost_serialization
+        * boost_system
+        * boost_thread
     * [http://curl.haxx.se/libcurl/ cURL library]. Web operations are performed through the cURL library.
     * [http://code.google.com/p/dtl-cpp/ dtl - Diff Template Library]. Copyright © 2008-2009 Tatsuhiko Kubo <cubicdaiya@gmail.com>. This code adopted into webEngine structure.
     * [http://logging.apache.org/log4cxx/index.html log4cxx library] used for logging operations.
@@ -22,16 +29,16 @@
 == Programmers documentation ==
   * Coding style
   * Project structure
-   * webEngine library
-   * [TaskExecution Task execution]
-   * Tasks dispatching
-   * GUI for tasks dispatching
-   * webEngine plugins ([http://webapptools.googlecode.com/svn/wiki/doxygen/classes.html full list of classes])
+  * [WebEngine webEngine library]
+  * [TaskExecution Task execution]
+  * Tasks dispatching
+  * GUI for tasks dispatching
+  * webEngine plugins
      * [iPlugin iPlugin interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html documentation])
-     * iOptionsProvider interface
-     * iStorage interface
-     * iTransport interface
-     * iInventory interface
-     * iAudit interface
-     * iVulner interface
-  * Sources documentation
+     * [iOptionsProvider iOptionsProvider interface] ([http://webapptools.googlecode.com/svn/wiki/doxygen/classweb_engine_1_1i_plugin.html documentation])
+     * [iStorage iStorage interface]
+     * [iTransport iTransport interface]
+     * [iInventory iInventory interface]
+     * [iAudit iAudit interface]
+     * [iVulner iVulner interface]
+  * [http://webapptools.googlecode.com/svn/wiki/doxygen/classes.html Sources documentation]
