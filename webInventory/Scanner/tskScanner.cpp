@@ -48,9 +48,7 @@ int main(int argc, char* argv[])
     string query;
     string report;
     int objs;
-    char buf[1024];
 
-    cerr << "Cwd: " << getcwd(buf, 1024) << endl;
     try
     {
         // initialization
@@ -59,24 +57,22 @@ int main(int argc, char* argv[])
         configuration.storageIface = "D82B31419339";
 
         // Declare the supported options.
-        po::options_description desc("Allowed options");
-        desc.add_options()
+        po::options_description opts("Allowed options");
+        opts.add_options()
             ("help", "produce help message")
             ("version", "prints version and exit")
             ("config", po::value<string>(), "configuration file")
-            ("id", po::value<string>(), "identifier of the task to run")
+            ("tid", po::value<string>(), "identifier of the task to run")
             ("trace", po::value<string>(), "trace configuration file")
             ("storage", po::value<string>(), "storage interface redefinition")
             ;
-        po::positional_options_description p;
-        p.add("config", -1);
 
         po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+        po::store(po::command_line_parser(argc, argv).options(opts).allow_unregistered().run(), vm);
         po::notify(vm);
 
         if (vm.count("help")) {
-            cout << desc << "\n";
+            cout << opts << "\n";
             return 1;
         }
         if (vm.count("version")) {
@@ -140,8 +136,8 @@ int main(int argc, char* argv[])
             LOG4CXX_INFO(iLogger::GetLogger(), "Storage interface is " << configuration.storageIface);
         }
 
-        if (vm.count("id")) {
-            taskID = vm["id"].as<string>();
+        if (vm.count("tid")) {
+            taskID = vm["tid"].as<string>();
             LOG4CXX_DEBUG(iLogger::GetLogger(), "Given task ID is " << taskID);
         }
         else {
@@ -280,6 +276,7 @@ int main(int argc, char* argv[])
     catch (std::exception& e)
     {
         LOG4CXX_FATAL(iLogger::GetLogger(), "Exception: " << e.what());
+        cerr << "Exception: " << e.what() << endl;
         // postprocess
         if (globalData.dispatcher != NULL)
         {

@@ -59,7 +59,7 @@ void LibInit(const string& config /*= ""*/)
 #ifdef WIN32
             PropertyConfigurator::configure(log4cxx::File(cfgFile), LOG4CXX_STR("webEngine"));
 #else
-            PropertyConfigurator::configure(log4cxx::File("trace.config"));
+            PropertyConfigurator::configure(log4cxx::File(cfgFile));
 #endif
         }
         else {

@@ -18,7 +18,6 @@
 					<Add option="-DBUILD_DLL" />
 				</Compiler>
 				<Linker>
-					<Add library="user32" />
 					<Add directory="../../../webEngine/libs/debug" />
 				</Linker>
 			</Target>
@@ -35,7 +34,6 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="user32" />
 					<Add directory="../../../webEngine/libs/release" />
 				</Linker>
 			</Target>
