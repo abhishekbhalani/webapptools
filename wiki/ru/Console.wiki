@@ -12,8 +12,13 @@ Add your content here.  Format your content with:
   * Text in *bold* or _italic_
   * Headings, paragraphs, and lists
   * Automatic links to other wiki pages
+
+= Система построения отчетов =
+
+Интерфейс плагинов
   
 = Изображения =
+
 Консоль на Windows XP. Соединение с сервером на Linux в локальной сети. Закладка *Настройки*.
 
 [http://www.lab18.net/Home/webengine/console/Screenshot-1.png http://www.lab18.net/Home/webengine/console/Screenshot-1.png?height=253&width=420]
