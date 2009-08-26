@@ -64,10 +64,10 @@ string taskDbDir = ".";
 char* trace_modes[] = {"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
 int trace_mode_last = 5;
 
-int exec_child(const string cmd)
+int exec_child(char* cmd[])
 {
 #ifdef WIN32
-    return _spawnl(_P_NOWAIT, "tskScanner", cmd.c_str(), NULL);
+    return _spawnv(_P_NOWAIT, "tskScanner", cmd);
 #else // UNIX (POSIX) implementation
     string line = string("./") + cmd;
     pid_t pid = vfork();
@@ -83,10 +83,9 @@ int exec_child(const string cmd)
     char* args[2];
     char* envs[1];
 
-    args[0] = strdup(line.c_str());
-    args[1] = NULL;
+    cmd[0] = strdup(line.c_str());
     envs[0] = NULL;
-    execve("./tskScanner", args, envs);
+    execve("./tskScanner", cmd, envs);
 #endif //WIN32
 }
 
@@ -309,7 +308,9 @@ bool run_task(const string& id)
     string sdata;
     int idata;
     Task* tsk;
+    char* cmdline[10];
 
+    memset(cmdline, 0, sizeof(cmdline));
     tsk = load_task(id);
     if (tsk != NULL)
     {
@@ -349,13 +350,21 @@ bool run_task(const string& id)
                 tr << "log4j.logger.webEngine=" << trace_modes[idata] << ", R" << endl;
             }
             // compose command line arguments
-            string cmdline = workDir + "tskScanner --id " + id;
-            cmdline += " --trace " + workDir + fname + ".trace";
+            sdata = workDir + "tskScanner";
+            cmdline[0] = strdup(sdata.c_str());
+            cmdline[1] = "--id ";
+            cmdline[2] = strdup(id.c_str());
+            cmdline[3] = "--trace";
+            sdata = workDir + fname + ".trace";
+            cmdline[4] = strdup(sdata.c_str());
+            cmdline[5] = "--storage";
+            cmdline[6] = strdup(globalDispatcher->Storage()->GetID().c_str());
             if (cfgFile != "") {
-                cmdline += " --config " + cfgFile;
+                cmdline[7] = "--config";
+                cmdline[8] = strdup(cfgFile.c_str());
             }
-            cmdline += " --storage " + globalDispatcher->Storage()->GetID();
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "run_task: " << cmdline);
+            cmdline[9] = NULL;
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "run_task: " << id << " trace: " << workDir << fname << ".trace");
             int err = exec_child(cmdline);
             if (err != -1) {
                 retval = true;
