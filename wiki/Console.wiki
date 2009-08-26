@@ -15,14 +15,18 @@ Add your content here.  Format your content with:
   
 = Screenshots =
 Console on Windows XP. Connected to Linux-based server in intranet. The *Settings* tab is active.
+
 [http://www.lab18.net/Home/webengine/console/Screenshot-1.png http://www.lab18.net/Home/webengine/console/Screenshot-1.png?height=253&width=420]
 
 Console on GTK. Connected to local server (in terminal window).
+
 [http://www.lab18.net/Home/webengine/console/Screenshot-2.png http://www.lab18.net/Home/webengine/console/Screenshot-2.png?height=262&width=420]
 
 Console on Windows XP. *Tasks* tab is active, one task running.
 Also, this screenshot demonstrates usage of UTF-8 encoding for the objects names.
+
 [http://www.lab18.net/Home/webengine/console/Screenshot-3.png http://www.lab18.net/Home/webengine/console/Screenshot-3.png?height=314&width=420]
 
 Console on GTK. *Tasks* tab is active, some broken tasks are visible (in IDLE state).
+
 [http://www.lab18.net/Home/webengine/console/Screenshot-4.png http://www.lab18.net/Home/webengine/console/Screenshot-4.png?height=262&width=420]

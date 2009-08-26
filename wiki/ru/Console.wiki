@@ -15,14 +15,18 @@ Add your content here.  Format your content with:
   
 = Изображения =
 Консоль на Windows XP. Соединение с сервером на Linux в локальной сети. Закладка *Настройки*.
+
 [http://www.lab18.net/Home/webengine/console/Screenshot-1.png http://www.lab18.net/Home/webengine/console/Screenshot-1.png?height=253&width=420]
 
 Консоль на  GTK-Linux. Соединение с локальным сервером (виден в окне терминала).
+
 [http://www.lab18.net/Home/webengine/console/Screenshot-2.png http://www.lab18.net/Home/webengine/console/Screenshot-2.png?height=262&width=420]
 
 Консоль на Windows XP. Закладка *Задачи*, видна выполняющаяся задача.
 Так же видна возможность использования UTF-8 в именах сущностей (в данном случае - объекты сканирования).
+
 [http://www.lab18.net/Home/webengine/console/Screenshot-3.png http://www.lab18.net/Home/webengine/console/Screenshot-3.png?height=314&width=420]
 
 Консоль на  GTK-Linux. Закладка *Задачи*, видны простаивающие задачи.
+
 [http://www.lab18.net/Home/webengine/console/Screenshot-4.png http://www.lab18.net/Home/webengine/console/Screenshot-4.png?height=262&width=420]
