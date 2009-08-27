@@ -33,6 +33,8 @@ class wiStatBar;
 #include <wx/treebook.h>
 #include <wx/imaglist.h>
 #include <wx/panel.h>
+#include <wx/spinctrl.h>
+#include <wx/checkbox.h>
 #include <wx/richtext/richtextctrl.h>
 #include <wx/splitter.h>
 #include <wx/datectrl.h>
@@ -57,19 +59,21 @@ class wiStatBar;
 #define wxID_TOOLGO 1007
 #define wxID_TOOLPAUSE 1008
 #define wxID_TOOLSTOP 1009
-#define wxID_TLREFRESH 1010
-#define wxID_TLFILTER 1011
-#define wxID_TLDATE 1012
-#define wxID_TLSTATUS 1013
-#define wxID_TLSAVE 1014
-#define wxID_TLCONNECT 1015
-#define wxID_TLNEW 1016
-#define wxID_TLEDIT 1017
-#define wxID_TLDELETE 1018
-#define wxID_TLLANGAPPLY 1019
-#define wxID_TLPLGRELOAD 1020
-#define wxID_TLSRVSTOP 1021
-#define wxID_TLSRVLOG 1022
+#define wxID_TLREFRTSKLOG 1010
+#define wxID_TLSAVETSKLOG 1011
+#define wxID_TLREFRESH 1012
+#define wxID_TLFILTER 1013
+#define wxID_TLDATE 1014
+#define wxID_TLSTATUS 1015
+#define wxID_TLSAVE 1016
+#define wxID_TLCONNECT 1017
+#define wxID_TLNEW 1018
+#define wxID_TLEDIT 1019
+#define wxID_TLDELETE 1020
+#define wxID_TLLANGAPPLY 1021
+#define wxID_TLPLGRELOAD 1022
+#define wxID_TLSRVSTOP 1023
+#define wxID_TLSRVLOG 1024
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
@@ -96,6 +100,8 @@ class MainForm : public wxFrame
 
 		wxPanel* m_panTasks;
 		wxToolBar* m_toolBarTasks;
+		wxSpinCtrl* m_spinLinesTsk;
+		wxCheckBox* m_chAppendTsk;
 		wxSplitterWindow* m_splitLogs;
 		wxListCtrl* m_lstTaskList;
 		wxRichTextCtrl* m_rtTask;

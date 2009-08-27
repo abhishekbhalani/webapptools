@@ -68,7 +68,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_toolBarObject = new wxToolBar( m_panObjects, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
 	m_toolBarObject->SetToolBitmapSize( wxSize( 20,20 ) );
 	m_toolBarObject->AddTool( wxID_TOOLNEW, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new object"), wxEmptyString );
-	m_toolBarObject->AddTool( wxID_TOOLEDIT, _("tool"), wxBitmap( btnEdit_xpm ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString );
+	m_toolBarObject->AddTool( wxID_TOOLEDIT, wxEmptyString, wxBitmap( btnEdit_xpm ), wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString );
 	m_toolBarObject->AddTool( wxID_TOOLDEL, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete task"), wxEmptyString );
 	m_toolBarObject->Realize();
 
@@ -103,11 +103,11 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_chProfile = new wxChoice( m_toolBarProf, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chProfileChoices, 0 );
 	m_chProfile->SetSelection( 0 );
 	m_toolBarProf->AddControl( m_chProfile );
-	m_toolBarProf->AddTool( wxID_TLPROFNEW, _("tool"), wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Create new profile"), wxEmptyString );
-	m_toolBarProf->AddTool( wxID_TLPROFCLONE, _("tool"), wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Copy current profile"), wxEmptyString );
-	m_toolBarProf->AddTool( wxID_TLPROFDEL, _("tool"), wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete profile"), wxEmptyString );
+	m_toolBarProf->AddTool( wxID_TLPROFNEW, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Create new profile"), wxEmptyString );
+	m_toolBarProf->AddTool( wxID_TLPROFCLONE, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Copy current profile"), wxEmptyString );
+	m_toolBarProf->AddTool( wxID_TLPROFDEL, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete profile"), wxEmptyString );
 	m_toolBarProf->AddSeparator();
-	m_toolBarProf->AddTool( wxID_TLPROFSAVE, _("tool"), wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save profile"), wxEmptyString );
+	m_toolBarProf->AddTool( wxID_TLPROFSAVE, wxEmptyString, wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save profile"), wxEmptyString );
 	m_toolBarProf->AddSeparator();
 	m_toolBarProf->AddTool( wxID_TOOLGO, wxEmptyString, wxBitmap( start_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Start task"), wxEmptyString );
 	m_toolBarProf->Realize();
@@ -121,14 +121,14 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	m_bpAddPlugin = new wxBitmapButton( m_panObjects, wxID_ANY, wxBitmap( btnAdd_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	
-	m_bpAddPlugin->SetBitmapDisabled( wxBitmap( _btnAdd ) );
+	m_bpAddPlugin->SetBitmapDisabled( wxBitmap( _btnAdd_xpm ) );
 	m_bpAddPlugin->SetToolTip( _("Add plugin") );
 
 	bSzProfileSettings->Add( m_bpAddPlugin, 0, wxBOTTOM|wxLEFT|wxTOP, 5 );
 
 	m_bpDelPlugin = new wxBitmapButton( m_panObjects, wxID_ANY, wxBitmap( btnDel_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	
-	m_bpDelPlugin->SetBitmapDisabled( wxBitmap( _btnDel ) );
+	m_bpDelPlugin->SetBitmapDisabled( wxBitmap( _btnDel_xpm ) );
 	m_bpDelPlugin->SetToolTip( _("Remove plugin") );
 
 	bSzProfileSettings->Add( m_bpDelPlugin, 0, wxBOTTOM|wxRIGHT|wxTOP, 5 );
@@ -212,8 +212,23 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	m_toolBarTasks = new wxToolBar( m_panTasks, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
 	m_toolBarTasks->SetToolBitmapSize( wxSize( 22,22 ) );
+	m_toolBarTasks->SetMargins( wxSize( 1,-1 ) );
+	m_toolBarTasks->SetToolPacking( 5 );
 	m_toolBarTasks->AddTool( wxID_TOOLPAUSE, wxEmptyString, wxBitmap( start_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Start task"), wxEmptyString );
 	m_toolBarTasks->AddTool( wxID_TOOLSTOP, wxEmptyString, wxBitmap( btnStop_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Cancel task"), wxEmptyString );
+	wxStaticText* m_staticText22;
+	m_staticText22 = new wxStaticText( m_toolBarTasks, wxID_ANY, _("Lines to retrieve:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText22->Wrap( -1 );
+	m_toolBarTasks->AddControl( m_staticText22 );
+	m_spinLinesTsk = new wxSpinCtrl( m_toolBarTasks, wxID_ANY, wxT("10"), wxDefaultPosition, wxSize( 50,-1 ), wxSP_ARROW_KEYS, 0, 100, 10 );
+	m_toolBarTasks->AddControl( m_spinLinesTsk );
+	
+	m_chAppendTsk = new wxCheckBox( m_toolBarTasks, wxID_ANY, _(" Append to log"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
+	m_chAppendTsk->SetValue(true);
+	
+	m_toolBarTasks->AddControl( m_chAppendTsk );
+	m_toolBarTasks->AddTool( wxID_TLREFRTSKLOG, _("tool"), wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh task log"), wxEmptyString );
+	m_toolBarTasks->AddTool( wxID_TLSAVETSKLOG, _("tool"), wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save task log to file"), wxEmptyString );
 	m_toolBarTasks->Realize();
 
 	bSzTaskTools->Add( m_toolBarTasks, 0, wxEXPAND, 5 );
@@ -275,8 +290,8 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	m_toolBarFilter = new wxToolBar( m_panRepTree, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
 	m_toolBarFilter->SetToolBitmapSize( wxSize( 22,22 ) );
-	m_toolBarFilter->AddTool( wxID_TLREFRESH, _("tool"), wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh reports list"), wxEmptyString );
-	m_toolBarFilter->AddTool( wxID_TLFILTER, _("tool"), wxBitmap( filter_xpm ), wxNullBitmap, wxITEM_CHECK, _("Apply filter"), wxEmptyString );
+	m_toolBarFilter->AddTool( wxID_TLREFRESH, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh reports list"), wxEmptyString );
+	m_toolBarFilter->AddTool( wxID_TLFILTER, wxEmptyString, wxBitmap( filter_xpm ), wxNullBitmap, wxITEM_CHECK, _("Apply filter"), wxEmptyString );
 	wxStaticText* m_stToolObject;
 	m_stToolObject = new wxStaticText( m_toolBarFilter, wxID_ANY, _("Object: "), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stToolObject->Wrap( -1 );
@@ -285,11 +300,11 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_chTaskFilter = new wxChoice( m_toolBarFilter, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chTaskFilterChoices, 0 );
 	m_chTaskFilter->SetSelection( 0 );
 	m_toolBarFilter->AddControl( m_chTaskFilter );
-	m_toolBarFilter->AddTool( wxID_TLDATE, _("tool"), wxBitmap( date_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Date filter mode"), wxEmptyString );
+	m_toolBarFilter->AddTool( wxID_TLDATE, wxEmptyString, wxBitmap( date_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Date filter mode"), wxEmptyString );
 	m_dateFilter = new wxDatePickerCtrl( m_toolBarFilter, wxID_ANY, wxDefaultDateTime, wxDefaultPosition, wxDefaultSize, wxDP_DEFAULT|wxDP_DROPDOWN|wxDP_SHOWCENTURY );
 	m_toolBarFilter->AddControl( m_dateFilter );
-	m_toolBarFilter->AddTool( wxID_TLSTATUS, _("tool"), wxBitmap( flstatus_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Filter by scan status"), wxEmptyString );
-	m_toolBarFilter->AddTool( wxID_TLSAVE, _("tool"), wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save and load filters"), wxEmptyString );
+	m_toolBarFilter->AddTool( wxID_TLSTATUS, wxEmptyString, wxBitmap( flstatus_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Filter by scan status"), wxEmptyString );
+	m_toolBarFilter->AddTool( wxID_TLSAVE, wxEmptyString, wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save and load filters"), wxEmptyString );
 	m_toolBarFilter->Realize();
 
 	bSizer14->Add( m_toolBarFilter, 0, wxEXPAND, 5 );
@@ -351,7 +366,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_toolBarSrv->SetToolBitmapSize( wxSize( 20,20 ) );
 	m_toolBarSrv->AddTool( wxID_TLCONNECT, wxEmptyString, wxBitmap( start_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Connect"), wxEmptyString );
 	m_toolBarSrv->AddTool( wxID_TLNEW, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new connection"), wxEmptyString );
-	m_toolBarSrv->AddTool( wxID_TLEDIT, _("tool"), wxBitmap( btnEdit_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Edit connection"), wxEmptyString );
+	m_toolBarSrv->AddTool( wxID_TLEDIT, wxEmptyString, wxBitmap( btnEdit_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Edit connection"), wxEmptyString );
 	m_toolBarSrv->AddTool( wxID_TLDELETE, _("tool"), wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete connection"), wxEmptyString );
 	m_toolBarSrv->Realize();
 
@@ -438,7 +453,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	m_bpStorageApply = new wxBitmapButton( m_pnServer, wxID_ANY, wxBitmap( btnApply16_xpm ), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	
-	m_bpStorageApply->SetBitmapDisabled( wxBitmap( _btnApply16 ) );
+	m_bpStorageApply->SetBitmapDisabled( wxBitmap( _btnApply16_xpm ) );
 	m_bpStorageApply->SetToolTip( _("Apply") );
 
 	bSizer12->Add( m_bpStorageApply, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxTOP, 5 );
@@ -448,9 +463,9 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 
 	m_tbServer = new wxToolBar( m_pnServer, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER );
 	m_tbServer->SetToolBitmapSize( wxSize( 20,20 ) );
-	m_tbServer->AddTool( wxID_TLPLGRELOAD, _("tool"), wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh plugins list"), wxEmptyString );
-	m_tbServer->AddTool( wxID_TLSRVSTOP, _("tool"), wxBitmap( tree_no_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Stops the server"), wxEmptyString );
-	m_tbServer->AddTool( wxID_TLSRVLOG, _("tool"), wxBitmap( opts_audit_xpm ), wxNullBitmap, wxITEM_NORMAL, _("View server log"), wxEmptyString );
+	m_tbServer->AddTool( wxID_TLPLGRELOAD, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh plugins list"), wxEmptyString );
+	m_tbServer->AddTool( wxID_TLSRVSTOP, wxEmptyString, wxBitmap( tree_no_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Stops the server"), wxEmptyString );
+	m_tbServer->AddTool( wxID_TLSRVLOG, wxEmptyString, wxBitmap( opts_audit_xpm ), wxNullBitmap, wxITEM_NORMAL, _("View server log"), wxEmptyString );
 	m_tbServer->Realize();
 
 	bSizer12->Add( m_tbServer, 0, wxALIGN_CENTER_VERTICAL, 0 );
