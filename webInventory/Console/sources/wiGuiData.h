@@ -28,17 +28,18 @@ class wiStatBar;
 #include <wx/bmpbuttn.h>
 #include <wx/button.h>
 #include <wx/textctrl.h>
+#include <wx/spinctrl.h>
 #include <wx/gbsizer.h>
 #include <wx/scrolwin.h>
-#include <wx/treebook.h>
+#include <wx/listbook.h>
 #include <wx/imaglist.h>
 #include <wx/panel.h>
+#include <wx/checkbox.h>
 #include <wx/richtext/richtextctrl.h>
 #include <wx/splitter.h>
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
 #include <wx/treectrl.h>
-#include <wx/checkbox.h>
 #include <wx/statline.h>
 #include <wx/aui/auibook.h>
 #include <wx/statusbr.h>
@@ -57,28 +58,29 @@ class wiStatBar;
 #define wxID_TOOLGO 1007
 #define wxID_TOOLPAUSE 1008
 #define wxID_TOOLSTOP 1009
-#define wxID_TLREFRESH 1010
-#define wxID_TLFILTER 1011
-#define wxID_TLDATE 1012
-#define wxID_TLSTATUS 1013
-#define wxID_TLSAVE 1014
-#define wxID_TLCONNECT 1015
-#define wxID_TLNEW 1016
-#define wxID_TLEDIT 1017
-#define wxID_TLDELETE 1018
-#define wxID_TLLANGAPPLY 1019
-#define wxID_TLPLGRELOAD 1020
-#define wxID_TLSRVSTOP 1021
-#define wxID_TLSRVLOG 1022
-#define wxID_TBOBJ 1023
+#define wxID_TLREFRTSKLOG 1010
+#define wxID_TLSAVETSKLOG 1011
+#define wxID_TLREFRESH 1012
+#define wxID_TLFILTER 1013
+#define wxID_TLDATE 1014
+#define wxID_TLSTATUS 1015
+#define wxID_TLSAVE 1016
+#define wxID_TLCONNECT 1017
+#define wxID_TLNEW 1018
+#define wxID_TLEDIT 1019
+#define wxID_TLDELETE 1020
+#define wxID_TLLANGAPPLY 1021
+#define wxID_TLPLGRELOAD 1022
+#define wxID_TLSRVSTOP 1023
+#define wxID_TLSRVLOG 1024
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
 ///////////////////////////////////////////////////////////////////////////////
-class MainForm : public wxFrame
+class MainForm : public wxFrame 
 {
 	private:
-
+	
 	protected:
 		wxAuiNotebook* m_mainnb;
 		wxPanel* m_pTasks;
@@ -91,12 +93,15 @@ class MainForm : public wxFrame
 		wxBitmapButton* m_bpAddPlugin;
 		wxBitmapButton* m_bpDelPlugin;
 		wxTextCtrl* m_txtProfName;
-		wxTreebook* m_plgBook;
+		wxListbook* m_plgBook;
 		wxScrolledWindow* m_panTaskOpts;
 		wxChoice* m_chLogLevel;
-
+		wxSpinCtrl* m_spinCtrl2;
+		
 		wxPanel* m_panTasks;
 		wxToolBar* m_toolBarTasks;
+		wxSpinCtrl* m_spinLinesTsk;
+		wxCheckBox* m_chAppendTsk;
 		wxSplitterWindow* m_splitLogs;
 		wxListCtrl* m_lstTaskList;
 		wxRichTextCtrl* m_rtTask;
@@ -122,13 +127,13 @@ class MainForm : public wxFrame
 		wxToolBar* m_toolBarLang;
 		wxStaticText* m_stLangRestart;
 		wxCheckBox* m_chLogging;
-
+		
 		wxStaticLine* m_staticline2;
 		wxPanel* m_pnServer;
 		wxStaticText* m_staticText18;
 		wxChoice* m_chStorage;
 		wxBitmapButton* m_bpStorageApply;
-
+		
 		wxToolBar* m_tbServer;
 		wxStaticText* m_staticText19;
 		wxScrolledWindow* m_pluginsDock;
@@ -136,9 +141,9 @@ class MainForm : public wxFrame
 		wxButton* m_btPluginIcon;
 		wxButton* m_btPluginDesc;
 		wxButton* m_btPluginIface;
-
+		
 		wiStatBar* m_statusBar;
-
+		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
 		virtual void OnAddObject( wxCommandEvent& event ){ event.Skip(); }
@@ -154,7 +159,7 @@ class MainForm : public wxFrame
 		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddPlugin( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRemovePlugin( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnOptionsPageChanging( wxTreebookEvent& event ){ event.Skip(); }
+		virtual void OnOptionsPageChanging( wxListbookEvent& event ){ event.Skip(); }
 		virtual void OnPauseTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSortItems( wxListEvent& event ){ event.Skip(); }
@@ -177,8 +182,8 @@ class MainForm : public wxFrame
 		virtual void OnPlgRefresh( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSrvStop( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnServerLogs( wxCommandEvent& event ){ event.Skip(); }
-
-
+		
+	
 	public:
 		MainForm( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("WebInventory"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 1070,660 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~MainForm();
@@ -187,53 +192,53 @@ class MainForm : public wxFrame
 		m_splitTasks->SetSashPosition( 0 );
 		m_splitTasks->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitTasksOnIdle ), NULL, this );
 		}
-
+		
 		void m_splitLogsOnIdle( wxIdleEvent& )
 		{
 		m_splitLogs->SetSashPosition( 300 );
 		m_splitLogs->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitLogsOnIdle ), NULL, this );
 		}
-
+		
 		void m_splitOnIdle( wxIdleEvent& )
 		{
 		m_split->SetSashPosition( 400 );
 		m_split->Disconnect( wxEVT_IDLE, wxIdleEventHandler( MainForm::m_splitOnIdle ), NULL, this );
 		}
-
-
+		
+	
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ObjDialog
 ///////////////////////////////////////////////////////////////////////////////
-class ObjDialog : public wxDialog
+class ObjDialog : public wxDialog 
 {
 	private:
-
+	
 	protected:
 		wxStdDialogButtonSizer* m_sdbSizer2;
 		wxButton* m_sdbSizer2OK;
 		wxButton* m_sdbSizer2Cancel;
-
+		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnOK( wxCommandEvent& event ){ event.Skip(); }
-
-
+		
+	
 	public:
 		wxTextCtrl* m_txtObjName;
 		wxTextCtrl* m_txtBaseURL;
 		ObjDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Object"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 279,130 ), long style = wxDEFAULT_DIALOG_STYLE );
 		~ObjDialog();
-
+	
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ServDialog
 ///////////////////////////////////////////////////////////////////////////////
-class ServDialog : public wxDialog
+class ServDialog : public wxDialog 
 {
 	private:
-
+	
 	protected:
 		wxStaticText* m_stName;
 		wxStaticText* m_stServName;
@@ -241,41 +246,41 @@ class ServDialog : public wxDialog
 		wxStdDialogButtonSizer* m_sdbSizer1;
 		wxButton* m_sdbSizer1OK;
 		wxButton* m_sdbSizer1Cancel;
-
+		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnOK( wxCommandEvent& event ){ event.Skip(); }
-
-
+		
+	
 	public:
 		wxTextCtrl* m_txtName;
 		wxTextCtrl* m_txtHostname;
 		wxTextCtrl* m_txtSrvPort;
 		ServDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Connection"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 296,156 ), long style = wxDEFAULT_DIALOG_STYLE );
 		~ServDialog();
-
+	
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class PlgSelector
 ///////////////////////////////////////////////////////////////////////////////
-class PlgSelector : public wxDialog
+class PlgSelector : public wxDialog 
 {
 	private:
-
+	
 	protected:
 		wxStdDialogButtonSizer* m_sdbSizer3;
 		wxButton* m_sdbSizer3OK;
 		wxButton* m_sdbSizer3Cancel;
-
+		
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnOK( wxCommandEvent& event ){ event.Skip(); }
-
-
+		
+	
 	public:
 		wxTreeCtrl* m_plgTree;
 		PlgSelector( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Select plugin"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 331,350 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER );
 		~PlgSelector();
-
+	
 };
 
 #endif //__wiGuiData__
