@@ -19,6 +19,7 @@
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/thread.html Boost.Thread]
     * [http://curl.haxx.se/libcurl/ cURL library]. Используется для операций с HTTP(s) и FTP протоколами.
     * [http://code.google.com/p/dtl-cpp/ dtl - Diff Template Library]. Copyright © 2008-2009 Tatsuhiko Kubo <cubicdaiya@gmail.com>. Данный код включен в структуру webEngine.
+    * [http://code.google.com/p/v8/ Coogle V8 JavaScript Engine] используется для скриптов в системе (проверки и т.д), а так же для проверки скриптов на целеви сканирования
     * [http://logging.apache.org/log4cxx/index.html log4cxx library] используется для логирования работы системы.
     * [http://www.doxygen.org Doxygen] - используется для создания проектной документации. 
 
@@ -29,6 +30,7 @@
 == Документация программиста ==
   * Оформление кода
   * Структура проекта
+     * [DataStructure Обзор структуры данных]
      * [WebEngine библиотека webEngine]
      * [TaskExecution выполнение задач]
      * Управление задачами
