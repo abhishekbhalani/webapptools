@@ -135,7 +135,7 @@
                         <object class="auinotebookpage" expanded="1">
                             <property name="bitmap">../images/panTasks.xpm; Load From File</property>
                             <property name="label">Tasks</property>
-                            <property name="select">1</property>
+                            <property name="select">0</property>
                             <object class="wxPanel" expanded="1">
                                 <property name="bg"></property>
                                 <property name="context_help"></property>
@@ -372,7 +372,7 @@
                                                                             <property name="proportion">0</property>
                                                                             <object class="wxToolBar" expanded="1">
                                                                                 <property name="bg"></property>
-                                                                                <property name="bitmapsize">20,20</property>
+                                                                                <property name="bitmapsize">16,16</property>
                                                                                 <property name="context_help"></property>
                                                                                 <property name="enabled">1</property>
                                                                                 <property name="fg"></property>
@@ -619,7 +619,7 @@
                                                                             <property name="proportion">0</property>
                                                                             <object class="wxToolBar" expanded="1">
                                                                                 <property name="bg"></property>
-                                                                                <property name="bitmapsize">22,22</property>
+                                                                                <property name="bitmapsize">16,16</property>
                                                                                 <property name="context_help"></property>
                                                                                 <property name="enabled">1</property>
                                                                                 <property name="fg"></property>
@@ -1504,7 +1504,7 @@
                                                                     <property name="proportion">0</property>
                                                                     <object class="wxToolBar" expanded="1">
                                                                         <property name="bg"></property>
-                                                                        <property name="bitmapsize">22,22</property>
+                                                                        <property name="bitmapsize">16,16</property>
                                                                         <property name="context_help"></property>
                                                                         <property name="enabled">1</property>
                                                                         <property name="fg"></property>
@@ -2070,7 +2070,7 @@
                         <object class="auinotebookpage" expanded="1">
                             <property name="bitmap">../images/panReports.xpm; Load From File</property>
                             <property name="label">Reports</property>
-                            <property name="select">0</property>
+                            <property name="select">1</property>
                             <object class="wxPanel" expanded="0">
                                 <property name="bg"></property>
                                 <property name="context_help"></property>
@@ -2228,7 +2228,7 @@
                                                             <property name="proportion">0</property>
                                                             <object class="wxToolBar" expanded="1">
                                                                 <property name="bg"></property>
-                                                                <property name="bitmapsize">22,22</property>
+                                                                <property name="bitmapsize">16,16</property>
                                                                 <property name="context_help"></property>
                                                                 <property name="enabled">1</property>
                                                                 <property name="fg"></property>
@@ -2959,7 +2959,7 @@
                                                         <property name="proportion">0</property>
                                                         <object class="wxToolBar" expanded="1">
                                                             <property name="bg"></property>
-                                                            <property name="bitmapsize">20,20</property>
+                                                            <property name="bitmapsize">16,16</property>
                                                             <property name="context_help"></property>
                                                             <property name="enabled">1</property>
                                                             <property name="fg"></property>
@@ -3283,7 +3283,7 @@
                                                         <property name="proportion">0</property>
                                                         <object class="wxToolBar" expanded="1">
                                                             <property name="bg"></property>
-                                                            <property name="bitmapsize">20,20</property>
+                                                            <property name="bitmapsize">16,16</property>
                                                             <property name="context_help"></property>
                                                             <property name="enabled">1</property>
                                                             <property name="fg"></property>
@@ -3332,7 +3332,7 @@
                                                                 <property name="bitmap">../images/btnApply16.xpm; Load From File</property>
                                                                 <property name="id">wxID_TLLANGAPPLY</property>
                                                                 <property name="kind">wxITEM_NORMAL</property>
-                                                                <property name="label">tool</property>
+                                                                <property name="label"></property>
                                                                 <property name="name">m_bpLangApply</property>
                                                                 <property name="statusbar"></property>
                                                                 <property name="tooltip">Apply (need restart)</property>
@@ -3803,7 +3803,7 @@
                                                             <property name="proportion">0</property>
                                                             <object class="wxToolBar" expanded="1">
                                                                 <property name="bg"></property>
-                                                                <property name="bitmapsize">20,20</property>
+                                                                <property name="bitmapsize">16,16</property>
                                                                 <property name="context_help"></property>
                                                                 <property name="enabled">1</property>
                                                                 <property name="fg"></property>

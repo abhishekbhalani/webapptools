@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Apr 16 2008)
+// C++ code generated with wxFormBuilder (version Dec 29 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -31,7 +31,7 @@ class wiStatBar;
 #include <wx/spinctrl.h>
 #include <wx/gbsizer.h>
 #include <wx/scrolwin.h>
-#include <wx/listbook.h>
+#include <wx/treebook.h>
 #include <wx/imaglist.h>
 #include <wx/panel.h>
 #include <wx/checkbox.h>
@@ -77,10 +77,10 @@ class wiStatBar;
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
 ///////////////////////////////////////////////////////////////////////////////
-class MainForm : public wxFrame 
+class MainForm : public wxFrame
 {
 	private:
-	
+
 	protected:
 		wxAuiNotebook* m_mainnb;
 		wxPanel* m_pTasks;
@@ -93,7 +93,7 @@ class MainForm : public wxFrame
 		wxBitmapButton* m_bpAddPlugin;
 		wxBitmapButton* m_bpDelPlugin;
 		wxTextCtrl* m_txtProfName;
-		wxListbook* m_plgBook;
+		wxTreebook* m_plgBook;
 		wxScrolledWindow* m_panTaskOpts;
 		wxChoice* m_chLogLevel;
 		wxSpinCtrl* m_spinCtrl2;
@@ -159,7 +159,7 @@ class MainForm : public wxFrame
 		virtual void OnRunTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddPlugin( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRemovePlugin( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnOptionsPageChanging( wxListbookEvent& event ){ event.Skip(); }
+		virtual void OnOptionsPageChanging( wxTreebookEvent& event ){ event.Skip(); }
 		virtual void OnPauseTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCancelTask( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSortItems( wxListEvent& event ){ event.Skip(); }
@@ -211,10 +211,10 @@ class MainForm : public wxFrame
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ObjDialog
 ///////////////////////////////////////////////////////////////////////////////
-class ObjDialog : public wxDialog 
+class ObjDialog : public wxDialog
 {
 	private:
-	
+
 	protected:
 		wxStdDialogButtonSizer* m_sdbSizer2;
 		wxButton* m_sdbSizer2OK;
@@ -235,10 +235,10 @@ class ObjDialog : public wxDialog
 ///////////////////////////////////////////////////////////////////////////////
 /// Class ServDialog
 ///////////////////////////////////////////////////////////////////////////////
-class ServDialog : public wxDialog 
+class ServDialog : public wxDialog
 {
 	private:
-	
+
 	protected:
 		wxStaticText* m_stName;
 		wxStaticText* m_stServName;

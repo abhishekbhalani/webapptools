@@ -401,8 +401,13 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
             m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Port"), idx), (int*)&idt);
             port = wxString::Format(wxT("%d"), idt);
 
-            m_client = new wiTcpClient(host.ToAscii(), port.ToAscii());
+wxLogMessage(_("Create client: %s:%s"), host.c_str(), port.c_str());
+wxMessageBox(_("Connect"));
+            m_client = new wiTcpClient("127.0.0.1", "8080");
+//            m_client = new wiTcpClient((char*)host.utf8_str().data(), (char*)port.utf8_str().data());
+wxMessageBox(_("Connect"));
             m_client->Connect();
+wxMessageBox(_("Do cmd"));
             host = m_client->GetScannerVersion();
             if (!host.IsEmpty()) {
                 Connected();
