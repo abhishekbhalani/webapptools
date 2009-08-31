@@ -39,6 +39,7 @@
 #include "wiPlgSelector.h"
 
 #include "../images/_btnAdd.xpm"
+#include "../images/_btnCopy.xpm"
 #include "../images/_btnApply16.xpm"
 #include "../images/_btnDel.xpm"
 #include "../images/_btnEdit.xpm"
@@ -237,13 +238,15 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     m_toolBarObject->SetToolDisabledBitmap(wxID_TOOLDEL, wxBitmap(_btnDel_xpm));
 
     m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFNEW, wxBitmap(_btnAdd_xpm));
-    m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFCLONE, wxBitmap(_reload_xpm));
+    m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFCLONE, wxBitmap(_btnCopy_xpm));
     m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFDEL, wxBitmap(_btnDel_xpm));
     m_toolBarProf->SetToolDisabledBitmap(wxID_TLPROFSAVE, wxBitmap(_flsave_xpm));
     m_toolBarProf->SetToolDisabledBitmap(wxID_TOOLGO, wxBitmap(_start_xpm));
 
     m_toolBarTasks->SetToolDisabledBitmap(wxID_TOOLPAUSE, wxBitmap(_start_xpm));
     m_toolBarTasks->SetToolDisabledBitmap(wxID_TOOLSTOP, wxBitmap(_btnStop_xpm));
+    m_toolBarTasks->SetToolDisabledBitmap(wxID_TLREFRTSKLOG, wxBitmap(_reload_xpm));
+    m_toolBarTasks->SetToolDisabledBitmap(wxID_TLSAVETSKLOG, wxBitmap(_flsave_xpm));
 
     m_toolBarFilter->SetToolDisabledBitmap(wxID_TLREFRESH, wxBitmap(_reload_xpm));
     m_toolBarFilter->SetToolDisabledBitmap(wxID_TLFILTER, wxBitmap(_filter_xpm));
@@ -401,13 +404,9 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
             m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Port"), idx), (int*)&idt);
             port = wxString::Format(wxT("%d"), idt);
 
-wxLogMessage(_("Create client: %s:%s"), host.c_str(), port.c_str());
-wxMessageBox(_("Connect"));
             m_client = new wiTcpClient("127.0.0.1", "8080");
 //            m_client = new wiTcpClient((char*)host.utf8_str().data(), (char*)port.utf8_str().data());
-wxMessageBox(_("Connect"));
             m_client->Connect();
-wxMessageBox(_("Do cmd"));
             host = m_client->GetScannerVersion();
             if (!host.IsEmpty()) {
                 Connected();
@@ -596,6 +595,7 @@ void wiMainForm::ProcessTaskList(const wxString& criteria /*= wxT("")*/)
 
 void wiMainForm::Disconnected(bool mode)
 {
+    m_panObjects->Disable();
     m_toolBarObject->EnableTool(wxID_TOOLNEW, false);
     m_pReports->Disable();
     m_pnServer->Disable();
@@ -609,8 +609,6 @@ void wiMainForm::Disconnected(bool mode)
     if (mode) {
         m_toolBarSrv->SetToolShortHelp(wxID_TLCONNECT, _("Connect"));
         m_toolBarSrv->SetToolNormalBitmap(wxID_TLCONNECT, wxBitmap(start_xpm));
-//        m_bpConnect->SetToolTip(_("Connect"));
-//        m_bpConnect->SetBitmapLabel(wxBitmap(start_xpm));
         m_pnServer->Hide();
         Layout();
     }
@@ -618,6 +616,7 @@ void wiMainForm::Disconnected(bool mode)
 
 void wiMainForm::Connected(bool mode)
 {
+    m_panObjects->Enable();
     m_toolBarObject->EnableTool(wxID_TOOLNEW, true);
     m_pReports->Enable();
     m_pnServer->Enable();
@@ -630,8 +629,6 @@ void wiMainForm::Connected(bool mode)
     if (mode) {
         m_toolBarSrv->SetToolShortHelp(wxID_TLCONNECT, _("Disconnect"));
         m_toolBarSrv->SetToolNormalBitmap(wxID_TLCONNECT, wxBitmap(btnStop_xpm));
-//        m_bpConnect->SetToolTip(_("Disconnect"));
-//        m_bpConnect->SetBitmapLabel(wxBitmap(btnStop_xpm));
         ProcessTaskList();
         ProcessObjects();
         ProcessProfileList();
@@ -874,7 +871,6 @@ void wiMainForm::SelectTask(int id/* = -1*/)
         info.SetColumn(0);
         info.SetMask(wxLIST_MASK_DATA);
         m_lstTaskList->GetItem(info);
-        // check options changing and ask for save them
     }
     m_selectedTask = id;
     if (m_selectedTask > -1) {
@@ -903,9 +899,9 @@ void wiMainForm::SelectTask(int id/* = -1*/)
         /// @todo refresh task log
     }
     else {
-        //m_btnApply->Enable();
-        m_toolBarTasks->EnableTool(wxID_TOOLPAUSE, false);
-        m_toolBarTasks->EnableTool(wxID_TOOLSTOP, false);
+        m_toolBarTasks->Disable();
+        //m_toolBarTasks->EnableTool(wxID_TOOLPAUSE, false);
+        //m_toolBarTasks->EnableTool(wxID_TOOLSTOP, false);
     }
     Layout();
 }
@@ -1439,6 +1435,7 @@ void wiMainForm::OnAddProfile( wxCommandEvent& event )
 
 void wiMainForm::OnCopyProfile( wxCommandEvent& event )
 {
+    ProfileList* lst;
     ProfileInf* dat;
     int selected;
     wxString idSelect;
@@ -1452,13 +1449,14 @@ void wiMainForm::OnCopyProfile( wxCommandEvent& event )
         if(m_client != NULL) {
             idSelect = m_client->DoCmd(wxT("addprofile"), idSelect);
             if (idSelect != wxT("") && idSelect != wxT("0")) {
-                idPrev = FromStdString(dat->ObjectId);
-                xml = m_client->DoCmd(wxT("getprofileopts"), idPrev);
-                /// @todo change ID and Name
-                idPrev = wxString::Format(wxT("%s;%s"), idSelect.c_str(), xml.c_str());
-                m_client->DoCmd(wxT("setprofileopts"), idPrev);
-
                 ProcessProfileList();
+                idSelect = FromStdString(dat->Name) + wxT(" copy");
+                selected = m_chProfile->FindString(idSelect);
+                m_selectedProf = selected;
+                idPrev = m_txtProfName->GetValue();
+                m_txtProfName->SetValue(idSelect);
+                OnTaskApply(event);
+                m_txtProfName->SetValue(idPrev);
             }
         }
     }
@@ -1514,6 +1512,7 @@ void wiMainForm::OnTaskApply( wxCommandEvent& event )
                 }
                 //weRttiOptions::GetOptions(m_plgBook->GetPage(i), root);
             }
+            weRttiOptions::SaveTaskOption (root, wxT("name"), wxT("8"), m_txtProfName->GetValue());
             weRttiOptions::SaveTaskOption (root, wxT("plugin_list"), wxT("8"), content);
             weRttiOptions::GetOptions(m_plgBook, root);
 
