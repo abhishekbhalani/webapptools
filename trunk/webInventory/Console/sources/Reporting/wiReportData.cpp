@@ -1,5 +1,6 @@
 #include "wiReportData.h"
 #include <wx/sstream.h>
+#include <wx/log.h>
 
 wiReportData::wiReportData()
 {
@@ -59,6 +60,7 @@ bool wiReportData::GetStyleAttr(const wxString& style, const wxString& attr, wxS
                         while (attribute != NULL && !retval) {
                             if (attribute->GetType() == wxXML_ELEMENT_NODE && attribute->GetName().CmpNoCase(attr) == 0) {
                                 val = attribute->GetNodeContent();
+                                wxLogMessage(wxT("Found %s = %s"), attr.c_str(), val.c_str());
                                 retval = true;
                             }
                             attribute = attribute->GetNext();
