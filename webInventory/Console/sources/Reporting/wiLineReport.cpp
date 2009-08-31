@@ -43,9 +43,9 @@ void wiLineReport::WriteReport(wxRichTextCtrl& rt)
         }
     }
 
-    isItalic = GetStyleAttr(style, wxT("foint_italic"), attrib, wxT(""));
+    isItalic = GetStyleAttr(style, wxT("font_italic"), attrib, wxT(""));
     if (!isItalic) {
-        isItalic = GetStyleAttr(wxT("default"), wxT("foint_italic"), attrib, wxT(""));
+        isItalic = GetStyleAttr(wxT("default"), wxT("font_italic"), attrib, wxT(""));
     }
     if (isItalic) {
         attrib.ToLong(&iData);
@@ -55,9 +55,9 @@ void wiLineReport::WriteReport(wxRichTextCtrl& rt)
         }
     }
 
-    isUnder = GetStyleAttr(style, wxT("foint_underline"), attrib, wxT(""));
+    isUnder = GetStyleAttr(style, wxT("font_underline"), attrib, wxT(""));
     if (!isUnder) {
-        isUnder = GetStyleAttr(wxT("default"), wxT("foint_underline"), attrib, wxT(""));
+        isUnder = GetStyleAttr(wxT("default"), wxT("font_underline"), attrib, wxT(""));
     }
     if (isUnder) {
         attrib.ToLong(&iData);
@@ -67,18 +67,18 @@ void wiLineReport::WriteReport(wxRichTextCtrl& rt)
         }
     }
 
-    isFontSize = GetStyleAttr(style, wxT("foint_size"), attrib, wxT("10"));
+    isFontSize = GetStyleAttr(style, wxT("font_size"), attrib, wxT("10"));
     if (!isFontSize) {
-        isFontSize = GetStyleAttr(wxT("default"), wxT("foint_size"), attrib, wxT("10"));
+        isFontSize = GetStyleAttr(wxT("default"), wxT("font_size"), attrib, wxT("10"));
     }
     if (isFontSize) {
         attrib.ToLong(&iData);
         rt.BeginFontSize(iData);
     }
 
-    isFontColor = GetStyleAttr(style, wxT("foint_color"), attrib, wxT("black"));
+    isFontColor = GetStyleAttr(style, wxT("font_color"), attrib, wxT("black"));
     if (!isFontColor) {
-        isFontColor = GetStyleAttr(wxT("default"), wxT("foint_color"), attrib, wxT("black"));
+        isFontColor = GetStyleAttr(wxT("default"), wxT("font_color"), attrib, wxT("black"));
     }
     if (isFontColor) {
         rt.BeginTextColour(wxColor(attrib));
