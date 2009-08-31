@@ -34,7 +34,7 @@
 #include "wxThings.h"
 #include "treeData.h"
 #include "version.h"
-#include "wiReportData.h"
+#include "Reporting/wiLineReport.h"
 #include "weRttiOptions.h"
 #include "wiPlgSelector.h"
 
@@ -84,10 +84,10 @@ static const wxChar* gTaskStatus[] = {_("idle"),
                                       _("run (%d%%)"),
                                       _("paused (%d%%)")};
 
-wiSimpleReport repWait(_("Please wait..."));
-wiSimpleReport repPlaceHold(_("Report will be here"));
-wiSimpleReport repError(_("Can't retreiving information for task!"), 1);
-wiSimpleReport repNoConnet(_("No connection to server!"), 1);
+wiLineReport repWait(_("Please wait..."));
+wiLineReport repPlaceHold(_("Report will be here"));
+wiLineReport repError(_("Can't retreiving information for task!"), 1);
+wiLineReport repNoConnet(_("No connection to server!"), 1);
 
 wxString FromStdString(const std::string& str)
 {
@@ -1351,7 +1351,7 @@ void wiMainForm::OnReportsLoad( wxCommandEvent& event )
                         }
                     }
                     // write summary for scan
-                    wiSimpleReport* rep = new wiSimpleReport(wxString::Format(wxT("Report for task: %s\nScans: %d"), wxT("***"), n));
+                    wiLineReport* rep = new wiLineReport(wxString::Format(wxT("Report for task: %s\nScans: %d"), wxT("***"), n));
 
                     // save report
                     rep->WriteReport(*m_richText2);
@@ -1371,7 +1371,7 @@ void wiMainForm::OnReportsLoad( wxCommandEvent& event )
         }
         else {
             wxSleep(3);
-            wiSimpleReport* rep = new wiSimpleReport(_("Report will be here"));
+            wiLineReport* rep = new wiLineReport(_("Report will be here"));
             rep->WriteReport(*m_richText2);
             data->hasData = rep;
         }
