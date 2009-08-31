@@ -725,7 +725,7 @@
                                                                                     <event name="OnUpdateUI"></event>
                                                                                 </object>
                                                                                 <object class="tool" expanded="1">
-                                                                                    <property name="bitmap">../images/reload.xpm; Load From File</property>
+                                                                                    <property name="bitmap">../images/btnCopy.xpm; Load From File</property>
                                                                                     <property name="id">wxID_TLPROFCLONE</property>
                                                                                     <property name="kind">wxITEM_NORMAL</property>
                                                                                     <property name="label"></property>

@@ -14,6 +14,7 @@
 #include "../images/_btnDel.xpm"
 #include "../images/btnAdd.xpm"
 #include "../images/btnApply16.xpm"
+#include "../images/btnCopy.xpm"
 #include "../images/btnDel.xpm"
 #include "../images/btnEdit.xpm"
 #include "../images/btnStop.xpm"
@@ -104,7 +105,7 @@ MainForm::MainForm( wxWindow* parent, wxWindowID id, const wxString& title, cons
 	m_chProfile->SetSelection( 0 );
 	m_toolBarProf->AddControl( m_chProfile );
 	m_toolBarProf->AddTool( wxID_TLPROFNEW, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Create new profile"), wxEmptyString );
-	m_toolBarProf->AddTool( wxID_TLPROFCLONE, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Copy current profile"), wxEmptyString );
+	m_toolBarProf->AddTool( wxID_TLPROFCLONE, wxEmptyString, wxBitmap( btnCopy_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Copy current profile"), wxEmptyString );
 	m_toolBarProf->AddTool( wxID_TLPROFDEL, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete profile"), wxEmptyString );
 	m_toolBarProf->AddSeparator();
 	m_toolBarProf->AddTool( wxID_TLPROFSAVE, wxEmptyString, wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save profile"), wxEmptyString );
