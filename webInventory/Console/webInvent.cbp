@@ -20,6 +20,7 @@
 					<Add option="/D_DEBUG" />
 					<Add option="/D__WXDEBUG__" />
 					<Add option="/D_WIN32_WINNT=0x0501" />
+					<Add option="/DwxUSE_UNICODE" />
 					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
 				</Compiler>
 				<ResourceCompiler>
@@ -65,6 +66,7 @@
 					<Add option="/Ob1" />
 					<Add option="/DNDEBUG" />
 					<Add option="/D_WIN32_WINNT=0x0501" />
+					<Add option="/DwxUSE_UNICODE" />
 					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
 				</Compiler>
 				<ResourceCompiler>
