@@ -31,6 +31,15 @@
 
 #define REPORT_STYLE_NODE   wxT("style")
 #define REPORT_STYLE_NAME   wxT("name")
+#define REPORT_STYLE_TEXT   wxT("text")
+#define REPORT_TOKEN_MARK   wxT("\x02")
+#define REPORT_TOK_MARK     wxT('\x02')
+#define REPORT_PERCENTS     wxT("\x03")
+#define REPORT_NUMBERS      wxT("\x04")
+#define REPORT_SUBST        wxT("%s")
+
+#define REPORT_IMAGE_TOKEN  wxT("img=")
+#define REPORT_CLEAR_TOKEN  wxT("cls")
 
 class wiReportData
 {
@@ -45,6 +54,9 @@ class wiReportData
         virtual void XmlTemplate(const wxXmlDocument& xml);
 
         bool GetStyleAttr(const wxString& style, const wxString& attr, wxString& val, const wxString& def = wxT(""));
+        void AddFormattedText(const wxString& style, const wxString& val, wxRichTextCtrl& rt);
+        void AddStyledText(const wxString& style, const wxString& val, wxRichTextCtrl& rt);
+        virtual void ProcessToken(const wxString& style, const wxString& token, wxRichTextCtrl& rt);
 
     protected:
         wxXmlDocument* outputTemplate;

@@ -84,10 +84,10 @@ static const wxChar* gTaskStatus[] = {_("idle"),
                                       _("run (%d%%)"),
                                       _("paused (%d%%)")};
 
-wiLineReport repWait(_("Please wait..."));
-wiLineReport repPlaceHold(_("Report will be here"));
-wiLineReport repError(_("Can't retreiving information for task!"), 1);
-wiLineReport repNoConnet(_("No connection to server!"), 1);
+wiLineReport* repWait;
+wiLineReport* repPlaceHold;
+wiLineReport* repError;
+wiLineReport* repNoConnet;
 
 wxString FromStdString(const std::string& str)
 {
@@ -208,6 +208,12 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
 
     wxString fname;
     wxFileName fPath;
+
+    //!!! debug
+    repWait = new wiLineReport(_("Please wait..."), 99);
+    repPlaceHold = new wiLineReport(_("Report will be here"));
+    repError = new wiLineReport(_("Can't retreiving information for task!"), 1);
+    repNoConnet = new wiLineReport(_("No connection to server!"), 1);
 
     fname = wxFindFirstFile(wxT("*.mo"), wxFILE);
     while (!fname.IsEmpty()) {
@@ -1280,7 +1286,7 @@ void wiMainForm::OnReportExpand( wxTreeEvent& event )
 
     if (data != NULL) {
         if (!data->hasData) {
-            repWait.WriteReport(*m_richText2);
+            repWait->WriteReport(*m_richText2);
             wxCommandEvent event( wxEVT_REPORT_LOADING, wxID_ANY );
             event.SetClientData((void*)data);
             GetEventHandler()->AddPendingEvent( event );
@@ -1298,7 +1304,7 @@ void wiMainForm::OnReportSelected( wxTreeEvent& event )
 
     if (data != NULL) {
         if (!data->hasData) {
-            repWait.WriteReport(*m_richText2);
+            repWait->WriteReport(*m_richText2);
             wxCommandEvent event( wxEVT_REPORT_LOADING, wxID_ANY );
             event.SetClientData((void*)data);
             GetEventHandler()->AddPendingEvent( event );
@@ -1361,12 +1367,12 @@ void wiMainForm::OnReportsLoad( wxCommandEvent& event )
                 }
                 else {
                     // generate error report
-                    repError.WriteReport(*m_richText2);
+                    repError->WriteReport(*m_richText2);
                 }
             }
             else {
                 // generate error report
-                repNoConnet.WriteReport(*m_richText2);
+                repNoConnet->WriteReport(*m_richText2);
             }
         }
         else {
