@@ -1,0 +1,31 @@
+/* XPM */
+static char *_btnCopy_xpm[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 9 1",
+"  c gray3",
+". c gray19",
+"X c #535353",
+"o c gray43",
+"O c #979797",
+"+ c #afafaf",
+"@ c #cdcdcd",
+"# c gray96",
+"$ c None",
+/* pixels */
+"$$$.o+O++O+O++Oo",
+"$$$.@##########+",
+"$$$.@##########+",
+"$$$.@##########O",
+"$$$.+##O+######O",
+"$$$.+##Xo##@O+#O",
+"$$$ +#+X.@#OXX#O",
+"$$..O#O+XX#oo.#O",
+"$.o@+OX#O.+oX.@O",
+"..+@O@O+@@@@@@#O",
+"o@@OX+@++######O",
+"+@ooooX+O###@##O",
+"+@ooXXo@oOOOOOO.",
+"o+#oX+@O        ",
+"..++o@X.$$$$$$$$",
+"$.X++O.$$$$$$$$$"
+};
