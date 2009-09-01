@@ -136,7 +136,7 @@
                             <property name="bitmap">../images/panTasks.xpm; Load From File</property>
                             <property name="label">Tasks</property>
                             <property name="select">0</property>
-                            <object class="wxPanel" expanded="1">
+                            <object class="wxPanel" expanded="0">
                                 <property name="bg"></property>
                                 <property name="context_help"></property>
                                 <property name="enabled">1</property>
@@ -2070,8 +2070,8 @@
                         <object class="auinotebookpage" expanded="1">
                             <property name="bitmap">../images/panReports.xpm; Load From File</property>
                             <property name="label">Reports</property>
-                            <property name="select">1</property>
-                            <object class="wxPanel" expanded="0">
+                            <property name="select">0</property>
+                            <object class="wxPanel" expanded="1">
                                 <property name="bg"></property>
                                 <property name="context_help"></property>
                                 <property name="enabled">1</property>
@@ -2226,7 +2226,7 @@
                                                             <property name="border">5</property>
                                                             <property name="flag">wxEXPAND</property>
                                                             <property name="proportion">0</property>
-                                                            <object class="wxToolBar" expanded="1">
+                                                            <object class="wxToolBar" expanded="0">
                                                                 <property name="bg"></property>
                                                                 <property name="bitmapsize">16,16</property>
                                                                 <property name="context_help"></property>
@@ -2483,6 +2483,179 @@
                                                             </object>
                                                         </object>
                                                         <object class="sizeritem" expanded="1">
+                                                            <property name="border">5</property>
+                                                            <property name="flag">wxEXPAND</property>
+                                                            <property name="proportion">0</property>
+                                                            <object class="wxToolBar" expanded="0">
+                                                                <property name="bg"></property>
+                                                                <property name="bitmapsize">16,16</property>
+                                                                <property name="context_help"></property>
+                                                                <property name="enabled">1</property>
+                                                                <property name="fg"></property>
+                                                                <property name="font"></property>
+                                                                <property name="hidden">0</property>
+                                                                <property name="id">wxID_ANY</property>
+                                                                <property name="margins"></property>
+                                                                <property name="maximum_size"></property>
+                                                                <property name="minimum_size"></property>
+                                                                <property name="name">m_tbRepPlugs</property>
+                                                                <property name="packing">1</property>
+                                                                <property name="permission">protected</property>
+                                                                <property name="pos"></property>
+                                                                <property name="separation">5</property>
+                                                                <property name="size"></property>
+                                                                <property name="style">wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER</property>
+                                                                <property name="subclass"></property>
+                                                                <property name="tooltip"></property>
+                                                                <property name="window_extra_style"></property>
+                                                                <property name="window_name"></property>
+                                                                <property name="window_style"></property>
+                                                                <event name="OnChar"></event>
+                                                                <event name="OnEnterWindow"></event>
+                                                                <event name="OnEraseBackground"></event>
+                                                                <event name="OnKeyDown"></event>
+                                                                <event name="OnKeyUp"></event>
+                                                                <event name="OnKillFocus"></event>
+                                                                <event name="OnLeaveWindow"></event>
+                                                                <event name="OnLeftDClick"></event>
+                                                                <event name="OnLeftDown"></event>
+                                                                <event name="OnLeftUp"></event>
+                                                                <event name="OnMiddleDClick"></event>
+                                                                <event name="OnMiddleDown"></event>
+                                                                <event name="OnMiddleUp"></event>
+                                                                <event name="OnMotion"></event>
+                                                                <event name="OnMouseEvents"></event>
+                                                                <event name="OnMouseWheel"></event>
+                                                                <event name="OnPaint"></event>
+                                                                <event name="OnRightDClick"></event>
+                                                                <event name="OnRightDown"></event>
+                                                                <event name="OnRightUp"></event>
+                                                                <event name="OnSetFocus"></event>
+                                                                <event name="OnSize"></event>
+                                                                <event name="OnUpdateUI"></event>
+                                                                <object class="wxStaticText" expanded="1">
+                                                                    <property name="bg"></property>
+                                                                    <property name="context_help"></property>
+                                                                    <property name="enabled">1</property>
+                                                                    <property name="fg"></property>
+                                                                    <property name="font"></property>
+                                                                    <property name="hidden">0</property>
+                                                                    <property name="id">wxID_ANY</property>
+                                                                    <property name="label"> Reporter plugin: </property>
+                                                                    <property name="maximum_size"></property>
+                                                                    <property name="minimum_size"></property>
+                                                                    <property name="name">m_stReporter</property>
+                                                                    <property name="permission">none</property>
+                                                                    <property name="pos"></property>
+                                                                    <property name="size"></property>
+                                                                    <property name="style"></property>
+                                                                    <property name="subclass"></property>
+                                                                    <property name="tooltip"></property>
+                                                                    <property name="window_extra_style"></property>
+                                                                    <property name="window_name"></property>
+                                                                    <property name="window_style"></property>
+                                                                    <property name="wrap">-1</property>
+                                                                    <event name="OnChar"></event>
+                                                                    <event name="OnEnterWindow"></event>
+                                                                    <event name="OnEraseBackground"></event>
+                                                                    <event name="OnKeyDown"></event>
+                                                                    <event name="OnKeyUp"></event>
+                                                                    <event name="OnKillFocus"></event>
+                                                                    <event name="OnLeaveWindow"></event>
+                                                                    <event name="OnLeftDClick"></event>
+                                                                    <event name="OnLeftDown"></event>
+                                                                    <event name="OnLeftUp"></event>
+                                                                    <event name="OnMiddleDClick"></event>
+                                                                    <event name="OnMiddleDown"></event>
+                                                                    <event name="OnMiddleUp"></event>
+                                                                    <event name="OnMotion"></event>
+                                                                    <event name="OnMouseEvents"></event>
+                                                                    <event name="OnMouseWheel"></event>
+                                                                    <event name="OnPaint"></event>
+                                                                    <event name="OnRightDClick"></event>
+                                                                    <event name="OnRightDown"></event>
+                                                                    <event name="OnRightUp"></event>
+                                                                    <event name="OnSetFocus"></event>
+                                                                    <event name="OnSize"></event>
+                                                                    <event name="OnUpdateUI"></event>
+                                                                </object>
+                                                                <object class="wxChoice" expanded="1">
+                                                                    <property name="bg"></property>
+                                                                    <property name="choices"></property>
+                                                                    <property name="context_help"></property>
+                                                                    <property name="enabled">1</property>
+                                                                    <property name="fg"></property>
+                                                                    <property name="font"></property>
+                                                                    <property name="hidden">0</property>
+                                                                    <property name="id">wxID_ANY</property>
+                                                                    <property name="maximum_size"></property>
+                                                                    <property name="minimum_size"></property>
+                                                                    <property name="name">m_chReporters</property>
+                                                                    <property name="permission">protected</property>
+                                                                    <property name="pos"></property>
+                                                                    <property name="selection">0</property>
+                                                                    <property name="size"></property>
+                                                                    <property name="subclass"></property>
+                                                                    <property name="tooltip"></property>
+                                                                    <property name="window_extra_style"></property>
+                                                                    <property name="window_name"></property>
+                                                                    <property name="window_style"></property>
+                                                                    <event name="OnChar"></event>
+                                                                    <event name="OnChoice">OnReporterChanged</event>
+                                                                    <event name="OnEnterWindow"></event>
+                                                                    <event name="OnEraseBackground"></event>
+                                                                    <event name="OnKeyDown"></event>
+                                                                    <event name="OnKeyUp"></event>
+                                                                    <event name="OnKillFocus"></event>
+                                                                    <event name="OnLeaveWindow"></event>
+                                                                    <event name="OnLeftDClick"></event>
+                                                                    <event name="OnLeftDown"></event>
+                                                                    <event name="OnLeftUp"></event>
+                                                                    <event name="OnMiddleDClick"></event>
+                                                                    <event name="OnMiddleDown"></event>
+                                                                    <event name="OnMiddleUp"></event>
+                                                                    <event name="OnMotion"></event>
+                                                                    <event name="OnMouseEvents"></event>
+                                                                    <event name="OnMouseWheel"></event>
+                                                                    <event name="OnPaint"></event>
+                                                                    <event name="OnRightDClick"></event>
+                                                                    <event name="OnRightDown"></event>
+                                                                    <event name="OnRightUp"></event>
+                                                                    <event name="OnSetFocus"></event>
+                                                                    <event name="OnSize"></event>
+                                                                    <event name="OnUpdateUI"></event>
+                                                                </object>
+                                                                <object class="tool" expanded="1">
+                                                                    <property name="bitmap">../images/btnApply16.xpm; Load From File</property>
+                                                                    <property name="id">wxID_ANY</property>
+                                                                    <property name="kind">wxITEM_NORMAL</property>
+                                                                    <property name="label"></property>
+                                                                    <property name="name">m_tlReporterApply</property>
+                                                                    <property name="statusbar"></property>
+                                                                    <property name="tooltip">Change report plugin</property>
+                                                                    <event name="OnMenuSelection"></event>
+                                                                    <event name="OnToolClicked">OnReporterApply</event>
+                                                                    <event name="OnToolEnter"></event>
+                                                                    <event name="OnToolRClicked"></event>
+                                                                    <event name="OnUpdateUI"></event>
+                                                                </object>
+                                                                <object class="tool" expanded="1">
+                                                                    <property name="bitmap">../images/plugOpen.xpm; Load From File</property>
+                                                                    <property name="id">wxID_ANY</property>
+                                                                    <property name="kind">wxITEM_NORMAL</property>
+                                                                    <property name="label"></property>
+                                                                    <property name="name">m_tlOpenPlugin</property>
+                                                                    <property name="statusbar"></property>
+                                                                    <property name="tooltip">Open plugin</property>
+                                                                    <event name="OnMenuSelection"></event>
+                                                                    <event name="OnToolClicked">OnReporterLoad</event>
+                                                                    <event name="OnToolEnter"></event>
+                                                                    <event name="OnToolRClicked"></event>
+                                                                    <event name="OnUpdateUI"></event>
+                                                                </object>
+                                                            </object>
+                                                        </object>
+                                                        <object class="sizeritem" expanded="1">
                                                             <property name="border">0</property>
                                                             <property name="flag">wxALL|wxEXPAND</property>
                                                             <property name="proportion">1</property>
@@ -2676,7 +2849,7 @@
                         <object class="auinotebookpage" expanded="1">
                             <property name="bitmap">../images/panSettings.xpm; Load From File</property>
                             <property name="label">Settings</property>
-                            <property name="select">0</property>
+                            <property name="select">1</property>
                             <object class="wxPanel" expanded="0">
                                 <property name="bg"></property>
                                 <property name="context_help"></property>
@@ -2908,7 +3081,7 @@
                                                         <property name="proportion">0</property>
                                                         <object class="wxChoice" expanded="1">
                                                             <property name="bg"></property>
-                                                            <property name="choices">&quot;hostname[:port]&quot;</property>
+                                                            <property name="choices"></property>
                                                             <property name="context_help"></property>
                                                             <property name="enabled">1</property>
                                                             <property name="fg"></property>
