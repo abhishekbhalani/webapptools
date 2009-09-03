@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="httpget" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="..\..\build\Debug\httpget" prefix_auto="1" extension_auto="1" />
+				<Option object_output="build\debug\obj\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="\home\stinger\Devel\webEngine\include" />
+				</Compiler>
+				<Linker>
+					<Add library="libwebEngine.a" />
+					<Add library="libcurl.a" />
+					<Add library="libboost_regex-mt" />
+					<Add directory="..\..\build\Debug" />
+					<Add directory="..\..\libs\debug" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="..\..\build\Release\httpget" prefix_auto="1" extension_auto="1" />
+				<Option object_output="build\release\obj\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add directory="\home\stinger\Devel\webEngine\include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="libwebEngine.a" />
+					<Add directory="..\..\build\Release" />
+					<Add directory="..\..\libs\release" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add directory="..\..\include" />
+		</Compiler>
+		<Unit filename="httpget.cpp" />
+		<Unit filename="..\..\include\weiTransport.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
