@@ -18,8 +18,11 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <fstream>
+#include <strstream>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include "weTagScanner.h"
@@ -27,6 +30,39 @@
 #include "weiBase.h"
 
 namespace webEngine {
+
+static void OptionFromString(wOption& opt, const string& str)
+{
+    try
+    {
+        istrstream is(str.c_str(), str.length());
+        boost::archive::text_iarchive ia(is);
+        // read class instance from archive
+        ia >> opt;
+        // archive and stream closed when destructor are called
+    }
+    catch (std::exception& e)
+    {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "::OptionFromString error: " << e.what());
+    }
+}
+
+static void OptionToString(wOption& opt, string& str)
+{
+    try
+    {
+        ostrstream os;
+        boost::archive::text_oarchive oa(os);
+        // read class instance from archive
+        oa << opt;
+        // archive and stream closed when destructor are called
+        str = string(os.rdbuf()->str(), os.rdbuf()->pcount());
+    }
+    catch (std::exception& e)
+    {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "::OptionFromString error: " << e.what());
+    }
+}
 
 MemStorage::MemStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     iStorage(krnl, handle)
@@ -36,6 +72,7 @@ MemStorage::MemStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     pluginInfo.PluginDesc = "In-memory storage";
     pluginInfo.PluginId = "D82B31419339";
     fileName = "";
+    lastId = 1;
 }
 
 MemStorage::~MemStorage(void)
@@ -58,69 +95,145 @@ void* MemStorage::GetInterface( const string& ifName )
     return iStorage::GetInterface(ifName);
 }
 
-int MemStorage::Query( const string& objType, const string& objId, Operation op, const string& xmlData )
+int MemStorage::Get(const string& objType, Record& filters, Record& respFilter, RecordSet& results)
 {
     int retval = 0;
-    if (iequals(objType, weObjTypeTask))
-    {
-        if (op == iStorage::remove)
-        {
-            if (objId == "*")
+    string fID, stData, key;
+    wOption opt;
+    StringMap::iterator obj;
+    StringList objIdxs;
+    StringList filterNames;
+    StringList reportNames;
+    StringList nonflNames;
+    StringList::iterator lstIt;
+    size_t i, j;
+
+    results.clear();
+
+    obj = storage.find(objType);
+    try {
+        if (obj != storage.end()) {
+            stData = obj->second;
             {
-                retval = tasks.size();
-                tasks.clear();
+                istrstream is(stData.c_str(), stData.length());
+                boost::archive::text_iarchive ia(is);
+                // read class instance from archive
+                ia >> objIdxs;
+                // archive and stream closed when destructor are called
             }
-            else {
-                StringMap::iterator tsk = tasks.find(objId);
-                if (tsk != tasks.end())
-                {
-                    tasks.erase(tsk);
-                    retval = 1;
+            if (objIdxs.size() > 0) {
+                // prepare filter list
+                filterNames = filters.OptionsList();
+                opt = filters.Option(weoID);
+                SAFE_GET_OPTION_VAL(opt, fID, "");
+
+                // prepare results list
+                reportNames = respFilter.OptionsList();
+                if (reportNames.size() == 0) {
+                    obj = storage.find(objType + "_struct");
+                    if (obj != storage.end()) {
+                        stData = obj->second;
+                        try
+                        {
+                            istrstream is(stData.c_str(), stData.length());
+                            boost::archive::text_iarchive ia(is);
+                            // read class instance from archive
+                            ia >> reportNames;
+                            // archive and stream closed when destructor are called
+                        }
+                        catch(std::exception& e)
+                        {
+                            LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::Get " << objType << "structure error: " << e.what());
+                            retval = 0;
+                            results.clear();
+                            return retval;
+                        }
+                    }
                 }
+
+                // subtract sets
+                nonflNames.clear();
+                for (i = 0; i < reportNames.size(); i++)
+                {
+                    lstIt = find(filterNames.begin(), filterNames.end(), reportNames[i]);
+                    if (lstIt == filterNames.end())
+                    {
+                        nonflNames.push_back(reportNames[i]);
+                    }
+                }
+
+                for (i = 0; i < objIdxs.size(); i++) {
+                    Record* objRes = new Record;
+                    if (fID == "" || fID == "*" || fID == objIdxs[i])
+                    {   // index in filter
+                        bool skip = true;
+                        for (j = 0; j < filterNames.size(); j++)
+                        {
+                            key = objIdxs[i] + "_" + filterNames[j];
+                            obj = storage.find(key);
+                            if (obj != storage.end())
+                            {
+                                wOption flOpt;
+                                OptionFromString(opt, obj->second);
+                                flOpt = filters.Option(filterNames[j]);
+                                if (flOpt == opt) {
+                                    skip = false;
+                                    lstIt = find(reportNames.begin(), reportNames.end(), filterNames[j]);
+                                    if (lstIt != reportNames.end())
+                                    {
+                                        objRes->Option(filterNames[j], opt.Value());
+                                    }
+                                }
+                            } // option exist
+                        } // and of attribute filters
+                        if (! skip)
+                        {
+                            for (j = 0; j < nonflNames.size(); j++)
+                            {
+                                key = objIdxs[i] + "_" + nonflNames[j];
+                                obj = storage.find(key);
+                                if (obj != storage.end())
+                                {
+                                    OptionFromString(opt, obj->second);
+                                    objRes->Option(nonflNames[j], opt.Value());
+                                }
+                            } // end of assignment non-filter options
+                            results.push_back(*objRes);
+                            retval++;
+                        } // not skip this object
+                        else {
+                            delete objRes;
+                        }
+                    } // index in the list
+                } // end of objects search
             }
-        }
-        else {
-            tasks[objId] = xmlData;
-            retval = 1;
-        }
+        } // end of namespace search
+    } // en od try
+    catch(std::exception& e)
+    {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "MemStorage::Get error: " << e.what());
+        retval = 0;
+        results.clear();
     }
-    else {
-        /// @todo Implement other types of data except task
-        LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::Query: Not implemented: " << objType);
-    }
+
     return retval;
 }
 
-int MemStorage::Report( const string& repType, const string& objId, const string& xmlData, string& result )
+int MemStorage::Set(const string& objType, Record& filters, Record& data)
 {
-    int retval = 0;
-    if (iequals(repType, weObjTypeTask))
-    {
-        StringMap::iterator tsk;
-        result = "";
-        if (objId == "*")
-        {
-            for (tsk = tasks.begin(); tsk != tasks.end(); tsk++)
-            {
-                result += tsk->second;
-                retval++;
-            }
-        }
-        else
-        {
-            if (tasks.find(objId) != tasks.end())
-            {
-                result += tasks[objId];
-                retval++;
-            }
-        }
-    }
-    else {
-        /// @todo Implement other types of data except task
-        LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::Report: Not implemented: " << repType);
-    }
-    return retval;
+    return 0;
 }
+
+int MemStorage::Set(const string& objType, RecordSet& data)
+{
+    return 0;
+}
+
+int MemStorage::Delete(const string& objType, Record& filters)
+{
+    return 0;
+}
+
 
 void MemStorage::Save( const string& fileName )
 {
@@ -132,10 +245,7 @@ void MemStorage::Save( const string& fileName )
             boost::archive::xml_oarchive oa(ofs);
             // write class instance to archive
             oa << BOOST_SERIALIZATION_NVP(lastId);
-            oa << BOOST_SERIALIZATION_NVP(tasks);
-            oa << BOOST_SERIALIZATION_NVP(dicts);
-            oa << BOOST_SERIALIZATION_NVP(auths);
-            oa << BOOST_SERIALIZATION_NVP(sysopts);
+            oa << BOOST_SERIALIZATION_NVP(storage);
             // archive and stream closed when destructor are called
         }
     }
@@ -157,10 +267,7 @@ void MemStorage::Load( const string& fileName )
             boost::archive::xml_iarchive ia(ifs);
             // write class instance to archive
             ia >> BOOST_SERIALIZATION_NVP(lastId);
-            ia >> BOOST_SERIALIZATION_NVP(tasks);
-            ia >> BOOST_SERIALIZATION_NVP(dicts);
-            ia >> BOOST_SERIALIZATION_NVP(auths);
-            ia >> BOOST_SERIALIZATION_NVP(sysopts);
+            ia >> BOOST_SERIALIZATION_NVP(storage);
             // archive and stream closed when destructor are called
         }
     }

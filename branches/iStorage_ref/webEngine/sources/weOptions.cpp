@@ -382,4 +382,19 @@ void iOptionsProvider::CopyOptions( iOptionsProvider* cpy )
     }
 }
 
+StringList iOptionsProvider::OptionsList()
+{
+    StringList retval;
+
+    retval.clear();
+    wOptions::iterator it;
+
+    for (it = options.begin(); it != options.end(); it++)
+    {
+        retval.push_back(it->first);
+    }
+
+    return retval;
+}
+
 } // namespace webEngine

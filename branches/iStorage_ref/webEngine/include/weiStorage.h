@@ -22,8 +22,35 @@
 
 #pragma once
 #include "weiPlugin.h"
+#include "weOptions.h"
 
 namespace webEngine {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  Record
+///
+/// @brief  Set of fields (individual data).
+///
+/// @author A. Abramov
+/// @date	03.08.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class Record : public iOptionsProvider
+{
+    // nothing special
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  RecordSet
+///
+/// @brief  Set of records.
+///
+/// @author A. Abramov
+/// @date	03.08.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class RecordSet : public vector<Record>
+{
+    // nothing special
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  iStorage
@@ -54,26 +81,68 @@ public:
     virtual void Flush(const string& params = "") {};
     virtual string GenerateID(const string& objType = "");
 
-    virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData);
-    virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Get(const string& objType,
+    /// 	Record& filters, Record& respFilter, RecordSet& results)
+    ///
+    /// @brief  Gets the RecordSet from given namespace (objType). The response filtered to
+    ///         equality of the selected field to the given values. The response will contains only
+    ///         the fields included into the given @b respFilter structure.
+    ///
+    /// @param  objType         - namespace to be searched 
+    /// @param  filters         - the Record to filter the request 
+    /// @param  respFilter      - Set of field to be placed into result. If empty - all data will be retrieved
+    /// @param  [out] results   - the RecordSet to fill it with results 
+    ///
+    /// @retval number of records in the response. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Get(const string& objType, Record& filters, Record& respFilter, RecordSet& results) = 0;
 
-    virtual int Delete(const string& objType, const string& xmlData);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Set(const string& objType,
+    /// 	Record& filters, Record& data)
+    ///
+    /// @brief	Stores (updates) the data in the given namespace. @b data may contain subset of fields
+    ///         (not the full description of the object), and non-empty @b filters may be used to
+    ///         update selected object(s).
+    ///
+    /// @param  objType - namespace to store data 
+    /// @param  filters - the Record to select object(s) for update 
+    /// @param  data    - the Record to be stored 
+    ///
+    /// @retval	Number of affected records. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Set(const string& objType, Record& filters, Record& data) = 0;
 
-    virtual int TaskSave(const string& xmlData, Operation op = iStorage::autoop);
-    virtual int DictionarySave(const string& xmlData, Operation op = iStorage::autoop);
-    virtual int AuthorizationSave(const string& xmlData, Operation op = iStorage::autoop);
-    virtual int SystemOptionsSave(const string& xmlData, Operation op = iStorage::autoop);
-    virtual int ScanSave(const string& xmlData, Operation op = iStorage::autoop);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Set(const string& objType,
+    /// 	RecordSet& data)
+    ///
+    /// @brief	Stores (updates) the data in the given namespace. @b data may contain subset of fields
+    ///         (not the full description of the object), and non-empty @b filters may be used to
+    ///         update selected object(s).
+    ///
+    /// @param  objType - namespace to store data 
+    /// @param  data	- the RecordSet to be stored 
+    ///
+    /// @retval	Number of affected records. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Set(const string& objType, RecordSet& data) = 0;
 
-    virtual int TaskReport(const string& xmlData, string& result);
-    virtual int DictionaryReport(const string& xmlData, string& result);
-    virtual int AuthorizationReport(const string& xmlData, string& result);
-    virtual int SystemOptionsReport(const string& xmlData, string& result);
-    virtual int ScanReport(const string& xmlData, string& result);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Delete(const string& objType,
+    /// 	Record& filters)
+    ///
+    /// @brief	Deletes the object in given namespace. 
+    ///
+    /// @param  objType - namespace to store data 
+    /// @param  filters - the Record to select object(s) for deletion 
+    ///
+    /// @retval	Number of deleted records. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Delete(const string& objType, Record& filters) = 0;
 
 protected:
-    virtual int ObjectReport(const string& objType, const string& xmlData, string& result);
-    virtual int ObjectQuery(const string& objType, const string& xmlData, Operation op = iStorage::autoop);
     static int lastId;
 };
 

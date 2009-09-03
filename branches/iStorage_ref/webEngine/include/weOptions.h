@@ -28,7 +28,10 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
+
 namespace webEngine {
+
+    class RecordSet;
 
     typedef ::boost::variant< char,
         unsigned char,
@@ -71,6 +74,7 @@ namespace webEngine {
         void SetValue(T dt)
         { val = dt; empty = false; };
         //@}
+        wOptionVal Value() { return val; };
 
         bool IsEmpty(void)                          { return empty;   };            ///< Is the value empty
         string GetTypeName(void)                    { return val.type().name();};   ///< Gets the value type name
@@ -84,10 +88,16 @@ namespace webEngine {
         empty = cpy.empty;
         return *this; };
 
+        bool operator==(wOption& cpy)
+        {   name = cpy.name;
+        val = cpy.val;
+        empty = cpy.empty;
+        return (name == cpy.name && val == cpy.val); };
+
 #ifndef __DOXYGEN__
     protected:
         string      name;
-        wOptionVal val;
+        wOptionVal  val;
         bool        empty;
 #endif //__DOXYGEN__
 
@@ -128,12 +138,14 @@ namespace webEngine {
                 options.erase(it);
             }
         };
+        virtual void Clear() { options.clear(); };
 
         void CopyOptions(iOptionsProvider* cpy);
+        StringList OptionsList();
+        size_t OptionSize() { return options.size(); };
 
-        string ToXml( void );
-        void FromXml( string input );
-        void FromXml( TagScanner& sc, int token = -1 );
+        RecordSet* ToRS( void );
+        void FromRS( RecordSet *rs );
 #ifndef __DOXYGEN__
     protected:
         wOptions       options;
@@ -197,9 +209,9 @@ BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
 /// identifiers of the parent object (string)
 #define weoParentID          "ParentId"
 /// identifiers of the profile object (string)
-#define weoProfileID          "ProfileId"
+#define weoProfileID         "ProfileId"
 /// signal to the task (int)
-#define weoTaskSignal          "signal"
+#define weoTaskSignal        "signal"
 //////////////////////////////////////////////////////////////////////////
 // Define options typenames
 //////////////////////////////////////////////////////////////////////////

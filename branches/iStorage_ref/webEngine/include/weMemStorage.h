@@ -47,8 +47,10 @@ public:
     // iStorage functions
     virtual bool InitStorage(const string& params);
     virtual void Flush(const string& params = "");
-    virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData);
-    virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result);
+    virtual int Get(const string& objType, Record& filters, Record& respFilter, RecordSet& results);
+    virtual int Set(const string& objType, Record& filters, Record& data);
+    virtual int Set(const string& objType, RecordSet& data);
+    virtual int Delete(const string& objType, Record& filters);
 
     // MemStorage functions
     void Save(const string& fileName);
@@ -56,10 +58,7 @@ public:
 
 protected:
     string fileName;
-    StringMap tasks;
-    StringMap dicts;
-    StringMap auths;
-    StringMap sysopts;
+    StringMap storage;
 };
 
 } // namespace webEngine

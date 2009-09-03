@@ -84,6 +84,26 @@ void* NullStorage::GetInterface( const string& ifName )
     return iStorage::GetInterface(ifName);
 }
 
+int NullStorage::Get(const string& objType, Record& filters, Record& respFilter, RecordSet& results)
+{
+    return 0;
+}
+
+int NullStorage::Set(const string& objType, Record& filters, Record& data)
+{
+    return 0;
+}
+
+int NullStorage::Set(const string& objType, RecordSet& data)
+{
+    return 0;
+}
+
+int NullStorage::Delete(const string& objType, Record& filters)
+{
+    return 0;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Dispatch class
 //////////////////////////////////////////////////////////////////////////
@@ -215,9 +235,11 @@ void Dispatch::Storage( const iStorage* store )
         storage = new NullStorage(this);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::SetStorage - plugin: " << storage->GetDesc());
-    string xml;
-    storage->SystemOptionsReport("", xml);
-    iOptionsProvider::FromXml(xml);
+    RecordSet res;
+    Record filter;
+    filter.Clear();
+    storage->Get(weObjTypeSysOption, filter, filter, res);
+    iOptionsProvider::FromRS(&res);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -233,8 +255,8 @@ void Dispatch::Flush()
     if (storage != NULL)
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::Flush ");
-        string xml = iOptionsProvider::ToXml();
-        storage->SystemOptionsSave(xml);
+        RecordSet* rs = iOptionsProvider::ToRS();
+        storage->Set(weObjTypeSysOption, *rs);
     }
 }
 
