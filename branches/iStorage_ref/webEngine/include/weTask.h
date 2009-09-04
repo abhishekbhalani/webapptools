@@ -76,7 +76,7 @@ namespace webEngine {
         iResponse* GetRequest(iRequest* req);
         void GetRequestAsync(iRequest* req);
 
-        RecordSet* ToRS( const string& parentID );
+        RecordSet* ToRS( const string& parentID = "" );
         void FromRS( RecordSet *rs );
 
         void WaitForData();

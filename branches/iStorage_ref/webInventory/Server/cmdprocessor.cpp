@@ -256,12 +256,13 @@ int process_message(char* buff, size_t buffSz, session* sess)
         if (iequals(msg.cmd, "addprofile"))
         {
             WeProfile prof;
-            string xml;
+            RecordSet* xrs;
+            Record flt;
             string id = globalDispatcher->Storage()->GenerateID(weObjTypeProfile);
             prof.Option(weoID, id);
             prof.Option(weoName, msg.data);
-            xml = prof.ToXml();
-            globalDispatcher->Storage()->Query(weObjTypeProfile, id, iStorage::autoop, xml);
+            xrs = prof.ToRS();
+            globalDispatcher->Storage()->Set(*xrs);
             msg.data = id;
             retval = 1;
             processed = true;

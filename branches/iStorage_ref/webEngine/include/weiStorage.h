@@ -147,6 +147,7 @@ protected:
 #define weObjTypeDictionary "dict"
 #define weObjTypeAuthInfo   "auth"
 #define weObjTypeScan       "scan"
+#define weObjTypeScanData   "scandata"
 #define weObjTypeObject     "object"
 #define weObjTypeProfile    "profile"
 

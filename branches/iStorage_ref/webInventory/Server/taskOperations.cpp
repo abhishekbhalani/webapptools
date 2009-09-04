@@ -96,142 +96,92 @@ int exec_child(char* cmd[])
 
 void load_task_list( vector<Task*>& task_list )
 {
-    string report = "";
-    int tasks = 0;
+    Record filter;
+    Record reps;
+    RecordSet report;
+    RecordSet topts;
+    int tasks, i, opts;
+    wOption opt;
+    string sdata;
 
-    tasks = globalDispatcher->Storage()->TaskReport("<report><task value='*' /></report>", report);
-    if (tasks > 0)
-    {   // parse the response
-        bool in_parsing = true;
-        int parsing_level = 0;
-        size_t xml_pos;
-        StrStream st(report.c_str());
-        TagScanner sc(st);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "load_task_list");
+    filter.objectID = weObjTypeTask;
+    filter.Clear();
+    reps.objectID = weObjTypeTask;
+    reps.Clear();
+    tasks = globalDispatcher->Storage()->Get(filter, reps, report);
+    for (i = 0; i < tasks; i++)
+    {
+        RecordSet local;
         Task* tsk;
-        string tag;
 
-        while(in_parsing) {
-            xml_pos = sc.GetPos();
-            int t = sc.GetToken();
-            switch(t)
-            {
-            case wstError:
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_task_list - parsing error");
-                in_parsing = false;
-                break;
-            case wstEof:
-                LOG4CXX_TRACE(iLogger::GetLogger(), "load_task_list - parsing EOF");
-                in_parsing = false;
-                break;
-            case wstTagStart:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        task_list.clear();
-                        parsing_level++;
-                        break;
-                    }
-                }
-                if (parsing_level == 1) {
-                    if (iequals(tag, "task")) {
-                        tsk = new Task();
-                        // go back to the start of the TAG
-                        tsk->FromXml(sc, t);
-                        task_list.push_back(tsk);
-                        break;
-                    }
-                }
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_task_list - unexpected tag: " << tag);
-                in_parsing = false;
-                break;
-            case wstTagEnd:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        in_parsing = false;
-                    }
-                }
-                break;
-            }
+        tsk = new Task();
+        local.push_back(report[i]);
+        tsk->FromRS(&local);
+
+        opt = tsk->Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, sdata, "");
+
+        filter.objectID = weObjTypeSysOption;
+        filter.Clear();
+        filter.Option(weoParentID, sdata);
+        reps.objectID = weObjTypeSysOption;
+        reps.Clear();
+        opts = globalDispatcher->Storage()->Get(filter, reps, topts);
+        if (opts > 0)
+        {
+            tsk->FromRS(&topts);
         }
+        task_list.push_back(tsk);
     }
 }
 
 void save_task( Task* tsk )
 {
-    string taskRep;
+    RecordSet* taskRep;
 
-    taskRep = tsk->ToXml();
-    globalDispatcher->Storage()->TaskSave(taskRep);
-    globalDispatcher->Storage()->Flush();
+    LOG4CXX_TRACE(iLogger::GetLogger(), "save_task");
+    taskRep = tsk->ToRS();
+    if (taskRep != NULL)
+    {
+        globalDispatcher->Storage()->Set(*taskRep);
+        globalDispatcher->Storage()->Flush();
+    }
 }
 
 Task* load_task( const string& id )
 {
-    string req;
-    string report = "";
-    int tasks = 0;
-    Task* tsk;
+    Record filter;
+    Record reps;
+    RecordSet report;
+    RecordSet topts;
+    int tasks, opts;
+    Task* tsk = NULL;
 
-    req = "<report><task value='" + id + "' /></report>";
-    tasks = globalDispatcher->Storage()->TaskReport(req, report);
-    tsk = NULL;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "load_task");
+    filter.objectID = weObjTypeTask;
+    filter.Clear();
+    filter.Option(weoID, id);
+    reps.objectID = weObjTypeTask;
+    reps.Clear();
+    tasks = globalDispatcher->Storage()->Get(filter, reps, report);
     if (tasks > 0)
-    {   // parse the response
-        bool in_parsing = true;
-        int parsing_level = 0;
-        size_t xml_pos;
-        StrStream st(report.c_str());
-        TagScanner sc(st);
-        string tag;
+    {
+        RecordSet local;
 
-        while(in_parsing) {
-            xml_pos = sc.GetPos();
-            int t = sc.GetToken();
-            switch(t)
-            {
-            case wstError:
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_task - parsing error");
-                in_parsing = false;
-                break;
-            case wstEof:
-                LOG4CXX_TRACE(iLogger::GetLogger(), "load_task - parsing EOF");
-                in_parsing = false;
-                break;
-            case wstTagStart:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        parsing_level++;
-                        break;
-                    }
-                }
-                if (parsing_level == 1) {
-                    if (iequals(tag, "task")) {
-                        tsk = new Task();
-                        // go back to the start of the TAG
-                        tsk->FromXml(sc, t);
-                        // stop parsing - only first task need
-                        in_parsing = false;
-                        break;
-                    }
-                }
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_task - unexpected tag: " << tag);
-                in_parsing = false;
-                break;
-            case wstTagEnd:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        in_parsing = false;
-                    }
-                }
-                break;
-            }
+        tsk = new Task();
+        local.push_back(report[0]);
+        tsk->FromRS(&local);
+
+        filter.objectID = weObjTypeSysOption;
+        filter.Clear();
+        filter.Option(weoParentID, id);
+        reps.objectID = weObjTypeSysOption;
+        reps.Clear();
+        opts = globalDispatcher->Storage()->Get(filter, reps, topts);
+        if (opts > 0)
+        {
+            tsk->FromRS(&topts);
         }
     }
     return tsk;
@@ -295,12 +245,15 @@ string add_task(const string& name)
 bool del_task(const string& id)
 {
     bool retval;
-    string fName;
-    TaskList    *lst = NULL;
+    Record filter;
 
     retval = false;
-    fName = "<delete task='" + id + "'/>";
-    if (globalDispatcher->Storage()->Delete("task", fName) != 0) {
+
+    filter.objectID = weObjTypeTask;
+    filter.Clear();
+    filter.Option(weoID, id);
+
+    if (globalDispatcher->Storage()->Delete(filter) != 0) {
         retval = true;
     }
     return retval;
@@ -460,7 +413,7 @@ string get_task_opts (const string& id)
         // need to call exactly iOptionsProvider::ToXml()
         // 'cause it gets all options in the one pack in difference
         // of structured output of Task::ToXml()
-        retval = ((iOptionsProvider*)tsk)->ToXml();
+        // retval = ((iOptionsProvider*)tsk)->ToXml();
     }
     else {
         LOG4CXX_WARN(iLogger::GetLogger(), "get_task_opts - task not found: " << id);
@@ -488,7 +441,7 @@ bool set_task_opts (const string& dat)
             // need to call exactly iOptionsProvider::FromXml()
             // 'cause it gets all options in the one pack in difference
             // of structured processing of Task::FromXml()
-            ((iOptionsProvider*)tsk)->FromXml(xml);
+            // ((iOptionsProvider*)tsk)->FromXml(xml);
             save_task(tsk);
             retval = true;
         }
