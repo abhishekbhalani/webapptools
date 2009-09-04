@@ -53,14 +53,18 @@ Collaboration diagram for webEngine::iStorage:</div>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#46938aab654c7cee17b804a883d67c2a">GenerateID</a> (const string &amp;objType=&quot;&quot;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#20dcf184d3de6bce7b805387739b19ca">Get</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter, <a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;respFilter, <a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;results)=0</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#ea8f0664775cecffe815772f6a62cd31">Get</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter, <a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;respFilter, <a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;results)=0</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#f82666369c30940d63364ae72796beb3">Set</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter, <a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;data)=0</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Gets the <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a> from given namespace (objType). The response filtered to equality of the selected field to the given values. The response will contains only the fields included into the given <b>respFilter</b> structure.  <a href="#ea8f0664775cecffe815772f6a62cd31"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#5c549366d8d8fd98da5c90c9e0dec630">Set</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter, <a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;data)=0</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#698ac62ef68f90f770e0f0defe259107">Set</a> (<a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;data)=0</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Stores (updates) the data. <b>data</b> may contain subset of fields (not the full description of the object), and non-empty <b>filters</b> may be used to update selected object(s).  <a href="#5c549366d8d8fd98da5c90c9e0dec630"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#96bdc6c0fb1c8f71317643cc7c4388ca">Set</a> (<a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;data)=0</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#443473be4fbb256ea9550d0888494612">Delete</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter)=0</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Stores (updates) the data. <b>data</b> may contain subset of fields (not the full description of the object).  <a href="#96bdc6c0fb1c8f71317643cc7c4388ca"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#92e54ecb82bcb2bb2c737c87fc1a9dab">Delete</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter)=0</td></tr>
 
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Deletes the filtered object(s).  <a href="#92e54ecb82bcb2bb2c737c87fc1a9dab"></a><br></td></tr>
 <tr><td colspan="2"><br><h2>Static Public Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static const <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#62590e3403a19f2f414c4b28d1937eb7">insert</a> = (<a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>)0x01</td></tr>
 
@@ -152,15 +156,15 @@ Interface for storage subsystem.
 </div>
 </div><p>
 <hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="443473be4fbb256ea9550d0888494612"></a><!-- doxytag: member="webEngine::iStorage::Delete" ref="443473be4fbb256ea9550d0888494612" args="(Record &amp;filter)=0" -->
+<a class="anchor" name="92e54ecb82bcb2bb2c737c87fc1a9dab"></a><!-- doxytag: member="webEngine::iStorage::Delete" ref="92e54ecb82bcb2bb2c737c87fc1a9dab" args="(Record &amp;filter)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual int webEngine::iStorage::Delete           </td>
+          <td class="memname">int webEngine::iStorage::Delete           </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;&nbsp;</td>
-          <td class="paramname"> <em>filter</em>          </td>
+          <td class="paramname"> <em>filters</em>          </td>
           <td>&nbsp;)&nbsp;</td>
           <td><code> [pure virtual]</code></td>
         </tr>
@@ -169,6 +173,18 @@ Interface for storage subsystem.
 <div class="memdoc">
 
 <p>
+Deletes the filtered object(s). 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>filter</em>&nbsp;</td><td>- the <a class="el" href="classweb_engine_1_1_record.html" title="Set of fields (individual data) as name-value pairs.">Record</a> to select object(s) for deletion</td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Return values:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>Number</em>&nbsp;</td><td>of deleted records. </td></tr>
+  </table>
+</dl>
 
 <p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#0e34c0289f80d05d50f07d99fcfb7a19">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#0cd1304ed02570906e13d5f12e8db693">webEngine::MemStorage</a>.</p>
 
@@ -216,15 +232,15 @@ Interface for storage subsystem.
 
 </div>
 </div><p>
-<a class="anchor" name="20dcf184d3de6bce7b805387739b19ca"></a><!-- doxytag: member="webEngine::iStorage::Get" ref="20dcf184d3de6bce7b805387739b19ca" args="(Record &amp;filter, Record &amp;respFilter, RecordSet &amp;results)=0" -->
+<a class="anchor" name="ea8f0664775cecffe815772f6a62cd31"></a><!-- doxytag: member="webEngine::iStorage::Get" ref="ea8f0664775cecffe815772f6a62cd31" args="(Record &amp;filter, Record &amp;respFilter, RecordSet &amp;results)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual int webEngine::iStorage::Get           </td>
+          <td class="memname">int webEngine::iStorage::Get           </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;&nbsp;</td>
-          <td class="paramname"> <em>filter</em>, </td>
+          <td class="paramname"> <em>filters</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -248,6 +264,20 @@ Interface for storage subsystem.
 <div class="memdoc">
 
 <p>
+Gets the <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a> from given namespace (objType). The response filtered to equality of the selected field to the given values. The response will contains only the fields included into the given <b>respFilter</b> structure. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>filter</em>&nbsp;</td><td>- the <a class="el" href="classweb_engine_1_1_record.html" title="Set of fields (individual data) as name-value pairs.">Record</a> to filter the request </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>respFilter</em>&nbsp;</td><td>- Set of field to be placed into result. If empty - all data will be retrieved </td></tr>
+    <tr><td valign="top"><tt>[out]</tt>&nbsp;</td><td valign="top"><em>results</em>&nbsp;</td><td>- the <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a> to fill it with results</td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Return values:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>number</em>&nbsp;</td><td>of records in the response. </td></tr>
+  </table>
+</dl>
 
 <p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#7b3b58bfa60077c49a1ca855e0ca44fc">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#fdb783c4ad853e9a3a538b4c0ed7fa1b">webEngine::MemStorage</a>.</p>
 
@@ -312,12 +342,12 @@ Returns abstracted pointer to the requested interface, or NULL if the requested 
 
 </div>
 </div><p>
-<a class="anchor" name="698ac62ef68f90f770e0f0defe259107"></a><!-- doxytag: member="webEngine::iStorage::Set" ref="698ac62ef68f90f770e0f0defe259107" args="(RecordSet &amp;data)=0" -->
+<a class="anchor" name="96bdc6c0fb1c8f71317643cc7c4388ca"></a><!-- doxytag: member="webEngine::iStorage::Set" ref="96bdc6c0fb1c8f71317643cc7c4388ca" args="(RecordSet &amp;data)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual int webEngine::iStorage::Set           </td>
+          <td class="memname">int webEngine::iStorage::Set           </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;&nbsp;</td>
           <td class="paramname"> <em>data</em>          </td>
@@ -329,20 +359,32 @@ Returns abstracted pointer to the requested interface, or NULL if the requested 
 <div class="memdoc">
 
 <p>
+Stores (updates) the data. <b>data</b> may contain subset of fields (not the full description of the object). 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>data</em>&nbsp;</td><td>- the <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a> to be stored</td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Return values:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>Number</em>&nbsp;</td><td>of affected records. </td></tr>
+  </table>
+</dl>
 
 <p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#478a239e9b157c272c680f1dc554a470">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#6e4e91a01b8bc0afb3d0f6327c84de8b">webEngine::MemStorage</a>.</p>
 
 </div>
 </div><p>
-<a class="anchor" name="f82666369c30940d63364ae72796beb3"></a><!-- doxytag: member="webEngine::iStorage::Set" ref="f82666369c30940d63364ae72796beb3" args="(Record &amp;filter, Record &amp;data)=0" -->
+<a class="anchor" name="5c549366d8d8fd98da5c90c9e0dec630"></a><!-- doxytag: member="webEngine::iStorage::Set" ref="5c549366d8d8fd98da5c90c9e0dec630" args="(Record &amp;filter, Record &amp;data)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual int webEngine::iStorage::Set           </td>
+          <td class="memname">int webEngine::iStorage::Set           </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;&nbsp;</td>
-          <td class="paramname"> <em>filter</em>, </td>
+          <td class="paramname"> <em>filters</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -360,6 +402,19 @@ Returns abstracted pointer to the requested interface, or NULL if the requested 
 <div class="memdoc">
 
 <p>
+Stores (updates) the data. <b>data</b> may contain subset of fields (not the full description of the object), and non-empty <b>filters</b> may be used to update selected object(s). 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>filter</em>&nbsp;</td><td>- the <a class="el" href="classweb_engine_1_1_record.html" title="Set of fields (individual data) as name-value pairs.">Record</a> to select object(s) for update </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>data</em>&nbsp;</td><td>- the <a class="el" href="classweb_engine_1_1_record.html" title="Set of fields (individual data) as name-value pairs.">Record</a> to be stored</td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Return values:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>Number</em>&nbsp;</td><td>of affected records. </td></tr>
+  </table>
+</dl>
 
 <p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#6c157db44a03804a106a75cc39e16995">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#0e789cad3662f8a603526a4767db6fb8">webEngine::MemStorage</a>.</p>
 
@@ -444,7 +499,7 @@ Returns abstracted pointer to the requested interface, or NULL if the requested 
 <hr>The documentation for this interface was generated from the following files:<ul>
 <li>C:/Work/Projects/webapptools/webEngine/include/weiStorage.h<li>C:/Work/Projects/webapptools/webEngine/sources/weiStorage.cpp</ul>
 </div>
-<hr size="1"><address style="text-align: right;"><small>Generated on Fri Sep 4 13:12:47 2009 for webapptools by&nbsp;
+<hr size="1"><address style="text-align: right;"><small>Generated on Fri Sep 4 13:36:15 2009 for webapptools by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.7 </small></address>
 </body>
