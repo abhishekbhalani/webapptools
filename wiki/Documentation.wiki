@@ -24,7 +24,7 @@
     * [http://www.doxygen.org Doxygen system] is used for documenting this project.
 
   * *Additional information*
-    * Developers forum for the webEngine project. (_coming soon_)
+    * [http://groups.google.com/group/webapptools Developers forum for the webEngine project.]
     * Project's [http://code.google.com/p/webapptools/issues/list?q=label:Enhancement+OR+label:Task Task List] and [http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Bug Tracking system].
 
 == Programmers documentation ==

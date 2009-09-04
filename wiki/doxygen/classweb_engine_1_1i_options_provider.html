@@ -20,8 +20,8 @@ Inheritance diagram for webEngine::iOptionsProvider:</div>
 <map name="web_engine_1_1i_options_provider__inherit__map">
 <area shape="rect" id="node3" href="classweb_engine_1_1_dispatch.html" title="Dispatcher for tasks processing and system options storage." alt="" coords="5,83,149,111">
 <area shape="rect" id="node5" href="classweb_engine_1_1i_transport.html" title="Transport for data receiving." alt="" coords="173,83,323,111">
-<area shape="rect" id="node9" href="classweb_engine_1_1_task.html" title="Entry point to execute any actions with webEngine." alt="" coords="347,83,467,111">
-<area shape="rect" id="node11" href="class_we_profile.html" title="WeProfile" alt="" coords="491,83,568,111">
+<area shape="rect" id="node9" href="classweb_engine_1_1_record.html" title="Set of fields (individual data) as name&#45;value pairs." alt="" coords="347,83,480,111">
+<area shape="rect" id="node11" href="classweb_engine_1_1_task.html" title="Entry point to execute any actions with webEngine." alt="" coords="504,83,624,111">
 <area shape="rect" id="node7" href="classweb_engine_1_1_http_transport.html" title="The HTTP processor." alt="" coords="163,161,333,189">
 </map>
 <center><font size="2">[<a href="http://code.google.com/p/webapptools/wiki/GraphLegend">legend</a>]</font></center></div>
@@ -42,16 +42,17 @@ Inheritance diagram for webEngine::iOptionsProvider:</div>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#a37099352438dfe885ad57c746694806">Erase</a> (const string &amp;name)</td></tr>
 
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#4cd8c46769457216c7eec48bfb6a36b3">Clear</a> ()</td></tr>
+
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#bb1cf3721e1e2bd945147e2a87fc4dad">CopyOptions</a> (<a class="el" href="classweb_engine_1_1i_options_provider.html">iOptionsProvider</a> *cpy)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#11324f13991d4b14e0a32351d06944db">ToXml</a> (void)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="namespaceweb_engine.html#8e2970a5b281dbe9ae70235e42a7ee51">StringList</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#8d546e610c212bc09b4421d9ef54a288">OptionsList</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#b6434d9b4cf026512b6f4e5be9a8c0b9">FromXml</a> (string input)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">size_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#7c2f03b49f07ad76a1e8784a7038bf05">OptionSize</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#b6f675eb3bd73e0c379c4a23705240ac">FromXml</a> (<a class="el" href="classweb_engine_1_1_tag_scanner.html">TagScanner</a> &amp;sc, int token=-1)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#4f09b124a119ca3c6be87ac518ccac9f">ToRS</a> (const string &amp;parentID=&quot;&quot;)</td></tr>
 
-<tr><td colspan="2"><br><h2>Protected Attributes</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="namespaceweb_engine.html#9c35901f3278bcd83da969ef31d53f64">wOptions</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#93410a79c555d8e09c391f075a9ad2bb">options</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_options_provider.html#086ef65c8dd5c896c4e763deb73a3d79">FromRS</a> (<a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> *rs)</td></tr>
 
 </table>
 <hr><a name="_details"></a><h2>Detailed Description</h2>
@@ -99,6 +100,25 @@ options storage.
 </div>
 </div><p>
 <hr><h2>Member Function Documentation</h2>
+<a class="anchor" name="4cd8c46769457216c7eec48bfb6a36b3"></a><!-- doxytag: member="webEngine::iOptionsProvider::Clear" ref="4cd8c46769457216c7eec48bfb6a36b3" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void webEngine::iOptionsProvider::Clear           </td>
+          <td>(</td>
+          <td class="paramname">          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [inline, virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+
+</div>
+</div><p>
 <a class="anchor" name="bb1cf3721e1e2bd945147e2a87fc4dad"></a><!-- doxytag: member="webEngine::iOptionsProvider::CopyOptions" ref="bb1cf3721e1e2bd945147e2a87fc4dad" args="(iOptionsProvider *cpy)" -->
 <div class="memitem">
 <div class="memproto">
@@ -139,46 +159,15 @@ options storage.
 
 </div>
 </div><p>
-<a class="anchor" name="b6f675eb3bd73e0c379c4a23705240ac"></a><!-- doxytag: member="webEngine::iOptionsProvider::FromXml" ref="b6f675eb3bd73e0c379c4a23705240ac" args="(TagScanner &amp;sc, int token=&#45;1)" -->
+<a class="anchor" name="086ef65c8dd5c896c4e763deb73a3d79"></a><!-- doxytag: member="webEngine::iOptionsProvider::FromRS" ref="086ef65c8dd5c896c4e763deb73a3d79" args="(RecordSet *rs)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void webEngine::iOptionsProvider::FromXml           </td>
+          <td class="memname">void webEngine::iOptionsProvider::FromRS           </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1_tag_scanner.html">TagScanner</a> &amp;&nbsp;</td>
-          <td class="paramname"> <em>sc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&nbsp;</td>
-          <td class="paramname"> <em>token</em> = <code>-1</code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-<p>Implemented in <a class="el" href="classweb_engine_1_1_task.html#d6547f8b6e37c4778094431f0423ee08">webEngine::Task</a>, and <a class="el" href="class_we_profile.html#7c20e0443a3eae84486318519d985b5e">WeProfile</a>.</p>
-
-</div>
-</div><p>
-<a class="anchor" name="b6434d9b4cf026512b6f4e5be9a8c0b9"></a><!-- doxytag: member="webEngine::iOptionsProvider::FromXml" ref="b6434d9b4cf026512b6f4e5be9a8c0b9" args="(string input)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void webEngine::iOptionsProvider::FromXml           </td>
-          <td>(</td>
-          <td class="paramtype">string&nbsp;</td>
-          <td class="paramname"> <em>input</em>          </td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> *&nbsp;</td>
+          <td class="paramname"> <em>rs</em>          </td>
           <td>&nbsp;)&nbsp;</td>
           <td></td>
         </tr>
@@ -188,7 +177,7 @@ options storage.
 
 <p>
 
-<p>Implemented in <a class="el" href="classweb_engine_1_1_task.html#956f37e4b27b0f5708b1f24f4bcf8239">webEngine::Task</a>, and <a class="el" href="class_we_profile.html#daa2c42d825a00fe605e94ba8f2b463e">WeProfile</a>.</p>
+<p>Implemented in <a class="el" href="classweb_engine_1_1_task.html#4e439ac529183df5380456a78acb1c94">webEngine::Task</a>.</p>
 
 </div>
 </div><p>
@@ -267,14 +256,32 @@ options storage.
 
 </div>
 </div><p>
-<a class="anchor" name="11324f13991d4b14e0a32351d06944db"></a><!-- doxytag: member="webEngine::iOptionsProvider::ToXml" ref="11324f13991d4b14e0a32351d06944db" args="(void)" -->
+<a class="anchor" name="7c2f03b49f07ad76a1e8784a7038bf05"></a><!-- doxytag: member="webEngine::iOptionsProvider::OptionSize" ref="7c2f03b49f07ad76a1e8784a7038bf05" args="()" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string webEngine::iOptionsProvider::ToXml           </td>
+          <td class="memname">size_t webEngine::iOptionsProvider::OptionSize           </td>
           <td>(</td>
-          <td class="paramtype">void&nbsp;</td>
+          <td class="paramname">          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+
+</div>
+</div><p>
+<a class="anchor" name="8d546e610c212bc09b4421d9ef54a288"></a><!-- doxytag: member="webEngine::iOptionsProvider::OptionsList" ref="8d546e610c212bc09b4421d9ef54a288" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceweb_engine.html#8e2970a5b281dbe9ae70235e42a7ee51">StringList</a> webEngine::iOptionsProvider::OptionsList           </td>
+          <td>(</td>
           <td class="paramname">          </td>
           <td>&nbsp;)&nbsp;</td>
           <td></td>
@@ -285,17 +292,19 @@ options storage.
 
 <p>
 
-<p>Implemented in <a class="el" href="classweb_engine_1_1_task.html#47bfc5d437a5576fd9ce2e3f0401ff25">webEngine::Task</a>, and <a class="el" href="class_we_profile.html#a1bef4e8d8dec62991915f0e8e8f26a3">WeProfile</a>.</p>
-
 </div>
 </div><p>
-<hr><h2>Member Data Documentation</h2>
-<a class="anchor" name="93410a79c555d8e09c391f075a9ad2bb"></a><!-- doxytag: member="webEngine::iOptionsProvider::options" ref="93410a79c555d8e09c391f075a9ad2bb" args="" -->
+<a class="anchor" name="4f09b124a119ca3c6be87ac518ccac9f"></a><!-- doxytag: member="webEngine::iOptionsProvider::ToRS" ref="4f09b124a119ca3c6be87ac518ccac9f" args="(const string &amp;parentID=&quot;&quot;)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceweb_engine.html#9c35901f3278bcd83da969ef31d53f64">wOptions</a> <a class="el" href="classweb_engine_1_1i_options_provider.html#93410a79c555d8e09c391f075a9ad2bb">webEngine::iOptionsProvider::options</a><code> [protected]</code>          </td>
+          <td class="memname"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> * webEngine::iOptionsProvider::ToRS           </td>
+          <td>(</td>
+          <td class="paramtype">const string &amp;&nbsp;</td>
+          <td class="paramname"> <em>parentID</em> = <code>&quot;&quot;</code>          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td></td>
         </tr>
       </table>
 </div>
@@ -303,12 +312,14 @@ options storage.
 
 <p>
 
+<p>Implemented in <a class="el" href="classweb_engine_1_1_task.html#ca133bdbc850f2daf256b80066789da4">webEngine::Task</a>.</p>
+
 </div>
 </div><p>
 <hr>The documentation for this interface was generated from the following files:<ul>
 <li>C:/Work/Projects/webapptools/webEngine/include/weOptions.h<li>C:/Work/Projects/webapptools/webEngine/sources/weOptions.cpp</ul>
 </div>
-<hr size="1"><address style="text-align: right;"><small>Generated on Mon Aug 24 18:02:41 2009 for webapptools by&nbsp;
+<hr size="1"><address style="text-align: right;"><small>Generated on Fri Sep 4 13:12:47 2009 for webapptools by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.7 </small></address>
 </body>

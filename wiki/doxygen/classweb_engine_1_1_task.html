@@ -62,14 +62,12 @@ Collaboration diagram for webEngine::Task:</div>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1_task.html#67fb32fdf46ae2202697c491b09272c8">GetRequestAsync</a> (<a class="el" href="classweb_engine_1_1i_request.html">iRequest</a> *req)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1_task.html#47bfc5d437a5576fd9ce2e3f0401ff25">ToXml</a> (void)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1_task.html#ca133bdbc850f2daf256b80066789da4">ToRS</a> (const string &amp;parentID)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts this object to an XML.  <a href="#47bfc5d437a5576fd9ce2e3f0401ff25"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1_task.html#956f37e4b27b0f5708b1f24f4bcf8239">FromXml</a> (string input)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Converts this object to an <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a>. This function realizes alternate serialization mechanism. It generates <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a> with all necessary data. This representation is used for internal data exchange (for example to store data through iweStorage interface).  <a href="#ca133bdbc850f2daf256b80066789da4"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1_task.html#4e439ac529183df5380456a78acb1c94">FromRS</a> (<a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> *rs)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializes this object from the given from XML.  <a href="#956f37e4b27b0f5708b1f24f4bcf8239"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1_task.html#d6547f8b6e37c4778094431f0423ee08">FromXml</a> (<a class="el" href="classweb_engine_1_1_tag_scanner.html">TagScanner</a> &amp;sc, int token=-1)</td></tr>
-
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializes this object from the given from <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a>.  <a href="#4e439ac529183df5380456a78acb1c94"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1_task.html#6cb6e4fbaaf1b43e60850b83fd5d5854">WaitForData</a> ()</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1_task.html#28d7cc720cdfea7d1977d49dcd268e7f">CalcStatus</a> ()</td></tr>
@@ -147,7 +145,7 @@ Entry point to execute any actions with <a class="el" href="namespaceweb_engine.
 <p>
 
 <p>
-<dl compact><dt><b><a class="el" href="todo.html#_todo000039">Todo:</a></b></dt><dd>Cleanup </dd></dl>
+<dl compact><dt><b><a class="el" href="todo.html#_todo000035">Todo:</a></b></dt><dd>Cleanup </dd></dl>
 
 </div>
 </div><p>
@@ -251,46 +249,15 @@ Entry point to execute any actions with <a class="el" href="namespaceweb_engine.
 
 </div>
 </div><p>
-<a class="anchor" name="d6547f8b6e37c4778094431f0423ee08"></a><!-- doxytag: member="webEngine::Task::FromXml" ref="d6547f8b6e37c4778094431f0423ee08" args="(TagScanner &amp;sc, int token=&#45;1)" -->
+<a class="anchor" name="4e439ac529183df5380456a78acb1c94"></a><!-- doxytag: member="webEngine::Task::FromRS" ref="4e439ac529183df5380456a78acb1c94" args="(RecordSet *rs)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void webEngine::Task::FromXml           </td>
+          <td class="memname">void webEngine::Task::FromRS           </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1_tag_scanner.html">TagScanner</a> &amp;&nbsp;</td>
-          <td class="paramname"> <em>sc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&nbsp;</td>
-          <td class="paramname"> <em>token</em> = <code>-1</code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-<p>Implements <a class="el" href="classweb_engine_1_1i_options_provider.html#b6f675eb3bd73e0c379c4a23705240ac">webEngine::iOptionsProvider</a>.</p>
-
-</div>
-</div><p>
-<a class="anchor" name="956f37e4b27b0f5708b1f24f4bcf8239"></a><!-- doxytag: member="webEngine::Task::FromXml" ref="956f37e4b27b0f5708b1f24f4bcf8239" args="(string input)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void webEngine::Task::FromXml           </td>
-          <td>(</td>
-          <td class="paramtype">string&nbsp;</td>
-          <td class="paramname"> <em>input</em>          </td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> *&nbsp;</td>
+          <td class="paramname"> <em>rs</em>          </td>
           <td>&nbsp;)&nbsp;</td>
           <td></td>
         </tr>
@@ -299,16 +266,15 @@ Entry point to execute any actions with <a class="el" href="namespaceweb_engine.
 <div class="memdoc">
 
 <p>
-Initializes this object from the given from XML. 
+Initializes this object from the given from <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a>. 
 <p>
-This function reconstructs object back from the XML generated by the <b>ToXml</b> function<p>
 <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
-    <tr><td valign="top"></td><td valign="top"><em>input</em>&nbsp;</td><td>- The input XML. </td></tr>
+    <tr><td valign="top"></td><td valign="top"><em>rs</em>&nbsp;</td><td>- <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a>. </td></tr>
   </table>
 </dl>
 
-<p>Implements <a class="el" href="classweb_engine_1_1i_options_provider.html#b6434d9b4cf026512b6f4e5be9a8c0b9">webEngine::iOptionsProvider</a>.</p>
+<p>Implements <a class="el" href="classweb_engine_1_1i_options_provider.html#086ef65c8dd5c896c4e763deb73a3d79">webEngine::iOptionsProvider</a>.</p>
 
 </div>
 </div><p>
@@ -331,7 +297,7 @@ This function reconstructs object back from the XML generated by the <b>ToXml</b
 <p>
 
 <p>
-<dl compact><dt><b><a class="el" href="todo.html#_todo000040">Todo:</a></b></dt><dd>Implement this! </dd></dl>
+<dl compact><dt><b><a class="el" href="todo.html#_todo000036">Todo:</a></b></dt><dd>Implement this! </dd></dl>
 
 </div>
 </div><p>
@@ -354,7 +320,7 @@ This function reconstructs object back from the XML generated by the <b>ToXml</b
 <p>
 
 <p>
-<dl compact><dt><b><a class="el" href="todo.html#_todo000041">Todo:</a></b></dt><dd>Implement this! </dd></dl>
+<dl compact><dt><b><a class="el" href="todo.html#_todo000037">Todo:</a></b></dt><dd>Implement this! </dd></dl>
 
 </div>
 </div><p>
@@ -524,15 +490,15 @@ This function reconstructs object back from the XML generated by the <b>ToXml</b
 
 </div>
 </div><p>
-<a class="anchor" name="47bfc5d437a5576fd9ce2e3f0401ff25"></a><!-- doxytag: member="webEngine::Task::ToXml" ref="47bfc5d437a5576fd9ce2e3f0401ff25" args="(void)" -->
+<a class="anchor" name="ca133bdbc850f2daf256b80066789da4"></a><!-- doxytag: member="webEngine::Task::ToRS" ref="ca133bdbc850f2daf256b80066789da4" args="(const string &amp;parentID)" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string webEngine::Task::ToXml           </td>
+          <td class="memname"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> * webEngine::Task::ToRS           </td>
           <td>(</td>
-          <td class="paramtype">void&nbsp;</td>
-          <td class="paramname">          </td>
+          <td class="paramtype">const string &amp;&nbsp;</td>
+          <td class="paramname"> <em>prefix</em> = <code>&quot;&quot;</code>          </td>
           <td>&nbsp;)&nbsp;</td>
           <td></td>
         </tr>
@@ -541,16 +507,20 @@ This function reconstructs object back from the XML generated by the <b>ToXml</b
 <div class="memdoc">
 
 <p>
-Converts this object to an XML. 
+Converts this object to an <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a>. This function realizes alternate serialization mechanism. It generates <a class="el" href="classweb_engine_1_1_record_set.html" title="Set of records of class Record.">RecordSet</a> with all necessary data. This representation is used for internal data exchange (for example to store data through iweStorage interface). 
 <p>
-This function realizes alternate serialization mechanism. It generates more compact and simplified XML representation. This representation is used for internal data exchange (for example to store data through iweStorage interface).<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td valign="top"></td><td valign="top"><em>prefix</em>&nbsp;</td><td>- The naming prefix.</td></tr>
+  </table>
+</dl>
 <dl compact><dt><b>Return values:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td valign="top"></td><td valign="top"><em>This</em>&nbsp;</td><td>object as a std::string. </td></tr>
   </table>
 </dl>
 
-<p>Implements <a class="el" href="classweb_engine_1_1i_options_provider.html#11324f13991d4b14e0a32351d06944db">webEngine::iOptionsProvider</a>.</p>
+<p>Implements <a class="el" href="classweb_engine_1_1i_options_provider.html#4f09b124a119ca3c6be87ac518ccac9f">webEngine::iOptionsProvider</a>.</p>
 
 </div>
 </div><p>
@@ -597,7 +567,7 @@ This function realizes alternate serialization mechanism. It generates more comp
 <hr>The documentation for this class was generated from the following files:<ul>
 <li>C:/Work/Projects/webapptools/webEngine/include/weTask.h<li>C:/Work/Projects/webapptools/webEngine/sources/weTask.cpp</ul>
 </div>
-<hr size="1"><address style="text-align: right;"><small>Generated on Tue Aug 25 11:08:16 2009 for webapptools by&nbsp;
+<hr size="1"><address style="text-align: right;"><small>Generated on Fri Sep 4 13:12:47 2009 for webapptools by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.7 </small></address>
 </body>

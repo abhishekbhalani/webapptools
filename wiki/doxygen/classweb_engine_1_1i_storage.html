@@ -53,31 +53,13 @@ Collaboration diagram for webEngine::iStorage:</div>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#46938aab654c7cee17b804a883d67c2a">GenerateID</a> (const string &amp;objType=&quot;&quot;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#0feac3ab720230492057bf656423d961">Query</a> (const string &amp;objType, const string &amp;objId, <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a> op, const string &amp;xmlData)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#20dcf184d3de6bce7b805387739b19ca">Get</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter, <a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;respFilter, <a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;results)=0</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#d08c4ae15155830a6b8505502ccb0722">Report</a> (const string &amp;repType, const string &amp;objId, const string &amp;xmlData, string &amp;result)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#f82666369c30940d63364ae72796beb3">Set</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter, <a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;data)=0</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#58ca750490d509932508a7646d71207c">Delete</a> (const string &amp;objType, const string &amp;xmlData)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#698ac62ef68f90f770e0f0defe259107">Set</a> (<a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;data)=0</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#e7d7d8582348c684b5d79b1266eefd3a">TaskSave</a> (const string &amp;xmlData, <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a> op=<a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a>)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#c709b3201708af0d09046872b557f164">DictionarySave</a> (const string &amp;xmlData, <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a> op=<a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a>)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#b856fa1af3bbf5bd8e99c3a6c04b532b">AuthorizationSave</a> (const string &amp;xmlData, <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a> op=<a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a>)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#03fe6532c692f2139dcdbc7d023531e9">SystemOptionsSave</a> (const string &amp;xmlData, <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a> op=<a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a>)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#e9e4c55226dd4e040548a0ec85f7a4fc">ScanSave</a> (const string &amp;xmlData, <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a> op=<a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a>)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#c7e8329ce880ae5bdc7c35b8cd762ec6">TaskReport</a> (const string &amp;xmlData, string &amp;result)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#19d2311625dba785a1e0acaabe524634">DictionaryReport</a> (const string &amp;xmlData, string &amp;result)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#6af8d2c54615f1309f65880208b3c14c">AuthorizationReport</a> (const string &amp;xmlData, string &amp;result)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#663ff6a2a1e95ae6937a3be79bafe85a">SystemOptionsReport</a> (const string &amp;xmlData, string &amp;result)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#0c5308fe305386b2c90bbff1bd5b737c">ScanReport</a> (const string &amp;xmlData, string &amp;result)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#443473be4fbb256ea9550d0888494612">Delete</a> (<a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;filter)=0</td></tr>
 
 <tr><td colspan="2"><br><h2>Static Public Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static const <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#62590e3403a19f2f414c4b28d1937eb7">insert</a> = (<a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>)0x01</td></tr>
@@ -87,11 +69,6 @@ Collaboration diagram for webEngine::iStorage:</div>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static const <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#3ec9ce03719de4e7f55b8cead8f22da7">remove</a> = (<a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>)0x03</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static const <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">autoop</a> = (<a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>)0xff</td></tr>
-
-<tr><td colspan="2"><br><h2>Protected Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#93dd309ab38645c9cd63e9740f479034">ObjectReport</a> (const string &amp;objType, const string &amp;xmlData, string &amp;result)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#5c013d80c89fcaf7ef1593aff12f697a">ObjectQuery</a> (const string &amp;objType, const string &amp;xmlData, <a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a> op=<a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a>)</td></tr>
 
 <tr><td colspan="2"><br><h2>Static Protected Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classweb_engine_1_1i_storage.html#8de6cb55831eb0ec201233387615e2e1">lastId</a> = 0</td></tr>
@@ -175,26 +152,17 @@ Interface for storage subsystem.
 </div>
 </div><p>
 <hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="6af8d2c54615f1309f65880208b3c14c"></a><!-- doxytag: member="webEngine::iStorage::AuthorizationReport" ref="6af8d2c54615f1309f65880208b3c14c" args="(const string &amp;xmlData, string &amp;result)" -->
+<a class="anchor" name="443473be4fbb256ea9550d0888494612"></a><!-- doxytag: member="webEngine::iStorage::Delete" ref="443473be4fbb256ea9550d0888494612" args="(Record &amp;filter)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int iStorage::AuthorizationReport           </td>
+          <td class="memname">virtual int webEngine::iStorage::Delete           </td>
           <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&nbsp;</td>
-          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>filter</em>          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [pure virtual]</code></td>
         </tr>
       </table>
 </div>
@@ -202,121 +170,7 @@ Interface for storage subsystem.
 
 <p>
 
-</div>
-</div><p>
-<a class="anchor" name="b856fa1af3bbf5bd8e99c3a6c04b532b"></a><!-- doxytag: member="webEngine::iStorage::AuthorizationSave" ref="b856fa1af3bbf5bd8e99c3a6c04b532b" args="(const string &amp;xmlData, Operation op=iStorage::autoop)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::AuthorizationSave           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td>
-          <td class="paramname"> <em>op</em> = <code><a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a></code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-</div>
-</div><p>
-<a class="anchor" name="58ca750490d509932508a7646d71207c"></a><!-- doxytag: member="webEngine::iStorage::Delete" ref="58ca750490d509932508a7646d71207c" args="(const string &amp;objType, const string &amp;xmlData)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::Delete           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>objType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-</div>
-</div><p>
-<a class="anchor" name="19d2311625dba785a1e0acaabe524634"></a><!-- doxytag: member="webEngine::iStorage::DictionaryReport" ref="19d2311625dba785a1e0acaabe524634" args="(const string &amp;xmlData, string &amp;result)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::DictionaryReport           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&nbsp;</td>
-          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-</div>
-</div><p>
-<a class="anchor" name="c709b3201708af0d09046872b557f164"></a><!-- doxytag: member="webEngine::iStorage::DictionarySave" ref="c709b3201708af0d09046872b557f164" args="(const string &amp;xmlData, Operation op=iStorage::autoop)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::DictionarySave           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td>
-          <td class="paramname"> <em>op</em> = <code><a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a></code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
+<p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#0e34c0289f80d05d50f07d99fcfb7a19">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#0cd1304ed02570906e13d5f12e8db693">webEngine::MemStorage</a>.</p>
 
 </div>
 </div><p>
@@ -359,6 +213,43 @@ Interface for storage subsystem.
 <div class="memdoc">
 
 <p>
+
+</div>
+</div><p>
+<a class="anchor" name="20dcf184d3de6bce7b805387739b19ca"></a><!-- doxytag: member="webEngine::iStorage::Get" ref="20dcf184d3de6bce7b805387739b19ca" args="(Record &amp;filter, Record &amp;respFilter, RecordSet &amp;results)=0" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual int webEngine::iStorage::Get           </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>filter</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>respFilter</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>results</em></td><td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td><td><code> [pure virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+
+<p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#7b3b58bfa60077c49a1ca855e0ca44fc">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#fdb783c4ad853e9a3a538b4c0ed7fa1b">webEngine::MemStorage</a>.</p>
 
 </div>
 </div><p>
@@ -421,67 +312,48 @@ Returns abstracted pointer to the requested interface, or NULL if the requested 
 
 </div>
 </div><p>
-<a class="anchor" name="5c013d80c89fcaf7ef1593aff12f697a"></a><!-- doxytag: member="webEngine::iStorage::ObjectQuery" ref="5c013d80c89fcaf7ef1593aff12f697a" args="(const string &amp;objType, const string &amp;xmlData, Operation op=iStorage::autoop)" -->
+<a class="anchor" name="698ac62ef68f90f770e0f0defe259107"></a><!-- doxytag: member="webEngine::iStorage::Set" ref="698ac62ef68f90f770e0f0defe259107" args="(RecordSet &amp;data)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int iStorage::ObjectQuery           </td>
+          <td class="memname">virtual int webEngine::iStorage::Set           </td>
           <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>objType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td>
-          <td class="paramname"> <em>op</em> = <code><a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a></code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [protected, virtual]</code></td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record_set.html">RecordSet</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>data</em>          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td><code> [pure virtual]</code></td>
         </tr>
       </table>
 </div>
 <div class="memdoc">
 
 <p>
+
+<p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#478a239e9b157c272c680f1dc554a470">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#6e4e91a01b8bc0afb3d0f6327c84de8b">webEngine::MemStorage</a>.</p>
 
 </div>
 </div><p>
-<a class="anchor" name="93dd309ab38645c9cd63e9740f479034"></a><!-- doxytag: member="webEngine::iStorage::ObjectReport" ref="93dd309ab38645c9cd63e9740f479034" args="(const string &amp;objType, const string &amp;xmlData, string &amp;result)" -->
+<a class="anchor" name="f82666369c30940d63364ae72796beb3"></a><!-- doxytag: member="webEngine::iStorage::Set" ref="f82666369c30940d63364ae72796beb3" args="(Record &amp;filter, Record &amp;data)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int iStorage::ObjectReport           </td>
+          <td class="memname">virtual int webEngine::iStorage::Set           </td>
           <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>objType</em>, </td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>filter</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&nbsp;</td>
-          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
+          <td class="paramtype"><a class="el" href="classweb_engine_1_1_record.html">Record</a> &amp;&nbsp;</td>
+          <td class="paramname"> <em>data</em></td><td>&nbsp;</td>
         </tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td></td><td><code> [protected, virtual]</code></td>
+          <td></td><td></td><td><code> [pure virtual]</code></td>
         </tr>
       </table>
 </div>
@@ -489,271 +361,7 @@ Returns abstracted pointer to the requested interface, or NULL if the requested 
 
 <p>
 
-</div>
-</div><p>
-<a class="anchor" name="0feac3ab720230492057bf656423d961"></a><!-- doxytag: member="webEngine::iStorage::Query" ref="0feac3ab720230492057bf656423d961" args="(const string &amp;objType, const string &amp;objId, Operation op, const string &amp;xmlData)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::Query           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>objType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>objId</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td>
-          <td class="paramname"> <em>op</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-<p>
-<dl compact><dt><b><a class="el" href="todo.html#_todo000035">Todo:</a></b></dt><dd>Implement this! </dd></dl>
-
-<p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#0e5c24f5cef30457eb061e27384963c5">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#0c2171ccad5d650d2f3194627f130a73">webEngine::MemStorage</a>.</p>
-
-</div>
-</div><p>
-<a class="anchor" name="d08c4ae15155830a6b8505502ccb0722"></a><!-- doxytag: member="webEngine::iStorage::Report" ref="d08c4ae15155830a6b8505502ccb0722" args="(const string &amp;repType, const string &amp;objId, const string &amp;xmlData, string &amp;result)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::Report           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>repType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>objId</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&nbsp;</td>
-          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-<p>
-<dl compact><dt><b><a class="el" href="todo.html#_todo000036">Todo:</a></b></dt><dd>Implement this! </dd></dl>
-
-<p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#d0671fe4eb1a9a9f99ffba821142a358">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#73a3c1d19e25b2fc31c86890e6ffb5b3">webEngine::MemStorage</a>.</p>
-
-</div>
-</div><p>
-<a class="anchor" name="0c5308fe305386b2c90bbff1bd5b737c"></a><!-- doxytag: member="webEngine::iStorage::ScanReport" ref="0c5308fe305386b2c90bbff1bd5b737c" args="(const string &amp;xmlData, string &amp;result)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::ScanReport           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&nbsp;</td>
-          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-</div>
-</div><p>
-<a class="anchor" name="e9e4c55226dd4e040548a0ec85f7a4fc"></a><!-- doxytag: member="webEngine::iStorage::ScanSave" ref="e9e4c55226dd4e040548a0ec85f7a4fc" args="(const string &amp;xmlData, Operation op=iStorage::autoop)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::ScanSave           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td>
-          <td class="paramname"> <em>op</em> = <code><a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a></code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-</div>
-</div><p>
-<a class="anchor" name="663ff6a2a1e95ae6937a3be79bafe85a"></a><!-- doxytag: member="webEngine::iStorage::SystemOptionsReport" ref="663ff6a2a1e95ae6937a3be79bafe85a" args="(const string &amp;xmlData, string &amp;result)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::SystemOptionsReport           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&nbsp;</td>
-          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-</div>
-</div><p>
-<a class="anchor" name="03fe6532c692f2139dcdbc7d023531e9"></a><!-- doxytag: member="webEngine::iStorage::SystemOptionsSave" ref="03fe6532c692f2139dcdbc7d023531e9" args="(const string &amp;xmlData, Operation op=iStorage::autoop)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::SystemOptionsSave           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td>
-          <td class="paramname"> <em>op</em> = <code><a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a></code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-</div>
-</div><p>
-<a class="anchor" name="c7e8329ce880ae5bdc7c35b8cd762ec6"></a><!-- doxytag: member="webEngine::iStorage::TaskReport" ref="c7e8329ce880ae5bdc7c35b8cd762ec6" args="(const string &amp;xmlData, string &amp;result)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::TaskReport           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">string &amp;&nbsp;</td>
-          <td class="paramname"> <em>result</em></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
-
-</div>
-</div><p>
-<a class="anchor" name="e7d7d8582348c684b5d79b1266eefd3a"></a><!-- doxytag: member="webEngine::iStorage::TaskSave" ref="e7d7d8582348c684b5d79b1266eefd3a" args="(const string &amp;xmlData, Operation op=iStorage::autoop)" -->
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int iStorage::TaskSave           </td>
-          <td>(</td>
-          <td class="paramtype">const string &amp;&nbsp;</td>
-          <td class="paramname"> <em>xmlData</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classweb_engine_1_1i_storage.html#757f0dd368c7868d7812ff1a439ebd4c">Operation</a>&nbsp;</td>
-          <td class="paramname"> <em>op</em> = <code><a class="el" href="classweb_engine_1_1i_storage.html#324798d1177919ccc5e51b22ce52788c">iStorage::autoop</a></code></td><td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td><td><code> [virtual]</code></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-
-<p>
+<p>Implemented in <a class="el" href="classweb_engine_1_1_null_storage.html#6c157db44a03804a106a75cc39e16995">webEngine::NullStorage</a>, and <a class="el" href="classweb_engine_1_1_mem_storage.html#0e789cad3662f8a603526a4767db6fb8">webEngine::MemStorage</a>.</p>
 
 </div>
 </div><p>
@@ -836,7 +444,7 @@ Returns abstracted pointer to the requested interface, or NULL if the requested 
 <hr>The documentation for this interface was generated from the following files:<ul>
 <li>C:/Work/Projects/webapptools/webEngine/include/weiStorage.h<li>C:/Work/Projects/webapptools/webEngine/sources/weiStorage.cpp</ul>
 </div>
-<hr size="1"><address style="text-align: right;"><small>Generated on Tue Aug 25 11:08:15 2009 for webapptools by&nbsp;
+<hr size="1"><address style="text-align: right;"><small>Generated on Fri Sep 4 13:12:47 2009 for webapptools by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.7 </small></address>
 </body>

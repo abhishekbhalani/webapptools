@@ -24,7 +24,7 @@
     * [http://www.doxygen.org Doxygen] - используется для создания проектной документации. 
 
   * *Дополнительная информация*
-    * Форум разработчиков проекта webEngine. (_coming soon_)
+    * [http://groups.google.com/group/webapptools Форум разработчиков проекта webEngine.]
     * [http://code.google.com/p/webapptools/issues/list?q=label:Enhancement+OR+label:Task Список задач] и [http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Багтрекер] проекта.
 
 == Документация программиста ==
