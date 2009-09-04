@@ -78,7 +78,7 @@ namespace webEngine {
 
         bool IsEmpty(void)                          { return empty;   };            ///< Is the value empty
         string GetTypeName(void)                    { return val.type().name();};   ///< Gets the value type name
-        const ::std::type_info& GetType(void) const   { return val.type();  };        ///< Gets the value type
+        const ::std::type_info& GetType(void) const { return val.type();  };        ///< Gets the value type
         const int Which(void) const                 { return val.which();  };       ///< Gets the internal type
 
         /// @brief Assignment operator
@@ -144,7 +144,7 @@ namespace webEngine {
         StringList OptionsList();
         size_t OptionSize() { return options.size(); };
 
-        RecordSet* ToRS( void );
+        RecordSet* ToRS( const string& parentID = "" );
         void FromRS( RecordSet *rs );
 #ifndef __DOXYGEN__
     protected:
@@ -168,6 +168,10 @@ BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
 #define weoName              "name"
 /// object's identifier (string)
 #define weoID                "id"
+/// object's type
+#define weoTypeID            "type"
+/// object's value
+#define weoValue             "value"
 /// task status (idle, run, etc) (integer)
 #define weoTaskStatus        "status"
 /// task completion (percents) (integer)

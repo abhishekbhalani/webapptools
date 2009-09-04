@@ -95,143 +95,160 @@ void* MemStorage::GetInterface( const string& ifName )
     return iStorage::GetInterface(ifName);
 }
 
-int MemStorage::Get(const string& objType, Record& filters, Record& respFilter, RecordSet& results)
+int MemStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
 {
     int retval = 0;
     string fID, stData, key;
     wOption opt;
     StringMap::iterator obj;
-    StringList objIdxs;
+    StringList* objIdxs;
     StringList filterNames;
     StringList reportNames;
     StringList nonflNames;
     StringList::iterator lstIt;
     size_t i, j;
 
+    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Get");
+
     results.clear();
 
-    obj = storage.find(objType);
-    try {
-        if (obj != storage.end()) {
-            stData = obj->second;
-            {
-                istrstream is(stData.c_str(), stData.length());
-                boost::archive::text_iarchive ia(is);
-                // read class instance from archive
-                ia >> objIdxs;
-                // archive and stream closed when destructor are called
-            }
-            if (objIdxs.size() > 0) {
-                // prepare filter list
-                filterNames = filters.OptionsList();
-                opt = filters.Option(weoID);
-                SAFE_GET_OPTION_VAL(opt, fID, "");
-
-                // prepare results list
-                reportNames = respFilter.OptionsList();
-                if (reportNames.size() == 0) {
-                    obj = storage.find(objType + "_struct");
-                    if (obj != storage.end()) {
-                        stData = obj->second;
-                        try
-                        {
-                            istrstream is(stData.c_str(), stData.length());
-                            boost::archive::text_iarchive ia(is);
-                            // read class instance from archive
-                            ia >> reportNames;
-                            // archive and stream closed when destructor are called
-                        }
-                        catch(std::exception& e)
-                        {
-                            LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::Get " << objType << "structure error: " << e.what());
-                            retval = 0;
-                            results.clear();
-                            return retval;
-                        }
-                    }
-                }
-
-                // subtract sets
-                nonflNames.clear();
-                for (i = 0; i < reportNames.size(); i++)
-                {
-                    lstIt = find(filterNames.begin(), filterNames.end(), reportNames[i]);
-                    if (lstIt == filterNames.end())
-                    {
-                        nonflNames.push_back(reportNames[i]);
-                    }
-                }
-
-                for (i = 0; i < objIdxs.size(); i++) {
-                    Record* objRes = new Record;
-                    if (fID == "" || fID == "*" || fID == objIdxs[i])
-                    {   // index in filter
-                        bool skip = true;
-                        for (j = 0; j < filterNames.size(); j++)
-                        {
-                            key = objIdxs[i] + "_" + filterNames[j];
-                            obj = storage.find(key);
-                            if (obj != storage.end())
-                            {
-                                wOption flOpt;
-                                OptionFromString(opt, obj->second);
-                                flOpt = filters.Option(filterNames[j]);
-                                if (flOpt == opt) {
-                                    skip = false;
-                                    lstIt = find(reportNames.begin(), reportNames.end(), filterNames[j]);
-                                    if (lstIt != reportNames.end())
-                                    {
-                                        objRes->Option(filterNames[j], opt.Value());
-                                    }
-                                }
-                            } // option exist
-                        } // and of attribute filters
-                        if (! skip)
-                        {
-                            for (j = 0; j < nonflNames.size(); j++)
-                            {
-                                key = objIdxs[i] + "_" + nonflNames[j];
-                                obj = storage.find(key);
-                                if (obj != storage.end())
-                                {
-                                    OptionFromString(opt, obj->second);
-                                    objRes->Option(nonflNames[j], opt.Value());
-                                }
-                            } // end of assignment non-filter options
-                            results.push_back(*objRes);
-                            retval++;
-                        } // not skip this object
-                        else {
-                            delete objRes;
-                        }
-                    } // index in the list
-                } // end of objects search
-            }
-        } // end of namespace search
-    } // en od try
-    catch(std::exception& e)
+    if (filter.OptionSize() > 0)
     {
-        LOG4CXX_ERROR(iLogger::GetLogger(), "MemStorage::Get error: " << e.what());
-        retval = 0;
-        results.clear();
+        objIdxs = Search(filter);
+    }
+    else {
+        objIdxs = GetNamespaceIdxs(filter.objectID);
+    }
+    if (objIdxs->size() > 0) {
+        // prepare filter list
+        reportNames = respFilter.OptionsList();
+        opt = filter.Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, fID, "");
+
+        for (i = 0; i < objIdxs->size(); i++) {
+            Record* objRes = new Record;
+            for (j = 0; j < reportNames.size(); j++)
+            {
+                key = (*objIdxs)[i] + "_" + reportNames[j];
+                obj = storage.find(key);
+                if (obj != storage.end())
+                {
+                    objRes->Option(reportNames[j], obj->second);
+                } 
+                else {
+                    objRes->Option(reportNames[j], string(""));
+                }
+            } // and of attribute filters
+            results.push_back(*objRes);
+        } // end of objects search
+    } // has objects
+
+    return retval;
+}
+
+int MemStorage::Set(Record& filter, Record& data)
+{
+    wOption opt;
+    string idx;
+    StringList* lst;
+    StringList* objIdxs;
+    StringList objProps;
+    size_t i, j;
+    string stData, stValue;
+    StringMap::iterator obj;
+    StringList::iterator idIt;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Set(filter, Record)");
+
+    if (filter.OptionSize() > 0)
+    {   // try to update
+        lst = Search(filter);
+    }
+    else
+    {   // insert data
+        lst = new StringList;
+        opt = data.Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, idx, "");
+        if (idx == "")
+        {   // get next index from list
+            idx = GenerateID(data.objectID);
+        }
+        lst->push_back(idx);
+    }
+    
+    objProps = data.OptionsList();
+
+    objIdxs = GetNamespaceIdxs(data.objectID);
+    for (i = 0; i < lst->size(); i++)
+    {
+        for (j = 0; j < objProps.size(); j++)
+        {
+            wOption opt = data.Option(objProps[j]);
+            stValue = boost::lexical_cast<std::string>(opt.Value());
+            stData = (*lst)[i] + "_" + objProps[j];
+            storage[stData] = stValue;
+        }
+        idIt = find(objIdxs->begin(), objIdxs->end(), (*lst)[i]);
+        if (idIt == objIdxs->end())
+        {
+            objIdxs->push_back((*lst)[i]);
+        }
+    }
+    FixNamespaceStruct(data);
+
+    i = lst->size();
+    SetNamespaceIdxs(data.objectID, objIdxs);
+
+    delete lst;
+    delete objIdxs;
+    return (int)i;
+}
+
+int MemStorage::Set(RecordSet& data)
+{
+    int retval;
+    size_t i;
+    Record filt;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Set(RecordSet)");
+    filt.Clear();
+    retval = 0;
+    for (i = 0; i < data.size(); i++)
+    {
+        filt.objectID = data[i].objectID;
+        retval += Set(filt, data[i]);
     }
 
     return retval;
 }
 
-int MemStorage::Set(const string& objType, Record& filters, Record& data)
+int MemStorage::Delete(Record& filter)
 {
-    return 0;
-}
+    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Delete");
 
-int MemStorage::Set(const string& objType, RecordSet& data)
-{
-    return 0;
-}
+    StringList* lst = Search(filter);
+    StringList* objs = GetNamespaceIdxs(filter.objectID);
+    int retval;
+    size_t i;
+    StringMap::iterator obj;
+    StringList::iterator idxIt;
 
-int MemStorage::Delete(const string& objType, Record& filters)
-{
-    return 0;
+    retval = (int)lst->size();
+    for (i = 0; i < lst->size(); i++)
+    {
+        obj = storage.find((*lst)[i]);
+        if (obj != storage.end())
+        {
+            storage.erase(obj);
+            /// @todo: find all properties and delete them to
+        }
+        idxIt = find(objs->begin(), objs->end(), (*lst)[i]);
+        objs->erase(idxIt);
+    }
+    SetNamespaceIdxs(filter.objectID, objs);
+    delete lst;
+    delete objs;
+    return retval;
 }
 
 
@@ -304,6 +321,149 @@ void MemStorage::Flush( const string& params /*= ""*/)
         LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Flush: filename not empty, save data");
         Save(fileName);
     }
+}
+
+StringList* MemStorage::Search(Record& filter)
+{
+    StringList* retlist = new StringList;
+    StringMap::iterator obj;
+    string stData, stValue;
+    StringList* objIdxs;
+    StringList objProps;
+    size_t i, j;
+
+    objIdxs = GetNamespaceIdxs(filter.objectID);
+
+    for (i = 0; i < objIdxs->size(); i++) {
+        bool skip = false;
+        objProps = filter.OptionsList();
+        for (j = 0; j < objProps.size(); j++)
+        {
+            wOption opt = filter.Option(objProps[j]);
+            stValue = boost::lexical_cast<std::string>(opt.Value());
+
+            stData = (*objIdxs)[i] + "_" + objProps[j];
+            obj = storage.find(stData);
+            if (obj != storage.end())
+            {
+                stData = obj->second;
+            }
+            else {
+                stData = "";
+            }
+            if (stData != stValue)
+            {
+                skip = true;
+            }
+        }
+        if (!skip)
+        {
+            retlist->push_back((*objIdxs)[i]);
+        }
+    }
+
+    delete objIdxs;
+
+    return retlist;
+}
+
+StringList* MemStorage::GetNamespaceIdxs(const string& objType)
+{
+    StringList* objIdxs = new StringList;
+    StringMap::iterator obj;
+    string stData;
+
+    obj = storage.find(objType);
+
+    if (obj != storage.end()) {
+        stData = obj->second;
+        try {
+            istrstream is(stData.c_str(), stData.length());
+            boost::archive::text_iarchive ia(is);
+            // read class instance from archive
+            ia >> (*objIdxs);
+            // archive and stream closed when destructor are called
+        }
+        catch(std::exception& e)
+        {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "MemStorage::GetNamespaceIdxs namespace search error: " << e.what());
+            objIdxs->clear();
+        }
+    }
+    return objIdxs;
+}
+
+void MemStorage::SetNamespaceIdxs(const string& objType, StringList* lst)
+{
+    string stData;
+
+    try {
+        ostrstream os;
+        boost::archive::text_oarchive oa(os);
+        // read class instance from archive
+        oa << (*lst);
+        // archive and stream closed when destructor are called
+        stData = os.str();
+    }
+    catch(std::exception& e)
+    {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "MemStorage::SetNamespaceIdxs namespace search error: " << e.what());
+        return;
+    }
+    storage[objType] = stData;
+}
+
+void MemStorage::FixNamespaceStruct(Record& filter)
+{
+    StringMap::iterator obj;
+    StringList::iterator lst;
+    string stData;
+    StringList structNames;
+    StringList flNames;
+    size_t i;
+
+
+    obj = storage.find(filter.objectID + "_struct");
+    if (obj != storage.end()) {
+        stData = obj->second;
+        try
+        {
+            istrstream is(stData.c_str(), stData.length());
+            boost::archive::text_iarchive ia(is);
+            // read class instance from archive
+            ia >> structNames;
+            // archive and stream closed when destructor are called
+        }
+        catch(std::exception& e)
+        {
+            LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::FixNamespaceStruct " << filter.objectID << " structure error: " << e.what());
+            return;
+        }
+    }
+    flNames = filter.OptionsList();
+    for (i = 0 ; i < flNames.size(); i++)
+    {
+        lst = find(structNames.begin(), structNames.end(), flNames[i]);
+        if (lst == structNames.end())
+        {
+            structNames.push_back(flNames[i]);
+        }
+    }
+    try
+    {
+        ostrstream os;
+        boost::archive::text_oarchive oa(os);
+        // read class instance from archive
+        oa << structNames;
+        // archive and stream closed when destructor are called
+        stData = os.str();
+    }
+    catch(std::exception& e)
+    {
+        LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::FixNamespaceStruct save " << filter.objectID << " structure error: " << e.what());
+        return;
+    }
+    storage[filter.objectID + "_struct"] = stData;
 }
 
 } // namespace webEngine

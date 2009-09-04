@@ -29,23 +29,26 @@ namespace webEngine {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  Record
 ///
-/// @brief  Set of fields (individual data).
+/// @brief  Set of fields (individual data) as name-value pairs.
 ///
 /// @author A. Abramov
-/// @date	03.08.2009
+/// @date	03.09.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class Record : public iOptionsProvider
 {
+public:
+    /// namespace of the object
+    string objectID;
     // nothing special
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  RecordSet
 ///
-/// @brief  Set of records.
+/// @brief  Set of records of class Record.
 ///
 /// @author A. Abramov
-/// @date	03.08.2009
+/// @date	03.09.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class RecordSet : public vector<Record>
 {
@@ -82,65 +85,56 @@ public:
     virtual string GenerateID(const string& objType = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Get(const string& objType,
-    /// 	Record& filters, Record& respFilter, RecordSet& results)
+    /// @fn int Get( Record& filters, Record& respFilter, RecordSet& results)
     ///
     /// @brief  Gets the RecordSet from given namespace (objType). The response filtered to
     ///         equality of the selected field to the given values. The response will contains only
     ///         the fields included into the given @b respFilter structure.
     ///
-    /// @param  objType         - namespace to be searched 
-    /// @param  filters         - the Record to filter the request 
+    /// @param  filter          - the Record to filter the request 
     /// @param  respFilter      - Set of field to be placed into result. If empty - all data will be retrieved
     /// @param  [out] results   - the RecordSet to fill it with results 
     ///
     /// @retval number of records in the response. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Get(const string& objType, Record& filters, Record& respFilter, RecordSet& results) = 0;
+    virtual int Get(Record& filter, Record& respFilter, RecordSet& results) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Set(const string& objType,
-    /// 	Record& filters, Record& data)
+    /// @fn int Set(Record& filters, Record& data)
     ///
-    /// @brief	Stores (updates) the data in the given namespace. @b data may contain subset of fields
+    /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object), and non-empty @b filters may be used to
     ///         update selected object(s).
     ///
-    /// @param  objType - namespace to store data 
-    /// @param  filters - the Record to select object(s) for update 
+    /// @param  filter  - the Record to select object(s) for update 
     /// @param  data    - the Record to be stored 
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Set(const string& objType, Record& filters, Record& data) = 0;
+    virtual int Set(Record& filter, Record& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Set(const string& objType,
-    /// 	RecordSet& data)
+    /// @fn int Set(RecordSet& data)
     ///
-    /// @brief	Stores (updates) the data in the given namespace. @b data may contain subset of fields
-    ///         (not the full description of the object), and non-empty @b filters may be used to
-    ///         update selected object(s).
+    /// @brief	Stores (updates) the data. @b data may contain subset of fields
+    ///         (not the full description of the object).
     ///
-    /// @param  objType - namespace to store data 
-    /// @param  data	- the RecordSet to be stored 
+    /// @param  data - the RecordSet to be stored 
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Set(const string& objType, RecordSet& data) = 0;
+    virtual int Set(RecordSet& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Delete(const string& objType,
-    /// 	Record& filters)
+    /// @fn int Delete(Record& filters)
     ///
-    /// @brief	Deletes the object in given namespace. 
+    /// @brief	Deletes the filtered object(s). 
     ///
-    /// @param  objType - namespace to store data 
-    /// @param  filters - the Record to select object(s) for deletion 
+    /// @param  filter - the Record to select object(s) for deletion 
     ///
     /// @retval	Number of deleted records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Delete(const string& objType, Record& filters) = 0;
+    virtual int Delete(Record& filter) = 0;
 
 protected:
     static int lastId;

@@ -76,9 +76,8 @@ namespace webEngine {
         iResponse* GetRequest(iRequest* req);
         void GetRequestAsync(iRequest* req);
 
-        string ToXml( void );
-        void FromXml( string input );
-        void FromXml( TagScanner& sc, int token = -1 );
+        RecordSet* ToRS( const string& parentID );
+        void FromRS( RecordSet *rs );
 
         void WaitForData();
         void CalcStatus();

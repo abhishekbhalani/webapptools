@@ -84,22 +84,22 @@ void* NullStorage::GetInterface( const string& ifName )
     return iStorage::GetInterface(ifName);
 }
 
-int NullStorage::Get(const string& objType, Record& filters, Record& respFilter, RecordSet& results)
+int NullStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
 {
     return 0;
 }
 
-int NullStorage::Set(const string& objType, Record& filters, Record& data)
+int NullStorage::Set(Record& filter, Record& data)
 {
     return 0;
 }
 
-int NullStorage::Set(const string& objType, RecordSet& data)
+int NullStorage::Set(RecordSet& data)
 {
     return 0;
 }
 
-int NullStorage::Delete(const string& objType, Record& filters)
+int NullStorage::Delete(Record& filter)
 {
     return 0;
 }
@@ -238,7 +238,8 @@ void Dispatch::Storage( const iStorage* store )
     RecordSet res;
     Record filter;
     filter.Clear();
-    storage->Get(weObjTypeSysOption, filter, filter, res);
+    filter.objectID = weObjTypeSysOption;
+    storage->Get(filter, filter, res);
     iOptionsProvider::FromRS(&res);
 }
 
@@ -256,7 +257,7 @@ void Dispatch::Flush()
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::Flush ");
         RecordSet* rs = iOptionsProvider::ToRS();
-        storage->Set(weObjTypeSysOption, *rs);
+        storage->Set(*rs);
     }
 }
 

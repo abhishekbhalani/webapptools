@@ -47,12 +47,27 @@ public:
     // iStorage functions
     virtual bool InitStorage(const string& params);
     virtual void Flush(const string& params = "");
-    virtual int Get(const string& objType, Record& filters, Record& respFilter, RecordSet& results);
-    virtual int Set(const string& objType, Record& filters, Record& data);
-    virtual int Set(const string& objType, RecordSet& data);
-    virtual int Delete(const string& objType, Record& filters);
+    virtual int Get(Record& filter, Record& respFilter, RecordSet& results);
+    virtual int Set(Record& filter, Record& data);
+    virtual int Set(RecordSet& data);
+    virtual int Delete(Record& filter);
 
     // MemStorage functions
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn StringList* Search(const string& objType,
+    /// 	Record& filters)
+    ///
+    /// @brief  Searches database for objects. 
+    ///
+    /// @param  filters - the Record to filter the request 
+    ///
+    /// @retval List of object ID's 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    StringList* Search(Record& filter);
+    StringList* GetNamespaceIdxs(const string& objType);
+    void SetNamespaceIdxs(const string& objType, StringList* lst);
+    void FixNamespaceStruct(Record& filter);
     void Save(const string& fileName);
     void Load(const string& fileName);
 
