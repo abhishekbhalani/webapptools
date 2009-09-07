@@ -62,67 +62,34 @@ Task* locked_data::load_task(const string& id)
     string req;
     string report = "";
     int tasks = 0;
-
+    Record filter;
+    Record respFilter;
+    RecordSet tdata;
     //boost::lock_guard<boost::mutex> lock(locker);
 
-    req = "<report><task value='" + id + "' /></report>";
-    tasks = globalData.dispatcher->Storage()->TaskReport(req, report);
+    filter.Clear();
+    filter.objectID = weObjTypeTask;
+    filter.Option(weoID, id);
+    respFilter.Clear();
+    respFilter.objectID = weObjTypeTask;
+    tasks = globalData.dispatcher->Storage()->Get(filter, respFilter, tdata);
     if (globalData.task_info == NULL) {
         globalData.task_info = new Task;
     }
     if (tasks > 0)
     {   // parse the response
-        bool in_parsing = true;
-        int parsing_level = 0;
-        int xml_pos;
-        StrStream st(report.c_str());
-        TagScanner sc(st);
-        string tag;
+        globalData.task_info->FromRS(&tdata);
 
-        while(in_parsing) {
-            xml_pos = sc.GetPos();
-            int t = sc.GetToken();
-            switch(t)
-            {
-            case wstError:
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_task - parsing error");
-                in_parsing = false;
-                break;
-            case wstEof:
-                LOG4CXX_TRACE(iLogger::GetLogger(), "load_task - parsing EOF");
-                in_parsing = false;
-                break;
-            case wstTagStart:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        parsing_level++;
-                        break;
-                    }
-                }
-                if (parsing_level == 1) {
-                    if (iequals(tag, "task")) {
-                        // go back to the start of the TAG
-                        globalData.task_info->FromXml(sc, t);
-                        // stop parsing - only first task need
-                        in_parsing = false;
-                        break;
-                    }
-                }
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_task - unexpected tag: " << tag);
-                in_parsing = false;
-                break;
-            case wstTagEnd:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        in_parsing = false;
-                    }
-                }
-                break;
-            }
+        filter.objectID = weObjTypeSysOption;
+        filter.Clear();
+        filter.Option(weoParentID, id);
+        respFilter.objectID = weObjTypeSysOption;
+        respFilter.Clear();
+        tdata.clear();
+        tasks = globalData.dispatcher->Storage()->Get(filter, respFilter, tdata);
+        if (tasks > 0)
+        {
+            globalData.task_info->FromRS(&tdata);
         }
     }
 
@@ -135,10 +102,14 @@ void locked_data::save_task( void )
 
     if (task_info != NULL)
     {
-        string taskRep;
+        // remove to avoid signal overwriting
+        task_info->Erase(weoTaskSignal);
 
-        taskRep = task_info->ToXml();
-        dispatcher->Storage()->TaskSave(taskRep);
+        RecordSet *rsave = task_info->ToRS();
+        if (rsave != NULL)
+        {
+            globalData.dispatcher->Storage()->Set(*rsave);
+        }
         dispatcher->Storage()->Flush();
     }
 }
@@ -219,8 +190,11 @@ void watch_dog_thread(const string& id)
             // Save scan information (watchdog ping)
             LOG4CXX_DEBUG(iLogger::GetLogger(), "Watchdog timer. Update scan information.");
             globalData.scan_info->pingTime = posix_time::second_clock::local_time();
-            string report = globalData.scan_info->ToXml();
-            globalData.dispatcher->Storage()->ScanSave(report);
+            RecordSet *rsave = globalData.scan_info->ToRS();
+            if (rsave != NULL)
+            {
+                globalData.dispatcher->Storage()->Set(*rsave);
+            }
         }
     }
 }

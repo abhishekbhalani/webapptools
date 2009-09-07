@@ -61,4 +61,56 @@ public:
     /// @param  xmlData	 - Plugin settings describing the XML.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void ApplySettings( const string& xmlData );
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Get( Record& filters, Record& respFilter, RecordSet& results)
+    ///
+    /// @brief  Gets the RecordSet from given namespace (objType). The response filtered to
+    ///         equality of the selected field to the given values. The response will contains only
+    ///         the fields included into the given @b respFilter structure.
+    ///
+    /// @param  filter          - the Record to filter the request 
+    /// @param  respFilter      - Set of field to be placed into result. If empty - all data will be retrieved
+    /// @param  [out] results   - the RecordSet to fill it with results 
+    ///
+    /// @retval number of records in the response. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Get(Record& filter, Record& respFilter, RecordSet& results);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Set(Record& filters, Record& data)
+    ///
+    /// @brief	Stores (updates) the data. @b data may contain subset of fields
+    ///         (not the full description of the object), and non-empty @b filters may be used to
+    ///         update selected object(s).
+    ///
+    /// @param  filter  - the Record to select object(s) for update 
+    /// @param  data    - the Record to be stored 
+    ///
+    /// @retval	Number of affected records. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Set(Record& filter, Record& data);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Set(RecordSet& data)
+    ///
+    /// @brief	Stores (updates) the data. @b data may contain subset of fields
+    ///         (not the full description of the object).
+    ///
+    /// @param  data - the RecordSet to be stored 
+    ///
+    /// @retval	Number of affected records. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Set(RecordSet& data);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Delete(Record& filters)
+    ///
+    /// @brief	Deletes the filtered object(s). 
+    ///
+    /// @param  filter - the Record to select object(s) for deletion 
+    ///
+    /// @retval	Number of deleted records. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Delete(Record& filter);
 };

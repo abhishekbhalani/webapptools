@@ -68,6 +68,7 @@ public:
     StringList* GetNamespaceIdxs(const string& objType);
     void SetNamespaceIdxs(const string& objType, StringList* lst);
     void FixNamespaceStruct(Record& filter);
+    StringList* GetNamespaceStruct(Record& filter);
     void Save(const string& fileName);
     void Load(const string& fileName);
 

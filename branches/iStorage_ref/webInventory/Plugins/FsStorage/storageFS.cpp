@@ -19,6 +19,8 @@
 */
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
 #include <strstream>
@@ -33,6 +35,7 @@ static char* tables[] = {weObjTypeTask,
                         weObjTypeDictionary,
                         weObjTypeAuthInfo,
                         weObjTypeScan,
+                        weObjTypeScanData,
                         weObjTypeObject,
                         weObjTypeProfile,
                         NULL}; // close the list with NULL
@@ -46,6 +49,7 @@ FsStorage::FsStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     pluginInfo.PluginId = "1FBAB8DCF440";
     pluginInfo.PluginIcon = WeXpmToStringList(fsStorage_xpm, sizeof(fsStorage_xpm) / sizeof(char*) );
     db_dir = "";
+    lastId = 0;
     LOG4CXX_TRACE(logger, "FsStorage plugin created");
 }
 
@@ -141,98 +145,229 @@ string FsStorage::GenerateID(const string& objType /*= ""*/)
     return retval;
 }
 
-int FsStorage::Query(const string& objType, const string& objId, Operation op, const string& xmlData)
+int FsStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
 {
-    int retval = 0;
     fs::path dir_path(db_dir);
     fs::path locker(db_dir);
- 
-    LOG4CXX_DEBUG(logger, "FsStorage::Query objType=" << objType << "; ID=" << objId << "; operation=" << op);
+    RecordSet* dta;
+    StringList reportNames;
+    wOption opt;
+    size_t i, j;
+    Record lk;
+    lk.objectID = "locker";
+
+    LOG4CXX_TRACE(logger, "FsStorage::Get objType=" << filter.objectID);
     // lock the db
     while (exists(locker / "lock"))
     {
         boost::this_thread::sleep(boost::posix_time::seconds(1));
     }
-    FileSave(locker, "lock", "1");
-    dir_path /= objType;
-    if (op == iStorage::remove)
-    {
-        retval += FileRemove(dir_path, objId);
-    }
-    else {
-        retval += FileSave(dir_path, objId, xmlData);
-    }
-    FileRemove(locker, "lock");
-    return retval;
-}
+    FileSave(locker, "lock", lk);
 
-int FsStorage::Report(const string& repType, const string& objId, const string& xmlData, string& result)
-{
-    int retval = 0;
-    fs::path dir_path(db_dir);
-    fs::path locker(db_dir);
- 
-    // lock the db
-    while (exists(locker / "lock"))
-    {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
-    }
-    FileSave(locker, "lock", "1");
+    // if no options in the filter - get all records
+    dta = Search(filter, (filter.OptionSize() == 0));
 
-    dir_path /= repType;
-    result = "";
-    if (objId == "*")
+    // prepare filter list
+    reportNames = respFilter.OptionsList();
+    if (reportNames.size() == 0)
     {
-        // list all files in the directory
-        fs::directory_iterator end_iter;
-        for ( fs::directory_iterator dir_itr( dir_path );
-            dir_itr != end_iter;
-            ++dir_itr )
+        StringList* strct;
+        strct = GetStruct(filter.objectID);
+        if (strct != NULL)
         {
-            try {
-                if ( fs::is_regular_file( dir_itr->status() ) )
-                {
-                    result += FsStorage::FileRead(dir_itr->path().string());
-                    retval++;
-                }
-            }
-            catch ( const std::exception & e )
-            {
-                LOG4CXX_ERROR(logger, "FsStorage::Report " << dir_itr->path().string() << " " << e.what());
-            }
+            reportNames = *strct;
+            delete strct;
         }
     }
-    else
-    {
-        dir_path /= objId;
-
-        if (exists(dir_path))
+    for (i = 0; i < dta->size(); i++) {
+        Record* objRes = new Record;
+        objRes->objectID = filter.objectID;
+        for (j = 0; j < reportNames.size(); j++)
         {
-            // read file
-            result += FsStorage::FileRead(dir_path.string());
+            opt = (*dta)[i].Option(reportNames[j]);
+            objRes->Option(reportNames[j], opt.Value());
+        } // and of attribute filters
+        results.push_back(*objRes);
+    } // end of objects search
+
+    FileRemove(locker, "lock");
+    return results.size();
+}
+
+int FsStorage::Set(Record& filter, Record& data)
+{
+    wOption opt;
+    string fName;
+    RecordSet* retlist = Search(filter);
+    fs::path fp;
+    Record sv;
+    int retval = 0;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(Record, Record)");
+    if (retlist->size() > 0)
+    {   // update
+        LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(Record, Record) - update type=" << filter.objectID);
+        for (size_t i = 0; i < retlist->size(); i ++)
+        {
+            sv = (*retlist)[i];
+            sv.CopyOptions(&data);
+            opt = sv.Option("FsStorage::FileName");
+            SAFE_GET_OPTION_VAL(opt, fName, "");
+            if (fName == "")
+            {
+                opt = sv.Option(weoID);
+                SAFE_GET_OPTION_VAL(opt, fName, "");
+                if (fName == "")
+                {
+                    fName = GenerateID(filter.objectID);
+                    sv.Option(weoID, fName);
+                }
+                fName += ".obj";
+            }
+            fp = fs::path(db_dir) / sv.objectID;
+            FileSave(fp, fName, sv);
             retval++;
         }
     }
+    else {
+        // insert
+        LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(Record, Record) - insert type=" << data.objectID);
+        sv.objectID = data.objectID;
+        sv.CopyOptions(&data);
+        opt = sv.Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, fName, "");
+        if (fName == "")
+        {
+            fName = GenerateID(data.objectID);
+            sv.Option(weoID, fName);
+        }
+        fName += ".obj";
+        fp = fs::path(db_dir) / sv.objectID;
+        FileSave(fp, fName, sv);
+        retval++;
+    }
+    FixStruct(data.objectID, data);
 
-    FileRemove(locker, "lock");
     return retval;
 }
 
-string FsStorage::FileRead(const string& fname)
+int FsStorage::Set(RecordSet& data)
 {
-    string retval = "";
-    size_t sz;
+    int retval;
+    size_t i;
+    Record filt;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(RecordSet)");
+    filt.Clear();
+    retval = 0;
+    for (i = 0; i < data.size(); i++)
+    {
+        filt.objectID = data[i].objectID;
+        retval += Set(filt, data[i]);
+    }
+
+    return retval;
+}
+
+int FsStorage::Delete(Record& filter)
+{
+    fs::path fp;
+    RecordSet* retlist = Search(filter);
+    int retval = 0;
+    Record del;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Delete");
+    for (size_t i = 0; i < retlist->size(); i ++)
+    {
+        string fName;
+        del = (*retlist)[i];
+        wOption opt = del.Option("FsStorage::FileName");
+        SAFE_GET_OPTION_VAL(opt, fName, "~");
+        fp = fs::path(db_dir) / del.objectID;
+        FileRemove(fp, fName);
+        retval++;
+    }
+    return retval;
+}
+
+RecordSet* FsStorage::Search(Record& filter, bool all/* = false*/)
+{
+    RecordSet* retlist = new RecordSet;
+    fs::path dir_path(db_dir);
+    Record* data;
+    StringList objProps;
+    wOption opt;
+    string stValue, stData;
+
+    dir_path /= filter.objectID;
+    //dir_path /= "*.obj";
+    fs::directory_iterator end_iter;
+    fs::directory_iterator dir_itr( dir_path );
+    try {
+        for ( dir_itr;
+            dir_itr != end_iter;
+            ++dir_itr )
+        {
+            if ( fs::is_regular_file( dir_itr->status() ) )
+            {
+                if (dir_itr->path().extension() == ".obj")
+                {
+                    data = FileRead(dir_itr->path().string());
+                    bool skip = false;
+                    if (!all)
+                    {
+                        objProps = filter.OptionsList();
+                        for (size_t j = 0; j < objProps.size(); j++)
+                        {
+                            opt = filter.Option(objProps[j]);
+                            stValue = boost::lexical_cast<std::string>(opt.Value());
+
+                            opt = data->Option(objProps[j]);
+                            stData = boost::lexical_cast<std::string>(opt.Value());
+
+                            if (stData != stValue)
+                            {
+                                skip = true;
+                            }
+                        } // compare options
+                    } // take all files
+                    if (!skip)
+                    {
+                        retlist->push_back(*data);
+                        data->objectID = filter.objectID;
+                        data->Option("FsStorage::FileName", dir_itr->path().string());
+                    }
+                    else {
+                        delete data;
+                    }
+                } // *.obj file
+            } // regular file
+        } // directory iterations
+    }
+    catch ( const std::exception & e )
+    {
+        LOG4CXX_ERROR(logger, "FsStorage::Search " << dir_itr->path().string() << " " << e.what());
+    }
+
+    return retlist;
+}
+
+Record* FsStorage::FileRead(const string& fname)
+{
+    Record *retval = new Record;
 
     LOG4CXX_TRACE(logger, "FsStorage::FileRead " << fname);
-    sz = fs::file_size(fname);
-    if (sz > 0) {
-        char* content = new char[sz+10];
-        memset(content, 0, sz+10);
+    try{
         ifstream ifs(fname.c_str());
-        ifs.read(content, sz);
-        content[sz] = '\0';
-        retval = content;
-        delete content;
+        boost::archive::text_iarchive ia(ifs);
+        // read class instance from archive
+        ia >> (*retval);
+    }
+    catch ( const std::exception & e )
+    {
+        LOG4CXX_ERROR(logger, "FsStorage::FileRead error: " << e.what());
+        delete retval;
+        retval = NULL;
     }
 
     return retval;
@@ -280,7 +415,7 @@ int FsStorage::FileRemove( const fs::path& fspath, const string& fname )
     return retval;
 }
 
-int FsStorage::FileSave( const fs::path& fspath, const string& fname, const string& content )
+int FsStorage::FileSave( const fs::path& fspath, const string& fname, const Record& content )
 {
     fs::path fp;
     int retval = 0;
@@ -291,7 +426,8 @@ int FsStorage::FileSave( const fs::path& fspath, const string& fname, const stri
     fp /= fname;
     try {
         ofstream ofs(fp.string().c_str());
-        ofs << content;
+        boost::archive::text_oarchive oa(ofs);
+        oa << content;
         retval = 1;
     }
     catch(const std::exception& e)
@@ -299,4 +435,72 @@ int FsStorage::FileSave( const fs::path& fspath, const string& fname, const stri
         LOG4CXX_ERROR(logger, "FsStorage::FileSave can't save " << fp.string() << " : " << e.what());
     }
     return retval;
+}
+
+StringList* FsStorage::GetStruct(const string& nspace)
+{
+    fs::path fp(db_dir);
+    StringList *structNames;
+
+    fp /= nspace;
+    fp /= "struct";
+    structNames = new StringList;
+    try
+    {
+        ifstream is(fp.string().c_str());
+        boost::archive::text_iarchive ia(is);
+        // read class instance from archive
+        ia >> (*structNames);
+        // archive and stream closed when destructor are called
+    }
+    catch(std::exception& e)
+    {
+        LOG4CXX_WARN(iLogger::GetLogger(), "FsStorage::GetStruct " << nspace << " structure error: " << e.what());
+        delete structNames;
+        structNames = NULL;
+    }
+
+    return structNames;
+}
+
+void FsStorage::FixStruct(const string& nspace, Record& strt)
+{
+    StringMap::iterator obj;
+    StringList::iterator lst;
+    string stData;
+    StringList* structNames;
+    StringList flNames;
+    size_t i;
+
+    fs::path fp(db_dir);
+    fp /= nspace;
+    fp /= "struct";
+
+    structNames = GetStruct(nspace);
+    if (structNames == NULL)
+    {
+        structNames = new StringList;
+    }
+    flNames = strt.OptionsList();
+    for (i = 0 ; i < flNames.size(); i++)
+    {
+        lst = find(structNames->begin(), structNames->end(), flNames[i]);
+        if (lst == structNames->end())
+        {
+            structNames->push_back(flNames[i]);
+        }
+    }
+    try
+    {
+        ofstream os(fp.string().c_str());
+        boost::archive::text_oarchive oa(os);
+        // read class instance from archive
+        oa << (*structNames);
+        // archive and stream closed when destructor are called
+    }
+    catch(std::exception& e)
+    {
+        LOG4CXX_WARN(iLogger::GetLogger(), "FsStorage::FixStruct save " << nspace << " structure error: " << e.what());
+        return;
+    }
 }

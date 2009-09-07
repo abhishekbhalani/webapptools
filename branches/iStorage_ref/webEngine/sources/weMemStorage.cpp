@@ -97,7 +97,6 @@ void* MemStorage::GetInterface( const string& ifName )
 
 int MemStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
 {
-    int retval = 0;
     string fID, stData, key;
     wOption opt;
     StringMap::iterator obj;
@@ -122,11 +121,22 @@ int MemStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
     if (objIdxs->size() > 0) {
         // prepare filter list
         reportNames = respFilter.OptionsList();
+        if (reportNames.size() == 0)
+        {
+            StringList* strct;
+            strct = GetNamespaceStruct(filter);
+            if (strct != NULL)
+            {
+                reportNames = *strct;
+                delete strct;
+            }
+        }
         opt = filter.Option(weoID);
         SAFE_GET_OPTION_VAL(opt, fID, "");
 
         for (i = 0; i < objIdxs->size(); i++) {
             Record* objRes = new Record;
+            objRes->objectID = filter.objectID;
             for (j = 0; j < reportNames.size(); j++)
             {
                 key = (*objIdxs)[i] + "_" + reportNames[j];
@@ -143,7 +153,7 @@ int MemStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
         } // end of objects search
     } // has objects
 
-    return retval;
+    return results.size();
 }
 
 int MemStorage::Set(Record& filter, Record& data)
@@ -403,7 +413,7 @@ void MemStorage::SetNamespaceIdxs(const string& objType, StringList* lst)
         // read class instance from archive
         oa << (*lst);
         // archive and stream closed when destructor are called
-        stData = os.str();
+        stData = string(os.str(), os.pcount());
     }
     catch(std::exception& e)
     {
@@ -456,7 +466,7 @@ void MemStorage::FixNamespaceStruct(Record& filter)
         // read class instance from archive
         oa << structNames;
         // archive and stream closed when destructor are called
-        stData = os.str();
+        stData = string(os.str(), os.pcount());
     }
     catch(std::exception& e)
     {
@@ -464,6 +474,34 @@ void MemStorage::FixNamespaceStruct(Record& filter)
         return;
     }
     storage[filter.objectID + "_struct"] = stData;
+}
+
+StringList* MemStorage::GetNamespaceStruct(Record& filter)
+{
+    StringMap::iterator obj;
+    StringList *structNames;
+    string stData;
+
+    structNames = new StringList;
+    obj = storage.find(filter.objectID + "_struct");
+    if (obj != storage.end()) {
+        stData = obj->second;
+        try
+        {
+            istrstream is(stData.c_str(), stData.length());
+            boost::archive::text_iarchive ia(is);
+            // read class instance from archive
+            ia >> (*structNames);
+            // archive and stream closed when destructor are called
+        }
+        catch(std::exception& e)
+        {
+            LOG4CXX_WARN(iLogger::GetLogger(), "MemStorage::GetNamespaceStruct " << filter.objectID << " structure error: " << e.what());
+            delete structNames;
+            structNames = NULL;
+        }
+    }
+    return structNames;
 }
 
 } // namespace webEngine

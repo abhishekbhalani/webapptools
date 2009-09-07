@@ -113,50 +113,56 @@ namespace webEngine {
     typedef map<string, wOption*> wOptions;
 
 #define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (...) { (var) = (def); };
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @interface  iOptionsProvider
-    ///
-    /// @brief  options storage.
-    ///
-    /// @author A. Abramov
-    /// @date   10.06.2009
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class iOptionsProvider
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @interface  iOptionsProvider
+///
+/// @brief  options storage.
+///
+/// @author A. Abramov
+/// @date   10.06.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class iOptionsProvider
+{
+public:
+    iOptionsProvider() {};
+    virtual ~iOptionsProvider() {};
+
+    virtual wOption& Option(const string& name);
+    virtual bool IsSet(const string& name);
+    virtual void Option(const string& name, wOptionVal val);
+    virtual void Erase(const string& name)
     {
-    public:
-        iOptionsProvider() {};
-        virtual ~iOptionsProvider() {};
+        wOptions::iterator it;
+        it = options.find(name);
+        if (it != options.end()) {
+            options.erase(it);
+        }
+    };
+    virtual void Clear() { options.clear(); };
 
-        virtual wOption& Option(const string& name);
-        virtual bool IsSet(const string& name);
-        virtual void Option(const string& name, wOptionVal val);
-        virtual void Erase(const string& name)
-        {
-            wOptions::iterator it;
-            it = options.find(name);
-            if (it != options.end()) {
-                options.erase(it);
-            }
-        };
-        virtual void Clear() { options.clear(); };
+    void CopyOptions(iOptionsProvider* cpy);
+    StringList OptionsList();
+    size_t OptionSize() { return options.size(); };
 
-        void CopyOptions(iOptionsProvider* cpy);
-        StringList OptionsList();
-        size_t OptionSize() { return options.size(); };
+    RecordSet* ToRS( const string& parentID = "" );
+    void FromRS( RecordSet *rs );
 
-        RecordSet* ToRS( const string& parentID = "" );
-        void FromRS( RecordSet *rs );
+    // simplified serialization
+    string ToXml( void );
+    void FromXml( string input );
+    void FromXml( TagScanner& sc, int token = -1 );
+
 #ifndef __DOXYGEN__
-    protected:
-        wOptions       options;
+protected:
+    wOptions       options;
 #endif //__DOXYGEN__
 
-    private:
-        DECLARE_SERIALIZATOR
-        {
-            ar & BOOST_SERIALIZATION_NVP(options);
-        };
+private:
+    DECLARE_SERIALIZATOR
+    {
+        ar & BOOST_SERIALIZATION_NVP(options);
     };
+};
 
 } // namespace webEngine
 BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)

@@ -32,14 +32,17 @@ SqliteStorage::SqliteStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     pluginInfo.PluginDesc = "Sqlite storage";
     pluginInfo.PluginId = "9FBCC44C52A1";
     pluginInfo.PluginIcon = WeXpmToStringList(sqliteStorage_xpm, sizeof(sqliteStorage_xpm) / sizeof(char*) );
+    LOG4CXX_TRACE(logger, "SqliteStorage plugin created");
 }
 
 SqliteStorage::~SqliteStorage(void)
 {
+    LOG4CXX_TRACE(logger, "SqliteStorage plugin destroyed");
 }
 
 void* SqliteStorage::GetInterface( const string& ifName )
 {
+    LOG4CXX_TRACE(logger, "SqliteStorage::GetInterface " << ifName);
     if (iequals(ifName, "SqliteStorage"))
     {
         usageCount++;
@@ -57,4 +60,46 @@ const string SqliteStorage::GetSetupUI( void )
 void SqliteStorage::ApplySettings( const string& xmlData )
 {
 
+}
+
+int SqliteStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
+{
+    LOG4CXX_TRACE(logger, "SqliteStorage::Get objType=" << filter.objectID);
+    /// @todo Implement this
+    LOG4CXX_FATAL(iLogger::GetLogger(), "SqliteStorage::Get not implemented!");
+    return 0;
+}
+
+int SqliteStorage::Set(Record& filter, Record& data)
+{
+    LOG4CXX_TRACE(iLogger::GetLogger(), "SqliteStorage::Set(Record, Record); objType=" << filter.objectID);
+    /// @todo Implement this
+    LOG4CXX_FATAL(iLogger::GetLogger(), "SqliteStorage::Set not implemented!");
+    return 0;
+}
+
+int SqliteStorage::Set(RecordSet& data)
+{
+    int retval;
+    size_t i;
+    Record filt;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "SqliteStorage::Set(RecordSet)");
+    filt.Clear();
+    retval = 0;
+    for (i = 0; i < data.size(); i++)
+    {
+        filt.objectID = data[i].objectID;
+        retval += Set(filt, data[i]);
+    }
+
+    return retval;
+}
+
+int SqliteStorage::Delete(Record& filter)
+{
+    LOG4CXX_TRACE(iLogger::GetLogger(), "SqliteStorage::Delete; objType=" << filter.objectID);
+    /// @todo Implement this
+    LOG4CXX_FATAL(iLogger::GetLogger(), "SqliteStorage::Delete not implemented!");
+    return 0;
 }
