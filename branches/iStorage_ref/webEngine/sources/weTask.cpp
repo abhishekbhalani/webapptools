@@ -28,6 +28,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread.hpp>
+#include <boost/functional/hash.hpp>
 
 namespace webEngine {
 
@@ -451,6 +452,14 @@ RecordSet* Task::ToRS( const string& parentID/* = ""*/ )
         rec->Option(weoParentID, tskId);
         rec->Option(weoTypeID, optVal.Which());
         rec->Option(weoValue, optVal.Value());
+
+        strData += parentID;
+        strData += boost::lexical_cast<string>(it->second->Which());
+        boost::hash<string> strHash;
+        size_t hs = strHash(strData);
+        strData = boost::lexical_cast<string>(hs);
+        rec->Option(weoID, strData);
+
         res->push_back(*rec);
         optCount++;
     }

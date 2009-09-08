@@ -146,11 +146,13 @@ public:
 
 protected:
     Record* FileRead(const string& fname);
-    int     FileRemove(const fs::path& fspath, const string& fname);
-    int     FileSave(const fs::path& fspath, const string& fname, const Record& content);
+    int FileSave(const fs::path& fspath, const RecordSet& content);
     StringList* GetStruct(const string& nspace);
     void FixStruct(const string& nspace, Record& strt);
     RecordSet* Search(Record& filter, bool all = false);
+    int GetNsSize(const string& nspace);
+    void LockDB();
+    void UnlockDB();
 
     string db_dir;
 };

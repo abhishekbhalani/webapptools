@@ -530,7 +530,7 @@ WeProfile* get_profile(const string& id)
     int tasks = 0;
     WeProfile* obj;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "load_task_list");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "get_profile");
     filter.objectID = weObjTypeProfile;
     filter.Clear();
     filter.Option(weoID, id);
@@ -549,6 +549,7 @@ WeProfile* get_profile(const string& id)
         filter.Option(weoParentID, id);
         reps.objectID = weObjTypeSysOption;
         reps.Clear();
+        report.clear();
         tasks = globalDispatcher->Storage()->Get(filter, reps, report);
         if (tasks > 0)
         {
@@ -619,6 +620,10 @@ bool del_profile (const string& id)
     filter.Option(weoID, id);
 
     if (globalDispatcher->Storage()->Delete(filter) != 0) {
+        filter.objectID = weObjTypeSysOption;
+        filter.Clear();
+        filter.Option(weoParentID, id);
+        globalDispatcher->Storage()->Delete(filter);
         retval = true;
     }
     return retval;

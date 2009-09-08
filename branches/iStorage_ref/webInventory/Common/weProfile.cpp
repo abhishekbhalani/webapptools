@@ -17,16 +17,16 @@
     You should have received a copy of the GNU General Public License
     along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include <weHelper.h>
 #include <weiStorage.h>
 #include "weProfile.h"
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/functional/hash.hpp>
 
 RecordSet* WeProfile::ToRS( const string& parentID/* = ""*/ )
 {
     RecordSet* res = new RecordSet;
-    RecordSet* rsOpts;
     Record* rec;
     string sdata;
     string prfid;
@@ -68,6 +68,13 @@ RecordSet* WeProfile::ToRS( const string& parentID/* = ""*/ )
         rec->Option(weoParentID, prfid);
         rec->Option(weoTypeID, opt.Which());
         rec->Option(weoValue, opt.Value());
+
+        sdata += prfid;
+        sdata += boost::lexical_cast<string>(opt.Which());
+        boost::hash<string> strHash;
+        size_t hs = strHash(sdata);
+        sdata = boost::lexical_cast<string>((unsigned int)hs);
+        rec->Option(weoID, sdata);
         res->push_back(*rec);
     }
     return res;

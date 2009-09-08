@@ -239,6 +239,7 @@ void Dispatch::Storage( const iStorage* store )
     Record filter;
     filter.Clear();
     filter.objectID = weObjTypeSysOption;
+    filter.Option(weoParentID, string("0"));
     storage->Get(filter, filter, res);
     iOptionsProvider::FromRS(&res);
 }
