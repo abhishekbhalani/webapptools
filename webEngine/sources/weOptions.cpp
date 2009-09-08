@@ -17,10 +17,12 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "weHelper.h"
-#include "weOptions.h"
+#include <weHelper.h>
+#include <weOptions.h>
+#include <weiStorage.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/functional/hash.hpp>
 
 namespace webEngine {
 
@@ -28,6 +30,208 @@ namespace webEngine {
 static const wOption empty_option("_empty_");
 #endif //__DOXYGEN__
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn std::string WeTask::ToXml( void )
+///
+/// @brief  Converts this object to an XML. 
+///
+/// This function realizes alternate serialization mechanism. It generates more compact and
+/// simplified XML representation. This representation is used for internal data exchange
+/// (for example to store data through iweStorage interface).
+///
+/// @retval This object as a std::string. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+RecordSet* iOptionsProvider::ToRS( const string& parentID/* = ""*/ )
+{
+    RecordSet* res = new RecordSet;
+    Record* rec;
+    wOptions::iterator it;
+    wOptionVal optVal;
+    string strData;
+
+    for (it = options.begin(); it != options.end(); it++) {
+        strData = it->first;
+        optVal = it->second->Value();
+        rec = new Record;
+        rec->objectID = weObjTypeSysOption;
+        rec->Option(weoName, strData);
+        rec->Option(weoParentID, parentID);
+        rec->Option(weoTypeID, it->second->Which());
+        rec->Option(weoValue, optVal);
+        strData += parentID;
+        strData += boost::lexical_cast<string>(it->second->Which());
+        boost::hash<string> strHash;
+        size_t hs = strHash(strData);
+        strData = boost::lexical_cast<string>(hs);
+        rec->Option(weoID, strData);
+        res->push_back(*rec);
+    }
+
+    return res;
+}
+
+void iOptionsProvider::FromRS( RecordSet *rs )
+{
+    Record rec;
+    size_t r;
+    int tp;
+    wOptionVal optVal;
+    wOption opt;
+    string sName, strData;
+    char c;
+    unsigned char uc;
+    int i;
+    unsigned int ui;
+    long l;
+    unsigned long ul;
+    bool b;
+    double d;
+
+    for (r = 0; r < rs->size(); r++)
+    {
+        rec = (*rs)[r];
+        if (rec.objectID == weObjTypeSysOption) {
+            opt = rec.Option(weoName);
+            SAFE_GET_OPTION_VAL(opt, sName, "");
+            // type doesn't matter here
+            opt = rec.Option(weoTypeID);
+            SAFE_GET_OPTION_VAL(opt, strData, "8");
+            tp = boost::lexical_cast<int>(strData);
+            opt = rec.Option(weoValue);
+            SAFE_GET_OPTION_VAL(opt, strData, "");
+            switch(tp)
+            {
+            case 0:
+                c = boost::lexical_cast<char>(strData);
+                Option(sName, c);
+            	break;
+            case 1:
+                uc = boost::lexical_cast<unsigned char>(strData);
+                Option(sName, uc);
+            	break;
+            case 2:
+                i = boost::lexical_cast<int>(strData);
+                Option(sName, i);
+                break;
+            case 3:
+                ui = boost::lexical_cast<unsigned int>(strData);
+                Option(sName, ui);
+                break;
+            case 4:
+                l = boost::lexical_cast<long>(strData);
+                Option(sName, l);
+            	break;
+            case 5:
+                ul = boost::lexical_cast<unsigned long>(strData);
+                Option(sName, ul);
+            	break;
+            case 6:
+                b = boost::lexical_cast<bool>(strData);
+                Option(sName, b);
+                break;
+            case 7:
+                d = boost::lexical_cast<double>(strData);
+                Option(sName, d);
+                break;
+            case 8:
+            default:
+                Option(sName, strData);
+                break;
+            }
+        }
+    }
+}
+
+wOption& iOptionsProvider::Option( const string& name )
+{
+    wOptions::iterator it;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::Option(" << name << ")");
+    it = options.find(name);
+    if (it != options.end())
+    {
+        return *(it->second);
+    }
+    return *((wOption*)&empty_option);
+}
+
+void iOptionsProvider::Option( const string& name, wOptionVal val )
+{
+    wOptions::iterator it;
+    wOption* opt;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::Option(" << name << ") set value=" << val);
+    it = options.find(name);
+    if (it != options.end())
+    {
+        opt = it->second;
+        opt->SetValue(val);
+    }
+    else {
+        opt = new wOption();
+        opt->Name(name);
+        opt->SetValue(val);
+        options[name] = opt;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn	bool WeTask::IsSet(const string& name )
+///
+/// @brief	Query if bool options 'name' is set to true.
+///
+/// @param	name - The option name.
+///
+/// @retval	true if set, false if not.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool iOptionsProvider::IsSet( const string& name )
+{
+    wOptions::iterator it;
+    wOption* opt;
+    bool retval = false;
+
+    it = options.find(name);
+    if (it != options.end())
+    {
+        opt = it->second;
+        try
+        {
+            opt->GetValue(retval);
+        }
+        catch (...)
+        {
+            retval = false;
+        }
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::IsSet(" << name << ") value=" << retval);
+    return retval;
+}
+
+void iOptionsProvider::CopyOptions( iOptionsProvider* cpy )
+{
+    wOptions::iterator it;
+
+    for (it = cpy->options.begin(); it != cpy->options.end(); it++)
+    {
+        options[it->first] = it->second;
+    }
+}
+
+StringList iOptionsProvider::OptionsList()
+{
+    StringList retval;
+
+    retval.clear();
+    wOptions::iterator it;
+
+    for (it = options.begin(); it != options.end(); it++)
+    {
+        retval.push_back(it->first);
+    }
+
+    return retval;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn std::string WeTask::ToXml( void )
@@ -126,6 +330,16 @@ std::string iOptionsProvider::ToXml( void )
     return retval;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn void iOptionsProvider::FromXml( string input )
+///
+/// @brief  Initializes this object from the given from
+/// 		XML. It reconstruct object from compact and
+///         simplified XML representation, generated by
+///         ToXml function
+///
+/// @param  input - The input. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void iOptionsProvider::FromXml( string input )
 {
     StrStream st(input.c_str());
@@ -135,6 +349,18 @@ void iOptionsProvider::FromXml( string input )
     FromXml(sc);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn void iOptionsProvider::FromXml( TagScanner& sc,
+/// 	int token )
+///
+/// @brief  Initializes this object from the given from
+/// 		XML. It reconstruct object from compact and
+///         simplified XML representation, generated by
+///         ToXml function
+///
+/// @param  sc      - the sc. 
+/// @param  token   - The token. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 void iOptionsProvider::FromXml( TagScanner& sc, int token /*= -1*/ )
 {
     bool inParsing = true;
@@ -171,11 +397,11 @@ void iOptionsProvider::FromXml( TagScanner& sc, int token /*= -1*/ )
             break;
         case wstTagStart:
             name = sc.GetTagName();
-//             if (name[0] == '?') {
-//                 // just skip this tag
-//                 parseLevel *= -1;
-//                 break;
-//             }
+            //             if (name[0] == '?') {
+            //                 // just skip this tag
+            //                 parseLevel *= -1;
+            //                 break;
+            //             }
             if (parseLevel == 0)
             {
                 if (iequals(name, "options"))
@@ -205,13 +431,13 @@ void iOptionsProvider::FromXml( TagScanner& sc, int token /*= -1*/ )
             break;
         case wstTagEnd:
             name = sc.GetTagName();
-//             if (name[0] == '?') {
-//                 // just skip this tag
-//                 if (parseLevel < 0) {
-//                     parseLevel *= -1;
-//                 }
-//                 break;
-//             }
+            //             if (name[0] == '?') {
+            //                 // just skip this tag
+            //                 if (parseLevel < 0) {
+            //                     parseLevel *= -1;
+            //                 }
+            //                 break;
+            //             }
             if (parseLevel == 1)
             {
                 if (iequals(name, "options"))
@@ -233,17 +459,17 @@ void iOptionsProvider::FromXml( TagScanner& sc, int token /*= -1*/ )
                     // save option
                     dat = UnscreenXML(dat);
                     LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::FromXml save option "
-                                << optName << "(" << optType << ") = " << dat);
+                        << optName << "(" << optType << ") = " << dat);
                     switch(optType)
                     {
                     case 0:
                         chData = boost::lexical_cast<char>(dat);
                         Option(optName, chData);
-                    	break;
+                        break;
                     case 1:
                         uchData = boost::lexical_cast<unsigned char>(dat);
                         Option(optName, uchData);
-                    	break;
+                        break;
                     case 2:
                         intData = boost::lexical_cast<int>(dat);
                         Option(optName, intData);
@@ -255,11 +481,11 @@ void iOptionsProvider::FromXml( TagScanner& sc, int token /*= -1*/ )
                     case 4:
                         longData = boost::lexical_cast<long>(dat);
                         Option(optName, longData);
-                    	break;
+                        break;
                     case 5:
                         ulongData = boost::lexical_cast<unsigned long>(dat);
                         Option(optName, ulongData);
-                    	break;
+                        break;
                     case 6:
                         boolData = boost::lexical_cast<bool>(dat);
                         Option(optName, boolData);
@@ -304,81 +530,6 @@ void iOptionsProvider::FromXml( TagScanner& sc, int token /*= -1*/ )
             break;
         }
         token = -1;
-    }
-}
-
-wOption& iOptionsProvider::Option( const string& name )
-{
-    wOptions::iterator it;
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::Option(" << name << ")");
-    it = options.find(name);
-    if (it != options.end())
-    {
-        return *(it->second);
-    }
-    return *((wOption*)&empty_option);
-}
-
-void iOptionsProvider::Option( const string& name, wOptionVal val )
-{
-    wOptions::iterator it;
-    wOption* opt;
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::Option(" << name << ") set value=" << val);
-    it = options.find(name);
-    if (it != options.end())
-    {
-        opt = it->second;
-        opt->SetValue(val);
-    }
-    else {
-        opt = new wOption();
-        opt->Name(name);
-        opt->SetValue(val);
-        options[name] = opt;
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	bool WeTask::IsSet(const string& name )
-///
-/// @brief	Query if bool options 'name' is set to true.
-///
-/// @param	name - The option name.
-///
-/// @retval	true if set, false if not.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-bool iOptionsProvider::IsSet( const string& name )
-{
-    wOptions::iterator it;
-    wOption* opt;
-    bool retval = false;
-
-    it = options.find(name);
-    if (it != options.end())
-    {
-        opt = it->second;
-        try
-        {
-            opt->GetValue(retval);
-        }
-        catch (...)
-        {
-            retval = false;
-        }
-    }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "iOptionsProvider::IsSet(" << name << ") value=" << retval);
-    return retval;
-}
-
-void iOptionsProvider::CopyOptions( iOptionsProvider* cpy )
-{
-    wOptions::iterator it;
-
-    for (it = cpy->options.begin(); it != cpy->options.end(); it++)
-    {
-        options[it->first] = it->second;
     }
 }
 

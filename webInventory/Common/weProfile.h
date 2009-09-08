@@ -28,9 +28,8 @@ using namespace webEngine;
 class WeProfile : public iOptionsProvider
 {
 public:
-    string ToXml( void );
-    void FromXml( string input );
-    void FromXml( TagScanner& sc, int token = -1 );
+    RecordSet* ToRS( const string& parentID = "" );
+    void FromRS( RecordSet *rs );
 };
 
 #endif //__WEPROFILE_H__

@@ -23,6 +23,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/list.hpp>
+#include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/variant.hpp>

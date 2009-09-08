@@ -25,6 +25,8 @@
 using namespace boost;
 using namespace webEngine;
 
+class webEngine::RecordSet;
+
 class ScanObject
 {
 public:
@@ -32,9 +34,8 @@ public:
     string  ObjName;
     string  Address;
 
-    string ToXml( void );
-    void FromXml( string input );
-    void FromXml( TagScanner& sc, int token = -1 );
+    RecordSet* ToRS( void );
+    void FromRS( RecordSet* rs );
 };
 
 #endif //__WEOBJECT_H__

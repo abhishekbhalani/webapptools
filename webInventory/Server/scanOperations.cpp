@@ -57,136 +57,66 @@ extern Dispatch* globalDispatcher;
 
 void load_scan_list( vector<ScanInfo*>& scans_list, string criteria = "" )
 {
-    string report = "";
-    int scans = 0;
+    Record filter;
+    Record reps;
+    RecordSet report;
+    int scans, i;
 
-    scans = globalDispatcher->Storage()->ScanReport("<report><scan value='*' /></report>", report);
-    if (scans > 0)
-    {   // parse the response
-        bool in_parsing = true;
-        int parsing_level = 0;
-        int xml_pos;
-        StrStream st(report.c_str());
-        TagScanner sc(st);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "load_scan_list");
+    filter.objectID = weObjTypeScan;
+    filter.Clear();
+    reps.objectID = weObjTypeScan;
+    reps.Clear();
+    scans = globalDispatcher->Storage()->Get(filter, reps, report);
+    for (i = 0; i < scans; i++)
+    {
+        RecordSet local;
         ScanInfo* scn;
-        string tag;
 
-        while(in_parsing) {
-            xml_pos = sc.GetPos();
-            int t = sc.GetToken();
-            switch(t)
-            {
-            case wstError:
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_scan_list - parsing error");
-                in_parsing = false;
-                break;
-            case wstEof:
-                LOG4CXX_TRACE(iLogger::GetLogger(), "load_scan_list - parsing EOF");
-                in_parsing = false;
-                break;
-            case wstTagStart:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        scans_list.clear();
-                        parsing_level++;
-                        break;
-                    }
-                }
-                if (parsing_level == 1) {
-                    if (iequals(tag, "scan")) {
-                        scn = new ScanInfo();
-                        // go back to the start of the TAG
-                        scn->FromXml(sc, t);
-                        scans_list.push_back(scn);
-                        break;
-                    }
-                }
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_scan_list - unexpected tag: " << tag);
-                in_parsing = false;
-                break;
-            case wstTagEnd:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        in_parsing = false;
-                    }
-                }
-                break;
-            }
-        }
+        scn = new ScanInfo();
+        local.push_back(report[i]);
+        scn->FromRS(&local);
+        scans_list.push_back(scn);
     }
 }
 
 ScanInfo* load_scan( const string& id )
 {
-    string req;
-    string report = "";
-    int tasks = 0;
-    ScanInfo* tsk;
+    Record filter;
+    Record reps;
+    RecordSet report;
+    int scans, i;
+    ScanInfo* scn = NULL;
 
-    req = "<report><scan value='" + id + "' /></report>";
-    tasks = globalDispatcher->Storage()->ScanReport(req, report);
-    tsk = NULL;
-    if (tasks > 0)
-    {   // parse the response
-        bool in_parsing = true;
-        int parsing_level = 0;
-        int xml_pos;
-        StrStream st(report.c_str());
-        TagScanner sc(st);
-        string tag;
-
-        while(in_parsing) {
-            xml_pos = sc.GetPos();
-            int t = sc.GetToken();
-            switch(t)
-            {
-            case wstError:
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_scan - parsing error");
-                in_parsing = false;
-                break;
-            case wstEof:
-                LOG4CXX_TRACE(iLogger::GetLogger(), "load_scan - parsing EOF");
-                in_parsing = false;
-                break;
-            case wstTagStart:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        parsing_level++;
-                        break;
-                    }
-                }
-                if (parsing_level == 1) {
-                    if (iequals(tag, "scan")) {
-                        tsk = new ScanInfo();
-                        // go back to the start of the TAG
-                        tsk->FromXml(sc, t);
-                        // stop parsing - only first task need
-                        in_parsing = false; 
-                        break;
-                    }
-                }
-                LOG4CXX_WARN(iLogger::GetLogger(), "load_scan - unexpected tag: " << tag);
-                in_parsing = false;
-                break;
-            case wstTagEnd:
-                tag = sc.GetTagName();
-                if (parsing_level == 0)
-                {
-                    if (iequals(tag, "report")) {
-                        in_parsing = false;
-                    }
-                }
-                break;
-            }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "load_scan_list");
+    filter.objectID = weObjTypeScan;
+    filter.Clear();
+    filter.Option(weoID, id);
+    reps.objectID = weObjTypeScan;
+    reps.Clear();
+    scans = globalDispatcher->Storage()->Get(filter, reps, report);
+    if (scans > 0)
+    {
+        scn->FromRS(&report);
+        filter.objectID = weObjTypeScanData;
+        filter.Clear();
+        filter.Option(weoParentID, id);
+        reps.objectID = weObjTypeScanData;
+        reps.Clear();
+        report.clear();
+        scans = globalDispatcher->Storage()->Get(filter, reps, report);
+        for (i = 0; i < scans; i++)
+        {
+            RecordSet local;
+            ScanData *dat = new ScanData;
+            
+            local.push_back(report[i]);
+            dat->FromRS(&local);
+            scn->push_back(dat);
         }
     }
-    return tsk;
+
+    return scn;
 }
 
 ScanList* get_scan_list(const string& criteria/* = ""*/)
