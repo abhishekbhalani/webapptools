@@ -975,7 +975,7 @@ void wiMainForm::GetPluginList()
                 m_gbPluginsGrid->Add(ico, wxGBPosition(m_plugins+1, 0), wxDefaultSpan, wxALIGN_CENTER);
 
                 // add plugins to the storage list
-                if (find((*m_plugList)[lstSize].IfaceList.begin(), (*m_plugList)[lstSize].IfaceList.end(), "iweStorage") != (*m_plugList)[lstSize].IfaceList.end()) {
+                if (find((*m_plugList)[lstSize].IfaceList.begin(), (*m_plugList)[lstSize].IfaceList.end(), "iStorage") != (*m_plugList)[lstSize].IfaceList.end()) {
                     int itm = m_chStorage->Append(FromStdString((*m_plugList)[lstSize].PluginDesc), (void*)(wxPluginsData + m_plugins));
                     if (storageID.CmpNoCase(FromStdString((*m_plugList)[lstSize].PluginId)) == 0) {
                         m_chStorage->SetSelection(itm);
@@ -1077,30 +1077,8 @@ void wiMainForm::GetTaskOptions(const wxString& taskID)
         wxXmlDocument opt;
         if(opt.Load(xmlStream)) {
             wxXmlNode *root = opt.GetRoot();
-            if (root && root->GetName().CmpNoCase(wxT("report")) == 0) {
+            if (root && root->GetName().CmpNoCase(wxT("options")) == 0) {
                 wxXmlNode *child = root->GetChildren();
-                //search for 'profile'
-                while (child != NULL) {
-                    if (child->GetName().CmpNoCase(wxT("profile")) == 0) {
-                        break;
-                    }
-                }
-                if (child == NULL) {
-                    return;
-                }
-                child = child->GetChildren();
-                //search for 'options'
-                while (child != NULL) {
-                    if (child->GetName().CmpNoCase(wxT("options")) == 0) {
-                        break;
-                    }
-                }
-                if (child == NULL) {
-                    return;
-                }
-                root = child;
-                child = root->GetChildren();
-
                 // reset valuses
                 m_txtProfName->SetValue(wxT(""));
                 m_chLogLevel->Select(0);

@@ -24,9 +24,11 @@
 #include <weiAudit.h>
 #include <weiVulner.h>
 #include <weScan.h>
+#include <weiStorage.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread.hpp>
+#include <boost/functional/hash.hpp>
 
 namespace webEngine {
 
@@ -381,55 +383,51 @@ void Task::SetScanData( ScanData* scData )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn std::string Task::ToXml( void )
+/// @fn RecordSet* Task::ToRS( const string& prefix = "" )
 ///
-/// @brief  Converts this object to an XML.
+/// @brief	Converts this object to an RecordSet. This function realizes alternate serialization
+/// 		mechanism. It generates RecordSet with all necessary data. This
+/// 		representation is used for internal data exchange (for example to store data through
+/// 		iweStorage interface). 
 ///
-/// This function realizes alternate serialization mechanism. It generates more compact and
-/// simplified XML representation. This representation is used for internal data exchange
-/// (for example to store data through iweStorage interface).
+/// @param  prefix  - The naming prefix. 
 ///
-/// @retval This object as a std::string.
+/// @retval	This object as a std::string. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string Task::ToXml( void )
+RecordSet* Task::ToRS( const string& parentID/* = ""*/ )
 {
-    string retval;
-    string optList;
-    int optCount;
-    int optType;
+    RecordSet* res = new RecordSet;
+    Record* rec;
+    Record* trec;
     wOption optVal;
     string strData;
-    int    intData;
-    unsigned int uintData;
-    char   chData;
-    unsigned char uchData;
-    long    longData;
-    unsigned long ulongData;
-    bool    boolData;
-    double  doubleData;
+    string tskId;
+    int optCount;
     wOptions::iterator it;
 
-    retval = "";
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::ToRS");
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::ToXml");
+    trec = new Record;
+    trec->objectID = weObjTypeTask;
     optVal = Option(weoID);
-    SAFE_GET_OPTION_VAL(optVal, strData, "");
-    retval += "<task id='" + ScreenXML(strData) + "'>\n";
+    SAFE_GET_OPTION_VAL(optVal, tskId, "");
+    trec->Option(weoID, optVal.Value());
+
+    trec->Option(weoParentID, parentID);
 
     optVal = Option(weoName);
-    SAFE_GET_OPTION_VAL(optVal, strData, "");
-    retval += "  <name>" + ScreenXML(strData) + "</name>\n";
+    trec->Option(weoName, optVal.Value());
 
     optVal = Option(weoTaskStatus);
-    SAFE_GET_OPTION_VAL(optVal, intData, 0);
-    retval += "  <status>" + boost::lexical_cast<string>(intData) + "</status>\n";
+    trec->Option(weoTaskStatus, optVal.Value());
 
     optVal = Option(weoTaskCompletion);
-    SAFE_GET_OPTION_VAL(optVal, intData, 0);
-    retval += "  <completion>" + boost::lexical_cast<string>(intData) + "</completion>\n";
+    trec->Option(weoTaskCompletion, optVal.Value());
 
+    res->push_back(*trec);
+
+    tskId += "_";
     optCount = 0;
-    optList = "";
     for (it = options.begin(); it != options.end(); it++) {
         strData = it->first;
         // skip predefined options
@@ -445,197 +443,73 @@ std::string Task::ToXml( void )
         if (strData == weoTaskCompletion) {
             continue;
         }
-        optType = it->second->Which();
-        try
-        {
-            switch(optType)
-            {
-            case 0:
-                it->second->GetValue(chData);
-                strData = boost::lexical_cast<string>(chData);
-                break;
-            case 1:
-                it->second->GetValue(uchData);
-                strData = boost::lexical_cast<string>(uchData);
-                break;
-            case 2:
-                it->second->GetValue(intData);
-                strData = boost::lexical_cast<string>(intData);
-                break;
-            case 3:
-                it->second->GetValue(uintData);
-                strData = boost::lexical_cast<string>(uintData);
-                break;
-            case 4:
-                it->second->GetValue(longData);
-                strData = boost::lexical_cast<string>(longData);
-                break;
-            case 5:
-                it->second->GetValue(ulongData);
-                strData = boost::lexical_cast<string>(ulongData);
-                break;
-            case 6:
-                it->second->GetValue(boolData);
-                strData = boost::lexical_cast<string>(boolData);
-                break;
-            case 7:
-                it->second->GetValue(doubleData);
-                strData = boost::lexical_cast<string>(doubleData);
-                break;
-            case 8:
-                it->second->GetValue(strData);
-                break;
-            default:
-                //optVal = *(it->second);
-                strData = "";
-            }
-        }
-        catch (...)
-        {
-        	strData = "";
-        }
+
+        strData = it->first;
+        optVal = *(it->second);
+        rec = new Record;
+        rec->objectID = weObjTypeSysOption;
+        rec->Option(weoName, strData);
+        rec->Option(weoParentID, tskId);
+        rec->Option(weoTypeID, optVal.Which());
+        rec->Option(weoValue, optVal.Value());
+
+        strData += parentID;
+        strData += boost::lexical_cast<string>(it->second->Which());
+        boost::hash<string> strHash;
+        size_t hs = strHash(strData);
+        strData = boost::lexical_cast<string>(hs);
+        rec->Option(weoID, strData);
+
+        res->push_back(*rec);
         optCount++;
-        strData = ScreenXML(strData);
-        optList += "    <option name='" + it->first + "' type='" + boost::lexical_cast<string>(optType) + "'>" + strData + "</option>\n";
     }
-    if (optCount > 0)
-    {
-        retval += "  <options count='" + boost::lexical_cast<string>(optCount) + "'>\n";
-        retval += optList;
-        retval += "  </options>\n";
-    }
+    trec->Option("options", optCount);
 
-    retval += "</task>\n";
-    return retval;
+    return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void Task::FromXml( string input )
+/// @fn void Task::FromRS( RecordSet *rs )
 ///
-/// @brief  Initializes this object from the given from XML.
-///
-/// This function reconstructs object back from the XML generated by the @b ToXml function
-///
-/// @param  input - The input XML.
+/// @brief  Initializes this object from the given from RecordSet.
+/// 		
+/// @param  rs	 - RecordSet. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Task::FromXml( string input )
+void Task::FromRS( RecordSet *rs  )
 {
-    StrStream st(input.c_str());
-    TagScanner sc(st);
+    Record rec;
+    size_t r;
+    wOptionVal optVal;
+    wOption opt;
+    string strData;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::FromXml - string");
-    FromXml(sc);
-}
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::FromRS");
 
-void Task::FromXml( TagScanner& sc, int token /*= -1*/ )
-{
-    int pos;
-    int parseLevel = 0;
-    int intData;
-    bool inParsing = true;
-    string name, val, dat;
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::FromXml - TagScanner");
-    while (inParsing)
+    for (r = 0; r < rs->size(); r++)
     {
-        pos = sc.GetPos();
-        if (token == -1) {
-            token = sc.GetToken();
+        rec = (*rs)[r];
+        if (rec.objectID == weObjTypeTask) {
+            opt = rec.Option(weoID);
+            Option(weoID, opt.Value());
+
+            opt = rec.Option(weoName);
+            Option(weoName, opt.Value());
+
+            opt = rec.Option(weoTaskStatus);
+            Option(weoTaskStatus, opt.Value());
+
+            opt = rec.Option(weoTaskCompletion);
+            Option(weoTaskCompletion, opt.Value());
         }
-        switch(token)
-        {
-        case wstError:
-            LOG4CXX_WARN(iLogger::GetLogger(), "Task::FromXml parsing error");
-            inParsing = false;
-            break;
-        case wstEof:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::FromXml - EOF");
-            inParsing = false;
-            break;
-        case wstTagStart:
-            name = sc.GetTagName();
-            if (parseLevel == 0)
-            {
-                if (iequals(name, "task"))
-                {
-                    parseLevel = 1;
-                    dat = "";
-                }
-                else {
-                    LOG4CXX_WARN(iLogger::GetLogger(), "Task::FromXml unexpected tagStart: " << name);
-                    inParsing = false;
-                }
-                break;
-            }
-            if (parseLevel == 1)
-            {
-                parseLevel = 2;
-                dat = "";
-                if (iequals(name, "options"))
-                {
-                    iOptionsProvider::FromXml(sc, token);
-                    parseLevel = 1;
-                }
-                break;
-            }
-            LOG4CXX_WARN(iLogger::GetLogger(), "Task::FromXml unexpected tagStart: " << name);
-            inParsing = false;
-        	break;
-        case wstTagEnd:
-            name = sc.GetTagName();
-            if (parseLevel == 1)
-            {
-                if (iequals(name, "task"))
-                {
-                    parseLevel = 0;
-                    dat = "";
-                    inParsing = false;
-                }
-                else {
-                    LOG4CXX_WARN(iLogger::GetLogger(), "Task::FromXml unexpected wstTagEnd: " << name);
-                    inParsing = false;
-                }
-            }
-            if (parseLevel == 2)
-            {
-                dat = UnscreenXML(dat);
-                if (iequals(name, "name"))
-                {
-                    Option(weoName, dat);
-                }
-                if (iequals(name, "status"))
-                {
-                    intData = boost::lexical_cast<int>(dat);
-                    Option(weoTaskStatus, intData);
-                }
-                if (iequals(name, "completion"))
-                {
-                    intData = boost::lexical_cast<int>(dat);
-                    Option(weoTaskCompletion, intData);
-                }
-                parseLevel = 1;
-            }
-            break;
-        case wstAttr:
-            name = sc.GetAttrName();
-            val = sc.GetValue();
-            val = UnscreenXML(val);
-            if (parseLevel == 1)
-            {
-                if (iequals(name, "id"))
-                {
-                    Option(weoID, val);
-                }
-            }
-            break;
-        case wstWord:
-        case wstSpace:
-            dat += sc.GetValue();
-            break;
-        default:
-            break;
+        if (rec.objectID == weObjTypeSysOption) {
+            opt = rec.Option(weoName);
+            SAFE_GET_OPTION_VAL(opt, strData, "");
+            // type doesn't matter here
+            // opt = rec.Option(weoTypeID);
+            opt = rec.Option(weoValue);
+            optVal = opt.Value();
+            Option(strData, optVal);
         }
-        token = -1;
     }
 }
 

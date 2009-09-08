@@ -28,7 +28,10 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace std;
 
+
 namespace webEngine {
+
+    class RecordSet;
 
     typedef ::boost::variant< char,
         unsigned char,
@@ -71,10 +74,11 @@ namespace webEngine {
         void SetValue(T dt)
         { val = dt; empty = false; };
         //@}
+        wOptionVal Value() { return val; };
 
         bool IsEmpty(void)                          { return empty;   };            ///< Is the value empty
         string GetTypeName(void)                    { return val.type().name();};   ///< Gets the value type name
-        const ::std::type_info& GetType(void) const   { return val.type();  };        ///< Gets the value type
+        const ::std::type_info& GetType(void) const { return val.type();  };        ///< Gets the value type
         const int Which(void) const                 { return val.which();  };       ///< Gets the internal type
 
         /// @brief Assignment operator
@@ -84,10 +88,16 @@ namespace webEngine {
         empty = cpy.empty;
         return *this; };
 
+        bool operator==(wOption& cpy)
+        {   name = cpy.name;
+        val = cpy.val;
+        empty = cpy.empty;
+        return (name == cpy.name && val == cpy.val); };
+
 #ifndef __DOXYGEN__
     protected:
         string      name;
-        wOptionVal val;
+        wOptionVal  val;
         bool        empty;
 #endif //__DOXYGEN__
 
@@ -103,48 +113,56 @@ namespace webEngine {
     typedef map<string, wOption*> wOptions;
 
 #define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (...) { (var) = (def); };
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @interface  iOptionsProvider
-    ///
-    /// @brief  options storage.
-    ///
-    /// @author A. Abramov
-    /// @date   10.06.2009
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class iOptionsProvider
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @interface  iOptionsProvider
+///
+/// @brief  options storage.
+///
+/// @author A. Abramov
+/// @date   10.06.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class iOptionsProvider
+{
+public:
+    iOptionsProvider() {};
+    virtual ~iOptionsProvider() {};
+
+    virtual wOption& Option(const string& name);
+    virtual bool IsSet(const string& name);
+    virtual void Option(const string& name, wOptionVal val);
+    virtual void Erase(const string& name)
     {
-    public:
-        iOptionsProvider() {};
-        virtual ~iOptionsProvider() {};
+        wOptions::iterator it;
+        it = options.find(name);
+        if (it != options.end()) {
+            options.erase(it);
+        }
+    };
+    virtual void Clear() { options.clear(); };
 
-        virtual wOption& Option(const string& name);
-        virtual bool IsSet(const string& name);
-        virtual void Option(const string& name, wOptionVal val);
-        virtual void Erase(const string& name)
-        {
-            wOptions::iterator it;
-            it = options.find(name);
-            if (it != options.end()) {
-                options.erase(it);
-            }
-        };
+    void CopyOptions(iOptionsProvider* cpy);
+    StringList OptionsList();
+    size_t OptionSize() { return options.size(); };
 
-        void CopyOptions(iOptionsProvider* cpy);
+    RecordSet* ToRS( const string& parentID = "" );
+    void FromRS( RecordSet *rs );
 
-        string ToXml( void );
-        void FromXml( string input );
-        void FromXml( TagScanner& sc, int token = -1 );
+    // simplified serialization
+    string ToXml( void );
+    void FromXml( string input );
+    void FromXml( TagScanner& sc, int token = -1 );
+
 #ifndef __DOXYGEN__
-    protected:
-        wOptions       options;
+protected:
+    wOptions       options;
 #endif //__DOXYGEN__
 
-    private:
-        DECLARE_SERIALIZATOR
-        {
-            ar & BOOST_SERIALIZATION_NVP(options);
-        };
+private:
+    DECLARE_SERIALIZATOR
+    {
+        ar & BOOST_SERIALIZATION_NVP(options);
     };
+};
 
 } // namespace webEngine
 BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
@@ -156,6 +174,10 @@ BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
 #define weoName              "name"
 /// object's identifier (string)
 #define weoID                "id"
+/// object's type
+#define weoTypeID            "type"
+/// object's value
+#define weoValue             "value"
 /// task status (idle, run, etc) (integer)
 #define weoTaskStatus        "status"
 /// task completion (percents) (integer)
@@ -197,9 +219,9 @@ BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
 /// identifiers of the parent object (string)
 #define weoParentID          "ParentId"
 /// identifiers of the profile object (string)
-#define weoProfileID          "ProfileId"
+#define weoProfileID         "ProfileId"
 /// signal to the task (int)
-#define weoTaskSignal          "signal"
+#define weoTaskSignal        "signal"
 //////////////////////////////////////////////////////////////////////////
 // Define options typenames
 //////////////////////////////////////////////////////////////////////////

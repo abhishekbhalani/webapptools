@@ -93,35 +93,66 @@ public:
     virtual string GenerateID(const string& objType = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual int Query( const string& objType,
-    ///             const string& objId, Operation op, const string& xmlData )
+    /// @fn int Get( Record& filters, Record& respFilter, RecordSet& results)
     ///
-    /// @brief  Perform query (save, update, delete) to the given type of the storage.
+    /// @brief  Gets the RecordSet from given namespace (objType). The response filtered to
+    ///         equality of the selected field to the given values. The response will contains only
+    ///         the fields included into the given @b respFilter structure.
     ///
-    /// @param  objType  - Object type.
-    /// @param  objId    - Object identifier.
-    /// @param  op       - Query operation. Can be 'autoop'.
-    /// @param  xmlData	 - Query details described by the XML.
+    /// @param  filter          - the Record to filter the request 
+    /// @param  respFilter      - Set of field to be placed into result. If empty - all data will be retrieved
+    /// @param  [out] results   - the RecordSet to fill it with results 
+    ///
+    /// @retval number of records in the response. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData);
+    virtual int Get(Record& filter, Record& respFilter, RecordSet& results);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual int Report( const string& objType,
-    ///             const string& objId, const string& xmlData, string& result )
+    /// @fn int Set(Record& filters, Record& data)
     ///
-    /// @brief  Builds report for the given type of the storage.
+    /// @brief	Stores (updates) the data. @b data may contain subset of fields
+    ///         (not the full description of the object), and non-empty @b filters may be used to
+    ///         update selected object(s).
     ///
-    /// @param  repType  - Object type.
-    /// @param  objId    - Object identifier.
-    /// @param  xmlData	 - Plugin settings describing the XML.
-    /// @param  result   - Plugin settings describing the XML.
+    /// @param  filter  - the Record to select object(s) for update 
+    /// @param  data    - the Record to be stored 
+    ///
+    /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result);
-    
+    virtual int Set(Record& filter, Record& data);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Set(RecordSet& data)
+    ///
+    /// @brief	Stores (updates) the data. @b data may contain subset of fields
+    ///         (not the full description of the object).
+    ///
+    /// @param  data - the RecordSet to be stored 
+    ///
+    /// @retval	Number of affected records. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Set(RecordSet& data);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn int Delete(Record& filters)
+    ///
+    /// @brief	Deletes the filtered object(s). 
+    ///
+    /// @param  filter - the Record to select object(s) for deletion 
+    ///
+    /// @retval	Number of deleted records. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual int Delete(Record& filter);
+
 protected:
-    string FileRead(const string& fname);
-    int    FileRemove(const fs::path& fspath, const string& fname);
-    int    FileSave(const fs::path& fspath, const string& fname, const string& content);
+    Record* FileRead(const string& fname);
+    int FileSave(const fs::path& fspath, const RecordSet& content);
+    StringList* GetStruct(const string& nspace);
+    void FixStruct(const string& nspace, Record& strt);
+    RecordSet* Search(Record& filter, bool all = false);
+    int GetNsSize(const string& nspace);
+    void LockDB();
+    void UnlockDB();
 
     string db_dir;
 };

@@ -63,10 +63,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib"
+				AdditionalDependencies="log4cxx.lib webEngine.lib curllib-s.lib libboost_regex-vc80-mt-gd-1_38.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\webEngine\libs\debug"
+				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				ModuleDefinitionFile="dlExport.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -142,10 +143,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib"
+				AdditionalDependencies="log4cxx.lib webEngine.lib curllib-s.lib libboost_regex-vc80-mt-1_38.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\webEngine\libs\debug"
+				AdditionalLibraryDirectories="..\..\..\webEngine\libs\release"
+				IgnoreDefaultLibraryNames="LIBCMT.lib"
 				ModuleDefinitionFile="dlExport.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"

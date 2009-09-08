@@ -48,6 +48,9 @@ int main(int argc, char* argv[])
     string query;
     string report;
     int objs;
+    Record filter;
+    Record respFilter;
+    RecordSet resp;
 
     try
     {
@@ -188,29 +191,48 @@ int main(int argc, char* argv[])
                     string objectID;
                     SAFE_GET_OPTION_VAL(opt, objectID, "0");
                     globalData.scan_info->objectID = objectID;
-                    query = "<report><object value='" + objectID + "'/></report>";
-                    objs = globalData.dispatcher->Storage()->Report(weObjTypeObject, objectID, query, report);
+                    filter.Clear();
+                    filter.objectID = weObjTypeObject;
+                    filter.Option(weoID, objectID);
+                    respFilter.Clear();
+                    respFilter.objectID = weObjTypeObject;
+                    resp.clear();
+                    objs = globalData.dispatcher->Storage()->Get(filter, respFilter, resp);
                     if (objs == 0)
                     {
                         string msg = "Object not found: " + objectID;
                         throw std::runtime_error(msg.c_str());
                     }
-                    object.FromXml(report);
+                    object.FromRS(&resp);
                     globalData.task_info->Option("scan_host", object.Address);
-
 
                     opt = globalData.task_info->Option(weoProfileID);
                     SAFE_GET_OPTION_VAL(opt, objectID, "0");
                     globalData.scan_info->profileID = objectID;
 
-                    query = "<report><profile value='" + objectID + "'/></report>";
-                    objs = globalData.dispatcher->Storage()->Report(weObjTypeProfile, objectID, query, report);
+                    filter.Clear();
+                    filter.objectID = weObjTypeProfile;
+                    filter.Option(weoID, objectID);
+                    respFilter.Clear();
+                    respFilter.objectID = weObjTypeProfile;
+                    resp.clear();
+                    objs = globalData.dispatcher->Storage()->Get(filter, respFilter, resp);
                     if (objs == 0)
                     {
                         string msg = "Profile not found: " + objectID;
                         throw std::runtime_error(msg.c_str());
                     }
-                    profile.FromXml(report);
+                    profile.FromRS(&resp);
+
+                    filter.Clear();
+                    filter.objectID = weObjTypeSysOption;
+                    filter.Option(weoParentID, objectID);
+                    respFilter.Clear();
+                    respFilter.objectID = weObjTypeSysOption;
+                    resp.clear();
+                    objs = globalData.dispatcher->Storage()->Get(filter, respFilter, resp);
+                    profile.FromRS(&resp);
+
                     profile.Erase(weoName);
                     profile.Erase(weoID);
                     globalData.dispatcher->CopyOptions(&profile);
@@ -256,10 +278,15 @@ int main(int argc, char* argv[])
                     task_executor(taskID);
 
                     // finalize
-                    report = globalData.scan_info->ToXml();
-                    globalData.dispatcher->Storage()->ScanSave(report);
-                    report = "<delete task='" + taskID + "'/>";
-                    globalData.dispatcher->Storage()->Delete(weObjTypeTask, report);
+                    RecordSet *rsave = globalData.scan_info->ToRS();
+                    if (rsave != NULL)
+                    {
+                        globalData.dispatcher->Storage()->Set(*rsave);
+                    }
+                    filter.Clear();
+                    filter.objectID = weObjTypeTask;
+                    filter.Option(weoID, taskID);
+                    globalData.dispatcher->Storage()->Delete(filter);
                 }
                 else {
                     LOG4CXX_FATAL(iLogger::GetLogger(), "No iStorage interface in the plugin " << plugin->GetID());
@@ -291,8 +318,11 @@ int main(int argc, char* argv[])
                 {
                     globalData.scan_info->finishTime = posix_time::second_clock::local_time();
                 }
-                string report = globalData.scan_info->ToXml();
-                globalData.dispatcher->Storage()->ScanSave(report);
+                RecordSet *rsave = globalData.scan_info->ToRS();
+                if (rsave != NULL)
+                {
+                    globalData.dispatcher->Storage()->Set(*rsave);
+                }
             }
             if (globalData.task_info != NULL)
             {

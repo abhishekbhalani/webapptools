@@ -49,8 +49,10 @@ public:
     // iStorage functions
     virtual bool InitStorage(const string& params) { return true; };
     virtual void Flush(const string& params = "") { return; };
-    virtual int Query(const string& objType, const string& objId, Operation op, const string& xmlData) { return 0; };
-    virtual int Report(const string& repType, const string& objId, const string& xmlData, string& result) { return 0; };
+    virtual int Get(Record& filter, Record& respFilter, RecordSet& results);
+    virtual int Set(Record& filter, Record& data);
+    virtual int Set(RecordSet& data);
+    virtual int Delete(Record& filter);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
