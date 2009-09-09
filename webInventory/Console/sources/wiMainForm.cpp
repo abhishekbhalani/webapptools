@@ -410,8 +410,8 @@ void wiMainForm::OnConnect( wxCommandEvent& event )
             m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Port"), idx), (int*)&idt);
             port = wxString::Format(wxT("%d"), idt);
 
-            m_client = new wiTcpClient("127.0.0.1", "8080");
-//            m_client = new wiTcpClient((char*)host.utf8_str().data(), (char*)port.utf8_str().data());
+            //m_client = new wiTcpClient("127.0.0.1", "8080");
+            m_client = new wiTcpClient((char*)host.utf8_str().data(), (char*)port.utf8_str().data());
             m_client->Connect();
             host = m_client->GetScannerVersion();
             if (!host.IsEmpty()) {

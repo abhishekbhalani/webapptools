@@ -446,7 +446,7 @@ bool set_task_opts (const string& dat)
             retval = true;
         }
         else {
-            LOG4CXX_WARN(iLogger::GetLogger(), "get_task_opts - task not found: " << id);
+            LOG4CXX_WARN(iLogger::GetLogger(), "set_task_opts - task not found: " << id);
         }
     }
     return retval;
