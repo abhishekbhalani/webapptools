@@ -444,7 +444,7 @@ string get_plugin_list(string filter)
     PluginList respList;
     PluginInf *info;
     WePluginList::iterator plugs;
-    
+
     for(plugs = lst.begin(); plugs != lst.end(); plugs++)
     {
         info = new PluginInf();

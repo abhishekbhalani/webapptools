@@ -199,13 +199,15 @@ iPlugin* Dispatch::LoadPlugin( string id )
         for (size_t i = 0; i < pluginList.size(); i++)
         {
             if (pluginList[i].PluginId == id) {
-                LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - found plugin: " << pluginList[i].PluginDesc);
+                LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - found plugin: " << pluginList[i].PluginDesc << "; " << pluginList[i].PluginPath);
                 try
                 {
-                    dyn::shared_object* so = new dyn::shared_object(pluginList[i].PluginPath.c_str());
+                    char* pth = strdup(pluginList[i].PluginPath.c_str());
+                    dyn::shared_object* so = new dyn::shared_object(pth);
                     fnWePluginFactory ptr = NULL;
                     so->get_symbol("WePluginFactory", ptr);
                     retval = (iPlugin*)ptr(this, so);
+                    delete pth;
                 }
                 catch (std::exception& e)
                 {
@@ -287,7 +289,7 @@ static void* CreateHttpInventory(void* krnl, void* handle = NULL)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn PluginFactory::PluginFactory()
 ///
-/// @brief  Default constructor. 
+/// @brief  Default constructor.
 ///
 /// @author A. Abramov
 /// @date   24.08.2009
