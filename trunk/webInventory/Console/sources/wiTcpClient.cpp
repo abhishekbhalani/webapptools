@@ -116,7 +116,11 @@ wxString wiTcpClient::DoCmd(const wxString& cmd, const wxString& payload)
         if (request_length > 0)
         {
             databuff = new char[request_length + 10];
-            client->sock.read_some(boost::asio::buffer(databuff, request_length));
+            size_t recv = 0;
+            while(recv < request_length) {
+                recv += client->sock.read_some(boost::asio::buffer(databuff + recv, request_length));
+                std::cout << "Received: " << recv << endl;
+            }
             databuff[request_length] = '\0';
             {
                 istrstream iss(databuff, request_length);

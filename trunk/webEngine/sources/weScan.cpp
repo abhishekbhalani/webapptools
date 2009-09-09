@@ -50,10 +50,10 @@ RecordSet* ScanInfo::ToRS( const string& parentID/* = ""*/ )
     rec->Option(weoID, scanID);
     rec->Option(weoParentID, objectID);
     rec->Option(weoProfileID, profileID);
-    rec->Option("starttime", profileID);
-    rec->Option("finishtime", profileID);
-    rec->Option("pingtime", profileID);
-    rec->Option(weoTaskStatus, profileID);
+    rec->Option("starttime", posix_time::to_simple_string(startTime));
+    rec->Option("finishtime", posix_time::to_simple_string(finishTime));
+    rec->Option("pingtime", posix_time::to_simple_string(pingTime));
+    rec->Option(weoTaskStatus, status);
     rec->Option("scansize", boost::lexical_cast<string>(scan_data.size()));
 
     res->push_back(*rec);
@@ -89,31 +89,31 @@ void ScanInfo::FromRS( RecordSet* rs )
 
             opt = rec.Option(weoParentID);
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
+            objectID = strData;
 
             opt = rec.Option(weoProfileID);
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
+            profileID = strData;
 
             opt = rec.Option("starttime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
+            startTime = posix_time::time_from_string(strData);
 
             opt = rec.Option("finishtime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
+            finishTime = posix_time::time_from_string(strData);
 
             opt = rec.Option("pingtime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
+            pingTime = posix_time::time_from_string(strData);
 
             opt = rec.Option(weoTaskStatus);
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
+            scanID = boost::lexical_cast<int>(strData);
 
-            opt = rec.Option("scansize");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
+//             opt = rec.Option("scansize");
+//             SAFE_GET_OPTION_VAL(opt, strData, "");
+//             scanID = strData;
 
             break;
         }

@@ -136,7 +136,6 @@ string FsStorage::GenerateID(const string& objType /*= ""*/)
     string retval = "";
     fs::path dir_path(db_dir);
 
-    dir_path /= objType;
     dir_path /= "index";
 
     try {

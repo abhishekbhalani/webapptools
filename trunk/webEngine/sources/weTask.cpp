@@ -426,7 +426,6 @@ RecordSet* Task::ToRS( const string& parentID/* = ""*/ )
 
     res->push_back(*trec);
 
-    tskId += "_";
     optCount = 0;
     for (it = options.begin(); it != options.end(); it++) {
         strData = it->first;

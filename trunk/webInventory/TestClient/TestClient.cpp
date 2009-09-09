@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
         string plain;
         if (argc != 3)
         {
-            std::cerr << "Usage: blocking_tcp_echo_client <host> <port>\n";
+            std::cerr << "Usage: TestClient <host> <port>\n";
             return 1;
         }
 
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
         tcp::socket s(io_service);
         s.connect(*iterator);
 
-        using namespace std; // For strlen.
+        // using namespace std; // For strlen.
         std::cout << "Enter commnad: ";
         char *request = new char[max_length];
         std::cin.getline(request, max_length);
@@ -78,11 +78,16 @@ int main(int argc, char* argv[])
         boost::asio::write(s, boost::asio::buffer(plain.c_str(), request_length));
         boost::asio::streambuf reply;
         s.read_some(boost::asio::buffer(&request_length, sizeof(request_length)));
+        std::cout << "Reply size: " << request_length << std::endl;
         if (request_length > 0)
         {
             delete request;
             request = new char[request_length + 10];
-            s.read_some(boost::asio::buffer(request, request_length));
+            size_t recv = 0;
+            while(recv < request_length) {
+                recv += s.read_some(boost::asio::buffer(request + recv, request_length));
+                std::cout << "Received: " << recv << endl;
+            }
             request[request_length] = '\0';
             std::cout << "Reply is: ";
             std::cout << request;
