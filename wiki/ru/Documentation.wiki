@@ -10,6 +10,7 @@
 
   * *Список используемых библиотек*
     * [http://www.boost.org/ boost library]. Версия 1.37 или выше. Используется при компиляции. Список подсистем:
+        * [http://www.boost.org/doc/libs/1_38_0/doc/html/boost_asio.html Boost.Asio]
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/date_time.html Boost.Date_Time]
         * [http://www.boost.org/doc/libs/1_38_0/libs/filesystem/doc/index.htm Boost.Filesystem]
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/program_options.html Boost.Program_options]

@@ -10,6 +10,7 @@
 
   * *Used libraries list*
     * [http://www.boost.org/ boost library]. The version 1.37 or greater of the boost is used in this project. The used subsystems list:
+        * [http://www.boost.org/doc/libs/1_38_0/doc/html/boost_asio.html Boost.Asio]
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/date_time.html Boost.Date_Time]
         * [http://www.boost.org/doc/libs/1_38_0/libs/filesystem/doc/index.htm Boost.Filesystem]
         * [http://www.boost.org/doc/libs/1_38_0/doc/html/program_options.html Boost.Program_options]
