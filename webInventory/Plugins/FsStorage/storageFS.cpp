@@ -524,7 +524,8 @@ void FsStorage::LockDB()
         ofstream os(locker.string().c_str());
         boost::archive::text_oarchive oa(os);
         // read class instance from archive
-        oa << string("lock");
+        string lk = "lock";
+        oa << lk;
         // archive and stream closed when destructor are called
     }
     LOG4CXX_TRACE(logger, "FsStorage::LockDB - locked");
