@@ -149,9 +149,9 @@ void Dispatch::RefreshPluginList( boost::filesystem::path& baseDir )
         // load library, get info, free library
         try
         {
-            dyn::shared_object so((*fl).c_str());
+            dyn::shared_object* so = new dyn::shared_object((*fl).c_str());
             fnWePluginFactory ptr = NULL;
-            so.get_symbol("WePluginFactory", ptr);
+            so->get_symbol("WePluginFactory", ptr);
             plg = (iPlugin*)ptr(this, NULL); // not need to store SO link
             if (plg != NULL)
             {
@@ -162,6 +162,7 @@ void Dispatch::RefreshPluginList( boost::filesystem::path& baseDir )
                 LOG4CXX_TRACE(iLogger::GetLogger(), ">>>> ID=" << info->PluginId << "; Desc=" << info->PluginDesc);
                 plg->Release();
                 plg = NULL;
+                pluginFactory.Add(info->PluginId, ptr);
             }
             else {
                 LOG4CXX_WARN(iLogger::GetLogger(), "Dispatch::RefreshPluginList: can't get information from plugin " <<*fl);
@@ -176,13 +177,13 @@ void Dispatch::RefreshPluginList( boost::filesystem::path& baseDir )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iPlugin* Dispatch::LoadPlugin( string id )
+/// @fn iPlugin* Dispatch::LoadPlugin( string id )
 ///
-/// @brief	Loads a plugin form shared library or internal implementation.
+/// @brief  Loads a plugin form shared library or internal implementation.
 ///
-/// @param	id	 - The identifier.
+/// @param  id    - The identifier.
 ///
-/// @retval	null if it fails, else the plugin interface.
+/// @retval null if it fails, else the plugin interface.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 iPlugin* Dispatch::LoadPlugin( string id )
 {
@@ -202,16 +203,16 @@ iPlugin* Dispatch::LoadPlugin( string id )
                 LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - found plugin: " << pluginList[i].PluginDesc << "; " << pluginList[i].PluginPath);
                 try
                 {
-                    char* pth = strdup(pluginList[i].PluginPath.c_str());
-                    dyn::shared_object* so = new dyn::shared_object(pth);
+                    //char* pth = strdup(pluginList[i].PluginPath.c_str());
+                    dyn::shared_object* so = new dyn::shared_object(pluginList[i].PluginPath.c_str());
                     fnWePluginFactory ptr = NULL;
                     so->get_symbol("WePluginFactory", ptr);
                     retval = (iPlugin*)ptr(this, so);
-                    delete pth;
+                    //delete pth;
                 }
                 catch (std::exception& e)
                 {
-                	LOG4CXX_ERROR(iLogger::GetLogger(), "Dispatch::LoadPlugin: can't load plugin " << pluginList[i].PluginPath << ". Error: " << e.what());
+                    LOG4CXX_ERROR(iLogger::GetLogger(), "Dispatch::LoadPlugin: can't load plugin " << pluginList[i].PluginPath << ". Error: " << e.what());
                 }
                 break;
             }
