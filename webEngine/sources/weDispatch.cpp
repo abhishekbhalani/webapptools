@@ -162,11 +162,12 @@ void Dispatch::RefreshPluginList( boost::filesystem::path& baseDir )
                 LOG4CXX_TRACE(iLogger::GetLogger(), ">>>> ID=" << info->PluginId << "; Desc=" << info->PluginDesc);
                 plg->Release();
                 plg = NULL;
-                pluginFactory.Add(info->PluginId, ptr);
+                //pluginFactory.Add(info->PluginId, ptr);
             }
             else {
                 LOG4CXX_WARN(iLogger::GetLogger(), "Dispatch::RefreshPluginList: can't get information from plugin " <<*fl);
             }
+            delete so;
         }
         catch (std::exception& e)
         {

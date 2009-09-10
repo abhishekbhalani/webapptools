@@ -19,16 +19,12 @@
 */
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
 #include <boost/thread.hpp>
 #include <fstream>
 #include <strstream>
 #include "storageFS.h"
 #include "version.h"
 #include "fsStorage.xpm"
-//#include "demoPlugin.xrc"
-#include <weDispatch.h>
 
 static char* tables[] = {weObjTypeTask,
                         weObjTypeSysOption,
@@ -39,6 +35,140 @@ static char* tables[] = {weObjTypeTask,
                         weObjTypeObject,
                         weObjTypeProfile,
                         NULL}; // close the list with NULL
+
+static string RecordToString(Record& rc)
+{
+    string retval = "";
+
+    StringList opts = rc.OptionsList();
+    for (size_t j = 0; j < opts.size(); j++)
+    {
+        wOption opt = rc.Option(opts[j]);
+        retval += opts[j];
+        retval += '\x02';
+        retval += boost::lexical_cast<string>(opt.Which());
+        retval += '\x02';
+        retval += boost::lexical_cast<string>(opt.Value());
+        retval += '\x03';
+    }
+
+    return retval;
+}
+
+static wOptionVal StringToOption(const string& buff, string& name)
+{
+    wOptionVal retval;
+    string parse = buff;
+    size_t pos;
+    int tp = -1;
+
+    pos = parse.find('\x02');
+    if (pos != string::npos)
+    {
+        name = parse.substr(0, pos);
+        if (pos < parse.length())
+        {
+            parse = parse.substr(pos+1);
+        }
+        else {
+            parse = "";
+        }
+    }
+    pos = parse.find('\x02');
+    if (pos != string::npos)
+    {
+        string val = parse.substr(0, pos);
+        if (pos < parse.length())
+        {
+            parse = parse.substr(pos+1);
+        }
+        else {
+            parse = "";
+        }
+        try {
+            tp = boost::lexical_cast<int>(val);
+        } catch (std::exception&) {
+            tp = -1;
+        }
+    }
+    pos = parse.find('\x02');
+    string strData = "";
+    if (pos == string::npos)
+    {
+        if(parse != "") {
+            strData = parse;
+        }
+    }
+    else {
+        strData = parse.substr(0, pos);
+    }
+    try {
+        switch(tp)
+        {
+        case 0:
+            retval = boost::lexical_cast<char>(strData);
+            break;
+        case 1:
+            retval = boost::lexical_cast<unsigned char>(strData);
+            break;
+        case 2:
+            retval = boost::lexical_cast<int>(strData);
+            break;
+        case 3:
+            retval = boost::lexical_cast<unsigned int>(strData);
+            break;
+        case 4:
+            retval = boost::lexical_cast<long>(strData);
+            break;
+        case 5:
+            retval = boost::lexical_cast<unsigned long>(strData);
+            break;
+        case 6:
+            retval = boost::lexical_cast<bool>(strData);
+            break;
+        case 7:
+            retval = boost::lexical_cast<double>(strData);
+            break;
+        case 8:
+            retval = strData;
+        }
+    } catch (std::exception&) {
+        tp = -1;
+    }
+    return retval;
+}
+
+static Record* StringToRecord(const string& buff)
+{
+    Record *retval = new Record;
+    string parse = buff;
+    size_t pos;
+
+    pos = parse.find('\x03');
+    while (pos != string::npos)
+    {
+        string nm;
+        string val = parse.substr(0, pos);
+        if (pos < parse.length())
+        {
+            parse = parse.substr(pos+1);
+        }
+        else {
+            parse = "";
+        }
+        wOptionVal oval = StringToOption(val, nm);
+        retval->Option(nm, oval);
+        pos = parse.find('\x03');
+    }
+    if (parse != "")
+    {
+        string nm;
+        wOptionVal oval = StringToOption(parse, nm);
+        retval->Option(nm, oval);
+    }
+
+    return retval;
+}
 
 FsStorage::FsStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     iStorage(krnl, handle)
@@ -367,20 +497,29 @@ RecordSet* FsStorage::Search(Record& filter, bool all/* = false*/)
 
 Record* FsStorage::FileRead(const string& fname)
 {
-    Record *retval = new Record;
+    Record *retval = NULL;
 
     LOG4CXX_TRACE(logger, "FsStorage::FileRead " << fname);
     try{
+        size_t fsize = fs::file_size(fs::path(fname));
         ifstream ifs(fname.c_str());
-        boost::archive::text_iarchive ia(ifs);
-        // read class instance from archive
-        ia >> (*retval);
+        char* buff = new char[fsize + 10];
+        if(buff != NULL)
+        {
+            memset(buff, 0, fsize+10);
+            ifs.read(buff, fsize);
+            retval = StringToRecord(buff);
+            delete buff;
+        }
     }
     catch ( const std::exception & e )
     {
         LOG4CXX_ERROR(logger, "FsStorage::FileRead error: " << e.what());
-        delete retval;
-        retval = NULL;
+        if (retval != NULL)
+        {
+            delete retval;
+            retval = NULL;
+        }
     }
 
     return retval;
@@ -405,8 +544,7 @@ int FsStorage::FileSave(const fs::path& fspath, const RecordSet& content)
             fp /= "data" + id;
 
             ofstream ofs(fp.string().c_str());
-            boost::archive::text_oarchive oa(ofs);
-            oa << content[retval];
+            ofs << RecordToString(rc);
         }
     }
     catch(const std::exception& e)
@@ -419,24 +557,33 @@ int FsStorage::FileSave(const fs::path& fspath, const RecordSet& content)
 StringList* FsStorage::GetStruct(const string& nspace)
 {
     fs::path fp(db_dir);
-    StringList *structNames;
+    StringList *structNames = NULL;
+    string sdata;
+
 
     fp /= nspace;
     fp /= "struct";
-    structNames = new StringList;
     try
     {
+        size_t fsize = fs::file_size(fp);
         ifstream is(fp.string().c_str());
-        boost::archive::text_iarchive ia(is);
-        // read class instance from archive
-        ia >> (*structNames);
-        // archive and stream closed when destructor are called
+        char* buff = new char[fsize + 10];
+        if(buff != NULL)
+        {
+            memset(buff, 0, fsize+10);
+            is.read(buff, fsize);
+            structNames = StringToSList(buff);
+            delete buff;
+        }
     }
     catch(std::exception& e)
     {
         LOG4CXX_WARN(iLogger::GetLogger(), "FsStorage::GetStruct " << nspace << " structure error: " << e.what());
-        delete structNames;
-        structNames = NULL;
+        if (structNames)
+        {
+            delete structNames;
+            structNames = NULL;
+        }
     }
 
     return structNames;
@@ -472,9 +619,7 @@ void FsStorage::FixStruct(const string& nspace, Record& strt)
     try
     {
         ofstream os(fp.string().c_str());
-        boost::archive::text_oarchive oa(os);
-        // read class instance from archive
-        oa << (*structNames);
+        os << SListToString(*structNames);
         // archive and stream closed when destructor are called
     }
     catch(std::exception& e)
@@ -482,31 +627,6 @@ void FsStorage::FixStruct(const string& nspace, Record& strt)
         LOG4CXX_WARN(iLogger::GetLogger(), "FsStorage::FixStruct save " << nspace << " structure error: " << e.what());
         return;
     }
-}
-
-int FsStorage::GetNsSize(const string& nspace)
-{
-    int sz;
-
-    LOG4CXX_TRACE(logger, "FsStorage::GetNsSize " << nspace);
-    fs::path fp(db_dir);
-    fp /= nspace;
-    fp /= "data";
-
-    try{
-        ifstream ifs(fp.string().c_str());
-        boost::archive::text_iarchive ia(ifs);
-        // read class instance from archive
-        ia >> sz;
-    }
-    catch ( const std::exception & e )
-    {
-        LOG4CXX_ERROR(logger, "FsStorage::GetNsSize error: " << e.what());
-        sz = 0;
-    }
-
-    return sz;
-
 }
 
 void FsStorage::LockDB()
@@ -521,10 +641,7 @@ void FsStorage::LockDB()
     }
     {
         ofstream os(locker.string().c_str());
-        boost::archive::text_oarchive oa(os);
-        // read class instance from archive
-        string lk = "lock";
-        oa << lk;
+        os << "lock";
         // archive and stream closed when destructor are called
     }
     LOG4CXX_TRACE(logger, "FsStorage::LockDB - locked");

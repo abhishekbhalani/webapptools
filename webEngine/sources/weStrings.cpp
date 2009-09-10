@@ -119,4 +119,43 @@ string& StringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
     return *retval;
 }
 
+string SListToString(StringList& lst)
+{
+    string retval;
+
+    for (size_t i = 0; i < lst.size(); i++)
+    {
+        retval += lst[i];
+        retval += '\x02';
+    }
+    // ??? remove tailing \x02
+    return retval;
+}
+
+StringList* StringToSList(const string& lst)
+{
+    StringList* retval = new StringList;
+    string parse = lst;
+    size_t pos;
+
+    pos = parse.find('\x02');
+    while(pos != string::npos) {
+        string val = parse.substr(0, pos);
+        retval->push_back(val);
+        if (pos < parse.length())
+        {
+            parse = parse.substr(pos+1);
+        }
+        else {
+            parse = "";
+        }
+        pos = parse.find('\x02');
+    }
+    if (parse != "")
+    {
+        retval->push_back(parse);
+    }
+    return retval;
+}
+
 } // namespace webEngine
