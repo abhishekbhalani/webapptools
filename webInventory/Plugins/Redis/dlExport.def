@@ -1,0 +1,2 @@
+LIBRARY	"FsStorage.plg"
+EXPORTS WePluginFactory
