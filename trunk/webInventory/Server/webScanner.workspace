@@ -2,7 +2,7 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="webScanner">
 		<Project filename="../../webEngine/webEngine.cbp" />
-		<Project filename="../Plugins/FsStorage/storageFS.cbp" active="1">
+		<Project filename="../Plugins/FsStorage/storageFS.cbp">
 			<Depends filename="../../webEngine/webEngine.cbp" />
 		</Project>
 		<Project filename="../Plugins/Demo/Demo.cbp">
@@ -12,7 +12,7 @@
 			<Depends filename="../../webEngine/webEngine.cbp" />
 			<Depends filename="../Plugins/FsStorage/storageFS.cbp" />
 		</Project>
-		<Project filename="scanServer.cbp">
+		<Project filename="scanServer.cbp" active="1">
 			<Depends filename="../../webEngine/webEngine.cbp" />
 			<Depends filename="../Plugins/FsStorage/storageFS.cbp" />
 			<Depends filename="../Scanner/tskScanner.cbp" />
