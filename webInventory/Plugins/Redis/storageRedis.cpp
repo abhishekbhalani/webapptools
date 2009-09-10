@@ -19,15 +19,11 @@
 */
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
 #include <fstream>
 #include <strstream>
 #include "storageFS.h"
 #include "version.h"
-#include "fsStorage.xpm"
-//#include "demoPlugin.xrc"
-#include <weDispatch.h>
+#include "redis.xpm"
 
 static char* tables[] = {weObjTypeTask,
                         weObjTypeSysOption,
@@ -39,48 +35,48 @@ static char* tables[] = {weObjTypeTask,
                         weObjTypeProfile,
                         NULL}; // close the list with NULL
 
-FsStorage::FsStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
+RedisStorage::RedisStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     iStorage(krnl, handle)
 {
-    pluginInfo.IfaceName = "FsStorage";
-    pluginInfo.IfaceList.push_back("FsStorage");
-    pluginInfo.PluginDesc = "FileSystem storage";
+    pluginInfo.IfaceName = "Redis";
+    pluginInfo.IfaceList.push_back("Redis");
+    pluginInfo.PluginDesc = "Redis Database storage";
     pluginInfo.PluginId = "1FBAB8DCF440";
-    pluginInfo.PluginIcon = WeXpmToStringList(fsStorage_xpm, sizeof(fsStorage_xpm) / sizeof(char*) );
+    pluginInfo.PluginIcon = WeXpmToStringList(redis_xpm, sizeof(redis_xpm) / sizeof(char*) );
     db_dir = "";
     lastId = 0;
-    LOG4CXX_TRACE(logger, "FsStorage plugin created");
+    LOG4CXX_TRACE(logger, "RedisStorage plugin created");
 }
 
-FsStorage::~FsStorage(void)
+RedisStorage::~RedisStorage(void)
 {
-    LOG4CXX_TRACE(logger, "FsStorage plugin destroyed");
+    LOG4CXX_TRACE(logger, "RedisStorage plugin destroyed");
 }
 
-void* FsStorage::GetInterface( const string& ifName )
+void* RedisStorage::GetInterface( const string& ifName )
 {
-    LOG4CXX_TRACE(logger, "FsStorage::GetInterface " << ifName);
-    if (iequals(ifName, "FsStorage"))
+    LOG4CXX_TRACE(logger, "RedisStorage::GetInterface " << ifName);
+    if (iequals(ifName, "RedisStorage"))
     {
-        LOG4CXX_DEBUG(logger, "FsStorage::GetInterface found!");
+        LOG4CXX_DEBUG(logger, "RedisStorage::GetInterface found!");
         usageCount++;
         return (void*)(this);
     }
     return iStorage::GetInterface(ifName);
 }
 
-const string FsStorage::GetSetupUI( void )
+const string RedisStorage::GetSetupUI( void )
 {
     /// @todo: change XRC to set the fields values
     return "";
 }
 
-void FsStorage::ApplySettings( const string& xmlData )
+void RedisStorage::ApplySettings( const string& xmlData )
 {
 
 }
 
-bool FsStorage::InitStorage(const string& params)
+bool RedisStorage::InitStorage(const string& params)
 {
     bool retval = false;
 
@@ -125,12 +121,12 @@ bool FsStorage::InitStorage(const string& params)
     return retval;
 }
 
-void FsStorage::Flush(const string& params /*= ""*/)
+void RedisStorage::Flush(const string& params /*= ""*/)
 {
     // nothing to do. Just reimplement base class method
 }
 
-string FsStorage::GenerateID(const string& objType /*= ""*/)
+string RedisStorage::GenerateID(const string& objType /*= ""*/)
 {
     string retval = "";
     fs::path dir_path(db_dir);
@@ -159,111 +155,17 @@ string FsStorage::GenerateID(const string& objType /*= ""*/)
     return retval;
 }
 
-int FsStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
+int RedisStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
 {
-    fs::path dir_path(db_dir);
-    RecordSet* dta;
-    StringList reportNames;
-    wOption opt;
-    size_t i, j;
-    RecordSet lk;
-
-    LOG4CXX_TRACE(logger, "FsStorage::Get objType=" << filter.objectID);
-    // lock the db
-    LockDB();
-
-    // if no options in the filter - get all records
-    dta = Search(filter, (filter.OptionSize() == 0));
-
-    // prepare filter list
-    reportNames = respFilter.OptionsList();
-    if (reportNames.size() == 0)
-    {
-        StringList* strct;
-        strct = GetStruct(filter.objectID);
-        if (strct != NULL)
-        {
-            reportNames = *strct;
-            delete strct;
-        }
-    }
-    for (i = 0; i < dta->size(); i++) {
-        Record* objRes = new Record;
-        objRes->objectID = filter.objectID;
-        for (j = 0; j < reportNames.size(); j++)
-        {
-            opt = (*dta)[i].Option(reportNames[j]);
-            objRes->Option(reportNames[j], opt.Value());
-        } // and of attribute filters
-        results.push_back(*objRes);
-    } // end of objects search
-
-    UnlockDB();
-    return results.size();
+    return 0;
 }
 
-int FsStorage::Set(Record& filter, Record& data)
+int RedisStorage::Set(Record& filter, Record& data)
 {
-    wOption opt;
-    string fName;
-    RecordSet* retlist = NULL;
-    fs::path fp;
-    Record sv;
-    int retval = 0;
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(Record, Record)");
-
-    // lock the db
-    LockDB();
-
-    retlist = Search(filter);
-    if (retlist == NULL)
-    {
-        retlist = new RecordSet;
-        retlist->clear();
-    }
-    if (retlist->size() > 0)
-    {   // update
-        LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(Record, Record) - update type=" << filter.objectID);
-        for (size_t i = 0; i < retlist->size(); i ++)
-        {
-            (*retlist)[i].CopyOptions(&data);
-
-            opt = (*retlist)[i].Option(weoID);
-            SAFE_GET_OPTION_VAL(opt, fName, "");
-            if (fName == "")
-            {
-                fName = GenerateID(filter.objectID);
-                (*retlist)[i].Option(weoID, fName);
-            }
-            retval++;
-        }
-    }
-    else {
-        // insert
-        LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(Record, Record) - insert type=" << data.objectID);
-        sv.objectID = data.objectID;
-        sv.CopyOptions(&data);
-        opt = sv.Option(weoID);
-        SAFE_GET_OPTION_VAL(opt, fName, "");
-        if (fName == "")
-        {
-            fName = GenerateID(data.objectID);
-            sv.Option(weoID, fName);
-        }
-        retlist->push_back(sv);
-        retval++;
-    }
-    fp = fs::path(db_dir);
-    fp /= filter.objectID;
-    FileSave(fp, *retlist);
-
-    FixStruct(data.objectID, sv);
-    UnlockDB();
-    return retval;
+    return 0;
 }
 
-int FsStorage::Set(RecordSet& data)
+int RedisStorage::Set(RecordSet& data)
 {
     wOption opt;
     string fName;
@@ -274,7 +176,7 @@ int FsStorage::Set(RecordSet& data)
     size_t i;
     Record fl;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(RecordSet)");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "RedisStorage::Set(RecordSet)");
     for (i = 0; i < data.size(); i++)
     {
         fl.Clear();
@@ -286,33 +188,13 @@ int FsStorage::Set(RecordSet& data)
     return retval;
 }
 
-int FsStorage::Delete(Record& filter)
+int RedisStorage::Delete(Record& filter)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Delete");
-    LockDB();
-
-    fs::path fp;
-    RecordSet* retlist = Search(filter, false);
-    int retval;
-    Record del;
-
-    for (retval = 0; retval < retlist->size(); retval++) {
-        wOption opt = (*retlist)[retval].Option(weoID);
-        string id;
-        SAFE_GET_OPTION_VAL(opt, id, "");
-        fp = fs::path(db_dir);
-        fp /= filter.objectID;
-        fp /= "data" + id;
-        fs::remove(fp);
-    }
-
-    retval = retlist->size();
-
-    UnlockDB();
-    return retval;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "RedisStorage::Delete");
+    return 0;
 }
 
-RecordSet* FsStorage::Search(Record& filter, bool all/* = false*/)
+RecordSet* RedisStorage::Search(Record& filter, bool all/* = false*/)
 {
     RecordSet* retlist = new RecordSet;
     RecordSet* datalist = NULL;
@@ -364,58 +246,7 @@ RecordSet* FsStorage::Search(Record& filter, bool all/* = false*/)
     return retlist;
 }
 
-Record* FsStorage::FileRead(const string& fname)
-{
-    Record *retval = new Record;
-
-    LOG4CXX_TRACE(logger, "FsStorage::FileRead " << fname);
-    try{
-        ifstream ifs(fname.c_str());
-        boost::archive::text_iarchive ia(ifs);
-        // read class instance from archive
-        ia >> (*retval);
-    }
-    catch ( const std::exception & e )
-    {
-        LOG4CXX_ERROR(logger, "FsStorage::FileRead error: " << e.what());
-        delete retval;
-        retval = NULL;
-    }
-
-    return retval;
-}
-
-int FsStorage::FileSave(const fs::path& fspath, const RecordSet& content)
-{
-    fs::path fp;
-    int retval = 0;
-    string id;
-    wOption opt;
-
-    // save data
-    LOG4CXX_TRACE(logger, "FsStorage::FileSave recordset " << fp.string());
-    try {
-        for (retval = 0; retval < content.size(); retval++)
-        {
-            Record rc = content[retval];
-            opt = rc.Option(weoID);
-            SAFE_GET_OPTION_VAL(opt, id, "");
-            fp = fspath;
-            fp /= "data" + id;
-
-            ofstream ofs(fp.string().c_str());
-            boost::archive::text_oarchive oa(ofs);
-            oa << content[retval];
-        }
-    }
-    catch(const std::exception& e)
-    {
-        LOG4CXX_ERROR(logger, "FsStorage::FileSave can't save " << fp.string() << " : " << e.what());
-    }
-    return retval;
-}
-
-StringList* FsStorage::GetStruct(const string& nspace)
+StringList* RedisStorage::GetStruct(const string& nspace)
 {
     fs::path fp(db_dir);
     StringList *structNames;
@@ -441,7 +272,7 @@ StringList* FsStorage::GetStruct(const string& nspace)
     return structNames;
 }
 
-void FsStorage::FixStruct(const string& nspace, Record& strt)
+void RedisStorage::FixStruct(const string& nspace, Record& strt)
 {
     StringMap::iterator obj;
     StringList::iterator lst;
@@ -483,60 +314,3 @@ void FsStorage::FixStruct(const string& nspace, Record& strt)
     }
 }
 
-int FsStorage::GetNsSize(const string& nspace)
-{
-    int sz;
-
-    LOG4CXX_TRACE(logger, "FsStorage::GetNsSize " << nspace);
-    fs::path fp(db_dir);
-    fp /= nspace;
-    fp /= "data";
-
-    try{
-        ifstream ifs(fp.string().c_str());
-        boost::archive::text_iarchive ia(ifs);
-        // read class instance from archive
-        ia >> sz;
-    }
-    catch ( const std::exception & e )
-    {
-        LOG4CXX_ERROR(logger, "FsStorage::GetNsSize error: " << e.what());
-        sz = 0;
-    }
-
-    return sz;
-
-}
-
-void FsStorage::LockDB()
-{
-    fs::path locker(db_dir);
-    locker /= "lock";
-
-    LOG4CXX_TRACE(logger, "FsStorage::LockDB");
-    while (exists(locker))
-    {
-        boost::this_thread::sleep(boost::posix_time::seconds(1));
-    }
-    {
-        ofstream os(locker.string().c_str());
-        boost::archive::text_oarchive oa(os);
-        // read class instance from archive
-        string lk = "lock";
-        oa << lk;
-        // archive and stream closed when destructor are called
-    }
-    LOG4CXX_TRACE(logger, "FsStorage::LockDB - locked");
-}
-
-void FsStorage::UnlockDB()
-{
-    fs::path locker(db_dir);
-    locker /= "lock";
-
-    LOG4CXX_TRACE(logger, "FsStorage::UnlockDB");
-    if (exists(locker))
-    {
-        fs::remove(locker);
-    }
-}
