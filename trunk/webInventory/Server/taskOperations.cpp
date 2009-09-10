@@ -254,6 +254,11 @@ bool del_task(const string& id)
     filter.Option(weoID, id);
 
     if (globalDispatcher->Storage()->Delete(filter) != 0) {
+        filter.objectID = weObjTypeSysOption;
+        filter.Clear();
+        filter.Option(weoParentID, id);
+        globalDispatcher->Storage()->Delete(filter);
+
         retval = true;
     }
     return retval;

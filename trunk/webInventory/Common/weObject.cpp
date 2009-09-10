@@ -25,7 +25,6 @@
 RecordSet* ScanObject::ToRS( void )
 {
     RecordSet* res = new RecordSet;
-    RecordSet* rsData;
     Record* rec = new Record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "ScanObject::ToRS");
@@ -42,7 +41,6 @@ RecordSet* ScanObject::ToRS( void )
 void ScanObject::FromRS( RecordSet* rs )
 {
     Record rec;
-    size_t r;
     wOptionVal optVal;
     wOption opt;
     string strData;

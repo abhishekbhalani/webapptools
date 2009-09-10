@@ -108,8 +108,12 @@ void ScanInfo::FromRS( RecordSet* rs )
             pingTime = posix_time::time_from_string(strData);
 
             opt = rec.Option(weoTaskStatus);
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = boost::lexical_cast<int>(strData);
+            try {
+                status = (weScanStatus) boost::lexical_cast<int>(opt.Value());
+            }
+            catch(std::exception&) {
+                status = weScanIdle;
+            }
 
 //             opt = rec.Option("scansize");
 //             SAFE_GET_OPTION_VAL(opt, strData, "");

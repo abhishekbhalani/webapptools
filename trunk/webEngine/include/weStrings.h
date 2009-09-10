@@ -79,6 +79,9 @@ namespace webEngine {
         };
     };
 
+string SListToString(StringList& lst);
+StringList* StringToSList(const string& lst);
+
 } // namespace webEngine
 
 BOOST_CLASS_TRACKING(webEngine::LinkedString, boost::serialization::track_never)

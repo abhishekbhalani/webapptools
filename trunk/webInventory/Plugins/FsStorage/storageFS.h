@@ -150,7 +150,6 @@ protected:
     StringList* GetStruct(const string& nspace);
     void FixStruct(const string& nspace, Record& strt);
     RecordSet* Search(Record& filter, bool all = false);
-    int GetNsSize(const string& nspace);
     void LockDB();
     void UnlockDB();
 
