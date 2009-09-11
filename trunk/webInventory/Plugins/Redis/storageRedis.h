@@ -19,6 +19,7 @@
 */
 #pragma once
 #include <weiStorage.h>
+#include "redisclient.h"
 
 using namespace webEngine;
 
@@ -142,4 +143,14 @@ public:
     virtual int Delete(Record& filter);
 
 protected:
+    StringList* Search(Record& filter, bool all = false);
+    StringList* GetStruct(const string& nspace);
+    void FixStruct(Record& strt);
+    StringList* GetNamespaceIdxs(const string& objType);
+
+    string db_host;
+    int db_port;
+    string db_auth;
+    int db_index;
+    redis::client* db_cli;
 };

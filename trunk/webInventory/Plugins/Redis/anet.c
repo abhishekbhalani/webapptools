@@ -30,20 +30,36 @@
 
 #include "fmacros.h"
 
+
 #include <sys/types.h>
+#ifdef WIN32
+#include <errno.h>
+#include <winsock2.h>
+//#include <sys/socket.h>
+#else
+#include <sys/errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <netdb.h>
+#endif
 #include <fcntl.h>
 #include <string.h>
-#include <netdb.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 
 #include "anet.h"
+
+#ifdef WIN32
+int inet_aton (char *__cp, struct in_addr *__inp)
+{
+    __inp->S_un.S_addr = inet_addr(__cp);
+    return __inp->S_un.S_addr;
+}
+#endif
 
 static void anetSetError(char *err, const char *fmt, ...)
 {
@@ -59,6 +75,14 @@ int anetNonBlock(char *err, int fd)
 {
     int flags;
 
+#ifdef WIN32
+    u_long arg = ~0;
+    int serr = ioctlsocket(fd, FIONBIO, &arg);
+    if (serr == SOCKET_ERROR) {
+        anetSetError(err, "ioctlsocket failed: %s\n", strerror(errno));
+        return ANET_ERR;
+    }
+#else
     /* Set the socket nonblocking.
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
@@ -70,6 +94,7 @@ int anetNonBlock(char *err, int fd)
         anetSetError(err, "fcntl(F_SETFL,O_NONBLOCK): %s\n", strerror(errno));
         return ANET_ERR;
     }
+#endif
     return ANET_OK;
 }
 
@@ -156,12 +181,20 @@ static int anetTcpGenericConnect(char *err, char *addr, int port, int flags)
             return ANET_ERR;
     }
     if (connect(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
+#ifdef WIN32
+        if (errno == WSAEINPROGRESS &&
+#else
         if (errno == EINPROGRESS &&
+#endif
             flags & ANET_CONNECT_NONBLOCK)
             return s;
 
         anetSetError(err, "connect: %s\n", strerror(errno));
+#ifdef WIN32
+        closesocket(s);
+#else
         close(s);
+#endif
         return ANET_ERR;
     }
     return s;
@@ -183,7 +216,11 @@ int anetRead(int fd, char *buf, int count)
 {
     int nread, totlen = 0;
     while(totlen != count) {
+#ifdef WIN32
+        nread = recv(fd,buf,count-totlen, 0);
+#else
         nread = read(fd,buf,count-totlen);
+#endif
         if (nread == 0) return totlen;
         if (nread == -1) return -1;
         totlen += nread;
@@ -198,7 +235,11 @@ int anetWrite(int fd, char *buf, int count)
 {
     int nwritten, totlen = 0;
     while(totlen != count) {
+#ifdef WIN32
+        nwritten = send(fd,buf,count-totlen, 0);
+#else
         nwritten = write(fd,buf,count-totlen);
+#endif
         if (nwritten == 0) return totlen;
         if (nwritten == -1) return -1;
         totlen += nwritten;
@@ -218,7 +259,11 @@ int anetTcpServer(char *err, int port, char *bindaddr)
     }
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1) {
         anetSetError(err, "setsockopt SO_REUSEADDR: %s\n", strerror(errno));
+#ifdef WIN32
+        closesocket(s);
+#else
         close(s);
+#endif
         return ANET_ERR;
     }
     memset(&sa,0,sizeof(sa));
@@ -228,18 +273,30 @@ int anetTcpServer(char *err, int port, char *bindaddr)
     if (bindaddr) {
         if (inet_aton(bindaddr, &sa.sin_addr) == 0) {
             anetSetError(err, "Invalid bind address\n");
+#ifdef WIN32
+            closesocket(s);
+#else
             close(s);
+#endif
             return ANET_ERR;
         }
     }
     if (bind(s, (struct sockaddr*)&sa, sizeof(sa)) == -1) {
         anetSetError(err, "bind: %s\n", strerror(errno));
+#ifdef WIN32
+        closesocket(s);
+#else
         close(s);
+#endif
         return ANET_ERR;
     }
     if (listen(s, 32) == -1) {
         anetSetError(err, "listen: %s\n", strerror(errno));
+#ifdef WIN32
+        closesocket(s);
+#else
         close(s);
+#endif
         return ANET_ERR;
     }
     return s;

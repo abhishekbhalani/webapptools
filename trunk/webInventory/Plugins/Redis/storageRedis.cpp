@@ -19,9 +19,12 @@
 */
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <fstream>
+#include <weTagScanner.h>
 #include <strstream>
-#include "storageFS.h"
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+#include "storageRedis.h"
 #include "version.h"
 #include "redis.xpm"
 
@@ -38,18 +41,36 @@ static char* tables[] = {weObjTypeTask,
 RedisStorage::RedisStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     iStorage(krnl, handle)
 {
-    pluginInfo.IfaceName = "Redis";
-    pluginInfo.IfaceList.push_back("Redis");
+    pluginInfo.IfaceName = "RedisStorage";
+    pluginInfo.IfaceList.push_back("RedisStorage");
     pluginInfo.PluginDesc = "Redis Database storage";
-    pluginInfo.PluginId = "1FBAB8DCF440";
+    pluginInfo.PluginId = "5DB5DC11FF58"; // {62C6BD58-6A2C-4a9e-8208-5DB5DC11FF58}
     pluginInfo.PluginIcon = WeXpmToStringList(redis_xpm, sizeof(redis_xpm) / sizeof(char*) );
-    db_dir = "";
     lastId = 0;
+    db_host = "localhost";
+    db_port = 6379;
+    db_index = 0;
+    db_auth = "";
+    db_cli = NULL;
+#ifdef WIN32
+    //----------------------
+    // Initialize Winsock
+    WSADATA wsaData;
+    int iResult;
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != NO_ERROR) {
+        LOG4CXX_FATAL(logger, "WSAStartup failed: " << iResult);
+    }
+#endif
     LOG4CXX_TRACE(logger, "RedisStorage plugin created");
 }
 
 RedisStorage::~RedisStorage(void)
 {
+    if (db_cli != NULL)
+    {
+        delete db_cli;
+    }
     LOG4CXX_TRACE(logger, "RedisStorage plugin destroyed");
 }
 
@@ -79,77 +100,118 @@ void RedisStorage::ApplySettings( const string& xmlData )
 bool RedisStorage::InitStorage(const string& params)
 {
     bool retval = false;
+    LOG4CXX_TRACE(logger, "RedisStorage::InitStorage");
+    StrStream ss(params.c_str());
+    TagScanner sc(ss);
+    int token;
+    bool inParsing = true;
+    string dat;
+    string name;
 
-    LOG4CXX_TRACE(logger, "FsStorage::InitStorage params = " << params);
-    try {
-        db_dir = params;
-        fs::path dir_path(db_dir);
-        if ( !fs::exists(dir_path) ) {
-            fs::create_directory(db_dir.c_str());
-        }
-        else {
-            if ( ! fs::is_directory(dir_path) ) {
-                dir_path = dir_path.remove_filename();
-                db_dir = dir_path.string();
-            }
-        }
-        LOG4CXX_TRACE(logger, "FsStorage::InitStorage: base dir is " << db_dir);
-
-        int i = 0;
-        while (tables[i] != NULL)
+    while (inParsing)
+    {
+        token = sc.GetToken();
+        switch(token)
         {
-            // check storage presence
-            dir_path = db_dir;
-            dir_path /= tables[i];
-            if ( !fs::exists(dir_path) ) {
-                fs::create_directory(dir_path);
-        }
-        else {
-            if ( ! fs::is_directory(dir_path) ) {
-                string msg = dir_path.string() + "isn't a directory";
-                    throw std::runtime_error(msg.c_str());
-                }
+        case wstError:
+            LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::InitStorage parsing error");
+            inParsing = false;
+            break;
+        case wstEof:
+            LOG4CXX_TRACE(iLogger::GetLogger(), "RedisStorage::InitStorage - EOF");
+            inParsing = false;
+            break;
+        case wstTagStart:
+            name = sc.GetTagName();
+            dat = "";
+            break;
+        case wstTagEnd:
+            name = sc.GetTagName();
+            if (name == "server")
+            {
+                db_host = dat;
             }
-            LOG4CXX_TRACE(logger, "FsStorage::InitStorage: " << tables[i] << " storage dir is " << dir_path.string());
-            i++;
+            if (name == "port")
+            {
+                db_port = lexical_cast<int>(dat);
+            }
+            if (name == "db_num")
+            {
+                db_index = lexical_cast<int>(dat);
+            }
+            if (name == "auth")
+            {
+                db_auth = dat;
+            }
+            break;
+        case wstWord: 
+        case wstSpace:
+            dat += sc.GetValue();
+            break;
+        };
+    }
+    if (db_cli != NULL)
+    {
+        delete db_cli;
+    }
+    dat = "init";
+    try
+    {
+        db_cli = new redis::client(db_host, db_port);
+        if (db_auth != "")
+        {
+            dat = "authentication";
+            db_cli->auth(db_auth);
         }
+        dat = "select DB";
+        db_cli->select(db_index);
     }
-    catch(std::exception& e) {
-        LOG4CXX_ERROR(logger, "FsStorage::InitStorage: " << e.what());
+    catch(redis::redis_error& e)
+    {
+    	LOG4CXX_FATAL(iLogger::GetLogger(), "Redis DB connection error (" << dat << "): " << (string)e);
         retval = false;
+        if (db_cli != NULL) {
+            delete db_cli;
+        }
+        db_cli = NULL;
     }
+
     return retval;
 }
 
 void RedisStorage::Flush(const string& params /*= ""*/)
 {
-    // nothing to do. Just reimplement base class method
+    if (db_cli)
+    {
+        try{
+            db_cli->bgsave();
+        }
+        catch(redis::redis_error& e) {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "Redis DB save: " << (string)e);
+        }
+    }
 }
 
 string RedisStorage::GenerateID(const string& objType /*= ""*/)
 {
     string retval = "";
-    fs::path dir_path(db_dir);
 
-    dir_path /= "index";
-
-    try {
-        ifstream ifs(dir_path.string().c_str());
-        ifs >> lastId;
-    }
-    catch ( const std::exception& )
+    if (db_cli)
     {
-        LOG4CXX_WARN(logger, "FsStorage::GenerateID no index for " << objType);
-        lastId = 1;
-    }
-    retval = lexical_cast<string>(++lastId);
-    try {
-        ofstream ofs(dir_path.string().c_str());
-        ofs << lastId;
-    }
-    catch ( const std::exception & )
-    {
-        LOG4CXX_ERROR(logger, "FsStorage::GenerateID can't save index for " << objType);
+        try{
+            lastId = db_cli->incr("index");
+            retval = lexical_cast<string>(lastId);
+        }
+        catch(redis::redis_error& e) {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "Redis DB get index: " << (string)e);
+            retval = lexical_cast<string>(++lastId);
+            try{
+                db_cli->set("index", retval);
+            }
+            catch(redis::redis_error& e) {
+                LOG4CXX_ERROR(iLogger::GetLogger(), "Redis DB set index: " << (string)e);
+            }
+        }
     }
 
     return retval;
@@ -157,21 +219,135 @@ string RedisStorage::GenerateID(const string& objType /*= ""*/)
 
 int RedisStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
 {
-    return 0;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "RedisStorage::Get");
+
+    results.clear();
+
+    if (db_cli == NULL)
+    {
+        LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::Get redis DB not initialized yet!");
+        return 0;
+    }
+
+    StringList* objIdxs;
+    StringList filterNames;
+    StringList reportNames;
+    StringList nonflNames;
+    wOption opt;
+    size_t i, j;
+    string key, sdata;
+
+    if (filter.OptionSize() > 0)
+    {
+        objIdxs = Search(filter);
+    }
+    else {
+        objIdxs = GetNamespaceIdxs(filter.objectID);
+    }
+    if (objIdxs->size() > 0) {
+        // prepare filter list
+        reportNames = respFilter.OptionsList();
+        if (reportNames.size() == 0)
+        {
+            StringList* strct;
+            strct = GetStruct(filter.objectID);
+            if (strct != NULL)
+            {
+                reportNames = *strct;
+                delete strct;
+            }
+        }
+        for (i = 0; i < objIdxs->size(); i++) {
+            Record* objRes = new Record;
+            objRes->objectID = filter.objectID;
+            for (j = 0; j < reportNames.size(); j++)
+            {
+                key = (*objIdxs)[i] + "_" + reportNames[j];
+                try {
+                    sdata = db_cli->get(key);
+                }
+                catch (redis::redis_error& e) {
+                    LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::Get error on get '" << key << "': " << (string)e);
+                    sdata = "";
+                }
+                objRes->Option(reportNames[j], sdata);
+            } // and of attribute filters
+            results.push_back(*objRes);
+        } // end of objects search
+    } // has objects
+
+    return (int)results.size();
 }
 
 int RedisStorage::Set(Record& filter, Record& data)
 {
-    return 0;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "RedisStorage::Set(Record, Record)");
+    if (db_cli == NULL)
+    {
+        LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::Get redis DB not initialized yet!");
+        return 0;
+    }
+
+    StringList* lst = NULL;
+    wOption opt;
+    string idx;
+    StringList objProps;
+    size_t i, j;
+    string stData, stValue;
+
+    if (filter.OptionSize() > 0)
+    {   // try to update
+        lst = Search(filter);
+    }
+    else {
+        lst = new StringList;
+    }
+    if (lst->size() == 0)
+    {   // insert data
+        opt = data.Option(weoID);
+        SAFE_GET_OPTION_VAL(opt, idx, "");
+        if (idx == "")
+        {   // get next index from list
+            idx = GenerateID(data.objectID);
+        }
+        lst->push_back(idx);
+    }
+
+    objProps = data.OptionsList();
+
+    for (i = 0; i < lst->size(); i++)
+    {
+        for (j = 0; j < objProps.size(); j++)
+        {
+            wOption opt = data.Option(objProps[j]);
+            stValue = boost::lexical_cast<std::string>(opt.Value());
+            stData = (*lst)[i] + "_" + objProps[j];
+            try{
+                db_cli->set(stData, stValue);
+            }
+            catch (redis::redis_error& e) {
+                LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::Set error at '" << stData << "' record: " << (string)e);
+            }
+        }
+        try {
+            stData = data.objectID + "_keys";
+            db_cli->sadd(stData, (*lst)[i]);
+
+        }
+        catch (redis::redis_error& e) {
+            LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::Set error saving '" << (*lst)[i] <<
+                "' index in '" << data.objectID << "'namespace: " << (string)e);
+        }
+    }
+    FixStruct(data);
+    i = lst->size();
+    delete lst;
+    return (int)i;
 }
 
 int RedisStorage::Set(RecordSet& data)
 {
     wOption opt;
-    string fName;
-    RecordSet* retlist = NULL;
-    fs::path fp;
-    Record sv;
     int retval = 0;
     size_t i;
     Record fl;
@@ -191,80 +367,123 @@ int RedisStorage::Set(RecordSet& data)
 int RedisStorage::Delete(Record& filter)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "RedisStorage::Delete");
-    return 0;
-}
 
-RecordSet* RedisStorage::Search(Record& filter, bool all/* = false*/)
-{
-    RecordSet* retlist = new RecordSet;
-    RecordSet* datalist = NULL;
-    fs::path dir_path(db_dir);
-    Record* data;
-    StringList objProps;
-    wOption opt;
-    string stValue, stData;
-    size_t j;
-
-    dir_path /= filter.objectID;
-
-    fs::directory_iterator end_itr; // default construction yields past-the-end
-    for ( fs::directory_iterator itr( dir_path ); itr != end_itr; ++itr )
+    if (db_cli == NULL)
     {
-        if (starts_with(itr->path().filename(), "data"))
-        {
-            data = FileRead(itr->path().string());
-            bool skip = false;
-            if (!all)
-            {
-                objProps = filter.OptionsList();
-                for (j = 0; j < objProps.size(); j++)
-                {
-                    opt = filter.Option(objProps[j]);
-                    stValue = boost::lexical_cast<std::string>(opt.Value());
-
-                    opt = data->Option(objProps[j]);
-                    stData = boost::lexical_cast<std::string>(opt.Value());
-
-                    if (stData != stValue)
-                    {
-                        skip = true;
-                    }
-                } // compare options
-            } // take all files
-            if (!skip)
-            {
-                data->objectID = filter.objectID;
-                retlist->push_back(*data);
-            }
-            else {
-                delete data;
-            }
-
-        }
+        LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::Delete redis DB not initialized yet!");
+        return 0;
     }
 
+    StringList* lst = Search(filter);
+    int retval;
+    size_t i, j;
+    string kname, tmp;
+    StringList ks;
+
+    retval = (int)lst->size();
+    for (i = 0; i < lst->size(); i++)
+    {
+        try{
+            kname = (*lst)[i];
+            tmp = kname + "_*";
+            ks.clear();
+            db_cli->keys(tmp, ks);
+            for (j = 0; j < ks.size(); j++)
+            {
+                try{
+                    db_cli->del(ks[j]);
+                }
+                catch (redis::redis_error& e) {
+                    LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::Delete deleting '" << ks[j] << "' error: " << (string)e);
+                }
+            }
+            tmp = filter.objectID + "_keys";
+            db_cli->srem(tmp, kname);
+        }
+        catch (redis::redis_error& e) {
+            LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::Delete error at '" << (*lst)[i] << "' record: " << (string)e);
+        }
+    }
+    delete lst;
+    return retval;
+}
+
+StringList* RedisStorage::Search(Record& filter, bool all/* = false*/)
+{
+    StringList* retlist = new StringList;
+    StringMap::iterator obj;
+    string stData, stValue, kname;
+    StringList* objIdxs;
+    StringList objProps;
+    size_t i, j;
+
+    objIdxs = GetNamespaceIdxs(filter.objectID);
+
+    if (db_cli == NULL)
+    {
+        LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::Search redis DB not initialized yet!");
+        return retlist;
+    }
+
+    for (i = 0; i < objIdxs->size(); i++) {
+        bool skip = false;
+        objProps = filter.OptionsList();
+        for (j = 0; j < objProps.size(); j++)
+        {
+            wOption opt = filter.Option(objProps[j]);
+            stValue = boost::lexical_cast<std::string>(opt.Value());
+
+            kname = (*objIdxs)[i] + "_" + objProps[j];
+            try
+            {
+                stData = db_cli->get(kname);
+            }
+            catch (redis::redis_error& e)
+            {
+                LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::Search get '" << kname << "' error: " << (string)e);
+                stData = "";
+            }
+            if (stData != stValue)
+            {
+                skip = true;
+            }
+        }
+        if (!skip)
+        {
+            retlist->push_back((*objIdxs)[i]);
+        }
+    }
+    delete objIdxs;
     return retlist;
 }
 
 StringList* RedisStorage::GetStruct(const string& nspace)
 {
-    fs::path fp(db_dir);
     StringList *structNames;
+    redis::client::string_set   smembers;
 
-    fp /= nspace;
-    fp /= "struct";
     structNames = new StringList;
-    try
+    if (db_cli != NULL)
     {
-        ifstream is(fp.string().c_str());
-        boost::archive::text_iarchive ia(is);
-        // read class instance from archive
-        ia >> (*structNames);
-        // archive and stream closed when destructor are called
+        try
+        {
+            string key = nspace + "_struct";
+            db_cli->smembers(key, smembers);
+            redis::client::string_set::iterator it;
+            for (it = smembers.begin(); it != smembers.end(); it++)
+            {
+                structNames->push_back(*it);
+            }
+        }
+        catch(redis::redis_error& e)
+        {
+            LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::GetStruct '" << nspace << "' error: " << (string)e);
+            delete structNames;
+            structNames = NULL;
+        }
     }
-    catch(std::exception& e)
-    {
-        LOG4CXX_WARN(iLogger::GetLogger(), "FsStorage::GetStruct " << nspace << " structure error: " << e.what());
+    else {
+        LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::GetStruct redis DB not initialized yet!");
         delete structNames;
         structNames = NULL;
     }
@@ -272,45 +491,59 @@ StringList* RedisStorage::GetStruct(const string& nspace)
     return structNames;
 }
 
-void RedisStorage::FixStruct(const string& nspace, Record& strt)
+void RedisStorage::FixStruct(Record& strt)
 {
-    StringMap::iterator obj;
-    StringList::iterator lst;
-    string stData;
-    StringList* structNames;
+    string key = strt.objectID + "_struct";
     StringList flNames;
     size_t i;
 
-    fs::path fp(db_dir);
-    fp /= nspace;
-    fp /= "struct";
-
-    structNames = GetStruct(nspace);
-    if (structNames == NULL)
+    if (db_cli != NULL)
     {
-        structNames = new StringList;
-    }
-    flNames = strt.OptionsList();
-    for (i = 0 ; i < flNames.size(); i++)
-    {
-        lst = find(structNames->begin(), structNames->end(), flNames[i]);
-        if (lst == structNames->end())
+        flNames = strt.OptionsList();
+        for (i = 0 ; i < flNames.size(); i++)
         {
-            structNames->push_back(flNames[i]);
+            try
+            {
+                db_cli->sadd(key, flNames[i]);
+            }
+            catch (redis::redis_error& e)
+            {
+                LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::FixStruct '" << strt.objectID << "' error: " << (string)e);
+                break;
+            }
         }
     }
-    try
-    {
-        ofstream os(fp.string().c_str());
-        boost::archive::text_oarchive oa(os);
-        // read class instance from archive
-        oa << (*structNames);
-        // archive and stream closed when destructor are called
-    }
-    catch(std::exception& e)
-    {
-        LOG4CXX_WARN(iLogger::GetLogger(), "FsStorage::FixStruct save " << nspace << " structure error: " << e.what());
-        return;
+    else {
+        LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::FixStruct redis DB not initialized yet!");
     }
 }
 
+StringList* RedisStorage::GetNamespaceIdxs(const string& objType)
+{
+    StringList* objIdxs = new StringList;
+    string key = objType + "_keys";
+    redis::client::string_set   smembers;
+
+    if (db_cli != NULL)
+    {
+        try
+        {
+            db_cli->smembers(key, smembers); //*objIdxs);
+            redis::client::string_set::iterator it;
+            for (it = smembers.begin(); it != smembers.end(); it++)
+            {
+                objIdxs->push_back(*it);
+            }
+        }
+        catch(redis::redis_error& e)
+        {
+            LOG4CXX_WARN(iLogger::GetLogger(), "RedisStorage::GetNamespaceIdxs '" << objType << "' error: " << (string)e);
+            objIdxs->clear();
+        }
+    }
+    else {
+        LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::GetNamespaceIdxs redis DB not initialized yet!");
+        objIdxs->clear();
+    }
+    return objIdxs;
+}

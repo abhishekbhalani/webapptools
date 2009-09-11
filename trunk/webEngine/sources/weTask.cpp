@@ -413,7 +413,9 @@ RecordSet* Task::ToRS( const string& parentID/* = ""*/ )
     SAFE_GET_OPTION_VAL(optVal, tskId, "");
     trec->Option(weoID, optVal.Value());
 
-    trec->Option(weoParentID, parentID);
+    optVal = Option(weoParentID);
+    SAFE_GET_OPTION_VAL(optVal, strData, "");
+    trec->Option(weoParentID, strData);
 
     optVal = Option(weoName);
     trec->Option(weoName, optVal.Value());
@@ -480,7 +482,16 @@ void Task::FromRS( RecordSet *rs  )
     size_t r;
     wOptionVal optVal;
     wOption opt;
-    string strData;
+    string strData, sName;
+    int tp;
+    char c;
+    unsigned char uc;
+    int i;
+    unsigned int ui;
+    long l;
+    unsigned long ul;
+    bool b;
+    double d;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "Task::FromRS");
 
@@ -502,12 +513,53 @@ void Task::FromRS( RecordSet *rs  )
         }
         if (rec.objectID == weObjTypeSysOption) {
             opt = rec.Option(weoName);
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            // type doesn't matter here
-            // opt = rec.Option(weoTypeID);
+            SAFE_GET_OPTION_VAL(opt, sName, "");
+            // type 
+            opt = rec.Option(weoTypeID);
+            SAFE_GET_OPTION_VAL(opt, strData, "8");
+            tp = boost::lexical_cast<int>(strData);
+            // value
             opt = rec.Option(weoValue);
-            optVal = opt.Value();
-            Option(strData, optVal);
+            strData = boost::lexical_cast<string>(opt.Value());
+            switch(tp)
+            {
+            case 0:
+                c = boost::lexical_cast<char>(strData);
+                Option(sName, c);
+                break;
+            case 1:
+                uc = boost::lexical_cast<unsigned char>(strData);
+                Option(sName, uc);
+                break;
+            case 2:
+                i = boost::lexical_cast<int>(strData);
+                Option(sName, i);
+                break;
+            case 3:
+                ui = boost::lexical_cast<unsigned int>(strData);
+                Option(sName, ui);
+                break;
+            case 4:
+                l = boost::lexical_cast<long>(strData);
+                Option(sName, l);
+                break;
+            case 5:
+                ul = boost::lexical_cast<unsigned long>(strData);
+                Option(sName, ul);
+                break;
+            case 6:
+                b = boost::lexical_cast<bool>(strData);
+                Option(sName, b);
+                break;
+            case 7:
+                d = boost::lexical_cast<double>(strData);
+                Option(sName, d);
+                break;
+            case 8:
+            default:
+                Option(sName, strData);
+                break;
+            }
         }
     }
 }
