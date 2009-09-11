@@ -29,7 +29,9 @@
  */
 
 #include "redisclient.h"
+extern "C" {
 #include "anet.h"
+};
 
 #include <sstream>
 
@@ -42,8 +44,13 @@
 #include <cstring>
 #include <cassert>
 
+#ifdef WIN32
+#include <errno.h>
+#include <winsock2.h>
+#else
 #include <sys/errno.h>
 #include <sys/socket.h>
+#endif
 
 using namespace std;
 
@@ -144,17 +151,17 @@ namespace
 
   // Reads N bytes from given blocking socket.
 
-  string read_n(int socket, ssize_t n)
+  string read_n(int socket, size_t n)
   {
     char * buffer = new char[n + 1];
     buffer[n] = '\0';
 
     char * bp = buffer;
-    ssize_t bytes_read = 0;
+    size_t bytes_read = 0;
 
     while (bytes_read != n) 
     {
-      ssize_t bytes_received = 0;
+      size_t bytes_received = 0;
       do bytes_received = recv(socket, bp, n - (bp - buffer), 0);
       while (bytes_received < 0 && errno == EINTR);
 
@@ -177,7 +184,7 @@ namespace
   // bytes are read before finding an EOL delimiter, a blank string is
   // returned.
 
-  string read_line(int socket, ssize_t max_size = 2048) 
+  string read_line(int socket, size_t max_size = 2048) 
   {
     assert(socket > 0);
     assert(max_size > 0);
@@ -188,14 +195,14 @@ namespace
     char buffer[buffer_size];
     memset(buffer, 0, buffer_size);
 
-    ssize_t total_bytes_read = 0;
+    size_t total_bytes_read = 0;
     bool found_delimiter = false;
 
     while (total_bytes_read < max_size && !found_delimiter)
     {
       // Peek at what's available.
 
-      ssize_t bytes_received = 0;
+      size_t bytes_received = 0;
       do bytes_received = recv(socket, buffer, buffer_size, MSG_PEEK);
       while (bytes_received < 0 && errno == EINTR);
 
@@ -210,7 +217,7 @@ namespace
       // If found, write data from the buffer to the output string.
       // Else, write the entire buffer and continue reading more data.
 
-      ssize_t to_read = bytes_received;
+      size_t to_read = bytes_received;
 
       if (eol) 
       {
@@ -317,8 +324,13 @@ namespace redis
 
   client::~client()
   {
-    if (socket_ != ANET_ERR)
-      close(socket_);
+      if (socket_ != ANET_ERR) {
+#ifdef WIN32
+          closesocket(socket_);
+#else
+          close(socket_);
+#endif
+      }
   }
 
   void client::auth(const client::string_type & pass)
@@ -699,7 +711,7 @@ namespace redis
     {
       recv_ok_reply_();
     }
-    catch (connection_error & e)
+    catch (connection_error &)
     {
     }
   }

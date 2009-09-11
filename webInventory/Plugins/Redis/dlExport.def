@@ -1,2 +1,2 @@
-LIBRARY	"FsStorage.plg"
+LIBRARY	"Redis.plg"
 EXPORTS WePluginFactory

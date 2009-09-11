@@ -99,7 +99,7 @@ void iOptionsProvider::FromRS( RecordSet *rs )
             SAFE_GET_OPTION_VAL(opt, strData, "8");
             tp = boost::lexical_cast<int>(strData);
             opt = rec.Option(weoValue);
-            SAFE_GET_OPTION_VAL(opt, strData, "");
+            strData = boost::lexical_cast<string>(opt.Value());
             switch(tp)
             {
             case 0:
