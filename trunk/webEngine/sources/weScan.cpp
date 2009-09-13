@@ -97,15 +97,27 @@ void ScanInfo::FromRS( RecordSet* rs )
 
             opt = rec.Option("starttime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            startTime = posix_time::time_from_string(strData);
+            try {
+                startTime = posix_time::time_from_string(strData);
+            } catch (std::exception& e) {
+                startTime = posix_time::not_a_date_time;
+            }
 
             opt = rec.Option("finishtime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            finishTime = posix_time::time_from_string(strData);
+            try {
+                finishTime = posix_time::time_from_string(strData);
+            } catch (std::exception& e) {
+                finishTime = posix_time::not_a_date_time;
+            }
 
             opt = rec.Option("pingtime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            pingTime = posix_time::time_from_string(strData);
+            try {
+                pingTime = posix_time::time_from_string(strData);
+            } catch (std::exception& e) {
+                pingTime = posix_time::not_a_date_time;
+            }
 
             opt = rec.Option(weoTaskStatus);
             try {

@@ -17,5 +17,6 @@
 			<Depends filename="../Plugins/FsStorage/storageFS.cbp" />
 			<Depends filename="../Scanner/tskScanner.cbp" />
 		</Project>
+		<Project filename="../Plugins/Redis/storageRedis.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

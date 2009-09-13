@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="FsStorage" />
+		<Option title="Redis" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -55,8 +55,15 @@
 			<Add option="-Wno-deprecated" />
 			<Add directory="../../../webEngine/include" />
 		</Compiler>
+		<Unit filename="anet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="anet.h" />
 		<Unit filename="dlExport.def" />
 		<Unit filename="dlMain.cpp" />
+		<Unit filename="fmacros.h" />
+		<Unit filename="redisclient.cpp" />
+		<Unit filename="redisclient.h" />
 		<Unit filename="storageRedis.cpp" />
 		<Unit filename="storageRedis.h" />
 		<Unit filename="version.h" />
