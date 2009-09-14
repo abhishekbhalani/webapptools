@@ -20,7 +20,7 @@ namespace AutoVersion{
 	static const long REVISION = 36;
 	
 	//Miscellaneous Version Types
-	static const long BUILDS_COUNT = 273;
+	static const long BUILDS_COUNT = 279;
 	#define RC_FILEVERSION 0,1,7,36
 	#define RC_FILEVERSION_STRING "0, 1, 7, 36\0"
 	static const char FULLVERSION_STRING[] = "0.1.7.36";

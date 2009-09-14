@@ -18,6 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
+#include <boost/thread.hpp>
 #include <weiStorage.h>
 #include "redisclient.h"
 
@@ -153,4 +154,5 @@ protected:
     string db_auth;
     int db_index;
     redis::client* db_cli;
+    boost::mutex db_lock;
 };

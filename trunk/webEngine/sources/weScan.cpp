@@ -99,7 +99,7 @@ void ScanInfo::FromRS( RecordSet* rs )
             SAFE_GET_OPTION_VAL(opt, strData, "");
             try {
                 startTime = posix_time::time_from_string(strData);
-            } catch (std::exception& e) {
+            } catch (std::exception&) {
                 startTime = posix_time::not_a_date_time;
             }
 
@@ -107,7 +107,7 @@ void ScanInfo::FromRS( RecordSet* rs )
             SAFE_GET_OPTION_VAL(opt, strData, "");
             try {
                 finishTime = posix_time::time_from_string(strData);
-            } catch (std::exception& e) {
+            } catch (std::exception&) {
                 finishTime = posix_time::not_a_date_time;
             }
 
@@ -115,7 +115,7 @@ void ScanInfo::FromRS( RecordSet* rs )
             SAFE_GET_OPTION_VAL(opt, strData, "");
             try {
                 pingTime = posix_time::time_from_string(strData);
-            } catch (std::exception& e) {
+            } catch (std::exception&) {
                 pingTime = posix_time::not_a_date_time;
             }
 

@@ -37,8 +37,7 @@ extern "C" {
 
 #ifndef NDEBUG
 #include <algorithm>
-#include <iostream>
-#include <ctime>
+#include <weLogger.h>
 #endif
 
 #include <cstring>
@@ -53,6 +52,10 @@ extern "C" {
 #endif
 
 using namespace std;
+
+#ifndef NDEBUG
+extern log4cxx::LoggerPtr redisLogger;
+#endif
 
 namespace 
 {
@@ -90,22 +93,20 @@ namespace
 
 #ifndef NDEBUG
 
-  void output_proto_debug(const string & data, bool is_received = true)
-  {
-    string escaped_data(data);
-    size_t pos;
-    while ((pos = escaped_data.find("\n")) != string::npos)
-      escaped_data.replace(pos, 1, "\\n");
-    while ((pos = escaped_data.find("\r")) != string::npos)
-      escaped_data.replace(pos, 1, "\\r");
+    void output_proto_debug(const string & data, bool is_received = true)
+    {
+        string escaped_data(data);
+        size_t pos;
+        while ((pos = escaped_data.find("\n")) != string::npos)
+              escaped_data.replace(pos, 1, "\\n");
+        while ((pos = escaped_data.find("\r")) != string::npos)
+              escaped_data.replace(pos, 1, "\\r");
 
-    cerr 
-      << time(NULL) << ": " 
-      << (is_received ? "RECV '" : "SEND '")
-      << escaped_data 
-      << "'" 
-      << endl;
-  }
+        if (redisLogger)
+        {
+            LOG4CXX_DEBUG(redisLogger, (is_received ? "RECV '" : "SEND '") << escaped_data << "'");
+        }
+    }
 
 #endif
 
