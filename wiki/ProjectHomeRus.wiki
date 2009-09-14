@@ -27,6 +27,6 @@
 
     * [Documentation Документация по проекту] 
     * [Sponsorship Информация для разработчиков и инвесторов]
-
+    * [http://code.google.com/p/webapptools/wiki/ProjectStatus Статус проекта]
 <table border="1" width="100%"><tr><td><a href="http://code.google.com/p/webapptools">English Version</a></td></tr></table>
 <wiki:gadget url="http://www.ohloh.net/p/401602/widgets/project_thin_badge.xml" height="36"  border="0" />
