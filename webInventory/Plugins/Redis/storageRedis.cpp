@@ -38,6 +38,10 @@ static char* tables[] = {weObjTypeTask,
                         weObjTypeProfile,
                         NULL}; // close the list with NULL
 
+#ifndef NDEBUG
+log4cxx::LoggerPtr redisLogger;
+#endif
+
 RedisStorage::RedisStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     iStorage(krnl, handle)
 {
@@ -61,6 +65,9 @@ RedisStorage::RedisStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
     if (iResult != NO_ERROR) {
         LOG4CXX_FATAL(logger, "WSAStartup failed: " << iResult);
     }
+#endif
+#ifndef NDEBUG
+    redisLogger = logger;
 #endif
     LOG4CXX_TRACE(logger, "RedisStorage plugin created");
 }
@@ -150,6 +157,8 @@ bool RedisStorage::InitStorage(const string& params)
             break;
         };
     }
+    boost::lock_guard<boost::mutex> lock(db_lock);
+
     if (db_cli != NULL)
     {
         delete db_cli;
@@ -183,6 +192,7 @@ void RedisStorage::Flush(const string& params /*= ""*/)
 {
     if (db_cli)
     {
+        boost::lock_guard<boost::mutex> lock(db_lock);
         try{
             db_cli->bgsave();
         }
@@ -198,6 +208,7 @@ string RedisStorage::GenerateID(const string& objType /*= ""*/)
 
     if (db_cli)
     {
+        boost::lock_guard<boost::mutex> lock(db_lock);
         try{
             lastId = db_cli->incr("index");
             retval = lexical_cast<string>(lastId);
@@ -228,6 +239,8 @@ int RedisStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
         LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::Get redis DB not initialized yet!");
         return 0;
     }
+
+    boost::lock_guard<boost::mutex> lock(db_lock);
 
     StringList* objIdxs;
     StringList filterNames;
@@ -287,6 +300,8 @@ int RedisStorage::Set(Record& filter, Record& data)
         LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::Get redis DB not initialized yet!");
         return 0;
     }
+
+    boost::lock_guard<boost::mutex> lock(db_lock);
 
     StringList* lst = NULL;
     wOption opt;
@@ -373,6 +388,8 @@ int RedisStorage::Delete(Record& filter)
         LOG4CXX_FATAL(iLogger::GetLogger(), "RedisStorage::Delete redis DB not initialized yet!");
         return 0;
     }
+
+    boost::lock_guard<boost::mutex> lock(db_lock);
 
     StringList* lst = Search(filter);
     int retval;
