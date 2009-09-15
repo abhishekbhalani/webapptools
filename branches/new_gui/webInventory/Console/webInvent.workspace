@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="webInvent.cbp" active="1" />
+		<Project filename="Plugins\SimpleReporter\SimpleReporter.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>
