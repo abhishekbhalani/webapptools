@@ -7,8 +7,8 @@
 		<Option compiler="" />
 		<Build>
 			<Target title="Debug MSVC 2005">
-				<Option output="Debug\webInvent" prefix_auto="1" extension_auto="1" />
-				<Option object_output="Debug\obj\" />
+				<Option output="Debug/webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug/obj/" />
 				<Option type="0" />
 				<Option compiler="msvc8" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -21,10 +21,10 @@
 					<Add option="/D__WXDEBUG__" />
 					<Add option="/D_WIN32_WINNT=0x0501" />
 					<Add option="/DwxUSE_UNICODE" />
-					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
+					<Add directory="${WXWIN}/lib/vc_lib/mswud" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
+					<Add directory="${WXWIN}/lib/vc_lib/mswud" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="/DEBUG" />
@@ -47,13 +47,13 @@
 					<Add library="wxbase28ud_net.lib" />
 					<Add library="wxmsw28ud_xrc.lib" />
 					<Add library="wxexpatd.lib" />
-					<Add directory="${WXWIN}\lib\vc_lib" />
-					<Add directory="..\..\webEngine\libs\debug" />
+					<Add directory="${WXWIN}/lib/vc_lib" />
+					<Add directory="../../webEngine/libs/debug" />
 				</Linker>
 			</Target>
 			<Target title="Release MSVC 2005">
-				<Option output="Release\webInvent" prefix_auto="1" extension_auto="1" />
-				<Option object_output="Release\obj\" />
+				<Option output="Release/webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release/obj/" />
 				<Option type="0" />
 				<Option compiler="msvc8" />
 				<Option projectLinkerOptionsRelation="2" />
@@ -67,10 +67,10 @@
 					<Add option="/DNDEBUG" />
 					<Add option="/D_WIN32_WINNT=0x0501" />
 					<Add option="/DwxUSE_UNICODE" />
-					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
+					<Add directory="${WXWIN}/lib/vc_lib/mswu" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
+					<Add directory="${WXWIN}/lib/vc_lib/mswu" />
 				</ResourceCompiler>
 				<Linker>
 					<Add option="/NODEFAULTLIB:libcpmt.lib" />
@@ -91,13 +91,13 @@
 					<Add library="wxbase28u_net.lib" />
 					<Add library="wxmsw28u_xrc.lib" />
 					<Add library="wxexpat.lib" />
-					<Add directory="${WXWIN}\lib\vc_lib" />
-					<Add directory="..\..\webEngine\libs\release" />
+					<Add directory="${WXWIN}/lib/vc_lib" />
+					<Add directory="../../webEngine/libs/release" />
 				</Linker>
 			</Target>
 			<Target title="Debug GCC">
-				<Option output="Debug\webInvent" prefix_auto="1" extension_auto="1" />
-				<Option object_output="Debug\obj\" />
+				<Option output="Debug/webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug/obj/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectCompilerOptionsRelation="1" />
@@ -109,16 +109,17 @@
 					<Add option="-Wno-deprecated" />
 					<Add option="-D_DEBUG" />
 					<Add option="-D__WXDEBUG__" />
-					<Add directory="..\..\webEngine\include" />
+					<Add directory="../../webEngine/include" />
+					<Add directory="." />
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config --libs`" />
-					<Add directory="..\..\webEngine\libs\debug" />
+					<Add directory="../../webEngine/libs/debug" />
 				</Linker>
 			</Target>
 			<Target title="Release GCC">
-				<Option output="Release\webInvent" prefix_auto="1" extension_auto="1" />
-				<Option object_output="Release\obj\" />
+				<Option output="Release/webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release/obj/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectCompilerOptionsRelation="1" />
@@ -132,14 +133,15 @@
 					<Add option="-Wno-deprecated" />
 					<Add option="-Wno-write-strings" />
 					<Add option="-DNDEBUG" />
-					<Add directory="..\..\webEngine\include" />
+					<Add directory="../../webEngine/include" />
+					<Add directory="." />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add option="`wx-config --libs`" />
 					<Add library="libboost_serialization-mt.a" />
 					<Add library="libboost_system-mt.a" />
-					<Add directory="..\..\webEngine\libs\release" />
+					<Add directory="../../webEngine/libs/release" />
 				</Linker>
 			</Target>
 		</Build>
@@ -157,13 +159,13 @@
 			<Add option="/D_CRT_SECURE_DEPRECATE" />
 			<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
 			<Add directory="." />
-			<Add directory="..\..\webEngine\include" />
-			<Add directory="..\Common" />
-			<Add directory="${WXBASE}\include" />
-			<Add directory="${WXBASE}\contrib\include" />
+			<Add directory="../../webEngine/include" />
+			<Add directory="../Common" />
+			<Add directory="${WXBASE}/include" />
+			<Add directory="${WXBASE}/contrib/include" />
 		</Compiler>
 		<ResourceCompiler>
-			<Add directory="${WXWIN}\include" />
+			<Add directory="${WXWIN}/include" />
 		</ResourceCompiler>
 		<Linker>
 			<Add option="/INCREMENTAL:NO" />
@@ -184,68 +186,68 @@
 			<Add library="wsock32.lib" />
 			<Add library="odbc32.lib" />
 		</Linker>
-		<Unit filename="..\Common\messages.h" />
-		<Unit filename="..\Common\optionnames.h" />
-		<Unit filename="sources\Config.cpp" />
-		<Unit filename="sources\Config.h" />
-		<Unit filename="sources\Crypto.cpp" />
-		<Unit filename="sources\Crypto.h" />
-		<Unit filename="sources\PropGrid\advprops.cpp" />
-		<Unit filename="sources\PropGrid\editors.cpp" />
-		<Unit filename="sources\PropGrid\extras.cpp" />
-		<Unit filename="sources\PropGrid\manager.cpp" />
-		<Unit filename="sources\PropGrid\odcombo.cpp" />
-		<Unit filename="sources\PropGrid\propgrid.cpp" />
-		<Unit filename="sources\PropGrid\props.cpp" />
-		<Unit filename="sources\PropGrid\xh_propgrid.cpp" />
-		<Unit filename="sources\Reporting\wiLineReport.cpp" />
-		<Unit filename="sources\Reporting\wiLineReport.h" />
-		<Unit filename="sources\Reporting\wiReportData.cpp" />
-		<Unit filename="sources\Reporting\wiReportData.h" />
-		<Unit filename="sources\Sha1.hpp" />
-		<Unit filename="sources\treeData.h" />
-		<Unit filename="sources\version.h" />
-		<Unit filename="sources\weRttiOptions.cpp" />
-		<Unit filename="sources\weRttiOptions.h" />
-		<Unit filename="sources\wiApp.cpp" />
-		<Unit filename="sources\wiApp.h" />
-		<Unit filename="sources\wiGuiData.cpp" />
-		<Unit filename="sources\wiGuiData.h" />
-		<Unit filename="sources\wiMainForm.cpp" />
-		<Unit filename="sources\wiMainForm.h" />
-		<Unit filename="sources\wiObjDialog.cpp" />
-		<Unit filename="sources\wiObjDialog.h" />
-		<Unit filename="sources\wiPlgSelector.cpp" />
-		<Unit filename="sources\wiPlgSelector.h" />
-		<Unit filename="sources\wiReports.cpp" />
-		<Unit filename="sources\wiReports.h" />
-		<Unit filename="sources\wiServDialog.cpp" />
-		<Unit filename="sources\wiServDialog.h" />
-		<Unit filename="sources\wiSettings.cpp" />
-		<Unit filename="sources\wiSettings.h" />
-		<Unit filename="sources\wiStatBar.cpp" />
-		<Unit filename="sources\wiStatBar.h" />
-		<Unit filename="sources\wiTasks.cpp" />
-		<Unit filename="sources\wiTasks.h" />
-		<Unit filename="sources\wiTcpClient.cpp" />
-		<Unit filename="sources\wiTcpClient.h" />
-		<Unit filename="sources\win32res.h">
+		<Unit filename="../Common/messages.h" />
+		<Unit filename="../Common/optionnames.h" />
+		<Unit filename="sources/Config.cpp" />
+		<Unit filename="sources/Config.h" />
+		<Unit filename="sources/Crypto.cpp" />
+		<Unit filename="sources/Crypto.h" />
+		<Unit filename="sources/PropGrid/advprops.cpp" />
+		<Unit filename="sources/PropGrid/editors.cpp" />
+		<Unit filename="sources/PropGrid/extras.cpp" />
+		<Unit filename="sources/PropGrid/manager.cpp" />
+		<Unit filename="sources/PropGrid/odcombo.cpp" />
+		<Unit filename="sources/PropGrid/propgrid.cpp" />
+		<Unit filename="sources/PropGrid/props.cpp" />
+		<Unit filename="sources/PropGrid/xh_propgrid.cpp" />
+		<Unit filename="sources/Reporting/wiLineReport.cpp" />
+		<Unit filename="sources/Reporting/wiLineReport.h" />
+		<Unit filename="sources/Reporting/wiReportData.cpp" />
+		<Unit filename="sources/Reporting/wiReportData.h" />
+		<Unit filename="sources/Sha1.hpp" />
+		<Unit filename="sources/treeData.h" />
+		<Unit filename="sources/version.h" />
+		<Unit filename="sources/weRttiOptions.cpp" />
+		<Unit filename="sources/weRttiOptions.h" />
+		<Unit filename="sources/wiApp.cpp" />
+		<Unit filename="sources/wiApp.h" />
+		<Unit filename="sources/wiGuiData.cpp" />
+		<Unit filename="sources/wiGuiData.h" />
+		<Unit filename="sources/wiMainForm.cpp" />
+		<Unit filename="sources/wiMainForm.h" />
+		<Unit filename="sources/wiObjDialog.cpp" />
+		<Unit filename="sources/wiObjDialog.h" />
+		<Unit filename="sources/wiPlgSelector.cpp" />
+		<Unit filename="sources/wiPlgSelector.h" />
+		<Unit filename="sources/wiReports.cpp" />
+		<Unit filename="sources/wiReports.h" />
+		<Unit filename="sources/wiServDialog.cpp" />
+		<Unit filename="sources/wiServDialog.h" />
+		<Unit filename="sources/wiSettings.cpp" />
+		<Unit filename="sources/wiSettings.h" />
+		<Unit filename="sources/wiStatBar.cpp" />
+		<Unit filename="sources/wiStatBar.h" />
+		<Unit filename="sources/wiTasks.cpp" />
+		<Unit filename="sources/wiTasks.h" />
+		<Unit filename="sources/wiTcpClient.cpp" />
+		<Unit filename="sources/wiTcpClient.h" />
+		<Unit filename="sources/win32res.h">
 			<Option target="Debug MSVC 2005" />
 			<Option target="Release MSVC 2005" />
 		</Unit>
-		<Unit filename="sources\win32res.rc">
+		<Unit filename="sources/win32res.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="Debug MSVC 2005" />
 			<Option target="Release MSVC 2005" />
 		</Unit>
-		<Unit filename="sources\wxThings.h" />
+		<Unit filename="sources/wxThings.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />
 			<AutoVersioning>
 				<Scheme minor_max="99" build_max="999" rev_max="999" rev_rand_max="10" build_times_to_increment_minor="1" />
 				<Settings autoincrement="0" date_declarations="1" do_auto_increment="0" ask_to_increment="1" language="C++" svn="0" svn_directory="." header_path="./sources/version.h" />
-				<Changes_Log generate_log="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
+				<Changes_Log show_changes_editor="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
 			</AutoVersioning>
 			<envvars />
 		</Extensions>
