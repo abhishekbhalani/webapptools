@@ -29,6 +29,8 @@
 #include "../images/panSettings.xpm"
 #include "../images/panTasks.xpm"
 
+#include "../images/webInventory.xpm"
+
 wiMainForm::wiMainForm( wxWindow* parent ) :
     MainForm( parent ),
     m_cfgEngine(APP_NAME)

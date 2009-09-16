@@ -179,11 +179,6 @@ void wiTasks::OnRemovePlugin( wxCommandEvent& event )
 	// TODO: Implement OnRemovePlugin
 }
 
-void wiTasks::OnOptionsPageChanging( wxListbookEvent& event )
-{
-	// TODO: Implement OnOptionsPageChanging
-}
-
 void wiTasks::OnPauseTask( wxCommandEvent& event )
 {
 	// TODO: Implement OnPauseTask

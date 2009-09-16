@@ -49,7 +49,6 @@ protected:
 	void OnRunTask( wxCommandEvent& event );
 	void OnAddPlugin( wxCommandEvent& event );
 	void OnRemovePlugin( wxCommandEvent& event );
-	void OnOptionsPageChanging( wxListbookEvent& event );
 	void OnPauseTask( wxCommandEvent& event );
 	void OnCancelTask( wxCommandEvent& event );
 	void OnSortItems( wxListEvent& event );
