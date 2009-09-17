@@ -4050,7 +4050,7 @@
                         <property name="include_advanced">1</property>
                         <property name="maximum_size"></property>
                         <property name="minimum_size"></property>
-                        <property name="name">m_propertyGrid1</property>
+                        <property name="name">m_props</property>
                         <property name="permission">protected</property>
                         <property name="pos"></property>
                         <property name="size"></property>

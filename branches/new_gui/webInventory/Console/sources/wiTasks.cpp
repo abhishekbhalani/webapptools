@@ -14,6 +14,18 @@
 #include "../images/start.xpm"
 #include "../images/btnStop.xpm"
 
+static wxString genericSettings = wxT("<plugin>\
+  <category label=\"Basic settings\" name=\"generic\">\
+    <option name=\"LogLevel\" label=\"Logging Level\" type=\"2\" control=\"enum\">Trace;Debug;Info;Warning;Error;Fatal</option>\
+    <option name=\"TaskTail\" label=\"Task log tail\" type=\"2\" control=\"int\" min=\"0\" max=\"100\">10</option>\
+    <option name=\"\" label=\"Flags\">\
+      <option name=\"BoolShit\" label=\"Bool Shit\" type=\"2\" control=\"bool\" chkbox=\"1\">0</option>\
+      <option name=\"BoolShit2\" label=\"non-Bool Shit\" type=\"2\" control=\"bool\" chkbox=\"1\">yes</option>\
+      <option name=\"BoolShit3\" label=\"Option\" type=\"2\" control=\"bool\" chkbox=\"1\">no</option>\
+    </option>\
+  </category>\
+</plugin>");
+
 wiTasks::wiTasks( wxWindow* parent ) :
     Tasks( parent ),
     m_lstImages(16, 16)
@@ -31,7 +43,7 @@ wiTasks::wiTasks( wxWindow* parent ) :
 	wxImageList* m_plgBookImages = new wxImageList( m_plgBookImageSize.GetWidth(), m_plgBookImageSize.GetHeight() );
 	m_plgBookTree->AssignImageList( m_plgBookImages );
 
-	wxPanel* generic = new wiPluginSettings(m_plgBookTree, wxT(""));
+	wxPanel* generic = new wiPluginSettings(m_plgBookTree, genericSettings);
 	m_plgBookTree->AddPage( generic, _("Generic options"), true );
 
 	bSzProfile->Add( m_plgBookTree, 1, wxEXPAND | wxALL, 0 );
@@ -80,16 +92,16 @@ void wiTasks::RebuildTreeView()
     }
     m_plgBookTree->SetPageImage(0, 0);
     // transports
-    panel = CreateDefaultPanel(m_plgBookTree);
+    panel = new wiPluginSettings(m_plgBookTree, wxT(""));
     m_plgBookTree->AddPage(panel, _("Transports"), false, 1);
     // inventory
-    panel = CreateDefaultPanel(m_plgBookTree);
+    panel = new wiPluginSettings(m_plgBookTree, wxT(""));
     m_plgBookTree->AddPage(panel, _("Inventory"), false, 2);
     // audit
-    panel = CreateDefaultPanel(m_plgBookTree);
+    panel = new wiPluginSettings(m_plgBookTree, wxT(""));
     m_plgBookTree->AddPage(panel, _("Audit"), false, 3);
     // vulners
-    panel = CreateDefaultPanel(m_plgBookTree);
+    panel = new wiPluginSettings(m_plgBookTree, wxT(""));
     m_plgBookTree->AddPage(panel, _("Vulnerabilities"), false, 4);
 
     m_plgBookTree->SetSelection(0);

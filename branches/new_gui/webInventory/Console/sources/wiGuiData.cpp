@@ -615,8 +615,8 @@ PluginSettings::PluginSettings( wxWindow* parent, wxWindowID id, const wxPoint& 
 	wxBoxSizer* bSizer;
 	bSizer = new wxBoxSizer( wxVERTICAL );
 	
-	m_propertyGrid1 = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE);
-	bSizer->Add( m_propertyGrid1, 1, wxEXPAND, 5 );
+	m_props = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxPG_DEFAULT_STYLE);
+	bSizer->Add( m_props, 1, wxEXPAND, 5 );
 	
 	this->SetSizer( bSizer );
 	this->Layout();

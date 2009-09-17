@@ -117,7 +117,7 @@ void wiSettings::InitPluginsGrid()
     m_pgrdManager->AddPage(wxT("PluginInfo"));
 
     pg = m_pgrdManager->GetPage(wxT("PluginInfo"));
-    pg->Append( new wxPropertyCategory(wxT("Generic plugins"), wxT("generic")));
+    pg->Append( new wxPropertyCategory(_("Generic plugins"), wxT("generic")));
     pg->Append( new wxPropertyCategory(_("Storage plugins"), wxT("storage")));
     pg->Append( new wxPropertyCategory(_("Transport plugins"), wxT("transport")));
     pg->Append( new wxPropertyCategory(_("Inventory plugins"), wxT("inventory")));
