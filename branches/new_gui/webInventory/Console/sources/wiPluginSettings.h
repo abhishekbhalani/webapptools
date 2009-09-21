@@ -16,6 +16,7 @@ class wiPluginSettings : public PluginSettings
 protected:
     // functions
     void ProcessOption(wxXmlNode* node, const wxString& catId);
+    void ProcessCategory(wxXmlNode* node, const wxString& catId);
 
     // members
     wxString defaultSpace;

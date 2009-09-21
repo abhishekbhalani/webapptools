@@ -37,7 +37,7 @@ public:
 	/** Constructor */
 	wiSettings( wxWindow* parent );
 
-	void Connected();
+	void Connected(bool forced = true);
 	void Disconnected(bool forced = true);
 
 	wxString GetLanguage();

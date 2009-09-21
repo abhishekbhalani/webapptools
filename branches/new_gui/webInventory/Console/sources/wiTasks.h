@@ -66,6 +66,9 @@ public:
 
 	void RebuildTreeView();
 	wxPanel* CreateDefaultPanel(wxWindow* parent);
+
+    void Connected(bool forced = true);
+    void Disconnected(bool forced = true);
 };
 
 #endif // __wiTasks__

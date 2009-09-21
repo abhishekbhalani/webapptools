@@ -18,11 +18,6 @@ static wxString genericSettings = wxT("<plugin>\
   <category label=\"Basic settings\" name=\"generic\">\
     <option name=\"LogLevel\" label=\"Logging Level\" type=\"2\" control=\"enum\">Trace;Debug;Info;Warning;Error;Fatal</option>\
     <option name=\"TaskTail\" label=\"Task log tail\" type=\"2\" control=\"int\" min=\"0\" max=\"100\">10</option>\
-    <option name=\"\" label=\"Flags\">\
-      <option name=\"BoolShit\" label=\"Bool Shit\" type=\"2\" control=\"bool\" chkbox=\"1\">0</option>\
-      <option name=\"BoolShit2\" label=\"non-Bool Shit\" type=\"2\" control=\"bool\" chkbox=\"1\">yes</option>\
-      <option name=\"BoolShit3\" label=\"Option\" type=\"2\" control=\"bool\" chkbox=\"1\">no</option>\
-    </option>\
   </category>\
 </plugin>");
 
@@ -209,4 +204,12 @@ void wiTasks::OnSortItems( wxListEvent& event )
 void wiTasks::OnTaskSelected( wxListEvent& event )
 {
 	// TODO: Implement OnTaskSelected
+}
+
+void wiTasks::Connected(bool forced)
+{
+}
+
+void wiTasks::Disconnected(bool forced)
+{
 }

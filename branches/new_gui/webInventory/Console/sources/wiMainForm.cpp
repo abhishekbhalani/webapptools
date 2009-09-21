@@ -31,6 +31,9 @@
 
 #include "../images/webInventory.xpm"
 
+#define wxPING_TIMER    999
+#define wxPING_INTERVAL 10000
+
 wiMainForm::wiMainForm( wxWindow* parent ) :
     MainForm( parent ),
     m_cfgEngine(APP_NAME)
@@ -51,6 +54,11 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
 
     m_client = NULL;
     m_plugList = NULL;
+    m_connectionStatus = false;
+
+    m_timer.SetOwner(this, wxPING_TIMER);
+    this->Connect(wxEVT_TIMER, wxTimerEventHandler(wiMainForm::OnTimer));
+    m_timer.Start(wxPING_INTERVAL);
 }
 
 void wiMainForm::OnClose( wxCloseEvent& event )
@@ -67,7 +75,7 @@ void wiMainForm::OnClose( wxCloseEvent& event )
     Destroy();
 }
 
-void wiMainForm::Connect(int account)
+void wiMainForm::DoConnect(int account)
 {
     wxString host, port;
     long idt;
@@ -87,22 +95,19 @@ void wiMainForm::Connect(int account)
     m_client->Connect();
     host = m_client->GetScannerVersion();
     if (!host.IsEmpty()) {
-        //Connected();
+        m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Name"), account), &m_connectionName);
+        Connected();
         m_pSettings->SetServerVersion(host);
-        m_pSettings->Connected();
         LoadPluginList();
-        m_cfgEngine.Read(wxString::Format(wxT("Connection%d/Name"), account), &host);
-        m_statusBar->SetStatusText(host, 2);
     }
     else {
-        //Disconnected();
-        m_pSettings->Disconnected();
+        Disconnected();
         delete m_client;
         m_client = NULL;
     }
 }
 
-void wiMainForm::Disconnect()
+void wiMainForm::DoDisconnect()
 {
     m_client->DoCmd(wxT("close"), wxT(""));
     m_pSettings->Disconnected();
@@ -147,5 +152,56 @@ void wiMainForm::LoadPluginList()
     if (m_client != NULL) {
         m_plugList = m_client->GetPluginList();
         m_pSettings->ShowPluginsList(m_plugList);
+    }
+}
+
+void wiMainForm::Connected(bool forced)
+{
+    m_pTasks->Connected();
+    m_pSettings->Connected();
+    m_statusBar->SetImage(wiSTATUS_BAR_YES);
+    m_statusBar->SetStatusText(m_connectionName, 2);
+}
+
+void wiMainForm::Disconnected(bool forced)
+{
+    m_pTasks->Disconnected(forced);
+    m_pSettings->Disconnected(forced);
+    m_statusBar->SetImage(wiSTATUS_BAR_NO);
+    m_connectionName = wxT("");
+    m_statusBar->SetStatusText(m_connectionName, 2);
+}
+
+void wiMainForm::OnTimer( wxTimerEvent& event )
+{
+    /// @todo set status text
+    if (m_client != NULL) {
+        if (m_client->Ping()) {
+            if (m_connectionStatus == false) {
+                Connected(false);
+                wxString vers;
+                vers = m_client->GetScannerVersion();
+                if (!vers.IsEmpty()) {
+                    m_pSettings->SetLabel(vers);
+                }
+            }
+//            ProcessTaskList(wxT(""));
+//            ProcessObjects(wxT(""));
+//            ProcessProfileList(wxT(""));
+            m_connectionStatus = true;
+        }
+        else {
+            if (m_connectionStatus == true) {
+                Disconnected(false);
+                m_statusBar->SetImage(wiSTATUS_BAR_NO);
+//                m_stSrvVersData->SetLabel(_("unknown"));
+            }
+            m_connectionStatus = false;
+        }
+    }
+    else {
+        m_statusBar->SetImage(wiSTATUS_BAR_UNK);
+        m_statusBar->SetStatusText(wxT(""), 3);
+        m_connectionStatus = false;
     }
 }

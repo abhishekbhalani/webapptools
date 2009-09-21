@@ -133,13 +133,13 @@ void wiSettings::OnConnect( wxCommandEvent& event )
 {
     if (connected) {
         // invoke disconnect
-        FRAME_WINDOW->Disconnect();
+        FRAME_WINDOW->DoDisconnect();
     }
     else {
         // connect to server
         int idx = m_chServers->GetSelection();
         if (idx > -1) {
-            FRAME_WINDOW->Connect(idx);
+            FRAME_WINDOW->DoConnect(idx);
         }
     }
 }
@@ -271,16 +271,18 @@ void wiSettings::OnServerLogs( wxCommandEvent& event )
     wxMessageBox(wxT("Coming soon!"), _("Information"), wxICON_INFORMATION | wxOK);
 }
 
-void wiSettings::Connected()
+void wiSettings::Connected(bool forced)
 {
     connected = true;
     m_pnServer->Show();
     m_pnServer->Enable();
 	m_chServers->Disable();
-    m_toolBarSrv->SetToolNormalBitmap(wxID_TLCONNECT, wxBitmap(btnStop_xpm));
-    m_toolBarSrv->SetToolShortHelp(wxID_TLCONNECT, _("Disconnect"));
-    m_toolBarSrv->EnableTool(wxID_TLEDIT, false);
-    m_toolBarSrv->EnableTool(wxID_TLDELETE, false);
+    if (forced) {
+        m_toolBarSrv->SetToolNormalBitmap(wxID_TLCONNECT, wxBitmap(btnStop_xpm));
+        m_toolBarSrv->SetToolShortHelp(wxID_TLCONNECT, _("Disconnect"));
+        m_toolBarSrv->EnableTool(wxID_TLEDIT, false);
+        m_toolBarSrv->EnableTool(wxID_TLDELETE, false);
+    }
 }
 
 void wiSettings::Disconnected(bool forced)

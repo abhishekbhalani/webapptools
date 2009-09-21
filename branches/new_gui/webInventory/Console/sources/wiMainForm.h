@@ -48,13 +48,19 @@ protected:
 
     // Handlers for MainForm events.
 	void OnClose( wxCloseEvent& event );
+    void OnTimer( wxTimerEvent& event );
 
     // functions
+    void Connected(bool forced = true);
+    void Disconnected(bool forced = true);
 
 	// members
 	CConfigEngine m_cfgEngine;
 	wiTcpClient*  m_client;
 	PluginList* m_plugList;
+	wxString m_connectionName;
+    wxTimer m_timer;
+    bool m_connectionStatus;
 
 public:
 	/** Constructor */
@@ -62,8 +68,8 @@ public:
 
 	CConfigEngine* Config() { return &m_cfgEngine; };
 
-	void Connect(int account);
-	void Disconnect();
+	void DoConnect(int account);
+	void DoDisconnect();
 	void LoadPluginList();
 	wxString DoClientCommand(const wxString& cmd, const wxString& params);
 	char** StringListToXpm(vector<string>& data);

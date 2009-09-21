@@ -61,12 +61,7 @@ void wiPluginSettings::RebuildView()
                     defSpaceUsed = true;
                 }
                 wxXmlNode* nested = chld->GetChildren();
-                while (nested) {
-                    if (nested->GetName().CmpNoCase(wxT("option")) == 0) {
-                        ProcessOption(nested, currCatId);
-                    }
-                    nested = nested->GetNext();
-                }
+                ProcessCategory(nested, currCatId);
             }
             if (chld->GetName().CmpNoCase(wxT("option")) == 0) {
                 ProcessOption(chld, currCatId);
@@ -81,6 +76,42 @@ void wiPluginSettings::RebuildView()
 
     m_props->CollapseAll();
     m_props->ExpandAll();
+}
+
+void wiPluginSettings::ProcessCategory(wxXmlNode* node, const wxString& catId)
+{
+    wxString currCatId = catId;
+    wxString label;
+
+    while (node != NULL) {
+        if (node->GetName().CmpNoCase(wxT("category")) == 0) {
+            if ( node->GetPropVal(wxT("name"), &label) ) {
+                currCatId = label;
+            }
+            else {
+                currCatId = wxString::Format(wxT("category%04d"), defCount++);
+            }
+            if ( ! node->GetPropVal(wxT("label"), &label) ) {
+                label = currCatId;
+            }
+            label = wxGetTranslation(label.c_str());
+            // set flag if category marked for generic settings
+            if (currCatId == wxT("generic") ) {
+                defSpaceUsed = true;
+                m_props->Append( new wxPropertyCategory(label, currCatId));
+            }
+            else {
+                m_props->Insert( catId, -1, new wxPropertyCategory(label, currCatId));
+            }
+            wxXmlNode* nested = node->GetChildren();
+            ProcessCategory(nested, currCatId);
+        }
+        if (node->GetName().CmpNoCase(wxT("option")) == 0) {
+            ProcessOption(node, catId);
+        }
+
+        node = node->GetNext();
+    }
 }
 
 void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
