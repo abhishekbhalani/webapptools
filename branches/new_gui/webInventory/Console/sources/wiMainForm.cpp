@@ -152,6 +152,8 @@ void wiMainForm::LoadPluginList()
     if (m_client != NULL) {
         m_plugList = m_client->GetPluginList();
         m_pSettings->ShowPluginsList(m_plugList);
+        wxString storageID = m_client->DoCmd(wxT("getstorage"), wxT(""));
+        m_pSettings->SetStorage(storageID);
     }
 }
 

@@ -51,8 +51,6 @@ protected:
     void OnTimer( wxTimerEvent& event );
 
     // functions
-    void Connected(bool forced = true);
-    void Disconnected(bool forced = true);
 
 	// members
 	CConfigEngine m_cfgEngine;
@@ -83,6 +81,9 @@ public:
 	char** StringListToXpm(vector<string>& data);
 	wxString FromStdString(const std::string& str);
 	bool IsConnected() { return m_client != NULL; };
+
+    void Connected(bool forced = true);
+    void Disconnected(bool forced = true);
 };
 
 #define FRAME_WINDOW ((wiMainForm*)(wxGetApp().GetTopWindow()))

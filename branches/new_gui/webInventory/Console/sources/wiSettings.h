@@ -43,6 +43,7 @@ public:
 	wxString GetLanguage();
 	bool GetLogging();
 	void SetServerVersion(const wxString& ver);
+	void SetStorage(const wxString& plg);
 	void ShowPluginsList(PluginList* plugList);
 };
 

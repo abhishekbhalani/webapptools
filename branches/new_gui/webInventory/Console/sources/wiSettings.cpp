@@ -240,7 +240,19 @@ void wiSettings::OnLangChange( wxCommandEvent& event )
 
 void wiSettings::OnStorageChange( wxCommandEvent& event )
 {
-	// TODO: Implement OnStorageChange
+    PluginList* plugList;
+    int plg;
+
+    plugList = FRAME_WINDOW->GetPluginList();
+    plg = m_chStorage->GetSelection();
+    if (plg != -1 && plugList != NULL && FRAME_WINDOW->IsConnected()) {
+        int plgIdx = (int)m_chStorage->GetClientData(plg) - wxPluginsData;
+        if (plgIdx >= 0 && plgIdx < plugList->size()) {
+            wxString plgID = FRAME_WINDOW->FromStdString((*plugList)[plgIdx].PluginId);
+            FRAME_WINDOW->DoClientCommand(wxT("setstorage"), plgID);
+            FRAME_WINDOW->Connected(true);
+        }
+    }
 }
 
 void wiSettings::OnPlgRefresh( wxCommandEvent& event )
@@ -314,6 +326,26 @@ bool wiSettings::GetLogging()
 void wiSettings::SetServerVersion(const wxString& ver)
 {
     m_stSrvVersData->SetLabel(ver);
+}
+
+void wiSettings::SetStorage(const wxString& plg)
+{
+    int pos;
+    PluginList* plugList;
+
+    plugList = FRAME_WINDOW->GetPluginList();
+    if (plugList != NULL) {
+        int index;
+        for (pos = 0; pos < m_chStorage->GetCount(); pos++) {
+            index = (int)(m_chStorage->GetClientData(pos)) - wxPluginsData;
+            if (index >= 0 && index < plugList->size()) {
+                wxString id = FRAME_WINDOW->FromStdString((*plugList)[index].PluginId);
+                if (plg.CmpNoCase(id) == 0) {
+                    m_chStorage->SetSelection(pos);
+                }
+            }
+        }
+    }
 }
 
 void wiSettings::ShowPluginsList(PluginList* plugList)
