@@ -1,11 +1,11 @@
 #include <wx/wupdlock.h>
+#include <wx/mstream.h>
 #include "wiTasks.h"
 #include "wiMainForm.h"
 #include "wiPluginSettings.h"
 #include "wiObjDialog.h"
 #include "wiPlgSelector.h"
 #include "treeData.h"
-#include "messages.h"
 #include "optionnames.h"
 
 // wxTreebook images
@@ -331,7 +331,7 @@ void wiTasks::OnChangeProfile( wxCommandEvent& event )
         m_bpDelPlugin->Enable(true);
         dat = (ProfileInf*)m_chProfile->GetClientData(m_selectedProf);
         m_txtProfName->SetValue(FRAME_WINDOW->FromStdString(dat->Name));
-        //LoadProfileOptions(FromStdString(dat->ObjectId));
+        LoadProfileOptions(FRAME_WINDOW->FromStdString(dat->ObjectId));
     }
     else {
         m_bpAddPlugin->Enable(false);
@@ -402,7 +402,66 @@ void wiTasks::OnDelProfile( wxCommandEvent& event )
 
 void wiTasks::OnTaskApply( wxCommandEvent& event )
 {
-	// TODO: Implement OnTaskApply
+    ProfileInf* dat;
+    wxString profID;
+
+    // save profile data
+    if (m_selectedProf > -1) {
+        dat = (ProfileInf*)m_chProfile->GetClientData(m_selectedProf);
+        profID.Empty();
+        if (dat != NULL) {
+            profID = FRAME_WINDOW->FromStdString(dat->ObjectId);
+        }
+        // check options changing and ask for save them
+        if (FRAME_WINDOW->IsConnected() && !profID.IsEmpty()) {
+            wxXmlDocument opt;
+            wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("options"));
+            wxXmlNode *plgList;
+            wxString content;
+
+            wiPluginSettings::SaveTaskOption (root, wxT("name"), wxT("8"), m_txtProfName->GetValue());
+            plgList = wiPluginSettings::SaveTaskOption (root, wxT("plugin_list"), wxT("8"), wxT(""));
+            // get link to the content
+            wxXmlNode *tmp = plgList->GetChildren();
+            while (tmp && tmp->GetType() != wxXML_TEXT_NODE) {
+                tmp = tmp->GetNext();
+            }
+            if (tmp == NULL) {
+                tmp = new wxXmlNode(wxXML_TEXT_NODE, wxT(""));
+                plgList->AddChild(tmp);
+            }
+            plgList = tmp;
+            for (int i = 1; i < m_plgBookTree->GetPageCount(); i++) {
+                int imgIdx = m_plgBookTree->GetPageImage(i);
+                if (imgIdx > 4) {
+                    if (!content.IsEmpty()) {
+                        content += wxT(";");
+                    }
+                    content += m_plgBookTree->GetPage(i)->GetName();
+                }
+                wiPluginSettings* panel = (wiPluginSettings*)(m_plgBookTree->GetPage(i));
+                panel->ComposeValues(*root);
+            }
+            // fix plugin_list content
+            plgList->SetContent(content);
+
+            opt.SetRoot(root);
+            wxMemoryOutputStream outp;
+            opt.Save(outp, wxXML_NO_INDENTATION);
+            int dataLen = outp.GetSize();
+            char *data = new char[dataLen + 10];
+            if (data != NULL) {
+                outp.CopyTo(data, dataLen);
+                data[dataLen] = '\0';
+                wxString str = wxString::Format(wxT("%s;"), profID.c_str());
+                str += wxString::FromUTF8(data);
+                FRAME_WINDOW->DoClientCommand(wxT("setprofileopts"), str);
+            }
+            else {
+                wxLogError(wxT("Can't compose options save request!"));
+            }
+        }
+    }
 }
 
 void wiTasks::OnRunTask( wxCommandEvent& event )
@@ -457,57 +516,7 @@ void wiTasks::OnAddPlugin( wxCommandEvent& event )
 
                 if (data != NULL && data->plg != NULL)
                 {
-                    PluginInf* plg = data->plg;
-                    char** xpm = FRAME_WINDOW->StringListToXpm((vector<string>&)plg->PluginIcon);
-                    int imgIdx = m_plgBookTree->GetImageList()->Add(wxBitmap(xpm));
-                    wxString pageLabel;
-                    int pageIdx = 0;
-                    wiPluginSettings* bookPage;
-                    wxString xrc;
-
-                    if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iTransport") != plg->IfaceList.end())
-                    {   // add plugins to the transport list
-                        pageLabel = _("Transports");
-                    }
-                    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iInventory") != plg->IfaceList.end())
-                    {   // add plugins to the inventory list
-                        pageLabel = _("Inventory");
-                    }
-                    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iAudit") != plg->IfaceList.end())
-                    {   // add plugins to the audit list
-                        pageLabel = _("Audit");
-                    }
-                    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iVulner") != plg->IfaceList.end())
-                    {   // add plugins to the vulnerabilities list
-                        pageLabel = _("Vulnerabilities");
-                    }
-                    else
-                    {   // add plugins to the generic list
-                        pageLabel = _("Generic options");
-                    }
-                    for (int i = 0; i < m_plgBookTree->GetPageCount(); i++) {
-                        if (m_plgBookTree->GetPageText(i) == pageLabel) {
-                            pageIdx = i;
-                            break;
-                        }
-                    }
-                    pageLabel = FRAME_WINDOW->FromStdString(plg->IfaceList.back());
-                    if (FRAME_WINDOW->IsConnected()) {
-                        xrc = FRAME_WINDOW->DoClientCommand(wxT("plgui"), FRAME_WINDOW->FromStdString(plg->PluginId));
-                    }
-                    else {
-                        xrc = wxEmptyString;
-                    }
-
-                    bookPage = new wiPluginSettings(m_plgBookTree, xrc);
-                    if (bookPage) {
-                        bookPage->SetName(FRAME_WINDOW->FromStdString(plg->PluginId));
-                        m_plgBookTree->InsertSubPage(pageIdx, bookPage, pageLabel, false, imgIdx);
-                    }
-                    else {
-                        wxLogError(_("Can't create UI for plugin %s"), FRAME_WINDOW->FromStdString(plg->PluginDesc));
-                    }
-                    // load actual data into UI
+                    AddPluginToList(data->plg);
                 } // end of wiPlgTreeData processing
             } // end of addition plugin to list
         } // end of ShowModal() == wxOK
@@ -760,4 +769,137 @@ void wiTasks::ControlStatus()
             m_toolBarTasks->SetToolDisabledBitmap(wxID_TOOLPAUSE, wxBitmap(_pause_xpm));
         }
     }
+}
+
+void wiTasks::AddPluginToList(PluginInf* plg)
+{
+    char** xpm = FRAME_WINDOW->StringListToXpm((vector<string>&)plg->PluginIcon);
+    int imgIdx = m_plgBookTree->GetImageList()->Add(wxBitmap(xpm));
+    wxString pageLabel;
+    int pageIdx = 0;
+    wiPluginSettings* bookPage;
+    wxString xrc;
+
+    if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iTransport") != plg->IfaceList.end())
+    {   // add plugins to the transport list
+        pageLabel = _("Transports");
+    }
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iInventory") != plg->IfaceList.end())
+    {   // add plugins to the inventory list
+        pageLabel = _("Inventory");
+    }
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iAudit") != plg->IfaceList.end())
+    {   // add plugins to the audit list
+        pageLabel = _("Audit");
+    }
+    else if (find(plg->IfaceList.begin(), plg->IfaceList.end(), "iVulner") != plg->IfaceList.end())
+    {   // add plugins to the vulnerabilities list
+        pageLabel = _("Vulnerabilities");
+    }
+    else
+    {   // add plugins to the generic list
+        pageLabel = _("Generic options");
+    }
+    for (int i = 0; i < m_plgBookTree->GetPageCount(); i++) {
+        if (m_plgBookTree->GetPageText(i) == pageLabel) {
+            pageIdx = i;
+            break;
+        }
+    }
+    pageLabel = FRAME_WINDOW->FromStdString(plg->IfaceList.back());
+    if (FRAME_WINDOW->IsConnected()) {
+        xrc = FRAME_WINDOW->DoClientCommand(wxT("plgui"), FRAME_WINDOW->FromStdString(plg->PluginId));
+    }
+    else {
+        xrc = wxEmptyString;
+    }
+
+    bookPage = new wiPluginSettings(m_plgBookTree, xrc);
+    if (bookPage) {
+        bookPage->SetName(FRAME_WINDOW->FromStdString(plg->PluginId));
+        m_plgBookTree->InsertSubPage(pageIdx, bookPage, pageLabel, false, imgIdx);
+        // load actual data into UI
+    }
+    else {
+        wxLogError(_("Can't create UI for plugin %s"), FRAME_WINDOW->FromStdString(plg->PluginDesc));
+    }
+}
+
+void wiTasks::LoadProfileOptions(const wxString& objId)
+{
+    wxString optsstr;
+    PluginList* plugList;
+
+    plugList = FRAME_WINDOW->GetPluginList();
+    if (plugList != NULL && FRAME_WINDOW->IsConnected()) {
+        optsstr = FRAME_WINDOW->DoClientCommand(wxT("getprofileopts"), objId);
+        //optsstr = wxString(wxT("<?xml version=\"1.0\"?>")) + optsstr;
+        wxCharBuffer buff = optsstr.utf8_str();
+        int buffLen = strlen(buff.data());
+        wxMemoryInputStream xmlStream(buff.data(), buffLen);
+        wxXmlDocument opt;
+        if(opt.Load(xmlStream)) {
+            wxXmlNode *root = opt.GetRoot();
+            if (root && root->GetName().CmpNoCase(wxT("options")) == 0) {
+                wxXmlNode *child = root->GetChildren();
+                // reset valuses
+                m_txtProfName->SetValue(wxT(""));
+                RebuildTreeView();
+
+                // set new values
+                while (child != NULL) {
+                    if (child->GetType() == wxXML_ELEMENT_NODE && child->GetName().CmpNoCase(wxT("option")) == 0) {
+                        wxString name = child->GetPropVal(wxT("name"), wxT(""));
+                        wxString type = child->GetPropVal(wxT("type"), wxT(""));
+                        wxString text = child->GetNodeContent();
+                        // fill the data controls
+                        if (name.CmpNoCase(wxT(weoName)) == 0) {
+                            m_txtProfName->SetValue(text);
+                        }
+                        if (name.CmpNoCase(wxT("plugin_list")) == 0) {
+                            // parse string and create options panels
+                            int pos = text.Find(wxT(';'));
+                            while (pos != wxNOT_FOUND) {
+                                wxString pid = text.Mid(0, pos);
+                                PluginInf *plg = FoundPlugin(plugList, pid);
+                                if (plg != NULL) {
+                                    AddPluginToList(plg);
+                                }
+                                text = text.Mid(pos + 1);
+                                pos = text.Find(wxT(';'));
+                            }
+                            PluginInf *plg = FoundPlugin(plugList, text);
+                            if (plg != NULL) {
+                                AddPluginToList(plg);
+                            }
+                        }
+                    }
+
+                    child = child->GetNext();
+                } // end of first iteration
+                // fill panel's data
+                for (int i = 0; i < m_plgBookTree->GetPageCount(); i++) {
+                    wiPluginSettings* panel = (wiPluginSettings*)(m_plgBookTree->GetPage(i));
+                    panel->FillValues(*root);
+                }
+                m_plgBookTree->Layout();
+            } // end XML processing
+        }
+    }
+}
+
+PluginInf* wiTasks::FoundPlugin(PluginList* plugList, const wxString& id)
+{
+    PluginInf* retval = NULL;
+
+    if (plugList != NULL) {
+        for (size_t lstSize = 0; lstSize < plugList->size(); lstSize++) {
+            wxString plgId = FRAME_WINDOW->FromStdString((*plugList)[lstSize].PluginId);
+            if (id == plgId) {
+                retval = &((*plugList)[lstSize]);
+                break;
+            }
+        }
+    }
+    return retval;
 }

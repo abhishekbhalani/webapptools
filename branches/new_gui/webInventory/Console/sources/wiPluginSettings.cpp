@@ -233,11 +233,86 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
     }
 }
 
-void wiPluginSettings::FillValues(wxXmlDocument& xmlData)
+void wiPluginSettings::FillValues(wxXmlNode& xmlData)
+{
+    wxXmlNode* chld;
+    wxString name;
+    wxString type;
+    wxString value;
+    wxPGProperty* prop;
+    long lType;
+    wxVariant var;
+    long iData;
+    double dData;
+    bool bData;
+    char cData;
+
+    chld = xmlData.GetChildren();
+    while(chld != NULL) {
+        if(chld->GetType() == wxXML_ELEMENT_NODE && chld->GetName() == wxT("option")) {
+            name = chld->GetPropVal(wxT("name"), wxT(""));
+            type += chld->GetPropVal(wxT("type"), wxT("8"));
+            value = chld->GetNodeContent();
+            prop = FindProperty(name);
+            if (prop != NULL) {
+                type.ToLong(&lType);
+                switch (lType) {
+                case 0:
+                case 1:
+                    var = value.Mid(0, 1);
+                    break;
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                    value.ToLong(&iData);
+                    var = iData;
+                    break;
+                case 6:
+                    value.ToLong(&iData);
+                    var = (bool)(iData != 0);
+                    break;
+                case 7:
+                    value.ToDouble(&dData);
+                    var = dData;
+                    break;
+                case 8:
+                default:
+                    var = value;
+                }
+                m_props->ChangePropertyValue(prop, var);
+            }
+        }
+
+        chld = chld->GetNext();
+    }
+}
+
+void wiPluginSettings::ComposeValues(wxXmlNode& xmlData)
 {
 }
 
-wxXmlDocument* wiPluginSettings::ComposeValues()
+wxXmlNode* wiPluginSettings::SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value)
 {
-    return NULL;
+    wxXmlNode *chld, *content;
+
+    chld = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("option"));
+    chld->AddProperty(wxT("name"), name);
+    chld->AddProperty(wxT("type"), type);
+    content = new wxXmlNode(wxXML_TEXT_NODE, wxT(""));
+    content->SetContent(value);
+    chld->AddChild(content);
+    root->AddChild(chld);
+    return chld;
+}
+
+wxPGProperty* wiPluginSettings::FindProperty(const wxString& name)
+{
+    wxPGProperty* retval;
+
+    retval = m_props->GetPropertyByName(name);
+    if (retval == NULL) {
+        // try to search nested properties.
+    }
+    return retval;
 }

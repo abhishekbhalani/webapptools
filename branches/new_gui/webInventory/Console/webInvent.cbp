@@ -206,8 +206,6 @@
 		<Unit filename="sources\Sha1.hpp" />
 		<Unit filename="sources\treeData.h" />
 		<Unit filename="sources\version.h" />
-		<Unit filename="sources\weRttiOptions.cpp" />
-		<Unit filename="sources\weRttiOptions.h" />
 		<Unit filename="sources\wiApp.cpp" />
 		<Unit filename="sources\wiApp.h" />
 		<Unit filename="sources\wiGuiData.cpp" />

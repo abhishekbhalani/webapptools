@@ -17,6 +17,7 @@ protected:
     // functions
     void ProcessOption(wxXmlNode* node, const wxString& catId);
     void ProcessCategory(wxXmlNode* node, const wxString& catId);
+    wxPGProperty* FindProperty(const wxString& name);
 
     // members
     wxString defaultSpace;
@@ -29,8 +30,9 @@ public:
 	wiPluginSettings( wxWindow* parent, const wxString& description );
 
 	void RebuildView();
-	void FillValues(wxXmlDocument& xmlData);
-	wxXmlDocument* ComposeValues();
+	void FillValues(wxXmlNode& xmlData);
+	void ComposeValues(wxXmlNode& xmlData);
+	static wxXmlNode* SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value);
 };
 
 #endif // __wiPluginSettings__

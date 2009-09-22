@@ -28,6 +28,7 @@
 
 #include <wx/treebook.h>
 #include "wiGuiData.h"
+#include "messages.h"
 
 /** Implementing Tasks */
 class wiTasks : public Tasks
@@ -60,6 +61,9 @@ protected:
     void ProcessProfileList(const wxString& criteria = wxT(""));
     void ProcessTaskList(const wxString& criteria = wxT(""));
     void ControlStatus();
+    void AddPluginToList(PluginInf* plg);
+    void LoadProfileOptions(const wxString& objId);
+    PluginInf* FoundPlugin(PluginList* plugList, const wxString& id);
 
 	// members
 	wxImageList m_lstImages;
