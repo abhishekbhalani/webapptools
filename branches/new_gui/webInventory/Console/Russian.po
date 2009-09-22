@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webInventory 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-16 14:07+0300\n"
+"POT-Creation-Date: 2009-09-22 13:11+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Andrew Abramov <stinger@lab18.net>\n"
 "Language-Team: http://code.google.com/p/webapptools/ <stinger911@gmail.com>\n"
@@ -38,50 +38,50 @@ msgstr "Добавить объект"
 msgid "Delete task"
 msgstr "Удалить задачу"
 
-#: sources/wiGuiData.cpp:105
+#: sources/wiGuiData.cpp:104
 msgid "Profile settings"
 msgstr "Настройки профиля"
 
-#: sources/wiGuiData.cpp:120
+#: sources/wiGuiData.cpp:119
 msgid "Create new profile"
 msgstr "Создать новый профиль"
 
-#: sources/wiGuiData.cpp:121
+#: sources/wiGuiData.cpp:120
 msgid "Copy current profile"
 msgstr "Копировать текущий профиль"
 
-#: sources/wiGuiData.cpp:122
+#: sources/wiGuiData.cpp:121
 msgid "Delete profile"
 msgstr "Удалить профиль"
 
-#: sources/wiGuiData.cpp:124
+#: sources/wiGuiData.cpp:123
 msgid "Save profile"
 msgstr "Сохранить профиль"
 
-#: sources/wiGuiData.cpp:126
+#: sources/wiGuiData.cpp:125
 #: sources/wiGuiData.cpp:211
 msgid "Start task"
 msgstr "Запустить задачу"
 
-#: sources/wiGuiData.cpp:139
-#: sources/wiGuiData.cpp:141
+#: sources/wiGuiData.cpp:138
+#: sources/wiGuiData.cpp:140
 msgid "Add plugin"
 msgstr "Добавить плагин"
 
-#: sources/wiGuiData.cpp:148
-#: sources/wiGuiData.cpp:150
+#: sources/wiGuiData.cpp:147
+#: sources/wiGuiData.cpp:149
 msgid "Remove plugin"
 msgstr "Исключить плагин"
 
-#: sources/wiGuiData.cpp:155
+#: sources/wiGuiData.cpp:154
 msgid "Profile name"
 msgstr "Название профиля"
 
-#: sources/wiGuiData.cpp:181
+#: sources/wiGuiData.cpp:182
 msgid "a page"
 msgstr "a page"
 
-#: sources/wiGuiData.cpp:198
+#: sources/wiGuiData.cpp:199
 msgid "Active tasks"
 msgstr "Активные задачи"
 
@@ -125,7 +125,7 @@ msgid "Scanner address:"
 msgstr "Адрес сканера:"
 
 #: sources/wiGuiData.cpp:349
-#: sources/wiSettings.cpp:293
+#: sources/wiSettings.cpp:295
 msgid "Connect"
 msgstr "Соединиться"
 
@@ -250,15 +250,15 @@ msgstr "Хост сканера:"
 msgid "Scanner port:"
 msgstr "Порт сканера:"
 
-#: sources/wiMainForm.cpp:41
+#: sources/wiMainForm.cpp:46
 msgid "Tasks"
 msgstr "Задачи"
 
-#: sources/wiMainForm.cpp:43
+#: sources/wiMainForm.cpp:48
 msgid "Reports"
 msgstr "Отчеты"
 
-#: sources/wiMainForm.cpp:45
+#: sources/wiMainForm.cpp:50
 msgid "Settings"
 msgstr "Настройки"
 
@@ -269,8 +269,27 @@ msgstr "Выберите добавляемый плагин"
 #: sources/wiPlgSelector.cpp:17
 #: sources/wiSettings.cpp:254
 #: sources/wiSettings.cpp:263
+#: sources/wiTasks.cpp:452
 msgid "Warning"
 msgstr "Предупреждение"
+
+#: sources/wiPluginSettings.cpp:19
+#: sources/wiPluginSettings.cpp:74
+msgid "Plugin doesn't provide settings"
+msgstr "Этот плагин не предоставляет настроек"
+
+#: sources/wiPluginSettings.cpp:36
+#, c-format
+msgid "%s plugin settings"
+msgstr "Настройки плагина %s"
+
+#: sources/wiPluginSettings.cpp:39
+msgid "Generic settings"
+msgstr "Основные параметры"
+
+#: sources/wiSettings.cpp:120
+msgid "Generic plugins"
+msgstr "Основные плагины"
 
 #: sources/wiSettings.cpp:121
 msgid "Storage plugins"
@@ -326,9 +345,92 @@ msgstr ""
 msgid "Information"
 msgstr "Информация"
 
-#: sources/wiSettings.cpp:281
+#: sources/wiSettings.cpp:282
 msgid "Disconnect"
 msgstr "Разорвать соединение"
+
+#: sources/wiTasks.cpp:51
+msgid "idle"
+msgstr "idle"
+
+#: sources/wiTasks.cpp:52
+#, c-format
+msgid "run (%d%%)"
+msgstr "run (%d%%)"
+
+#: sources/wiTasks.cpp:53
+#, c-format
+msgid "paused (%d%%)"
+msgstr "paused (%d%%)"
+
+#: sources/wiTasks.cpp:144
+#: sources/wiTasks.cpp:486
+msgid "Generic options"
+msgstr "Основные параметры"
+
+#: sources/wiTasks.cpp:159
+msgid "Task name"
+msgstr "Название задачи"
+
+#: sources/wiTasks.cpp:160
+msgid "Status"
+msgstr "Статус"
+
+#: sources/wiTasks.cpp:215
+#: sources/wiTasks.cpp:470
+msgid "Transports"
+msgstr "Транспортные плагины"
+
+#: sources/wiTasks.cpp:218
+#: sources/wiTasks.cpp:474
+msgid "Inventory"
+msgstr "Инвенторизация"
+
+#: sources/wiTasks.cpp:221
+#: sources/wiTasks.cpp:478
+msgid "Audit"
+msgstr "Аудит"
+
+#: sources/wiTasks.cpp:224
+#: sources/wiTasks.cpp:482
+msgid "Vulnerabilities"
+msgstr "Плагины поиска уязвимостей"
+
+#: sources/wiTasks.cpp:232
+msgid "This plugin doesn't provide any settings"
+msgstr "Это расширение не предоставляет настроек"
+
+#: sources/wiTasks.cpp:296
+#, c-format
+msgid "Are you sure to delete object '%s'?"
+msgstr "Вы действительно хотите удалить объект '%s'?"
+
+#: sources/wiTasks.cpp:297
+#: sources/wiTasks.cpp:394
+msgid "Confirm"
+msgstr "Подтверждение"
+
+#: sources/wiTasks.cpp:346
+msgid "Input new profile name"
+msgstr "Введите название профиля"
+
+#: sources/wiTasks.cpp:346
+msgid "Query"
+msgstr "Запрос"
+
+#: sources/wiTasks.cpp:393
+#, c-format
+msgid "Are you sure to delete profile '%s'?"
+msgstr "Вы действительно хотите удалить профиль '%s'?"
+
+#: sources/wiTasks.cpp:452
+msgid "Plugin already exist in this profile"
+msgstr "Плагин уже есть в профиле"
+
+#: sources/wiTasks.cpp:508
+#, c-format
+msgid "Can't create UI for plugin %s"
+msgstr "Не удалось создать настройки для плагина %s"
 
 #: sources/PropGrid/advprops.cpp:654
 msgid "Point Size"
@@ -356,7 +458,7 @@ msgstr "Подчеркивание"
 
 #: sources/PropGrid/advprops.cpp:1916
 msgid "Make a selection:"
-msgstr ""
+msgstr "Сделайте выбор:"
 
 #: sources/PropGrid/manager.cpp:1270
 msgid "Categorized Mode"
@@ -471,17 +573,17 @@ msgstr "Диск"
 
 #: sources/wiGuiData.h:92
 msgid "WebAudit Framework"
-msgstr ""
+msgstr "WebAudit Framework"
 
-#: sources/wiGuiData.h:298
+#: sources/wiGuiData.h:297
 msgid "Object"
 msgstr "Объект"
 
-#: sources/wiGuiData.h:326
+#: sources/wiGuiData.h:325
 msgid "Connection"
 msgstr "Соединение"
 
-#: sources/wiGuiData.h:349
+#: sources/wiGuiData.h:348
 msgid "Select plugin"
 msgstr "Выберите плагин"
 
@@ -495,20 +597,12 @@ msgstr "Выберите плагин"
 #~ msgstr "Warnings"
 #~ msgid "Errors"
 #~ msgstr "Errors"
-#~ msgid "Generic options"
-#~ msgstr "Основные параметры"
 #~ msgid "hostname[:port]"
 #~ msgstr "hostname[:port]"
 #~ msgid "Description"
 #~ msgstr "Описание"
 #~ msgid "Interface"
 #~ msgstr "Интерфейс"
-#~ msgid "idle"
-#~ msgstr "idle"
-#~ msgid "run (%d%%)"
-#~ msgstr "run (%d%%)"
-#~ msgid "paused (%d%%)"
-#~ msgstr "paused (%d%%)"
 #~ msgid "Please wait..."
 #~ msgstr "Ожидайте..."
 #~ msgid "Report will be here"
@@ -517,20 +611,10 @@ msgstr "Выберите плагин"
 #~ msgstr "Не удается получить информацию о задаче!"
 #~ msgid "No connection to server!"
 #~ msgstr "Нет соединения с сервером!"
-#~ msgid "This plugin doesn't provide any settings"
-#~ msgstr "Это расширение не предоставляет настроек"
-#~ msgid "Task name"
-#~ msgstr "Название задачи"
-#~ msgid "Status"
-#~ msgstr "Статус"
 #~ msgid "Disconnected"
 #~ msgstr "Нет соединения"
-#~ msgid "Confirm"
-#~ msgstr "Подтверждение"
 #~ msgid "Connected"
 #~ msgstr "Соединен"
-#~ msgid "Are you sure to delete object '%s'?"
-#~ msgstr "Вы действительно хотите удалить объект '%s'?"
 #~ msgid "Are you sure to delete task '%s'?"
 #~ msgstr "Вы действительно хотите удалить задачу '%s'?"
 #~ msgid "Can't get information about object %s (id=%s)"
@@ -543,20 +627,8 @@ msgstr "Выберите плагин"
 #~ msgstr "Укажите цель сканирования"
 #~ msgid "Can't load given UI"
 #~ msgstr "Не удается загрузить UI"
-#~ msgid "Inventory"
-#~ msgstr "Инвенторизация"
-#~ msgid "Audit"
-#~ msgstr "Аудит"
 #~ msgid "All"
 #~ msgstr "Все"
-#~ msgid "Input new profile name"
-#~ msgstr "Введите название профиля"
-#~ msgid "Query"
-#~ msgstr "Запрос"
-#~ msgid "Are you sure to delete profile '%s'?"
-#~ msgstr "Вы действительно хотите удалить профиль '%s'?"
-#~ msgid "Plugin already exist in this profile"
-#~ msgstr "Плагин уже есть в профиле"
 #~ msgid "WebInventory"
 #~ msgstr "WebInventory"
 #~ msgid "Refresh"

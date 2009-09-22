@@ -216,8 +216,10 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
         pid = m_props->Insert( category, -1, new wxFloatProperty(label, name, val) );
     }
     else {
-        if (defValue.StartsWith(wxT("<composed>")) ) {
-            defValue = wxT("<composed>");
+        wxString tmp = defValue;
+        tmp = tmp.Trim();
+        if (tmp == wxT("<composed>") ) {
+            defValue = tmp;
         }
         m_props->Insert( category, -1, new wxStringProperty(label, name, defValue) );
     }

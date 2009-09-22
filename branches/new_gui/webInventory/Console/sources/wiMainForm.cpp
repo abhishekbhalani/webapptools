@@ -205,3 +205,50 @@ void wiMainForm::OnTimer( wxTimerEvent& event )
         m_connectionStatus = false;
     }
 }
+
+ObjectList* wiMainForm::GetObjectList(const wxString& criteria/* = wxT("")*/)
+{
+    if (m_client == NULL) {
+        return NULL;
+    }
+    return m_client->GetObjectList(criteria);
+}
+
+ProfileList* wiMainForm::GetProfileList(const wxString& criteria/* = wxT("")*/)
+{
+    if (m_client == NULL) {
+        return NULL;
+    }
+    return m_client->GetProfileList(criteria);
+}
+
+TaskList* wiMainForm::GetTaskList(const wxString& criteria/* = wxT("")*/)
+{
+    if (m_client == NULL) {
+        return NULL;
+    }
+    return m_client->GetTaskList(criteria);
+}
+
+wxString wiMainForm::UpdateObject(ObjectInf& objInfo)
+{
+    if (m_client == NULL) {
+        return wxT("");
+    }
+    return m_client->UpdateObject(objInfo);
+}
+
+void wiMainForm::ShowConnectionError()
+{
+    m_statusBar->SetImage(wiSTATUS_BAR_NO);
+    m_statusBar->SetStatusText(m_client->GetLastError(), 3);
+}
+
+PluginList* wiMainForm::GetPluginList()
+{
+    if (m_plugList != NULL) {
+        return m_plugList;
+    }
+    LoadPluginList();
+    return m_plugList;
+}

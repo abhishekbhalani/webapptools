@@ -71,9 +71,18 @@ public:
 	void DoConnect(int account);
 	void DoDisconnect();
 	void LoadPluginList();
+	void ShowConnectionError();
+	PluginList* GetPluginList();
+
+    ObjectList* GetObjectList(const wxString& criteria = wxT(""));
+    ProfileList* GetProfileList(const wxString& criteria = wxT(""));
+    TaskList* GetTaskList(const wxString& criteria = wxT(""));
+    wxString UpdateObject(ObjectInf& objInfo);
+
 	wxString DoClientCommand(const wxString& cmd, const wxString& params);
 	char** StringListToXpm(vector<string>& data);
 	wxString FromStdString(const std::string& str);
+	bool IsConnected() { return m_client != NULL; };
 };
 
 #define FRAME_WINDOW ((wiMainForm*)(wxGetApp().GetTopWindow()))

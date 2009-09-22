@@ -56,9 +56,16 @@ protected:
 
 	// functions
 	void OnOptionsPageChanging( wxTreebookEvent& event );
+    void ProcessObjects(const wxString& criteria = wxT(""));
+    void ProcessProfileList(const wxString& criteria = wxT(""));
+    void ProcessTaskList(const wxString& criteria = wxT(""));
+    void ControlStatus();
 
 	// members
 	wxImageList m_lstImages;
+	int m_selectedObject;
+	int m_selectedTask;
+	int m_selectedProf;
 
 public:
 	/** Constructor */
