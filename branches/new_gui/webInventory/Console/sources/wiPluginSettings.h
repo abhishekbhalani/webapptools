@@ -14,6 +14,8 @@
 class wiPluginSettings : public PluginSettings
 {
 protected:
+    WX_DECLARE_STRING_HASH_MAP( wxPGProperty*, wiPropHash );
+
     // functions
     void ProcessOption(wxXmlNode* node, const wxString& catId);
     void ProcessCategory(wxXmlNode* node, const wxString& catId);
@@ -24,6 +26,7 @@ protected:
     bool defSpaceUsed;
     int defCount;
     wxXmlDocument structure;
+    wiPropHash m_propHash;
 
 public:
 	/** Constructor */
@@ -31,7 +34,7 @@ public:
 
 	void RebuildView();
 	void FillValues(wxXmlNode& xmlData);
-	void ComposeValues(wxXmlNode& xmlData);
+	void ComposeValues(wxXmlNode* xmlData);
 	static wxXmlNode* SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value);
 };
 

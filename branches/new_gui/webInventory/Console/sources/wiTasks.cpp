@@ -431,7 +431,7 @@ void wiTasks::OnTaskApply( wxCommandEvent& event )
                 plgList->AddChild(tmp);
             }
             plgList = tmp;
-            for (int i = 1; i < m_plgBookTree->GetPageCount(); i++) {
+            for (int i = 0; i < m_plgBookTree->GetPageCount(); i++) {
                 int imgIdx = m_plgBookTree->GetPageImage(i);
                 if (imgIdx > 4) {
                     if (!content.IsEmpty()) {
@@ -440,7 +440,7 @@ void wiTasks::OnTaskApply( wxCommandEvent& event )
                     content += m_plgBookTree->GetPage(i)->GetName();
                 }
                 wiPluginSettings* panel = (wiPluginSettings*)(m_plgBookTree->GetPage(i));
-                panel->ComposeValues(*root);
+                panel->ComposeValues(root);
             }
             // fix plugin_list content
             plgList->SetContent(content);

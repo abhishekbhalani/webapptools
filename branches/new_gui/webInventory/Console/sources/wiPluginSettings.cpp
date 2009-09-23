@@ -29,6 +29,7 @@ void wiPluginSettings::RebuildView()
     wxString label;
 
     m_props->Clear();
+    m_propHash.clear();
 
     wxXmlNode *root = structure.GetRoot();
     if (root && root->GetName().CmpNoCase(wxT("plugin")) == 0) {
@@ -121,10 +122,20 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
     wxString category;
     wxString defValue;
     wxString controlType;
+    wxString type;
+    long lType;
     wxPGProperty* pid;
 
     if ( ! node->GetPropVal(wxT("name"), &name) || name.IsEmpty() ) {
         name = wxString::Format(wxT("/AutoOption %d"), defCount++);
+    }
+
+    if ( ! node->GetPropVal(wxT("type"), &type) || type.IsEmpty() ) {
+        lType = 0;
+    }
+    else {
+        type.ToLong(&lType);
+        lType++;
     }
 
     if ( ! node->GetPropVal(wxT("label"), &label) ) {
@@ -166,7 +177,9 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
         if ( !defValue.IsEmpty()) {
             labels.Add(defValue);
         }
-        m_props->Insert( category, -1, new wxEnumProperty(label, name, labels) );
+        pid = m_props->Insert( category, -1, new wxEnumProperty(label, name, labels) );
+        m_propHash[name] = pid;
+        pid->SetClientData((void*)lType);
     }
     else if (controlType == CT_INT) {
         wxString attr;
@@ -176,6 +189,9 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
 
         vval = defValue;
         pid = m_props->Insert( category, -1, new wxIntProperty(label, name, vval) );
+        m_propHash[name] = pid;
+        pid->SetClientData((void*)lType);
+
         useSpin = 0;
         if ( node->GetPropVal(wxT("min"), &attr) ) {
             attr.ToLong(&vmin);
@@ -205,6 +221,9 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
             val = true;
         }
         pid = m_props->Insert( category, -1, new wxBoolProperty(label, name, val) );
+        m_propHash[name] = pid;
+        pid->SetClientData((void*)lType);
+
         if ( node->GetPropVal(wxT("chkbox"), &attr) ) {
             m_props->SetPropertyAttribute(pid, wxT("UseCheckbox"), true);
         }
@@ -214,14 +233,28 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
         double val;
         defValue.ToDouble(&val);
         pid = m_props->Insert( category, -1, new wxFloatProperty(label, name, val) );
+        m_propHash[name] = pid;
     }
     else {
+        // string control
         wxString tmp = defValue;
         tmp = tmp.Trim();
         if (tmp == wxT("<composed>") ) {
             defValue = tmp;
         }
-        m_props->Insert( category, -1, new wxStringProperty(label, name, defValue) );
+        if ( node->GetPropVal(wxT("mode"), &tmp) ) {
+            if (tmp.CmpNoCase(wxT("window")) == 0) {
+                pid = m_props->Insert( category, -1, new wxLongStringProperty(label, name, defValue) );
+            }
+            else {
+                pid = m_props->Insert( category, -1, new wxStringProperty(label, name, defValue) );
+            }
+        }
+        else {
+            pid = m_props->Insert( category, -1, new wxStringProperty(label, name, defValue) );
+        }
+        m_propHash[name] = pid;
+        pid->SetClientData((void*)lType);
     }
 
     wxXmlNode* nested = node->GetChildren();
@@ -251,7 +284,7 @@ void wiPluginSettings::FillValues(wxXmlNode& xmlData)
     while(chld != NULL) {
         if(chld->GetType() == wxXML_ELEMENT_NODE && chld->GetName() == wxT("option")) {
             name = chld->GetPropVal(wxT("name"), wxT(""));
-            type += chld->GetPropVal(wxT("type"), wxT("8"));
+            type = chld->GetPropVal(wxT("type"), wxT("8"));
             value = chld->GetNodeContent();
             prop = FindProperty(name);
             if (prop != NULL) {
@@ -280,7 +313,22 @@ void wiPluginSettings::FillValues(wxXmlNode& xmlData)
                 default:
                     var = value;
                 }
-                m_props->ChangePropertyValue(prop, var);
+                wxString cell = prop->GetClassName();
+                if (cell == wxT("wxEnumProperty")) {
+                    wxPGChoiceInfo choiceInfo;
+                    prop->GetChoiceInfo(&choiceInfo);
+                    if (lType != 8) {
+                        // selection index
+                        prop->SetChoiceSelection(iData, choiceInfo);
+                    }
+                    else {
+                        /// @todo select string
+                    }
+                }
+                else {
+                    m_props->ChangePropertyValue(prop, var);
+                }
+                prop->SetClientData((void*)(lType + 1));
             }
         }
 
@@ -288,8 +336,50 @@ void wiPluginSettings::FillValues(wxXmlNode& xmlData)
     }
 }
 
-void wiPluginSettings::ComposeValues(wxXmlNode& xmlData)
+void wiPluginSettings::ComposeValues(wxXmlNode* xmlData)
 {
+    wiPropHash::iterator it;
+    wxPGProperty* prop;
+    int lType, idx;
+    wxString key;
+    wxString type;
+    wxString value;
+    wxString cell;
+
+    for( it = m_propHash.begin(); it != m_propHash.end(); ++it )
+    {
+        key = it->first;
+        prop = it->second;
+        lType = (int)prop->GetClientData();
+        lType --;
+        if (lType >= 0) {
+            if (lType > 8) {
+                lType = 8;
+            }
+            cell = prop->GetClassName();
+            if (cell == wxT("wxEnumProperty") && lType < 8) {
+                wxPGChoiceInfo choiceInfo;
+                idx = prop->GetChoiceInfo(&choiceInfo);
+                value = wxString::Format(wxT("%d"), idx);
+            }
+            else {
+                value = prop->GetValueString(wxPG_FULL_VALUE);
+            }
+            if (lType == 6) {
+                if (value.CmpNoCase(wxT("true")) || value.CmpNoCase(wxT("yes"))) {
+                    value = wxT("1");
+                }
+                if (value.CmpNoCase(wxT("false")) || value.CmpNoCase(wxT("no"))) {
+                    value = wxT("0");
+                }
+                if (!value.IsNumber()) {
+                    value = wxT("0");
+                }
+            }
+            type = wxString::Format(wxT("%d"), lType);
+            SaveTaskOption(xmlData, key, type, value);
+        }
+    }
 }
 
 wxXmlNode* wiPluginSettings::SaveTaskOption (wxXmlNode *root, const wxString& name, const wxString& type, const wxString& value)
@@ -309,10 +399,12 @@ wxXmlNode* wiPluginSettings::SaveTaskOption (wxXmlNode *root, const wxString& na
 wxPGProperty* wiPluginSettings::FindProperty(const wxString& name)
 {
     wxPGProperty* retval;
+    wiPropHash::iterator it;
 
-    retval = m_props->GetPropertyByName(name);
-    if (retval == NULL) {
-        // try to search nested properties.
+    retval = NULL;
+    it = m_propHash.find(name);
+    if (it != m_propHash.end()) {
+        retval = it->second;
     }
     return retval;
 }
