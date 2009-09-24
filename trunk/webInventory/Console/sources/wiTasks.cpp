@@ -466,9 +466,69 @@ void wiTasks::OnTaskApply( wxCommandEvent& event )
 
 void wiTasks::OnRunTask( wxCommandEvent& event )
 {
+    wxListItem info;
+    ObjectInf* objInfo;
+    ProfileInf* profInfo;
+    wxString content;
+    int idata;
+    wxString tskName;
+
     // save profile settings
     OnTaskApply( event );
 	// TODO: Implement OnRunTask
+    tskName = m_lstObjectList->GetItemText(m_selectedObject);
+    objInfo = (ObjectInf*)m_lstObjectList->GetItemData(m_selectedObject);
+    if (objInfo == NULL) {
+        ::wxLogError(_("Can't get information about object %s (id=%s)"), tskName.c_str(), objInfo->ObjectId);
+        return;
+    }
+    tskName += wxT(" [");
+    tskName += m_chProfile->GetString(m_selectedProf);
+    tskName += wxT("]");
+    profInfo = (ProfileInf*)m_chProfile->GetClientData(m_selectedProf);
+    if (objInfo == NULL) {
+        ::wxLogError(_("Can't get information about profile %s (id=%s)"), m_chProfile->GetString(m_selectedProf).c_str(), profInfo->ObjectId);
+        return;
+    }
+    if (FRAME_WINDOW->IsConnected())
+    {
+        wxString tskID = FRAME_WINDOW->DoClientCommand(wxT("addtask"), tskName);
+        if (!tskID.IsEmpty() && tskID != wxT("0"))
+        {
+            // set task's options
+            wxXmlDocument opt;
+            wxXmlNode *root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("options"));
+
+            content = FRAME_WINDOW->FromStdString(objInfo->ObjectId);
+            wiPluginSettings::SaveTaskOption (root, wxT(weoParentID), wxT("8"), content);
+
+            content = FRAME_WINDOW->FromStdString(profInfo->ObjectId);
+            wiPluginSettings::SaveTaskOption (root, wxT(weoProfileID), wxT("8"), content);
+
+            wiPluginSettings* panel = (wiPluginSettings*)(m_plgBookTree->GetPage(0));
+            panel->ComposeValues(root);
+
+            opt.SetRoot(root);
+            wxMemoryOutputStream outp;
+            opt.Save(outp, wxXML_NO_INDENTATION);
+            int dataLen = outp.GetSize();
+            char *data = new char[dataLen + 10];
+            if (data != NULL) {
+                outp.CopyTo(data, dataLen);
+                data[dataLen] = '\0';
+                wxString str = wxString::Format(wxT("%s;"), tskID.c_str());
+                str += wxString::FromUTF8(data);
+                FRAME_WINDOW->DoClientCommand(wxT("settaskopts"), str);
+            }
+            else {
+                wxLogError(wxT("Can't compose options save request!"));
+            }
+
+            // run task
+            FRAME_WINDOW->DoClientCommand(wxT("runtask"), tskID);
+        }
+        ProcessTaskList();
+    }
 }
 
 void wiTasks::OnAddPlugin( wxCommandEvent& event )
