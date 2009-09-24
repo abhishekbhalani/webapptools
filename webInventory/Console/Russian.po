@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webInventory 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-22 13:11+0300\n"
+"POT-Creation-Date: 2009-09-24 18:16+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Andrew Abramov <stinger@lab18.net>\n"
 "Language-Team: http://code.google.com/p/webapptools/ <stinger911@gmail.com>\n"
@@ -14,17 +14,6 @@ msgstr ""
 "X-Poedit-Country: RUSSIAN FEDERATION\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: sources\n"
-
-#: sources/weRttiOptions.cpp:149
-#: sources/weRttiOptions.cpp:275
-#, c-format
-msgid "Unknown widget class: %s (type=%d, name='%s'"
-msgstr "Неизвестный тип опции: %s (code=%d, name=%s)"
-
-#: sources/weRttiOptions.cpp:155
-#, c-format
-msgid "Unknown option type: %d (class=%s, name='%s'"
-msgstr "Неизвестный тип опции: %d (code=%s, name=%s)"
 
 #: sources/wiGuiData.cpp:73
 msgid "Targets List"
@@ -125,7 +114,7 @@ msgid "Scanner address:"
 msgstr "Адрес сканера:"
 
 #: sources/wiGuiData.cpp:349
-#: sources/wiSettings.cpp:295
+#: sources/wiSettings.cpp:307
 msgid "Connect"
 msgstr "Соединиться"
 
@@ -267,23 +256,23 @@ msgid "Select plugin to add"
 msgstr "Выберите добавляемый плагин"
 
 #: sources/wiPlgSelector.cpp:17
-#: sources/wiSettings.cpp:254
-#: sources/wiSettings.cpp:263
-#: sources/wiTasks.cpp:452
+#: sources/wiSettings.cpp:266
+#: sources/wiSettings.cpp:275
+#: sources/wiTasks.cpp:571
 msgid "Warning"
 msgstr "Предупреждение"
 
 #: sources/wiPluginSettings.cpp:19
-#: sources/wiPluginSettings.cpp:74
+#: sources/wiPluginSettings.cpp:75
 msgid "Plugin doesn't provide settings"
 msgstr "Этот плагин не предоставляет настроек"
 
-#: sources/wiPluginSettings.cpp:36
+#: sources/wiPluginSettings.cpp:37
 #, c-format
 msgid "%s plugin settings"
 msgstr "Настройки плагина %s"
 
-#: sources/wiPluginSettings.cpp:39
+#: sources/wiPluginSettings.cpp:40
 msgid "Generic settings"
 msgstr "Основные параметры"
 
@@ -325,7 +314,7 @@ msgstr "Соединение с таким сканером уже сущест�
 msgid "Are you shure to delete the connection '%s'?"
 msgstr "Вы действительно хотите удалить соединение '%s'?"
 
-#: sources/wiSettings.cpp:253
+#: sources/wiSettings.cpp:265
 msgid ""
 "Are you shure to restart the server?\n"
 "(All active tasks will be paused, and all clients will be disconnected)"
@@ -333,7 +322,7 @@ msgstr ""
 "Вы действительно хотите перезапустить сервер?\n"
 "(Все активные задачи будут приостановлены, все клиенты будут отсоединены)"
 
-#: sources/wiSettings.cpp:262
+#: sources/wiSettings.cpp:274
 msgid ""
 "Are you shure to stop the server?\n"
 "(All active tasks will be paused, and all clients will be disconnected)"
@@ -341,11 +330,11 @@ msgstr ""
 "Вы действительно хотите остановить сервер?\n"
 "(Все активные задачи будут приостановлены, все клиенты будут отсоединены)"
 
-#: sources/wiSettings.cpp:271
+#: sources/wiSettings.cpp:283
 msgid "Information"
 msgstr "Информация"
 
-#: sources/wiSettings.cpp:282
+#: sources/wiSettings.cpp:294
 msgid "Disconnect"
 msgstr "Разорвать соединение"
 
@@ -364,7 +353,7 @@ msgid "paused (%d%%)"
 msgstr "paused (%d%%)"
 
 #: sources/wiTasks.cpp:144
-#: sources/wiTasks.cpp:486
+#: sources/wiTasks.cpp:861
 msgid "Generic options"
 msgstr "Основные параметры"
 
@@ -377,22 +366,22 @@ msgid "Status"
 msgstr "Статус"
 
 #: sources/wiTasks.cpp:215
-#: sources/wiTasks.cpp:470
+#: sources/wiTasks.cpp:845
 msgid "Transports"
 msgstr "Транспортные плагины"
 
 #: sources/wiTasks.cpp:218
-#: sources/wiTasks.cpp:474
+#: sources/wiTasks.cpp:849
 msgid "Inventory"
 msgstr "Инвенторизация"
 
 #: sources/wiTasks.cpp:221
-#: sources/wiTasks.cpp:478
+#: sources/wiTasks.cpp:853
 msgid "Audit"
 msgstr "Аудит"
 
 #: sources/wiTasks.cpp:224
-#: sources/wiTasks.cpp:482
+#: sources/wiTasks.cpp:857
 msgid "Vulnerabilities"
 msgstr "Плагины поиска уязвимостей"
 
@@ -423,11 +412,21 @@ msgstr "Запрос"
 msgid "Are you sure to delete profile '%s'?"
 msgstr "Вы действительно хотите удалить профиль '%s'?"
 
-#: sources/wiTasks.cpp:452
+#: sources/wiTasks.cpp:482
+#, c-format
+msgid "Can't get information about object %s (id=%s)"
+msgstr "Не удается получить информацию об объекте %s (ИД=%s)"
+
+#: sources/wiTasks.cpp:490
+#, c-format
+msgid "Can't get information about profile %s (id=%s)"
+msgstr "Не удается получить информацию о профиле %s (ИД=%s)"
+
+#: sources/wiTasks.cpp:571
 msgid "Plugin already exist in this profile"
 msgstr "Плагин уже есть в профиле"
 
-#: sources/wiTasks.cpp:508
+#: sources/wiTasks.cpp:884
 #, c-format
 msgid "Can't create UI for plugin %s"
 msgstr "Не удалось создать настройки для плагина %s"
@@ -587,6 +586,10 @@ msgstr "Соединение"
 msgid "Select plugin"
 msgstr "Выберите плагин"
 
+#~ msgid "Unknown widget class: %s (type=%d, name='%s'"
+#~ msgstr "Неизвестный тип опции: %s (code=%d, name=%s)"
+#~ msgid "Unknown option type: %d (class=%s, name='%s'"
+#~ msgstr "Неизвестный тип опции: %d (code=%s, name=%s)"
 #~ msgid "Log level"
 #~ msgstr "Уровень журналирования"
 #~ msgid "Debug"
@@ -617,10 +620,6 @@ msgstr "Выберите плагин"
 #~ msgstr "Соединен"
 #~ msgid "Are you sure to delete task '%s'?"
 #~ msgstr "Вы действительно хотите удалить задачу '%s'?"
-#~ msgid "Can't get information about object %s (id=%s)"
-#~ msgstr "Не удается получить информацию об объекте %s (ИД=%s)"
-#~ msgid "Can't get information about profile %s (id=%s)"
-#~ msgstr "Не удается получить информацию о профиле %s (ИД=%s)"
 #~ msgid "Select profile for scanning"
 #~ msgstr "Укажите профиль сканирования"
 #~ msgid "Select object for scanning"
