@@ -27,103 +27,65 @@
 #define __wiMainForm__
 
 #include "wiGuiData.h"
-#include <wx/imaglist.h>
-#include <wx/xml/xml.h>
+#include "wiStatBar.h"
 #include "Config.h"
+#include "wiApp.h"
+#include "wiTasks.h"
+#include "wiReports.h"
+#include "wiSettings.h"
 #include "wiTcpClient.h"
 
-BEGIN_DECLARE_EVENT_TYPES()
-DECLARE_EVENT_TYPE(wxEVT_REPORT_LOADING, -1)
-DECLARE_EVENT_TYPE(wxEVT_REPORT_LOAD, -1)
-END_DECLARE_EVENT_TYPES()
+#define wxPluginsData   10000
 
-/**
- * @class   wiMainForm
- * @brief   Implementing MainForm
- */
+/** Implementing MainForm */
 class wiMainForm : public MainForm
 {
+protected:
+    wiTasks* m_pTasks;
+    wxPanel* m_pReports;
+    wiSettings* m_pSettings;
+    wiStatBar* m_statusBar;
+
+    // Handlers for MainForm events.
+	void OnClose( wxCloseEvent& event );
+    void OnTimer( wxTimerEvent& event );
+
+    // functions
+
+	// members
+	CConfigEngine m_cfgEngine;
+	wiTcpClient*  m_client;
+	PluginList* m_plugList;
+	wxString m_connectionName;
+    wxTimer m_timer;
+    bool m_connectionStatus;
+
 public:
 	/** Constructor */
 	wiMainForm( wxWindow* parent );
 
-	void LoadConnections();
-	enum { wxPluginsData = 10000 };
+	CConfigEngine* Config() { return &m_cfgEngine; };
 
-protected:
-    // Virtual event handlers, overide them in your derived class
-    virtual void OnClose( wxCloseEvent& event );
-    virtual void OnConnect( wxCommandEvent& event );
-    virtual void OnLangChange( wxCommandEvent& event );
-    virtual void OnOptionsPageChanging( wxTreebookEvent& event );
-    virtual void OnPlgRefresh( wxCommandEvent& event );
-    virtual void OnSortItems( wxListEvent& event );
-    virtual void OnStorageChange( wxCommandEvent& event );
-    virtual void OnTimer( wxTimerEvent& event );
-    virtual void OnSrvStop( wxCommandEvent& event );
-    virtual void OnServerLogs( wxCommandEvent& event );
+	void DoConnect(int account);
+	void DoDisconnect();
+	void LoadPluginList();
+	void ShowConnectionError();
+	PluginList* GetPluginList();
 
-    virtual void OnAddServer( wxCommandEvent& event );
-    virtual void OnEditServer( wxCommandEvent& event );
-    virtual void OnDelServer( wxCommandEvent& event );
+    ObjectList* GetObjectList(const wxString& criteria = wxT(""));
+    ProfileList* GetProfileList(const wxString& criteria = wxT(""));
+    TaskList* GetTaskList(const wxString& criteria = wxT(""));
+    wxString UpdateObject(ObjectInf& objInfo);
 
-//    virtual void OnAddTask( wxCommandEvent& event );
-    virtual void OnDelTask( wxCommandEvent& event );
-    virtual void OnRunTask( wxCommandEvent& event );
-    virtual void OnCancelTask( wxCommandEvent& event );
-    virtual void OnTaskSelected( wxListEvent& event );
-    virtual void OnPauseTask( wxCommandEvent& event );
+	wxString DoClientCommand(const wxString& cmd, const wxString& params);
+	char** StringListToXpm(vector<string>& data);
+	wxString FromStdString(const std::string& str);
+	bool IsConnected() { return m_client != NULL; };
 
-    virtual void OnReportTskFilter( wxCommandEvent& event );
-    virtual void OnReportsFilter( wxCommandEvent& event );
-    virtual void OnReportsRefresh( wxCommandEvent& event );
-    virtual void OnReportExpand( wxTreeEvent& event );
-    virtual void OnReportSelected( wxTreeEvent& event );
-
-    virtual void OnAddObject( wxCommandEvent& event );
-    virtual void OnEditObject( wxCommandEvent& event );
-    virtual void OnDelObject( wxCommandEvent& event );
-    virtual void OnSelectObject( wxListEvent& event );
-
-    virtual void OnReportsLoadStart( wxCommandEvent& event );
-    virtual void OnReportsLoad( wxCommandEvent& event );
-
-    virtual void OnAddProfile( wxCommandEvent& event );
-    virtual void OnCopyProfile( wxCommandEvent& event );
-    virtual void OnDelProfile( wxCommandEvent& event );
-    virtual void OnTaskApply( wxCommandEvent& event );
-    virtual void OnChangeProfile( wxCommandEvent& event );
-
-    virtual void OnAddPlugin( wxCommandEvent& event );
-    virtual void OnRemovePlugin( wxCommandEvent& event );
-
-    void ProcessTaskList(const wxString& criteria = wxT(""));
-    void ProcessObjects(const wxString& criteria = wxT(""));
-    void ProcessProfileList(const wxString& criteria = wxT(""));
-
-    void Disconnected(bool mode = true);
-    void Connected(bool mode = true);
-    void GetPluginList();
-    void SelectTask(int id = -1);
-
-    void FillObjectFilter();
-    void GetTaskOptions(const wxString& taskID);
-    wxPanel* LoadPluginSettings( PluginInf* plg );
-    void RebuildOptionsView();
-    void RebuildReportsTree();
-    PluginInf* FoundPlugin( const wxString& id);
-
-    CConfigEngine m_cfgEngine;
-    wiTcpClient* m_client;
-    wxTimer m_timer;
-    wxImageList m_lstImages;
-    PluginList* m_plugList;
-    bool connStatus;
-    int m_selectedTask;
-    int m_selectedObject;
-    int m_selectedActive;
-    int m_selectedProf;
-    int m_plugins;
+    void Connected(bool forced = true);
+    void Disconnected(bool forced = true);
 };
+
+#define FRAME_WINDOW ((wiMainForm*)(wxGetApp().GetTopWindow()))
 
 #endif // __wiMainForm__

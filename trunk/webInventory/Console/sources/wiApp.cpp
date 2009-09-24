@@ -42,9 +42,9 @@ IMPLEMENT_APP(webInventApp);
 bool webInventApp::OnInit()
 {
     wxSocketBase::Initialize();
-    SetAppName(wxT("WebInvent"));
-    SetVendorName(wxT("[Lab18]"));
-    wxConfig config(wxT("WebInvent"));
+    SetAppName(APP_NAME);
+    SetVendorName(APP_VENDOR);
+    wxConfig config(APP_NAME);
     // Localization
     {
         wxLogNull noLog;

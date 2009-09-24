@@ -21,7 +21,30 @@
 #include <algorithm>
 #include "weHelper.h"
 #include "weHTTP.h"
-#include "weHttp.xrc"
+
+static string xrc = "<plugin><category label='Basic settings' name='generic'>\
+ <option name='httpTransport/Port' label='Port number' type='2' control='int'>80</option>\
+ <option name='httpTransport/SizeLimit' label='Document size limit' type='2' control='int'>-1</option>\
+ <category label='Authentication' name='auth'>\
+  <option name='' label='Authentication methods'>&lt;composed&gt;\
+   <option name='httpTransport/Auth/Base' label='Basic HTTP' type='6' control='bool' chkbox='1'>0</option>\
+   <option name='httpTransport/Auth/NTLM' label='NTLM' type='6' control='bool' chkbox='1'>0</option>\
+  </option>\
+  <option name='httpTransport/Auth/Username' label='Username' type='8' control='string'></option>\
+  <option name='httpTransport/Auth/Password' label='Password' type='8' control='string' mode='password'></option>\
+ </category>\
+ <category label='Proxy' name='proxy'>\
+  <option name='' label='Proxy type'>&lt;composed&gt;\
+   <option name='httpTransport/Proxy/HTTP' label='HTTP' type='6' control='bool' chkbox='1'>0</option>\
+   <option name='httpTransport/Proxy/Socks' label='Socks' type='6' control='bool' chkbox='1'>0</option>\
+  </option>\
+  <option name='httpTransport/Proxy/Host' label='Proxy host' type='8' control='string'></option>\
+  <option name='httpTransport/Proxy/Port' label='Proxy port' type='2' control='int'>8080</option>\
+  <option name='httpTransport/Proxy/Username' label='Username' type='8' control='string'></option>\
+  <option name='httpTransport/Proxy/Password' label='Password' type='8' control='string' mode='password'></option>\
+ </category>\
+</category></plugin>";
+
 
 namespace webEngine {
 

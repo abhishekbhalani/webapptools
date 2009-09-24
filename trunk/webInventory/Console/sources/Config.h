@@ -21,6 +21,10 @@
 #include <wx/listctrl.h>
 #include <wx/confbase.h>
 
+#define APP_VENDOR  wxT("[Lab18]")
+#define APP_NAME    wxT("WebAudit")
+#define APP_TITLE   wxT("WebAudit Framework")
+
 class CConfigEngine {
     private:
 
