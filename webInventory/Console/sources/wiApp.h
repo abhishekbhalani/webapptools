@@ -38,4 +38,6 @@ class webInventApp : public wxApp
         virtual bool OnInit();
 };
 
+DECLARE_APP(webInventApp);
+
 #endif // WXWEBINVENTAPP_H

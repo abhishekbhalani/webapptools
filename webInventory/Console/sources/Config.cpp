@@ -33,7 +33,7 @@ CConfigEngine::CConfigEngine(const wxString& appName)
 {
     m_appName = appName;
     wxTheApp->SetAppName(m_appName);
-    wxTheApp->SetVendorName(wxT("[Lab18]"));
+    wxTheApp->SetVendorName(APP_VENDOR);
 #if defined(__WXMSW__)
     wxGetEnv(wxT("APPDATA"), &m_localDir);
     config = new wxConfig(m_appName);

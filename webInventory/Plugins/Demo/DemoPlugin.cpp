@@ -22,7 +22,22 @@
 #include "DemoPlugin.h"
 #include "version.h"
 #include "demoPlugin.xpm"
-#include "demoPlugin.xrc"
+
+static string xrc = "<plugin>\
+<category label='Basic settings' name='generic'>\
+ <option name='demoPlugin/Parameter1' label='String Parameter' type='8' control='string'>text parameter</option>\
+ <option name='demoPlugin/Parameter2' label='Bool parameter' type='6' control='bool' checkbox='1'>true</option>\
+ <option name='demoPlugin/Parameter3' label='Enum parameter' type='8' control='enum'>Choice1;Choice2;Choice3</option>\
+ <option name='' label='Options'>&lt;composed&gt;\
+  <option name='demoPlugin/Parameter4' label='Option 1' type='6' control='bool' chkbox='1'>true</option>\
+  <option name='demoPlugin/Parameter5' label='Option 2' type='6' control='bool' chkbox='1'>false</option>\
+  <option name='demoPlugin/Parameter6' label='Option 3' type='6' control='bool'>1</option>\
+  <option name='demoPlugin/Parameter7' label='Option 4' type='6' control='bool'>0</option>\
+  <option name='demoPlugin/Parameter8' label='Option 5' type='6' control='bool' chkbox='1'>yes</option>\
+  <option name='demoPlugin/Parameter9' label='Option 6' type='6' control='bool' chkbox='1'>no</option>\
+ </option>\
+</category>\
+</plugin>";
 
 DemoPlugin::DemoPlugin( Dispatch* krnl, void* handle /*= NULL*/ ) :
     iPlugin(krnl, handle)

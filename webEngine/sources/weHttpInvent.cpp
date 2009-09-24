@@ -22,7 +22,23 @@
 #include <weTask.h>
 #include <weHttpInvent.h>
 #include <weScan.h>
-#include "iweInventory.xrc"
+
+static string xrc = "<plugin><category label='Basic settings' name='generic'>\
+ <option name='httpInventory/BaseURL' label='Start URL' type='8' control='string' mode='window'>/</option>\
+ <category label='Crawler' name='crawler'>\
+  <option name='' label='Crawling mode'>&lt;composed&gt;\
+   <option name='httpInventory/StayInDir' label='Stay in directory' type='6' control='bool' chkbox='1'>1</option>\
+   <option name='httpInventory/StayInHost' label='Stay in host' type='6' control='bool' chkbox='1'>0</option>\
+   <option name='httpInventory/StayInIP' label='Stay in domain and IP' type='6' control='bool' chkbox='1'>0</option>\
+   <option name='httpInventory/StayInDomain' label='Stay in domain' type='6' control='bool' chkbox='1'>0</option>\
+  </option>\
+  <option name='httpInventory/ScanDepth' label='Scan depth' type='2' control='int'>-1</option>\
+  <option name='httpInventory/noParamUrl' label='Ignore URL parameters' type='6' control='bool' chkbox='1'>0</option>\
+ </category>\
+ <option name='httpInventory/ParallelReq' label='Number of downloaders' type='2' control='int' min='1' max='100'>10</option>\
+ <option name='httpInventory/AllowedCType' label='Allowed content-type' type='2' control='enum'>Any;empty and \"text/*\";only \"text/*\";empty and \"text/html\";only \"text/html\"</option>\
+ <option name='httpInventory/Subdomains' label='Allowed subdomains list' type='8' control='string' mode='window'></option>\
+</category></plugin>";
 
 namespace webEngine {
 
