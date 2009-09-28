@@ -28,6 +28,9 @@
 #include "../images/panReports.xpm"
 #include "../images/panSettings.xpm"
 #include "../images/panTasks.xpm"
+#ifdef SERVICE_EDITION
+  #include "../images/panService.xpm"
+#endif
 
 #include "../images/webInventory.xpm"
 
@@ -42,12 +45,16 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
 
     SetIcon(wxICON(mainicon));
 
-	m_pTasks = new wiTasks( m_mainnb ); //, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	m_mainnb->AddPage( m_pTasks, _("Tasks"), false, wxBitmap( panTasks_xpm ) );
-	m_pReports = new wiReports( m_mainnb ); //, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	m_mainnb->AddPage( m_pReports, _("Reports"), false, wxBitmap( panReports_xpm ) );
-	m_pSettings = new wiSettings( m_mainnb ); //, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-	m_mainnb->AddPage( m_pSettings, _("Settings"), true, wxBitmap( panSettings_xpm ) );
+    m_pTasks = new wiTasks( m_mainnb ); //, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+    m_mainnb->AddPage( m_pTasks, _("Tasks"), false, wxBitmap( panTasks_xpm ) );
+    m_pReports = new wiReports( m_mainnb ); //, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+    m_mainnb->AddPage( m_pReports, _("Reports"), false, wxBitmap( panReports_xpm ) );
+#ifdef SERVICE_EDITION
+    m_pService = new wiService( m_mainnb ); //, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+    m_mainnb->AddPage( m_pService, _("Service"), false, wxBitmap( panService_xpm ) );
+#endif
+    m_pSettings = new wiSettings( m_mainnb ); //, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+    m_mainnb->AddPage( m_pSettings, _("Settings"), true, wxBitmap( panSettings_xpm ) );
 
     m_statusBar = new wiStatBar( this );
     SetStatusBar(m_statusBar);

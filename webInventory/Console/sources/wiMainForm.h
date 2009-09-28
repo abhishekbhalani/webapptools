@@ -34,6 +34,9 @@
 #include "wiReports.h"
 #include "wiSettings.h"
 #include "wiTcpClient.h"
+#ifdef SERVICE_EDITION
+  #include "wiService.h"
+#endif
 
 #define wxPluginsData   10000
 
@@ -43,6 +46,9 @@ class wiMainForm : public MainForm
 protected:
     wiTasks* m_pTasks;
     wxPanel* m_pReports;
+#ifdef SERVICE_EDITION
+    wxPanel* m_pService;
+#endif
     wiSettings* m_pSettings;
     wiStatBar* m_statusBar;
 

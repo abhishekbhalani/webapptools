@@ -20,7 +20,7 @@
 /***************************************************************
  * @file      wiLineReport.cpp
  * @brief     Defines wiLineReport class
- * @author    Andrew "Stinger" Abramov (stinger@lab18.net)
+ * @author    Andrew "Stinger" Abramov (stinger911@gmail.com)
  * @date      31.08.2009
  **************************************************************/
 #include "wiLineReport.h"

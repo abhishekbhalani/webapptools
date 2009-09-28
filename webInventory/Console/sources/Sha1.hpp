@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2007 Lab18.net                                          *
- *   Author: Andrew Abramov     stinger@lab18.net                          *
+ *   Copyright (C) 2007 Andrew Abramov                                     *
+ *   Author: Andrew Abramov     stinger911@gmail.com                       *
  *                                                                         *
  *   Abstract:          SHA-1 implementation.                              *
  *                      source for ASM code generation                     *

@@ -1,6 +1,6 @@
 /*
  * iConfig.cxx
- * Copyright (C) Andrew Abramov 2007 <stinger@lab18.net>
+ * Copyright (C) Andrew Abramov 2007 <stinger911@gmail.com>
  *
  * I-Gate is free software. But sources of main part are closed.
  * Plugins for iGate are in open-source domain.
