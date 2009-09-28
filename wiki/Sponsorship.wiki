@@ -7,6 +7,6 @@ We are looking for sponsorship from Enterprise users and Internet community.We e
   * You can request for help or get support.
   * Your opinion is very important for us - leave the comment to inform us.
   * You can join to project development team as developer, QA, GUI designer or technical writer
-  * Also you can donate these projects to help us support associated developers, or implement specific features.
+  * Also you can donate this project to help us support associated developers, or implement specific features.
   * You can watch the development status in the project's *[http://code.google.com/p/webapptools/issues/list?q=label:Enhancement+OR+label:Task Task List]*
   * Inform us about founded bugs through project's *[http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Bug Tracking system]*.
