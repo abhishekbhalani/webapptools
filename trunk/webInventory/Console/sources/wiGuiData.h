@@ -42,6 +42,9 @@
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
 #include <wx/treectrl.h>
+#include <wx/wxFlatNotebook/wxFlatNotebook.h>
+#include <wx/wxscintilla/wxscintilla.h>
+#include <wx/html/htmlwin.h>
 #include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -272,6 +275,122 @@ class PluginSettings : public wxPanel
 	public:
 		PluginSettings( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 363,300 ), long style = wxTAB_TRAVERSAL );
 		~PluginSettings();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class Service
+///////////////////////////////////////////////////////////////////////////////
+class Service : public wxPanel
+{
+	private:
+
+	protected:
+		wxFlatNotebook* m_fnbService;
+
+	public:
+		Service( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 714,559 ), long style = wxTAB_TRAVERSAL );
+		~Service();
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class VulnDB
+///////////////////////////////////////////////////////////////////////////////
+class VulnDB : public wxPanel
+{
+	private:
+
+	protected:
+		wxToolBar* m_toolBar;
+		wxSplitterWindow* m_splVulners;
+		wxTreeCtrl* m_treeVDB;
+
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnTreeRefresh( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnDbSlice( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnAddObj( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnVulnerSelect( wxTreeEvent& event ){ event.Skip(); }
+
+
+	public:
+		VulnDB( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 559,384 ), long style = wxTAB_TRAVERSAL );
+		~VulnDB();
+		void m_splVulnersOnIdle( wxIdleEvent& )
+		{
+		m_splVulners->SetSashPosition( 200 );
+		m_splVulners->Disconnect( wxEVT_IDLE, wxIdleEventHandler( VulnDB::m_splVulnersOnIdle ), NULL, this );
+		}
+
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class RepDB
+///////////////////////////////////////////////////////////////////////////////
+class RepDB : public wxPanel
+{
+	private:
+
+	protected:
+		wxToolBar* m_toolBar;
+		wxSplitterWindow* m_splRepDB;
+		wxTreeCtrl* m_treePerp;
+		wxFlatNotebook* m_fnbViews;
+		wxPanel* m_pnEdit;
+		wxScintilla* m_scEdit;
+		wxPanel* m_pnView;
+		wxHtmlWindow* m_htmlWin;
+
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnTreeRefresh( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnDbSlice( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnAddObj( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnVulnerSelect( wxTreeEvent& event ){ event.Skip(); }
+
+
+	public:
+		RepDB( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 712,474 ), long style = wxTAB_TRAVERSAL );
+		~RepDB();
+		void m_splRepDBOnIdle( wxIdleEvent& )
+		{
+		m_splRepDB->SetSashPosition( 200 );
+		m_splRepDB->Disconnect( wxEVT_IDLE, wxIdleEventHandler( RepDB::m_splRepDBOnIdle ), NULL, this );
+		}
+
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class Scripts
+///////////////////////////////////////////////////////////////////////////////
+class Scripts : public wxPanel
+{
+	private:
+
+	protected:
+		wxToolBar* m_toolBar;
+		wxSplitterWindow* m_splScripts;
+		wxTreeCtrl* m_treeScripts;
+		wxToolBar* m_toolBar14;
+		wxScintilla* m_scEdit;
+
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnTreeRefresh( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnDbSlice( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnAddObj( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnVulnerSelect( wxTreeEvent& event ){ event.Skip(); }
+
+
+	public:
+		Scripts( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 559,384 ), long style = wxTAB_TRAVERSAL );
+		~Scripts();
+		void m_splScriptsOnIdle( wxIdleEvent& )
+		{
+		m_splScripts->SetSashPosition( 200 );
+		m_splScripts->Disconnect( wxEVT_IDLE, wxIdleEventHandler( Scripts::m_splScriptsOnIdle ), NULL, this );
+		}
+
 
 };
 

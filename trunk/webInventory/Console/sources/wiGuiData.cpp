@@ -17,6 +17,7 @@
 #include "../images/btnEdit.xpm"
 #include "../images/btnStop.xpm"
 #include "../images/date.xpm"
+#include "../images/export.xpm"
 #include "../images/filter.xpm"
 #include "../images/flsave.xpm"
 #include "../images/flstatus.xpm"
@@ -513,7 +514,7 @@ Reports::Reports( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxS
 	bSizer13 = new wxBoxSizer( wxVERTICAL );
 	
 	m_split = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
-	m_split->SetSashGravity( 0.66 );
+	m_split->SetSashGravity( 0 );
 	m_split->Connect( wxEVT_IDLE, wxIdleEventHandler( Reports::m_splitOnIdle ), NULL, this );
 	m_panRepTree = new wxPanel( m_split, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer14;
@@ -624,6 +625,308 @@ PluginSettings::PluginSettings( wxWindow* parent, wxWindowID id, const wxPoint& 
 
 PluginSettings::~PluginSettings()
 {
+}
+
+Service::Service( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) : wxPanel( parent, id, pos, size, style )
+{
+	wxBoxSizer* bSzService;
+	bSzService = new wxBoxSizer( wxVERTICAL );
+	
+	m_fnbService = new wxFlatNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFNB_BACKGROUND_GRADIENT|wxFNB_FF2|wxFNB_NODRAG|wxFNB_NO_NAV_BUTTONS|wxFNB_NO_X_BUTTON|wxFNB_SMART_TABS|wxFNB_VC8);
+	
+	m_fnbService->SetCustomizeOptions( wxFNB_CUSTOM_ALL );
+	m_fnbService->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	
+	
+	bSzService->Add( m_fnbService, 1, wxEXPAND | wxALL, 0 );
+	
+	this->SetSizer( bSzService );
+	this->Layout();
+}
+
+Service::~Service()
+{
+}
+
+VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) : wxPanel( parent, id, pos, size, style )
+{
+	wxBoxSizer* bSzVDB;
+	bSzVDB = new wxBoxSizer( wxVERTICAL );
+	
+	m_toolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER ); 
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh Tree"), wxEmptyString );
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( export_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Export DB slice"), wxEmptyString );
+	m_toolBar->AddSeparator();
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new vulnerability"), wxEmptyString );
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete vulnerability"), wxEmptyString );
+	m_toolBar->Realize();
+	
+	bSzVDB->Add( m_toolBar, 0, wxEXPAND, 5 );
+	
+	m_splVulners = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
+	m_splVulners->SetSashGravity( 0 );
+	m_splVulners->SetMinimumPaneSize( 200 );
+	m_splVulners->Connect( wxEVT_IDLE, wxIdleEventHandler( VulnDB::m_splVulnersOnIdle ), NULL, this );
+	wxPanel* m_pnTree;
+	m_pnTree = new wxPanel( m_splVulners, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	wxBoxSizer* bSzVDBTree;
+	bSzVDBTree = new wxBoxSizer( wxVERTICAL );
+	
+	m_treeVDB = new wxTreeCtrl( m_pnTree, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE|wxNO_BORDER );
+	bSzVDBTree->Add( m_treeVDB, 1, wxEXPAND, 5 );
+	
+	m_pnTree->SetSizer( bSzVDBTree );
+	m_pnTree->Layout();
+	bSzVDBTree->Fit( m_pnTree );
+	wxPanel* m_panel17;
+	m_panel17 = new wxPanel( m_splVulners, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	m_splVulners->SplitVertically( m_pnTree, m_panel17, 200 );
+	bSzVDB->Add( m_splVulners, 1, wxEXPAND, 5 );
+	
+	this->SetSizer( bSzVDB );
+	this->Layout();
+	
+	// Connect Events
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnTreeRefresh ) );
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDbSlice ) );
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnAddObj ) );
+	m_treeVDB->Connect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( VulnDB::OnVulnerSelect ), NULL, this );
+}
+
+VulnDB::~VulnDB()
+{
+	// Disconnect Events
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnTreeRefresh ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDbSlice ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnAddObj ) );
+	m_treeVDB->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( VulnDB::OnVulnerSelect ), NULL, this );
+}
+
+RepDB::RepDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) : wxPanel( parent, id, pos, size, style )
+{
+	wxBoxSizer* bSzRepDB;
+	bSzRepDB = new wxBoxSizer( wxVERTICAL );
+	
+	m_toolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER ); 
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh tree"), wxEmptyString );
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( export_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Export DB slice"), wxEmptyString );
+	m_toolBar->AddSeparator();
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new template"), wxEmptyString );
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete template"), wxEmptyString );
+	m_toolBar->Realize();
+	
+	bSzRepDB->Add( m_toolBar, 0, wxEXPAND, 5 );
+	
+	m_splRepDB = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
+	m_splRepDB->SetSashGravity( 0 );
+	m_splRepDB->SetMinimumPaneSize( 200 );
+	m_splRepDB->Connect( wxEVT_IDLE, wxIdleEventHandler( RepDB::m_splRepDBOnIdle ), NULL, this );
+	wxPanel* m_pnTree;
+	m_pnTree = new wxPanel( m_splRepDB, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	wxBoxSizer* bSzRepTree;
+	bSzRepTree = new wxBoxSizer( wxVERTICAL );
+	
+	m_treePerp = new wxTreeCtrl( m_pnTree, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE|wxNO_BORDER );
+	bSzRepTree->Add( m_treePerp, 1, wxEXPAND, 5 );
+	
+	m_pnTree->SetSizer( bSzRepTree );
+	m_pnTree->Layout();
+	bSzRepTree->Fit( m_pnTree );
+	wxPanel* m_pnData;
+	m_pnData = new wxPanel( m_splRepDB, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	wxBoxSizer* bSzData;
+	bSzData = new wxBoxSizer( wxVERTICAL );
+	
+	m_fnbViews = new wxFlatNotebook(m_pnData, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxFNB_BACKGROUND_GRADIENT|wxFNB_FF2|wxFNB_NODRAG|wxFNB_NO_NAV_BUTTONS|wxFNB_NO_X_BUTTON|wxFNB_SMART_TABS|wxFNB_VC8|wxNO_BORDER);
+	
+	m_fnbViews->SetCustomizeOptions( wxFNB_CUSTOM_ALL );
+	m_fnbViews->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	
+	m_pnEdit = new wxPanel( m_fnbViews, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	wxBoxSizer* bSzEdit;
+	bSzEdit = new wxBoxSizer( wxVERTICAL );
+	
+	m_scEdit = new wxScintilla( m_pnEdit, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxEmptyString );
+	m_scEdit->SetUseTabs( false );
+	m_scEdit->SetTabWidth( 4 );
+	m_scEdit->SetIndent( 4 );
+	m_scEdit->SetTabIndents( true );
+	m_scEdit->SetBackSpaceUnIndents( true );
+	m_scEdit->SetViewEOL( false );
+	m_scEdit->SetViewWhiteSpace( false );
+	m_scEdit->SetMarginWidth( 2, 0 );
+	m_scEdit->SetIndentationGuides( true );
+	m_scEdit->SetMarginType( 1, wxSCI_MARGIN_SYMBOL );
+	m_scEdit->SetMarginMask( 1, wxSCI_MASK_FOLDERS );
+	m_scEdit->SetMarginWidth( 1, 16);
+	m_scEdit->SetMarginSensitive( 1, true );
+	m_scEdit->SetProperty( wxT("fold"), wxT("1") );
+	m_scEdit->SetFoldFlags( wxSCI_FOLDFLAG_LINEBEFORE_CONTRACTED | wxSCI_FOLDFLAG_LINEAFTER_CONTRACTED );
+	m_scEdit->SetMarginType( 0, wxSCI_MARGIN_NUMBER );
+	m_scEdit->SetMarginWidth( 0, m_scEdit->TextWidth( wxSCI_STYLE_LINENUMBER, wxT("_99999") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDER, wxSCI_MARK_BOXPLUS );
+	m_scEdit->MarkerSetBackground( wxSCI_MARKNUM_FOLDER, wxColour( wxT("BLACK") ) );
+	m_scEdit->MarkerSetForeground( wxSCI_MARKNUM_FOLDER, wxColour( wxT("WHITE") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDEROPEN, wxSCI_MARK_BOXMINUS );
+	m_scEdit->MarkerSetBackground( wxSCI_MARKNUM_FOLDEROPEN, wxColour( wxT("BLACK") ) );
+	m_scEdit->MarkerSetForeground( wxSCI_MARKNUM_FOLDEROPEN, wxColour( wxT("WHITE") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDERSUB, wxSCI_MARK_EMPTY );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDEREND, wxSCI_MARK_BOXPLUS );
+	m_scEdit->MarkerSetBackground( wxSCI_MARKNUM_FOLDEREND, wxColour( wxT("BLACK") ) );
+	m_scEdit->MarkerSetForeground( wxSCI_MARKNUM_FOLDEREND, wxColour( wxT("WHITE") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDEROPENMID, wxSCI_MARK_BOXMINUS );
+	m_scEdit->MarkerSetBackground( wxSCI_MARKNUM_FOLDEROPENMID, wxColour( wxT("BLACK") ) );
+	m_scEdit->MarkerSetForeground( wxSCI_MARKNUM_FOLDEROPENMID, wxColour( wxT("WHITE") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDERMIDTAIL, wxSCI_MARK_EMPTY );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDERTAIL, wxSCI_MARK_EMPTY );
+	m_scEdit->SetSelBackground( true, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
+	m_scEdit->SetSelForeground( true, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
+	bSzEdit->Add( m_scEdit, 1, wxEXPAND | wxALL, 0 );
+	
+	m_pnEdit->SetSizer( bSzEdit );
+	m_pnEdit->Layout();
+	bSzEdit->Fit( m_pnEdit );
+	m_fnbViews->AddPage( m_pnEdit, _("Editor"), true ); 
+	m_pnView = new wxPanel( m_fnbViews, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	wxBoxSizer* bSzView;
+	bSzView = new wxBoxSizer( wxVERTICAL );
+	
+	m_htmlWin = new wxHtmlWindow( m_pnView, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO );
+	bSzView->Add( m_htmlWin, 1, wxALL|wxEXPAND, 0 );
+	
+	m_pnView->SetSizer( bSzView );
+	m_pnView->Layout();
+	bSzView->Fit( m_pnView );
+	m_fnbViews->AddPage( m_pnView, _("Preview"), false ); 
+	
+	bSzData->Add( m_fnbViews, 1, wxEXPAND | wxALL, 0 );
+	
+	m_pnData->SetSizer( bSzData );
+	m_pnData->Layout();
+	bSzData->Fit( m_pnData );
+	m_splRepDB->SplitVertically( m_pnTree, m_pnData, 200 );
+	bSzRepDB->Add( m_splRepDB, 1, wxEXPAND, 5 );
+	
+	this->SetSizer( bSzRepDB );
+	this->Layout();
+	
+	// Connect Events
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( RepDB::OnTreeRefresh ) );
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( RepDB::OnDbSlice ) );
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( RepDB::OnAddObj ) );
+	m_treePerp->Connect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( RepDB::OnVulnerSelect ), NULL, this );
+}
+
+RepDB::~RepDB()
+{
+	// Disconnect Events
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( RepDB::OnTreeRefresh ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( RepDB::OnDbSlice ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( RepDB::OnAddObj ) );
+	m_treePerp->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( RepDB::OnVulnerSelect ), NULL, this );
+}
+
+Scripts::Scripts( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) : wxPanel( parent, id, pos, size, style )
+{
+	wxBoxSizer* bSzScripts;
+	bSzScripts = new wxBoxSizer( wxVERTICAL );
+	
+	m_toolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER ); 
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh Tree"), wxEmptyString );
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( export_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Export DB slice"), wxEmptyString );
+	m_toolBar->AddSeparator();
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new script"), wxEmptyString );
+	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete script"), wxEmptyString );
+	m_toolBar->Realize();
+	
+	bSzScripts->Add( m_toolBar, 0, wxEXPAND, 5 );
+	
+	m_splScripts = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
+	m_splScripts->SetSashGravity( 0 );
+	m_splScripts->SetMinimumPaneSize( 200 );
+	m_splScripts->Connect( wxEVT_IDLE, wxIdleEventHandler( Scripts::m_splScriptsOnIdle ), NULL, this );
+	wxPanel* m_pnTree;
+	m_pnTree = new wxPanel( m_splScripts, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	wxBoxSizer* bSzVDBTree;
+	bSzVDBTree = new wxBoxSizer( wxVERTICAL );
+	
+	m_treeScripts = new wxTreeCtrl( m_pnTree, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE|wxNO_BORDER );
+	bSzVDBTree->Add( m_treeScripts, 1, wxEXPAND, 5 );
+	
+	m_pnTree->SetSizer( bSzVDBTree );
+	m_pnTree->Layout();
+	bSzVDBTree->Fit( m_pnTree );
+	wxPanel* m_panel17;
+	m_panel17 = new wxPanel( m_splScripts, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	wxBoxSizer* bSzEdit;
+	bSzEdit = new wxBoxSizer( wxVERTICAL );
+	
+	m_toolBar14 = new wxToolBar( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER ); 
+	m_toolBar14->AddTool( wxID_ANY, wxEmptyString, wxBitmap( start_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Run script"), wxEmptyString );
+	m_toolBar14->Realize();
+	
+	bSzEdit->Add( m_toolBar14, 0, wxEXPAND, 5 );
+	
+	m_scEdit = new wxScintilla( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxEmptyString );
+	m_scEdit->SetUseTabs( false );
+	m_scEdit->SetTabWidth( 4 );
+	m_scEdit->SetIndent( 4 );
+	m_scEdit->SetTabIndents( true );
+	m_scEdit->SetBackSpaceUnIndents( true );
+	m_scEdit->SetViewEOL( false );
+	m_scEdit->SetViewWhiteSpace( false );
+	m_scEdit->SetMarginWidth( 2, 0 );
+	m_scEdit->SetIndentationGuides( true );
+	m_scEdit->SetMarginType( 1, wxSCI_MARGIN_SYMBOL );
+	m_scEdit->SetMarginMask( 1, wxSCI_MASK_FOLDERS );
+	m_scEdit->SetMarginWidth( 1, 16);
+	m_scEdit->SetMarginSensitive( 1, true );
+	m_scEdit->SetProperty( wxT("fold"), wxT("1") );
+	m_scEdit->SetFoldFlags( wxSCI_FOLDFLAG_LINEBEFORE_CONTRACTED | wxSCI_FOLDFLAG_LINEAFTER_CONTRACTED );
+	m_scEdit->SetMarginType( 0, wxSCI_MARGIN_NUMBER );
+	m_scEdit->SetMarginWidth( 0, m_scEdit->TextWidth( wxSCI_STYLE_LINENUMBER, wxT("_99999") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDER, wxSCI_MARK_BOXPLUS );
+	m_scEdit->MarkerSetBackground( wxSCI_MARKNUM_FOLDER, wxColour( wxT("BLACK") ) );
+	m_scEdit->MarkerSetForeground( wxSCI_MARKNUM_FOLDER, wxColour( wxT("WHITE") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDEROPEN, wxSCI_MARK_BOXMINUS );
+	m_scEdit->MarkerSetBackground( wxSCI_MARKNUM_FOLDEROPEN, wxColour( wxT("BLACK") ) );
+	m_scEdit->MarkerSetForeground( wxSCI_MARKNUM_FOLDEROPEN, wxColour( wxT("WHITE") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDERSUB, wxSCI_MARK_EMPTY );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDEREND, wxSCI_MARK_BOXPLUS );
+	m_scEdit->MarkerSetBackground( wxSCI_MARKNUM_FOLDEREND, wxColour( wxT("BLACK") ) );
+	m_scEdit->MarkerSetForeground( wxSCI_MARKNUM_FOLDEREND, wxColour( wxT("WHITE") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDEROPENMID, wxSCI_MARK_BOXMINUS );
+	m_scEdit->MarkerSetBackground( wxSCI_MARKNUM_FOLDEROPENMID, wxColour( wxT("BLACK") ) );
+	m_scEdit->MarkerSetForeground( wxSCI_MARKNUM_FOLDEROPENMID, wxColour( wxT("WHITE") ) );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDERMIDTAIL, wxSCI_MARK_EMPTY );
+	m_scEdit->MarkerDefine( wxSCI_MARKNUM_FOLDERTAIL, wxSCI_MARK_EMPTY );
+	m_scEdit->SetSelBackground( true, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
+	m_scEdit->SetSelForeground( true, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
+	bSzEdit->Add( m_scEdit, 1, wxEXPAND | wxALL, 0 );
+	
+	m_panel17->SetSizer( bSzEdit );
+	m_panel17->Layout();
+	bSzEdit->Fit( m_panel17 );
+	m_splScripts->SplitVertically( m_pnTree, m_panel17, 200 );
+	bSzScripts->Add( m_splScripts, 1, wxEXPAND, 5 );
+	
+	this->SetSizer( bSzScripts );
+	this->Layout();
+	
+	// Connect Events
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( Scripts::OnTreeRefresh ) );
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( Scripts::OnDbSlice ) );
+	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( Scripts::OnAddObj ) );
+	m_treeScripts->Connect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( Scripts::OnVulnerSelect ), NULL, this );
+}
+
+Scripts::~Scripts()
+{
+	// Disconnect Events
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( Scripts::OnTreeRefresh ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( Scripts::OnDbSlice ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( Scripts::OnAddObj ) );
+	m_treeScripts->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( Scripts::OnVulnerSelect ), NULL, this );
 }
 
 ObjDialog::ObjDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
