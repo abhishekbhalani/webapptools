@@ -256,6 +256,11 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
         m_propHash[name] = pid;
         pid->SetClientData((void*)lType);
     }
+    if ( node->GetPropVal(wxT("readonly"), &type) ) {
+        if (type == wxT("1")) {
+            m_props->DisableProperty(pid);
+        }
+    }
 
     wxXmlNode* nested = node->GetChildren();
     while (nested) {

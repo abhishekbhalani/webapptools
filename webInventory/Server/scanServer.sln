@@ -36,6 +36,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Redis", "..\Plugins\Redis\s
 		{FB361FB1-7F6C-414E-B624-FEED130D0FAF} = {FB361FB1-7F6C-414E-B624-FEED130D0FAF}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nmap", "..\Plugins\Nmap\Nmap.vcproj", "{495E5F97-21BE-498C-8F8D-CEC7482C4569}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -70,6 +72,10 @@ Global
 		{A6D9581C-E1D9-4EA3-94C6-861B8DC923A6}.Debug|Win32.Build.0 = Debug|Win32
 		{A6D9581C-E1D9-4EA3-94C6-861B8DC923A6}.Release|Win32.ActiveCfg = Release|Win32
 		{A6D9581C-E1D9-4EA3-94C6-861B8DC923A6}.Release|Win32.Build.0 = Release|Win32
+		{495E5F97-21BE-498C-8F8D-CEC7482C4569}.Debug|Win32.ActiveCfg = Debug|Win32
+		{495E5F97-21BE-498C-8F8D-CEC7482C4569}.Debug|Win32.Build.0 = Debug|Win32
+		{495E5F97-21BE-498C-8F8D-CEC7482C4569}.Release|Win32.ActiveCfg = Release|Win32
+		{495E5F97-21BE-498C-8F8D-CEC7482C4569}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
