@@ -49,4 +49,6 @@ extern bool set_profile_opts (const string& xml);
 extern bool del_profile (const string& id);
 extern ProfileList* get_profile_list(const string& criteria = "");
 
+extern string get_tsk_log(const string& tskid, int tail);
+
 #endif //__TASKOPERATIONS_H__

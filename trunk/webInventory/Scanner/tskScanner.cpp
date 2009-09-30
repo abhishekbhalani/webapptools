@@ -270,6 +270,7 @@ int main(int argc, char* argv[])
                         string msg = "No active plugins in the profile - nothing to do";
                         throw std::runtime_error(msg.c_str());
                     }
+                    globalData.save_task();
 
                     // create watchdog thread
                     boost::thread watch_dog(watch_dog_thread, taskID);
@@ -286,6 +287,11 @@ int main(int argc, char* argv[])
                     filter.Clear();
                     filter.objectID = weObjTypeTask;
                     filter.Option(weoID, taskID);
+                    globalData.dispatcher->Storage()->Delete(filter);
+
+                    filter.Clear();
+                    filter.objectID = weObjTypeSysOption;
+                    filter.Option(weoParentID, taskID);
                     globalData.dispatcher->Storage()->Delete(filter);
                 }
                 else {

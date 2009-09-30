@@ -62,10 +62,10 @@ namespace webEngine {
         Task(Task& cpy);
         ~Task();
 
-        void AddTransport(iTransport* plugin);
-        void AddInventory(iInventory* plugin);
-        void AddAuditor(iAudit* plugin);
-        void AddVulner(iVulner* plugin);
+        void AddPlgTransport(iTransport* plugin);
+        void AddPlgInventory(iInventory* plugin);
+        void AddPlgAuditor(iAudit* plugin);
+        void AddPlgVulner(iVulner* plugin);
         void StorePlugins(vector<iPlugin*>& plugins);
 
         void Run();
@@ -73,8 +73,8 @@ namespace webEngine {
         void Stop();
 
         bool IsReady();
-        iResponse* GetRequest(iRequest* req);
-        void GetRequestAsync(iRequest* req);
+        virtual iResponse* GetRequest(iRequest* req);
+        virtual void GetRequestAsync(iRequest* req);
 
         RecordSet* ToRS( const string& parentID = "" );
         void FromRS( RecordSet *rs );
@@ -82,9 +82,10 @@ namespace webEngine {
         void WaitForData();
         void CalcStatus();
 
-        ScanInfo* GetScan() { return scanInfo; };
-        ScanData* GetScanData(const string& baseUrl, const string& realUrl);
-        void SetScanData(ScanData* scData);
+        virtual ScanInfo* GetScan() { return scanInfo; };
+        virtual ScanData* GetScanData(const string& baseUrl, const string& realUrl);
+        virtual void SetScanData(ScanData* scData);
+        virtual void AddVulner(const string& vId, const string& params, const string& parentId);
 
 #ifndef __DOXYGEN__
     protected:

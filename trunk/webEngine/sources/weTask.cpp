@@ -199,68 +199,101 @@ bool Task::IsReady()
     return (processThread);
 }
 
-void Task::AddTransport( iTransport* plugin )
+void Task::AddPlgTransport( iTransport* plugin )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddTransport");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgTransport");
     for (size_t i = 0; i < transports.size(); i++)
     {
         if (transports[i]->GetID() == plugin->GetID())
         {
             // transport already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddTransport - transport already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgTransport - transport already in list");
             return;
         }
     }
     transports.push_back(plugin);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddTransport: added " << plugin->GetDesc());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgTransport: added " << plugin->GetDesc());
 }
 
-void Task::AddInventory( iInventory* plugin )
+void Task::AddPlgInventory( iInventory* plugin )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddInventory");
+    int plgPrio = plugin->GetPriority();
+    int inPlace = -1;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgInventory");
     for (size_t i = 0; i < inventories.size(); i++)
     {
         if (inventories[i]->GetID() == plugin->GetID())
         {
-            // transport already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddInventory - inventory already in list");
+            // plugin already in list
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgInventory - inventory already in list");
             return;
         }
+        if (inventories[i]->GetPriority() > plgPrio) {
+            inPlace = i;
+        }
     }
-    inventories.push_back(plugin);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddInventory: added " << plugin->GetDesc());
+    if (inPlace > -1) {
+        inventories.insert(inventories.begin() + inPlace, plugin);
+    }
+    else {
+        inventories.push_back(plugin);
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgInventory: added " << plugin->GetDesc());
 }
 
-void Task::AddAuditor( iAudit* plugin )
+void Task::AddPlgAuditor( iAudit* plugin )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddAuditor");
+    int plgPrio = plugin->GetPriority();
+    int inPlace = -1;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgAuditor");
     for (size_t i = 0; i < auditors.size(); i++)
     {
         if (auditors[i]->GetID() == plugin->GetID())
         {
-            // transport already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddAuditor - auditor already in list");
+            // plugin already in list
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgAuditor - auditor already in list");
             return;
         }
+        if (auditors[i]->GetPriority() > plgPrio) {
+            inPlace = i;
+        }
     }
-    auditors.push_back(plugin);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddAuditor: added " << plugin->GetDesc());
+    if (inPlace > -1) {
+        auditors.insert(auditors.begin() + inPlace, plugin);
+    }
+    else {
+        auditors.push_back(plugin);
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgAuditor: added " << plugin->GetDesc());
 }
 
-void Task::AddVulner( iVulner* plugin )
+void Task::AddPlgVulner( iVulner* plugin )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddVulner");
+    int plgPrio = plugin->GetPriority();
+    int inPlace = -1;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgVulner");
     for (size_t i = 0; i < vulners.size(); i++)
     {
         if (vulners[i]->GetID() == plugin->GetID())
         {
-            // transport already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddVulner - vulner already in list");
+            // plugin already in list
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgVulner - vulner already in list");
             return;
         }
+        if (vulners[i]->GetPriority() > plgPrio) {
+            inPlace = i;
+        }
     }
-    vulners.push_back(plugin);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddVulner: added " << plugin->GetDesc());
+    if (inPlace > -1) {
+        vulners.insert(vulners.begin() + inPlace, plugin);
+    }
+    else {
+        vulners.push_back(plugin);
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgVulner: added " << plugin->GetDesc());
 }
 
 void Task::StorePlugins(vector<iPlugin*>& plugins)
@@ -277,28 +310,28 @@ void Task::StorePlugins(vector<iPlugin*>& plugins)
         if (trsp != ifaces.end())
         {
             LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found transport: " << plugins[i]->GetDesc());
-            AddTransport((iTransport*)plugins[i]);
+            AddPlgTransport((iTransport*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "iInventory");
         if (trsp != ifaces.end())
         {
             LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found inventory: " << plugins[i]->GetDesc());
-            AddInventory((iInventory*)plugins[i]);
+            AddPlgInventory((iInventory*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "iAudit");
         if (trsp != ifaces.end())
         {
             LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found auditor: " << plugins[i]->GetDesc());
-            AddAuditor((iAudit*)plugins[i]);
+            AddPlgAuditor((iAudit*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "iVulner");
         if (trsp != ifaces.end())
         {
             LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found vulner: " << plugins[i]->GetDesc());
-            AddVulner((iVulner*)plugins[i]);
+            AddPlgVulner((iVulner*)plugins[i]);
         }
     }
 
@@ -584,6 +617,12 @@ void Task::WaitForData()
             SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
         }
     }
+}
+
+void Task::AddVulner( const string& vId, const string& params, const string& parentId )
+{
+    LOG4CXX_INFO(iLogger::GetLogger(), "Task::AddVulner add vulner ID=" << vId << "; ParentID=" << parentId);
+    LOG4CXX_INFO(iLogger::GetLogger(), "Task::AddVulner data: " << params);
 }
 
 } // namespace webEngine

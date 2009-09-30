@@ -89,7 +89,7 @@ HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*
     method = meth;
     RequestUrl(url, resp);
     /// @todo Implement this!
-    LOG4CXX_WARN(iLogger::GetLogger(), "HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented");
+    //LOG4CXX_WARN(iLogger::GetLogger(), "HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented");
 }
 
 void HttpRequest::RequestUrl( const string &ReqUrl, iOperation* resp /*= NULL*/ )

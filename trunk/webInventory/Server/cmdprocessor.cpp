@@ -42,6 +42,7 @@ string get_plugin_list(string filter);
 string get_plugin_ui(string filter);
 
 extern string save_cfg_storage(const string& id);
+string get_srv_log(int tail);
 
 int process_message(char* buff, size_t buffSz, session* sess)
 {
@@ -414,6 +415,44 @@ int process_message(char* buff, size_t buffSz, session* sess)
         }
 
         //////////////////////////////////////////////////////////////////////////
+        // SRVLOG command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "srvlog"))
+        {
+            msg.cmd = "srvlogs";
+            int lines;
+            try{
+                lines =  boost::lexical_cast<int>(msg.data);
+            }
+            catch(...) {
+                lines = 20;
+            }
+            msg.data = get_srv_log(lines);
+            retval = 1;
+            processed = true;
+        }
+
+        //////////////////////////////////////////////////////////////////////////
+        // TSKLOGS command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "tsklog"))
+        {
+            msg.cmd = "tsklog";
+            int lines;
+            string tskid;
+            tskid = "";
+            try{
+                lines =  boost::lexical_cast<int>(msg.data);
+            }
+            catch(...) {
+                lines = 20;
+            }
+            msg.data = get_tsk_log(tskid, lines);
+            retval = 1;
+            processed = true;
+        }
+
+        //////////////////////////////////////////////////////////////////////////
         // finalization
         //////////////////////////////////////////////////////////////////////////
         if (!processed)
@@ -477,4 +516,9 @@ string get_plugin_ui(string filter)
         plg->Release();
     }
     return retval;
+}
+
+string get_srv_log(int tail)
+{
+    return "";
 }

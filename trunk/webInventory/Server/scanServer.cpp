@@ -29,6 +29,7 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
 #include "version.h"
 #include <programcfg.h>
 
@@ -42,6 +43,10 @@ using namespace webEngine;
 Dispatch* globalDispatcher = NULL;
 string cfgFile;
 string workDir;
+
+bool stillExec;
+
+void watch_dog_thread(void);
 
 int main(int argc, char* argv[])
 {
@@ -156,8 +161,13 @@ int main(int argc, char* argv[])
                     storage->InitStorage(plg_settings);
                     globalDispatcher->Storage(storage);
 
+                    stillExec = true;
+
                     server s(io_service, configuration.port);
                     io_service.run();
+
+                    stillExec = false;
+                    boost::this_thread::sleep(boost::posix_time::seconds(5));
                 }
                 else {
                     LOG4CXX_FATAL(iLogger::GetLogger(), "No iStorage interface in the plugin " << plugin->GetID());
@@ -201,4 +211,12 @@ string save_cfg_storage(const string& id)
         retval = configuration.plugin_options(id);
     }
     return retval;
+}
+
+void watch_dog_thread(void)
+{
+    while (stillExec) {
+        boost::this_thread::sleep(boost::posix_time::seconds(4));
+        // check tasks to find and kill hangs
+    }
 }
