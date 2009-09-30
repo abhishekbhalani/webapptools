@@ -49,6 +49,16 @@ void task_executor(const string& taskID)
         boost::lock_guard<boost::mutex> lock(globalData.locker);
         LOG4CXX_TRACE(iLogger::GetLogger(), "task_executor start: reload task");
         globalData.task_info->Option(weoTaskStatus, WI_TSK_RUN);
+        int pid;
+#ifdef WIN32
+        pid = (int)GetCurrentProcessId();
+#else
+        pid_t p = getpid();
+        pid = (int)p;
+#endif //WIN32
+
+        LOG4CXX_INFO(iLogger::GetLogger(), "task_executor: Process id=" << pid);
+        globalData.task_info->Option("ProcessId", pid);
         globalData.save_task();
 
         // get transport from task options
@@ -56,6 +66,7 @@ void task_executor(const string& taskID)
         LOG4CXX_TRACE(iLogger::GetLogger(), "task_executor plugins loaded");
 
     }
+
     LOG4CXX_TRACE(iLogger::GetLogger(), "task_executor: go to main loop");
 
     // stage 0: prepare to start

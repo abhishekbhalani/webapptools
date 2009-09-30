@@ -115,7 +115,7 @@ void WeProfile::FromRS( RecordSet *rs )
             SAFE_GET_OPTION_VAL(opt, sName, "");
             // type 
             opt = rec.Option(weoTypeID);
-            SAFE_GET_OPTION_VAL(opt, strData, "8");
+            strData = boost::lexical_cast<string>(opt.Value());
             tp = boost::lexical_cast<int>(strData);
             // value
             opt = rec.Option(weoValue);

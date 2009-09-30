@@ -24,6 +24,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/variant.hpp>
 #include <boost/serialization/variant.hpp>
+#include <boost/lexical_cast.hpp>
 #include "weiParser.h"
 
 using namespace std;
@@ -69,7 +70,10 @@ namespace webEngine {
         // const type_info &Value(void) const     { return(tpId);     };
         template <typename T>
         void GetValue(T& dt)
-        { dt = boost::get<T>(val); };
+        {   string tmp;
+            tmp = boost::lexical_cast<string>(val);
+            dt = boost::lexical_cast<T>(tmp);
+        };
         template <typename T>
         void SetValue(T dt)
         { val = dt; empty = false; };

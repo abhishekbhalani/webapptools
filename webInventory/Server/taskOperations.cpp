@@ -278,7 +278,8 @@ bool run_task(const string& id)
     if (tsk != NULL)
     {
         opt = tsk->Option(weoTaskStatus);
-        SAFE_GET_OPTION_VAL(opt, idata, 0);
+        sdata = boost::lexical_cast<string>(opt.Value());
+        idata = boost::lexical_cast<int>(sdata);
         if (idata == WI_TSK_IDLE)
         {
             // prepare task to run
@@ -290,7 +291,8 @@ bool run_task(const string& id)
             string fname = sdata + "_" + posix_time::to_iso_string(posix_time::second_clock::local_time());
 
             opt = tsk->Option(weoLogLevel);
-            SAFE_GET_OPTION_VAL(opt, idata, 0);
+            sdata = boost::lexical_cast<string>(opt.Value());
+            idata = boost::lexical_cast<int>(sdata);
             if (idata < 0)
             {
                 idata = 0;
@@ -319,6 +321,7 @@ bool run_task(const string& id)
             cmdline[2] = strdup(id.c_str());
             cmdline[3] = "--trace";
             sdata = fname + ".trace";
+            tsk->Option("LogFile", sdata);
             cmdline[4] = strdup(sdata.c_str());
             cmdline[5] = "--storage";
             cmdline[6] = strdup(globalDispatcher->Storage()->GetID().c_str());
@@ -328,6 +331,7 @@ bool run_task(const string& id)
             }
             cmdline[10] = NULL;
             LOG4CXX_DEBUG(iLogger::GetLogger(), "run_task: " << id << " trace: " << workDir << fname << ".trace");
+            save_task(tsk);
             int err = exec_child(cmdline);
             if (err != -1) {
                 retval = true;
@@ -674,4 +678,9 @@ ProfileList* get_profile_list(const string& criteria = "")
 
     }
     return lst;
+}
+
+string get_tsk_log(const string& tskid, int tail)
+{
+    return "";
 }

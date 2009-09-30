@@ -35,6 +35,7 @@ iPlugin::iPlugin( Dispatch* krnl, void* handle /*= NULL*/ )
     pluginInfo.PluginId = "C665E995E5B4";
     pluginInfo.PluginIcon.clear();
     pluginInfo.PluginPath = "";
+    priority = 50;
     if (krnl != NULL) {
         logger = krnl->GetLogger();
     }

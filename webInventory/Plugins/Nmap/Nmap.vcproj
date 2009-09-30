@@ -63,10 +63,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib"
+				AdditionalDependencies="log4cxx.lib webEngine.lib ssleay32.lib libeay32.lib curllib-s.lib libboost_regex-vc80-mt-gd-1_38.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\webEngine\libs\debug"
+				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				ModuleDefinitionFile="dlExport.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -142,10 +143,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib"
+				AdditionalDependencies="log4cxx.lib webEngine.lib ssleay32.lib libeay32.lib curllib-s.lib libboost_regex-vc80-mt-1_38.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\webEngine\libs\debug"
+				IgnoreDefaultLibraryNames="LIBCMT.lib"
 				ModuleDefinitionFile="dlExport.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -188,15 +190,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\NmapPlugin.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\dlExport.def"
 				>
 			</File>
 			<File
 				RelativePath=".\dlMain.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NmapPlugin.cpp"
 				>
 			</File>
 		</Filter>

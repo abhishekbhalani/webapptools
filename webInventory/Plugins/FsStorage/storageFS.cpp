@@ -39,6 +39,7 @@ static char* tables[] = {weObjTypeTask,
 static string RecordToString(Record& rc)
 {
     string retval = "";
+    string tmp;
 
     StringList opts = rc.OptionsList();
     for (size_t j = 0; j < opts.size(); j++)
@@ -48,7 +49,11 @@ static string RecordToString(Record& rc)
         retval += '\x02';
         retval += boost::lexical_cast<string>(opt.Which());
         retval += '\x02';
-        retval += boost::lexical_cast<string>(opt.Value());
+        tmp = boost::lexical_cast<string>(opt.Value());
+        if (tmp == "" || tmp[0] == '\0') {
+            tmp = "";
+        }
+        retval += tmp;
         retval += '\x03';
     }
 

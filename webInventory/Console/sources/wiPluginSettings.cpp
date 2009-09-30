@@ -127,7 +127,7 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
     wxPGProperty* pid;
 
     if ( ! node->GetPropVal(wxT("name"), &name) || name.IsEmpty() ) {
-        name = wxString::Format(wxT("/AutoOption %d"), defCount++);
+        name = wxString::Format(wxT("*AutoOption %d"), defCount++);
     }
 
     if ( ! node->GetPropVal(wxT("type"), &type) || type.IsEmpty() ) {
@@ -178,7 +178,9 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
             labels.Add(defValue);
         }
         pid = m_props->Insert( category, -1, new wxEnumProperty(label, name, labels) );
-        m_propHash[name] = pid;
+        if ( ! name.StartsWith(wxT("*AutoOption"))) {
+            m_propHash[name] = pid;
+        }
         pid->SetClientData((void*)lType);
     }
     else if (controlType == CT_INT) {
@@ -189,7 +191,9 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
 
         vval = defValue;
         pid = m_props->Insert( category, -1, new wxIntProperty(label, name, vval) );
-        m_propHash[name] = pid;
+        if ( ! name.StartsWith(wxT("*AutoOption"))) {
+            m_propHash[name] = pid;
+        }
         pid->SetClientData((void*)lType);
 
         useSpin = 0;
@@ -221,7 +225,9 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
             val = true;
         }
         pid = m_props->Insert( category, -1, new wxBoolProperty(label, name, val) );
-        m_propHash[name] = pid;
+        if ( ! name.StartsWith(wxT("*AutoOption"))) {
+            m_propHash[name] = pid;
+        }
         pid->SetClientData((void*)lType);
 
         if ( node->GetPropVal(wxT("chkbox"), &attr) ) {
@@ -253,7 +259,9 @@ void wiPluginSettings::ProcessOption(wxXmlNode* node, const wxString& catId)
         else {
             pid = m_props->Insert( category, -1, new wxStringProperty(label, name, defValue) );
         }
-        m_propHash[name] = pid;
+        if ( ! name.StartsWith(wxT("*AutoOption"))) {
+            m_propHash[name] = pid;
+        }
         pid->SetClientData((void*)lType);
     }
     if ( node->GetPropVal(wxT("readonly"), &type) ) {
@@ -371,10 +379,10 @@ void wiPluginSettings::ComposeValues(wxXmlNode* xmlData)
                 value = prop->GetValueString(wxPG_FULL_VALUE);
             }
             if (lType == 6) {
-                if (value.CmpNoCase(wxT("true")) || value.CmpNoCase(wxT("yes"))) {
+                if (value.CmpNoCase(wxT("true")) == 0 || value.CmpNoCase(wxT("yes")) == 0 ) {
                     value = wxT("1");
                 }
-                if (value.CmpNoCase(wxT("false")) || value.CmpNoCase(wxT("no"))) {
+                if (value.CmpNoCase(wxT("false")) == 0  || value.CmpNoCase(wxT("no")) == 0 ) {
                     value = wxT("0");
                 }
                 if (!value.IsNumber()) {
