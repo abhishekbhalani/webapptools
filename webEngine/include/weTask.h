@@ -62,10 +62,46 @@ namespace webEngine {
         Task(Task& cpy);
         ~Task();
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn void AddPlgTransport(iTransport* plugin)
+        ///
+        /// @brief  Adds a transport plugin to the Task object.
+        /// @param  plugin   - Plugin with iTransport interface. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
         void AddPlgTransport(iTransport* plugin);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn void AddPlgInventory(iInventory* plugin)
+        ///
+        /// @brief  Adds a inventory plugin to the Task object.
+        /// @param  plugin   - Plugin with iInventory interface. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
         void AddPlgInventory(iInventory* plugin);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn void AddPlgAuditor(iInventory* plugin)
+        ///
+        /// @brief  Adds a auditor plugin to the Task object.
+        /// @param  plugin   - Plugin with iAudit interface. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
         void AddPlgAuditor(iAudit* plugin);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn void AddPlgVulner(iInventory* plugin)
+        ///
+        /// @brief  Adds a vulnerability search plugin to the Task object.
+        /// @param  plugin   - Plugin with iVulner interface. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
         void AddPlgVulner(iVulner* plugin);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn	void StorePlugins(vector<iPlugin*>& plugins)
+        ///
+        /// @brief	Adds plugins to the Task object. Plugins wil br separeted to categories and sorted by
+        ///         priority.
+        ///
+        /// @param [in,out]	plugins	 - if non-null, the plugins. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
         void StorePlugins(vector<iPlugin*>& plugins);
 
         void Run();
@@ -85,7 +121,28 @@ namespace webEngine {
         virtual ScanInfo* GetScan() { return scanInfo; };
         virtual ScanData* GetScanData(const string& baseUrl, const string& realUrl);
         virtual void SetScanData(ScanData* scData);
-        virtual void AddVulner(const string& vId, const string& params, const string& parentId);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn virtual void AddVulner(const string& vId,
+        /// 	const string& params,
+        /// 	const string& parentId, int vLevel = -1)
+        ///
+        /// @brief  Adds a vulnerability to the scan results.
+        ///
+        /// This function may be reimplemented in the descendant class to implement specific features.
+        /// First parameter points the vulnerability description in the database to obtain visualization
+        /// information and rules. Second parameter describes vulnerability details in XML. This information
+        /// may be used to build reports through XSL transformation. parentId points to the ScanData object
+        /// containing this vulnerability. And the last parameter allows to control the vulnerability level.
+        /// Default value (-1) doesn't affect the severity level which stored in the vulnerability
+        /// description. Any other value will overwrite the severity level.
+        ///
+        /// @param  vId      - vulnerability identifier.
+        /// @param  params   - Additional information about vulnerability in XML.
+        /// @param  parentId - Identifier of the parent object (ScanData). 
+        /// @param  vLevel   - Control the vulnerability level. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        virtual void AddVulner(const string& vId, const string& params, const string& parentId, int vLevel = -1);
 
 #ifndef __DOXYGEN__
     protected:

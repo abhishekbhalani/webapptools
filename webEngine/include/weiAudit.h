@@ -25,6 +25,11 @@
 
 namespace webEngine {
 
+// forward declarations
+class Task;
+class ScanData;
+class iResponse;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  iAudit
 ///
@@ -40,8 +45,37 @@ public:
     iAudit(Dispatch* krnl, void* handle = NULL);
     virtual ~iAudit(void);
 
-    // iPlugin functions
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void Start(Task* tsk)
+    ///
+    /// @brief  Starts the audit process for given ScanData object. 
+    ///
+    /// @param  tsk	 - If non-null, the pointer to task what handles the process. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void Start(Task* tsk, ScanData* scData) = 0;
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void ProcessResponse(iResponse *resp)
+    ///
+    /// @brief  Process the transport response described by resp.
+    /// 		
+    /// @param  resp - If non-null, the resp. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void ProcessResponse(iResponse *resp) = 0;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn static void ResponseDispatcher(iResponse *resp, void* context)
+    ///
+    /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
+    ///         by the context
+    ///
+    /// @param  resp	 - If non-null, the resp. 
+    /// @param  context	 - If non-null, the context. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    static void ResponseDispatcher(iResponse *resp, void* context);
+
+protected:
+    Task* task;
 };
 
 } // namespace webEngine
