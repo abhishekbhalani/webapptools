@@ -619,7 +619,7 @@ void Task::WaitForData()
     }
 }
 
-void Task::AddVulner( const string& vId, const string& params, const string& parentId )
+void Task::AddVulner( const string& vId, const string& params, const string& parentId, int vLevel/* = -1*/ )
 {
     LOG4CXX_INFO(iLogger::GetLogger(), "Task::AddVulner add vulner ID=" << vId << "; ParentID=" << parentId);
     LOG4CXX_INFO(iLogger::GetLogger(), "Task::AddVulner data: " << params);

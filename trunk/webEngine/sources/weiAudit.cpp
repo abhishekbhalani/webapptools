@@ -31,4 +31,16 @@ iAudit::~iAudit(void)
 {
 }
 
+void iAudit::ResponseDispatcher( iResponse *resp, void* context )
+{
+    iAudit* object = (iAudit*)context;
+    //     if (object->ProcessResponse) {
+    object->ProcessResponse(resp);
+    //     }
+    //     else
+    //     {
+    //         LOG4CXX_ERROR(object->logger, "iAudit::ResponseDispatcher: invalid context, or abstract class - ProcessResponse == NULL");
+    //     }
+}
+
 } // namespace webEngine
