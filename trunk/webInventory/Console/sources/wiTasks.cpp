@@ -664,7 +664,7 @@ void wiTasks::Disconnected(bool forced)
         m_chProfile->Clear();
         RebuildTreeView();
         m_lstTaskList->DeleteAllItems();
-        m_rtTask->Clear();
+        //m_rtTask->Clear();
     }
 }
 

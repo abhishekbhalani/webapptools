@@ -24,6 +24,7 @@
  * @date      15.09.2009 - global refactoring
  **************************************************************/
 #include "wiMainForm.h"
+#include "Reporting/weDataHandler.h"
 
 #include "../images/panReports.xpm"
 #include "../images/panSettings.xpm"
@@ -37,6 +38,8 @@
 #define wxPING_TIMER    999
 #define wxPING_INTERVAL 10000
 
+static weDataHandler   *m_fsHandler;
+
 wiMainForm::wiMainForm( wxWindow* parent ) :
     MainForm( parent ),
     m_cfgEngine(APP_NAME)
@@ -44,6 +47,9 @@ wiMainForm::wiMainForm( wxWindow* parent ) :
     wxInitAllImageHandlers();
 
     SetIcon(wxICON(mainicon));
+
+    m_fsHandler = new weDataHandler;
+	wxFileSystem::AddHandler(m_fsHandler);
 
     m_pTasks = new wiTasks( m_mainnb ); //, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     m_mainnb->AddPage( m_pTasks, _("Tasks"), false, wxBitmap( panTasks_xpm ) );
