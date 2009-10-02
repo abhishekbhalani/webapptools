@@ -24,8 +24,16 @@ namespace webEngine {
 
 RecordSet* VulnerDesc::ToRS( const string& parentID = "" )
 {
+    RecordSet* retval = new RecordSet;
+    Record* rec = new Record;
 
-    return NULL;
+    rec->Option(weoID, id);
+    rec->Option(weoName, title);
+    rec->Option("severity", severity);
+    rec->Option("short_desc", shortDesc);
+    rec->Option("description", longDesc);
+    retval->push_back(*rec);
+    return retval;
 }
 
 void VulnerDesc::FromRS( RecordSet *rs )
@@ -52,6 +60,7 @@ string VulnerDesc::ToXML()
     retval += "<description>";
     retval += ScreenXML(longDesc);
     retval += "</description>\n";
+    retval += "</vdesc>\n";
 
     return retval;
 }
