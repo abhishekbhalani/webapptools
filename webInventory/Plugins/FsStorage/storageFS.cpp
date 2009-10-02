@@ -34,6 +34,8 @@ static char* tables[] = {weObjTypeTask,
                         weObjTypeScanData,
                         weObjTypeObject,
                         weObjTypeProfile,
+                        weObjTypeVulner,
+                        weObjTypeVulnerDesc,
                         NULL}; // close the list with NULL
 
 static string RecordToString(Record& rc)

@@ -34,6 +34,7 @@
 #include "version.h"
 #include "taskOperations.h"
 #include "scanOperations.h"
+#include "vulners.h"
 
 using namespace webEngine;
 
@@ -448,6 +449,16 @@ int process_message(char* buff, size_t buffSz, session* sess)
                 lines = 20;
             }
             msg.data = get_tsk_log(tskid, lines);
+            retval = 1;
+            processed = true;
+        }
+        //////////////////////////////////////////////////////////////////////////
+        // GETVDESCLIST command processing
+        //////////////////////////////////////////////////////////////////////////
+        if (iequals(msg.cmd, "getvdesclist"))
+        {
+            msg.cmd = "getvdesclist";
+            msg.data = get_vdesc_list(msg.data);
             retval = 1;
             processed = true;
         }

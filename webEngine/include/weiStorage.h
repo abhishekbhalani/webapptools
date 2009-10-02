@@ -150,5 +150,7 @@ protected:
 #define weObjTypeScanData   "scandata"
 #define weObjTypeObject     "object"
 #define weObjTypeProfile    "profile"
+#define weObjTypeVulner     "vulners"
+#define weObjTypeVulnerDesc "vilndesc"
 
 #endif //__IWESTORAGE_H__
