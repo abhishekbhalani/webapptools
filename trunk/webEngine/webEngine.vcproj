@@ -250,6 +250,10 @@
 				RelativePath=".\sources\weUrl.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\sources\weVulners.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -350,6 +354,10 @@
 			</File>
 			<File
 				RelativePath=".\include\weUrl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\weVulners.h"
 				>
 			</File>
 		</Filter>

@@ -211,6 +211,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Common\vulners.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\Common\weObject.cpp"
 				>
 			</File>
@@ -246,6 +250,10 @@
 			</File>
 			<File
 				RelativePath=".\version.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Common\vulners.h"
 				>
 			</File>
 			<File
