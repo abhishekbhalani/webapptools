@@ -35,7 +35,7 @@
 #include <wx/imaglist.h>
 #include <wx/spinctrl.h>
 #include <wx/checkbox.h>
-#include <wx/richtext/richtextctrl.h>
+#include <wx/html/htmlwin.h>
 #include <wx/splitter.h>
 #include <wx/statline.h>
 #include <wx/propgrid/manager.h>
@@ -44,7 +44,6 @@
 #include <wx/treectrl.h>
 #include <wx/wxFlatNotebook/wxFlatNotebook.h>
 #include <wx/wxscintilla/wxscintilla.h>
-#include <wx/html/htmlwin.h>
 #include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -122,7 +121,7 @@ class Tasks : public wxPanel
 		wxCheckBox* m_chAppendTsk;
 		wxSplitterWindow* m_splitLogs;
 		wxListCtrl* m_lstTaskList;
-		wxRichTextCtrl* m_rtTask;
+		wxHtmlWindow* m_rtTask;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnAddObject( wxCommandEvent& event ){ event.Skip(); }
@@ -233,7 +232,7 @@ class Reports : public wxPanel
 		wxChoice* m_chReporters;
 		wxTreeCtrl* m_treeScans;
 		wxPanel* m_panRepData;
-		wxRichTextCtrl* m_richText2;
+		wxHtmlWindow* m_reportView;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnReportsRefresh( wxCommandEvent& event ){ event.Skip(); }

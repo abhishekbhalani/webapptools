@@ -236,23 +236,23 @@ Tasks::Tasks( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize&
 	m_splitLogs = new wxSplitterWindow( m_panTasks, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
 	m_splitLogs->Connect( wxEVT_IDLE, wxIdleEventHandler( Tasks::m_splitLogsOnIdle ), NULL, this );
 	wxPanel* m_panTaskList;
-	m_panTaskList = new wxPanel( m_splitLogs, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panTaskList = new wxPanel( m_splitLogs, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer24;
 	bSizer24 = new wxBoxSizer( wxVERTICAL );
 	
-	m_lstTaskList = new wxListCtrl( m_panTaskList, wxID_ANY, wxDefaultPosition, wxSize( 300,-1 ), wxLC_HRULES|wxLC_REPORT|wxLC_SINGLE_SEL );
+	m_lstTaskList = new wxListCtrl( m_panTaskList, wxID_ANY, wxDefaultPosition, wxSize( 300,-1 ), wxLC_HRULES|wxLC_REPORT|wxLC_SINGLE_SEL|wxNO_BORDER );
 	bSizer24->Add( m_lstTaskList, 1, wxEXPAND|wxLEFT|wxRIGHT, 0 );
 	
 	m_panTaskList->SetSizer( bSizer24 );
 	m_panTaskList->Layout();
 	bSizer24->Fit( m_panTaskList );
 	wxPanel* m_paTaskLog;
-	m_paTaskLog = new wxPanel( m_splitLogs, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_paTaskLog = new wxPanel( m_splitLogs, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer25;
 	bSizer25 = new wxBoxSizer( wxVERTICAL );
 	
-	m_rtTask = new wxRichTextCtrl( m_paTaskLog, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_AUTO_URL|wxTE_READONLY|wxHSCROLL|wxVSCROLL|wxWANTS_CHARS );
-	bSizer25->Add( m_rtTask, 1, wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT, 0 );
+	m_rtTask = new wxHtmlWindow( m_paTaskLog, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO|wxNO_BORDER );
+	bSizer25->Add( m_rtTask, 1, wxALL|wxEXPAND, 0 );
 	
 	m_paTaskLog->SetSizer( bSizer25 );
 	m_paTaskLog->Layout();
@@ -516,7 +516,7 @@ Reports::Reports( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxS
 	m_split = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D );
 	m_split->SetSashGravity( 0 );
 	m_split->Connect( wxEVT_IDLE, wxIdleEventHandler( Reports::m_splitOnIdle ), NULL, this );
-	m_panRepTree = new wxPanel( m_split, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panRepTree = new wxPanel( m_split, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer14;
 	bSizer14 = new wxBoxSizer( wxVERTICAL );
 	
@@ -563,12 +563,12 @@ Reports::Reports( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxS
 	m_panRepTree->SetSizer( bSizer14 );
 	m_panRepTree->Layout();
 	bSizer14->Fit( m_panRepTree );
-	m_panRepData = new wxPanel( m_split, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	m_panRepData = new wxPanel( m_split, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
 	wxBoxSizer* bSizer15;
 	bSizer15 = new wxBoxSizer( wxVERTICAL );
 	
-	m_richText2 = new wxRichTextCtrl( m_panRepData, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0|wxVSCROLL|wxHSCROLL|wxNO_BORDER|wxWANTS_CHARS );
-	bSizer15->Add( m_richText2, 1, wxEXPAND | wxALL, 0 );
+	m_reportView = new wxHtmlWindow( m_panRepData, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO );
+	bSizer15->Add( m_reportView, 1, wxALL|wxEXPAND, 0 );
 	
 	m_panRepData->SetSizer( bSizer15 );
 	m_panRepData->Layout();
