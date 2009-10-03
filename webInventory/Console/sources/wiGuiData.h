@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Apr 16 2008)
+// C++ code generated with wxFormBuilder (version Dec 29 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -44,6 +44,7 @@
 #include <wx/treectrl.h>
 #include <wx/wxFlatNotebook/wxFlatNotebook.h>
 #include <wx/wxscintilla/wxscintilla.h>
+#include <wx/gbsizer.h>
 #include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
@@ -304,6 +305,10 @@ class VulnDB : public wxPanel
 		wxToolBar* m_toolBar;
 		wxSplitterWindow* m_splVulners;
 		wxTreeCtrl* m_treeVDB;
+		wxTextCtrl* m_txtLabel;
+		wxTextCtrl* m_txtShort;
+		wxScintilla* m_scDesc;
+		wxChoice* m_chSeverity;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnTreeRefresh( wxCommandEvent& event ){ event.Skip(); }
