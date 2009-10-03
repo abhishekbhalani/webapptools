@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Apr 16 2008)
+// C++ code generated with wxFormBuilder (version Dec 29 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -680,6 +680,88 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	bSzVDBTree->Fit( m_pnTree );
 	wxPanel* m_panel17;
 	m_panel17 = new wxPanel( m_splVulners, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer37;
+	bSizer37 = new wxBoxSizer( wxVERTICAL );
+	
+	wxGridBagSizer* gbSizer1;
+	gbSizer1 = new wxGridBagSizer( 0, 0 );
+	gbSizer1->AddGrowableCol( 1 );
+	gbSizer1->SetFlexibleDirection( wxBOTH );
+	gbSizer1->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	wxStaticText* m_stLabel;
+	m_stLabel = new wxStaticText( m_panel17, wxID_ANY, _("Vulner ID"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stLabel->Wrap( -1 );
+	gbSizer1->Add( m_stLabel, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	
+	m_txtLabel = new wxTextCtrl( m_panel17, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	gbSizer1->Add( m_txtLabel, wxGBPosition( 0, 1 ), wxGBSpan( 1, 1 ), wxALL|wxEXPAND, 5 );
+	
+	wxStaticText* m_stSeverety;
+	m_stSeverety = new wxStaticText( m_panel17, wxID_ANY, _("Severity"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stSeverety->Wrap( -1 );
+	gbSizer1->Add( m_stSeverety, wxGBPosition( 0, 2 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	
+	m_txtShort = new wxTextCtrl( m_panel17, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
+	gbSizer1->Add( m_txtShort, wxGBPosition( 2, 0 ), wxGBSpan( 1, 4 ), wxALL|wxEXPAND, 5 );
+	
+	wxStaticText* m_stLong;
+	m_stLong = new wxStaticText( m_panel17, wxID_ANY, _("Description"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stLong->Wrap( -1 );
+	gbSizer1->Add( m_stLong, wxGBPosition( 3, 0 ), wxGBSpan( 1, 4 ), wxALL, 5 );
+	
+	m_scDesc = new wxScintilla( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, wxEmptyString );
+	m_scDesc->SetUseTabs( false );
+	m_scDesc->SetTabWidth( 4 );
+	m_scDesc->SetIndent( 4 );
+	m_scDesc->SetTabIndents( true );
+	m_scDesc->SetBackSpaceUnIndents( true );
+	m_scDesc->SetViewEOL( false );
+	m_scDesc->SetViewWhiteSpace( false );
+	m_scDesc->SetMarginWidth( 2, 0 );
+	m_scDesc->SetIndentationGuides( true );
+	m_scDesc->SetMarginType( 1, wxSCI_MARGIN_SYMBOL );
+	m_scDesc->SetMarginMask( 1, wxSCI_MASK_FOLDERS );
+	m_scDesc->SetMarginWidth( 1, 16);
+	m_scDesc->SetMarginSensitive( 1, true );
+	m_scDesc->SetProperty( wxT("fold"), wxT("1") );
+	m_scDesc->SetFoldFlags( wxSCI_FOLDFLAG_LINEBEFORE_CONTRACTED | wxSCI_FOLDFLAG_LINEAFTER_CONTRACTED );
+	m_scDesc->SetMarginWidth( 0, 0 );
+	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDER, wxSCI_MARK_BOXPLUS );
+	m_scDesc->MarkerSetBackground( wxSCI_MARKNUM_FOLDER, wxColour( wxT("BLACK") ) );
+	m_scDesc->MarkerSetForeground( wxSCI_MARKNUM_FOLDER, wxColour( wxT("WHITE") ) );
+	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDEROPEN, wxSCI_MARK_BOXMINUS );
+	m_scDesc->MarkerSetBackground( wxSCI_MARKNUM_FOLDEROPEN, wxColour( wxT("BLACK") ) );
+	m_scDesc->MarkerSetForeground( wxSCI_MARKNUM_FOLDEROPEN, wxColour( wxT("WHITE") ) );
+	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDERSUB, wxSCI_MARK_EMPTY );
+	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDEREND, wxSCI_MARK_BOXPLUS );
+	m_scDesc->MarkerSetBackground( wxSCI_MARKNUM_FOLDEREND, wxColour( wxT("BLACK") ) );
+	m_scDesc->MarkerSetForeground( wxSCI_MARKNUM_FOLDEREND, wxColour( wxT("WHITE") ) );
+	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDEROPENMID, wxSCI_MARK_BOXMINUS );
+	m_scDesc->MarkerSetBackground( wxSCI_MARKNUM_FOLDEROPENMID, wxColour( wxT("BLACK") ) );
+	m_scDesc->MarkerSetForeground( wxSCI_MARKNUM_FOLDEROPENMID, wxColour( wxT("WHITE") ) );
+	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDERMIDTAIL, wxSCI_MARK_EMPTY );
+	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDERTAIL, wxSCI_MARK_EMPTY );
+	m_scDesc->SetSelBackground( true, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
+	m_scDesc->SetSelForeground( true, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
+	gbSizer1->Add( m_scDesc, wxGBPosition( 4, 0 ), wxGBSpan( 1, 4 ), wxEXPAND|wxALL, 5 );
+	
+	wxString m_chSeverityChoices[] = { _("Not a vulner"), _("Lowest"), _("Low"), _("Medium"), _("High"), _("Critical") };
+	int m_chSeverityNChoices = sizeof( m_chSeverityChoices ) / sizeof( wxString );
+	m_chSeverity = new wxChoice( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chSeverityNChoices, m_chSeverityChoices, 0 );
+	m_chSeverity->SetSelection( 0 );
+	gbSizer1->Add( m_chSeverity, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	
+	wxStaticText* m_stShort;
+	m_stShort = new wxStaticText( m_panel17, wxID_ANY, _("Short description"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stShort->Wrap( -1 );
+	gbSizer1->Add( m_stShort, wxGBPosition( 1, 0 ), wxGBSpan( 1, 4 ), wxALL, 5 );
+	
+	bSizer37->Add( gbSizer1, 1, wxEXPAND, 0 );
+	
+	m_panel17->SetSizer( bSizer37 );
+	m_panel17->Layout();
+	bSizer37->Fit( m_panel17 );
 	m_splVulners->SplitVertically( m_pnTree, m_panel17, 200 );
 	bSzVDB->Add( m_splVulners, 1, wxEXPAND, 5 );
 	
