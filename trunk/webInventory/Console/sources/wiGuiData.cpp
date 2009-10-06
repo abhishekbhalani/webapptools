@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Dec 29 2008)
+// C++ code generated with wxFormBuilder (version Apr 16 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -654,11 +654,13 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	bSzVDB = new wxBoxSizer( wxVERTICAL );
 	
 	m_toolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_FLAT|wxTB_HORIZONTAL|wxTB_NODIVIDER ); 
-	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh Tree"), wxEmptyString );
-	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( export_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Export DB slice"), wxEmptyString );
+	m_toolBar->AddTool( wxID_REFR, wxEmptyString, wxBitmap( reload_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Refresh Tree"), wxEmptyString );
+	m_toolBar->AddTool( wxID_EXPORT, wxEmptyString, wxBitmap( export_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Export DB slice"), wxEmptyString );
 	m_toolBar->AddSeparator();
-	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new vulnerability"), wxEmptyString );
-	m_toolBar->AddTool( wxID_ANY, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete vulnerability"), wxEmptyString );
+	m_toolBar->AddTool( wxID_ADD, wxEmptyString, wxBitmap( btnAdd_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Add new vulnerability"), wxEmptyString );
+	m_toolBar->AddTool( wxID_CLONE, wxEmptyString, wxBitmap( btnCopy_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Clone vulnerability"), wxEmptyString );
+	m_toolBar->AddTool( wxID_DEL, wxEmptyString, wxBitmap( btnDel_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Delete vulnerability"), wxEmptyString );
+	m_toolBar->AddTool( wxID_SAVE, wxEmptyString, wxBitmap( flsave_xpm ), wxNullBitmap, wxITEM_NORMAL, _("Save vulnerability"), wxEmptyString );
 	m_toolBar->Realize();
 	
 	bSzVDB->Add( m_toolBar, 0, wxEXPAND, 5 );
@@ -672,7 +674,7 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	wxBoxSizer* bSzVDBTree;
 	bSzVDBTree = new wxBoxSizer( wxVERTICAL );
 	
-	m_treeVDB = new wxTreeCtrl( m_pnTree, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE|wxNO_BORDER );
+	m_treeVDB = new wxTreeCtrl( m_pnTree, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_FULL_ROW_HIGHLIGHT|wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_LINES_AT_ROOT|wxTR_SINGLE|wxNO_BORDER );
 	bSzVDBTree->Add( m_treeVDB, 1, wxEXPAND, 5 );
 	
 	m_pnTree->SetSizer( bSzVDBTree );
@@ -686,6 +688,7 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	wxGridBagSizer* gbSizer1;
 	gbSizer1 = new wxGridBagSizer( 0, 0 );
 	gbSizer1->AddGrowableCol( 1 );
+	gbSizer1->AddGrowableRow( 5 );
 	gbSizer1->SetFlexibleDirection( wxBOTH );
 	gbSizer1->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
@@ -702,13 +705,32 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	m_stSeverety->Wrap( -1 );
 	gbSizer1->Add( m_stSeverety, wxGBPosition( 0, 2 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 	
+	wxString m_chSeverityChoices[] = { _("Not a vulner"), _("Lowest"), _("Low"), _("Medium"), _("High"), _("Critical") };
+	int m_chSeverityNChoices = sizeof( m_chSeverityChoices ) / sizeof( wxString );
+	m_chSeverity = new wxChoice( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chSeverityNChoices, m_chSeverityChoices, 0 );
+	m_chSeverity->SetSelection( 0 );
+	gbSizer1->Add( m_chSeverity, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	
+	wxStaticText* m_stTitle;
+	m_stTitle = new wxStaticText( m_panel17, wxID_ANY, _("Title"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stTitle->Wrap( -1 );
+	gbSizer1->Add( m_stTitle, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	
+	m_txtTiltle = new wxTextCtrl( m_panel17, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	gbSizer1->Add( m_txtTiltle, wxGBPosition( 1, 1 ), wxGBSpan( 1, 3 ), wxALL|wxEXPAND, 5 );
+	
+	wxStaticText* m_stShort;
+	m_stShort = new wxStaticText( m_panel17, wxID_ANY, _("Short description"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_stShort->Wrap( -1 );
+	gbSizer1->Add( m_stShort, wxGBPosition( 2, 0 ), wxGBSpan( 1, 4 ), wxALL|wxEXPAND, 5 );
+	
 	m_txtShort = new wxTextCtrl( m_panel17, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
-	gbSizer1->Add( m_txtShort, wxGBPosition( 2, 0 ), wxGBSpan( 1, 4 ), wxALL|wxEXPAND, 5 );
+	gbSizer1->Add( m_txtShort, wxGBPosition( 3, 0 ), wxGBSpan( 1, 4 ), wxALL|wxEXPAND, 5 );
 	
 	wxStaticText* m_stLong;
 	m_stLong = new wxStaticText( m_panel17, wxID_ANY, _("Description"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_stLong->Wrap( -1 );
-	gbSizer1->Add( m_stLong, wxGBPosition( 3, 0 ), wxGBSpan( 1, 4 ), wxALL, 5 );
+	gbSizer1->Add( m_stLong, wxGBPosition( 4, 0 ), wxGBSpan( 1, 4 ), wxALL|wxEXPAND, 5 );
 	
 	m_scDesc = new wxScintilla( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, wxEmptyString );
 	m_scDesc->SetUseTabs( false );
@@ -726,7 +748,8 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	m_scDesc->SetMarginSensitive( 1, true );
 	m_scDesc->SetProperty( wxT("fold"), wxT("1") );
 	m_scDesc->SetFoldFlags( wxSCI_FOLDFLAG_LINEBEFORE_CONTRACTED | wxSCI_FOLDFLAG_LINEAFTER_CONTRACTED );
-	m_scDesc->SetMarginWidth( 0, 0 );
+	m_scDesc->SetMarginType( 0, wxSCI_MARGIN_NUMBER );
+	m_scDesc->SetMarginWidth( 0, m_scDesc->TextWidth( wxSCI_STYLE_LINENUMBER, wxT("_99999") ) );
 	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDER, wxSCI_MARK_BOXPLUS );
 	m_scDesc->MarkerSetBackground( wxSCI_MARKNUM_FOLDER, wxColour( wxT("BLACK") ) );
 	m_scDesc->MarkerSetForeground( wxSCI_MARKNUM_FOLDER, wxColour( wxT("WHITE") ) );
@@ -744,18 +767,9 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	m_scDesc->MarkerDefine( wxSCI_MARKNUM_FOLDERTAIL, wxSCI_MARK_EMPTY );
 	m_scDesc->SetSelBackground( true, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ) );
 	m_scDesc->SetSelForeground( true, wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHTTEXT ) );
-	gbSizer1->Add( m_scDesc, wxGBPosition( 4, 0 ), wxGBSpan( 1, 4 ), wxEXPAND|wxALL, 5 );
+	m_scDesc->SetMinSize( wxSize( 200,200 ) );
 	
-	wxString m_chSeverityChoices[] = { _("Not a vulner"), _("Lowest"), _("Low"), _("Medium"), _("High"), _("Critical") };
-	int m_chSeverityNChoices = sizeof( m_chSeverityChoices ) / sizeof( wxString );
-	m_chSeverity = new wxChoice( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_chSeverityNChoices, m_chSeverityChoices, 0 );
-	m_chSeverity->SetSelection( 0 );
-	gbSizer1->Add( m_chSeverity, wxGBPosition( 0, 3 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-	
-	wxStaticText* m_stShort;
-	m_stShort = new wxStaticText( m_panel17, wxID_ANY, _("Short description"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_stShort->Wrap( -1 );
-	gbSizer1->Add( m_stShort, wxGBPosition( 1, 0 ), wxGBSpan( 1, 4 ), wxALL, 5 );
+	gbSizer1->Add( m_scDesc, wxGBPosition( 5, 0 ), wxGBSpan( 2, 4 ), wxEXPAND|wxALL, 5 );
 	
 	bSizer37->Add( gbSizer1, 1, wxEXPAND, 0 );
 	
@@ -769,19 +783,33 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	this->Layout();
 	
 	// Connect Events
-	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnTreeRefresh ) );
-	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDbSlice ) );
-	this->Connect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnAddObj ) );
+	this->Connect( wxID_REFR, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnTreeRefresh ) );
+	this->Connect( wxID_EXPORT, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDbSlice ) );
+	this->Connect( wxID_ADD, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnAddObj ) );
+	this->Connect( wxID_CLONE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnCloneObj ) );
+	this->Connect( wxID_DEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDelObj ) );
+	this->Connect( wxID_SAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnSaveObj ) );
 	m_treeVDB->Connect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( VulnDB::OnVulnerSelect ), NULL, this );
+	m_txtLabel->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
+	m_chSeverity->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
+	m_txtTiltle->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
+	m_txtShort->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
 }
 
 VulnDB::~VulnDB()
 {
 	// Disconnect Events
-	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnTreeRefresh ) );
-	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDbSlice ) );
-	this->Disconnect( wxID_ANY, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnAddObj ) );
+	this->Disconnect( wxID_REFR, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnTreeRefresh ) );
+	this->Disconnect( wxID_EXPORT, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDbSlice ) );
+	this->Disconnect( wxID_ADD, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnAddObj ) );
+	this->Disconnect( wxID_CLONE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnCloneObj ) );
+	this->Disconnect( wxID_DEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDelObj ) );
+	this->Disconnect( wxID_SAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnSaveObj ) );
 	m_treeVDB->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( VulnDB::OnVulnerSelect ), NULL, this );
+	m_txtLabel->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
+	m_chSeverity->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
+	m_txtTiltle->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
+	m_txtShort->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
 }
 
 RepDB::RepDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style ) : wxPanel( parent, id, pos, size, style )

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Dec 29 2008)
+// C++ code generated with wxFormBuilder (version Apr 16 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -76,6 +76,10 @@
 #define wxID_TLDATE 1024
 #define wxID_TLSTATUS 1025
 #define wxID_TLSAVE 1026
+#define wxID_REFR 1027
+#define wxID_EXPORT 1028
+#define wxID_CLONE 1029
+#define wxID_DEL 1030
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm
@@ -306,19 +310,24 @@ class VulnDB : public wxPanel
 		wxSplitterWindow* m_splVulners;
 		wxTreeCtrl* m_treeVDB;
 		wxTextCtrl* m_txtLabel;
+		wxChoice* m_chSeverity;
+		wxTextCtrl* m_txtTiltle;
 		wxTextCtrl* m_txtShort;
 		wxScintilla* m_scDesc;
-		wxChoice* m_chSeverity;
 
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnTreeRefresh( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnDbSlice( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddObj( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnCloneObj( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnDelObj( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnSaveObj( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnVulnerSelect( wxTreeEvent& event ){ event.Skip(); }
+		virtual void OnDataChanged( wxCommandEvent& event ){ event.Skip(); }
 
 
 	public:
-		VulnDB( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 559,384 ), long style = wxTAB_TRAVERSAL );
+		VulnDB( wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 586,506 ), long style = wxTAB_TRAVERSAL );
 		~VulnDB();
 		void m_splVulnersOnIdle( wxIdleEvent& )
 		{

@@ -364,6 +364,12 @@
 		<Unit filename="sources\Reporting\wiReportData.cpp" />
 		<Unit filename="sources\Reporting\wiReportData.h" />
 		<Unit filename="sources\Sha1.hpp" />
+		<Unit filename="sources\sciLexer.h">
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+			<Option target="Debug GCC (Service)" />
+			<Option target="Release GCC (Service)" />
+		</Unit>
 		<Unit filename="sources\treeData.h" />
 		<Unit filename="sources\version.h" />
 		<Unit filename="sources\wiApp.cpp" />
@@ -402,6 +408,18 @@
 		<Unit filename="sources\wiTasks.h" />
 		<Unit filename="sources\wiTcpClient.cpp" />
 		<Unit filename="sources\wiTcpClient.h" />
+		<Unit filename="sources\wiVulnDB.cpp">
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+			<Option target="Debug GCC (Service)" />
+			<Option target="Release GCC (Service)" />
+		</Unit>
+		<Unit filename="sources\wiVulnDB.h">
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+			<Option target="Debug GCC (Service)" />
+			<Option target="Release GCC (Service)" />
+		</Unit>
 		<Unit filename="sources\win32res.h">
 			<Option target="Debug MSVC 2005" />
 			<Option target="Release MSVC 2005" />
