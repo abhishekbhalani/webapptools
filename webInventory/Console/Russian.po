@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webInventory 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-10-03 23:07+0300\n"
+"POT-Creation-Date: 2009-10-06 19:21+0300\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Andrew Abramov <stinger@lab18.net>\n"
+"Last-Translator: Tursas Pohielainen <tursas@lab18.net>\n"
 "Language-Team: http://code.google.com/p/webapptools/ <webapptools@lab18.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -14,17 +14,6 @@ msgstr ""
 "X-Poedit-Country: RUSSIAN FEDERATION\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: sources\n"
-
-#: sources/wiPlgSelector.cpp:17
-msgid "Select plugin to add"
-msgstr "Выберите добавляемый плагин"
-
-#: sources/wiPlgSelector.cpp:17
-#: sources/wiSettings.cpp:266
-#: sources/wiSettings.cpp:275
-#: sources/wiTasks.cpp:571
-msgid "Warning"
-msgstr "Предупреждение"
 
 #: sources/wiGuiData.cpp:74
 msgid "Targets List"
@@ -231,13 +220,13 @@ msgid "Open plugin"
 msgstr "Добавить плагин"
 
 #: sources/wiGuiData.cpp:657
-#: sources/wiGuiData.cpp:917
+#: sources/wiGuiData.cpp:945
 msgid "Refresh Tree"
 msgstr "Обновить список"
 
 #: sources/wiGuiData.cpp:658
-#: sources/wiGuiData.cpp:794
-#: sources/wiGuiData.cpp:918
+#: sources/wiGuiData.cpp:822
+#: sources/wiGuiData.cpp:946
 msgid "Export DB slice"
 msgstr "Выгрузить фрагмент БД"
 
@@ -246,100 +235,139 @@ msgid "Add new vulnerability"
 msgstr "Добавить описание уязвимости"
 
 #: sources/wiGuiData.cpp:661
+msgid "Clone vulnerability"
+msgstr "Клонировать  описание уязвимости"
+
+#: sources/wiGuiData.cpp:662
 msgid "Delete vulnerability"
 msgstr "Удалить описание уязвимости"
 
-#: sources/wiGuiData.cpp:693
+#: sources/wiGuiData.cpp:663
+msgid "Save vulnerability"
+msgstr "Сохранить  описание уязвимости"
+
+#: sources/wiGuiData.cpp:696
 msgid "Vulner ID"
 msgstr "Идентификатор"
 
-#: sources/wiGuiData.cpp:701
+#: sources/wiGuiData.cpp:704
 msgid "Severity"
 msgstr "Опасность"
 
-#: sources/wiGuiData.cpp:709
-msgid "Description"
-msgstr "Описание"
-
-#: sources/wiGuiData.cpp:749
+#: sources/wiGuiData.cpp:708
 msgid "Not a vulner"
 msgstr "Не уязвимость"
 
-#: sources/wiGuiData.cpp:749
+#: sources/wiGuiData.cpp:708
 msgid "Lowest"
 msgstr "Нижний"
 
-#: sources/wiGuiData.cpp:749
+#: sources/wiGuiData.cpp:708
 msgid "Low"
 msgstr "Низкий"
 
-#: sources/wiGuiData.cpp:749
+#: sources/wiGuiData.cpp:708
 msgid "Medium"
 msgstr "Средний"
 
-#: sources/wiGuiData.cpp:749
+#: sources/wiGuiData.cpp:708
 msgid "High"
 msgstr "ВысокийВес"
 
-#: sources/wiGuiData.cpp:749
+#: sources/wiGuiData.cpp:708
 msgid "Critical"
 msgstr "Критичный"
 
-#: sources/wiGuiData.cpp:756
+#: sources/wiGuiData.cpp:715
+msgid "Title"
+msgstr "Заголовок"
+
+#: sources/wiGuiData.cpp:723
 msgid "Short description"
 msgstr "Краткое описание"
 
-#: sources/wiGuiData.cpp:793
+#: sources/wiGuiData.cpp:731
+msgid "Description"
+msgstr "Описание"
+
+#: sources/wiGuiData.cpp:821
 msgid "Refresh tree"
 msgstr "Обновить список"
 
-#: sources/wiGuiData.cpp:796
+#: sources/wiGuiData.cpp:824
 msgid "Add new template"
 msgstr "Добавить шаблон"
 
-#: sources/wiGuiData.cpp:797
+#: sources/wiGuiData.cpp:825
 msgid "Delete template"
 msgstr "Удалить шаблон"
 
-#: sources/wiGuiData.cpp:871
+#: sources/wiGuiData.cpp:899
 msgid "Editor"
 msgstr "Редактор"
 
-#: sources/wiGuiData.cpp:882
+#: sources/wiGuiData.cpp:910
 msgid "Preview"
 msgstr "Просмотр"
 
-#: sources/wiGuiData.cpp:920
+#: sources/wiGuiData.cpp:948
 msgid "Add new script"
 msgstr "Добавить скрипт"
 
-#: sources/wiGuiData.cpp:921
+#: sources/wiGuiData.cpp:949
 msgid "Delete script"
 msgstr "Удалить скрипт"
 
-#: sources/wiGuiData.cpp:947
+#: sources/wiGuiData.cpp:975
 msgid "Run script"
 msgstr "Выполнить скрипт"
 
-#: sources/wiGuiData.cpp:1029
+#: sources/wiGuiData.cpp:1057
 msgid "Object name"
 msgstr "Имя объекта"
 
-#: sources/wiGuiData.cpp:1037
+#: sources/wiGuiData.cpp:1065
 msgid "Base URL"
 msgstr "Базовый URL"
 
-#: sources/wiGuiData.cpp:1079
+#: sources/wiGuiData.cpp:1107
 msgid "Scanner name:"
 msgstr "Название сканера:"
 
-#: sources/wiGuiData.cpp:1088
+#: sources/wiGuiData.cpp:1116
 msgid "Scanner host:"
 msgstr "Хост сканера:"
 
-#: sources/wiGuiData.cpp:1097
+#: sources/wiGuiData.cpp:1125
 msgid "Scanner port:"
 msgstr "Порт сканера:"
+
+#: sources/wiMainForm.cpp:55
+msgid "Tasks"
+msgstr "Задачи"
+
+#: sources/wiMainForm.cpp:57
+msgid "Reports"
+msgstr "Отчеты"
+
+#: sources/wiMainForm.cpp:60
+msgid "Service"
+msgstr "Обслуживание"
+
+#: sources/wiMainForm.cpp:63
+msgid "Settings"
+msgstr "Настройки"
+
+#: sources/wiPlgSelector.cpp:17
+msgid "Select plugin to add"
+msgstr "Выберите добавляемый плагин"
+
+#: sources/wiPlgSelector.cpp:17
+#: sources/wiSettings.cpp:266
+#: sources/wiSettings.cpp:275
+#: sources/wiTasks.cpp:571
+msgid "Warning"
+msgstr "Предупреждение"
 
 #: sources/wiPluginSettings.cpp:19
 #: sources/wiPluginSettings.cpp:75
@@ -354,6 +382,20 @@ msgstr "Настройки плагина %s"
 #: sources/wiPluginSettings.cpp:40
 msgid "Generic settings"
 msgstr "Основные параметры"
+
+#: sources/wiService.cpp:9
+#: sources/wiTasks.cpp:224
+#: sources/wiTasks.cpp:857
+msgid "Vulnerabilities"
+msgstr "Плагины поиска уязвимостей"
+
+#: sources/wiService.cpp:11
+msgid "Reports Templates"
+msgstr "Шаблоны отчетов"
+
+#: sources/wiService.cpp:13
+msgid "Scripts"
+msgstr "Скрипты"
 
 #: sources/wiSettings.cpp:120
 msgid "Generic plugins"
@@ -416,36 +458,6 @@ msgstr "Информация"
 #: sources/wiSettings.cpp:294
 msgid "Disconnect"
 msgstr "Разорвать соединение"
-
-#: sources/wiMainForm.cpp:55
-msgid "Tasks"
-msgstr "Задачи"
-
-#: sources/wiMainForm.cpp:57
-msgid "Reports"
-msgstr "Отчеты"
-
-#: sources/wiMainForm.cpp:60
-msgid "Service"
-msgstr "Обслуживание"
-
-#: sources/wiMainForm.cpp:63
-msgid "Settings"
-msgstr "Настройки"
-
-#: sources/wiService.cpp:8
-#: sources/wiTasks.cpp:224
-#: sources/wiTasks.cpp:857
-msgid "Vulnerabilities"
-msgstr "Плагины поиска уязвимостей"
-
-#: sources/wiService.cpp:10
-msgid "Reports Templates"
-msgstr "Шаблоны отчетов"
-
-#: sources/wiService.cpp:12
-msgid "Scripts"
-msgstr "Скрипты"
 
 #: sources/wiTasks.cpp:51
 msgid "idle"
@@ -535,27 +547,71 @@ msgstr "Плагин уже есть в профиле"
 msgid "Can't create UI for plugin %s"
 msgstr "Не удалось создать настройки для плагина %s"
 
-#: sources/wxThings/filebrws.cpp:605
-msgid "Directory"
-msgstr "Каталог"
+#: sources/wiVulnDB.cpp:132
+msgid "Description was changed. Do you want to save it?"
+msgstr "Описание было изменено. Хотите сохранить изменения?"
 
-#: sources/wxThings/filebrws.cpp:609
-msgid "Link"
-msgstr "Ссылка"
+#: sources/wiVulnDB.cpp:132
+msgid "WebAudit Framework"
+msgstr "WebAudit Framework"
 
-#: sources/wxThings/filebrws.cpp:613
-msgid "Drive"
-msgstr "Диск"
+#: sources/PropGrid/advprops.cpp:654
+msgid "Point Size"
+msgstr "Point Size"
 
-#: sources/wxFlatNotebook/wxFlatNotebook.cpp:1549
+#: sources/PropGrid/advprops.cpp:657
+msgid "Family"
+msgstr "Семейство"
+
+#: sources/PropGrid/advprops.cpp:667
+msgid "Face Name"
+msgstr "Имя начертания"
+
+#: sources/PropGrid/advprops.cpp:674
+msgid "Style"
+msgstr "Стиль"
+
+#: sources/PropGrid/advprops.cpp:677
+msgid "Weight"
+msgstr "Вес"
+
+#: sources/PropGrid/advprops.cpp:680
+msgid "Underlined"
+msgstr "Подчеркивание"
+
+#: sources/PropGrid/advprops.cpp:1916
+msgid "Make a selection:"
+msgstr "Сделайте выбор:"
+
+#: sources/PropGrid/manager.cpp:1270
+msgid "Categorized Mode"
+msgstr "Режим категорий"
+
+#: sources/PropGrid/manager.cpp:1271
+msgid "Alphabetic Mode"
+msgstr "Режим списка"
+
+#: sources/PropGrid/propgrid.cpp:543
+msgid "False"
+msgstr "НЕТ"
+
+#: sources/PropGrid/propgrid.cpp:544
+msgid "True"
+msgstr "ДА"
+
+#: sources/PropGrid/propgrid.cpp:3117
+msgid "Unspecified"
+msgstr "Неуказано"
+
+#: sources/PropGrid/propgrid.cpp:4280
 #, c-format
-msgid "Old Page Index = %i"
-msgstr "Old Page Index = %i"
+msgid "Type operation \"%s\" failed: Property labeled \"%s\" is of type \"%s\", NOT \"%s\"."
+msgstr "Ошибка операции  \"%s\": Свойство м меткой \"%s\" имеет тип \"%s\", А НЕ \"%s\"."
 
-#: sources/wxFlatNotebook/wxFlatNotebook.cpp:1554
+#: sources/PropGrid/propgrid.cpp:12409
 #, c-format
-msgid "OnDropTarget: index by HitTest = %i"
-msgstr "OnDropTarget: index by HitTest = %i"
+msgid "Error in resource: %s"
+msgstr "Ошибка в ресурсе: %s"
 
 #: sources/PropGrid/props.cpp:463
 #: sources/PropGrid/props.cpp:477
@@ -621,85 +677,48 @@ msgstr "Вверх"
 msgid "Down"
 msgstr "Вниз"
 
-#: sources/PropGrid/manager.cpp:1270
-msgid "Categorized Mode"
-msgstr "Режим категорий"
-
-#: sources/PropGrid/manager.cpp:1271
-msgid "Alphabetic Mode"
-msgstr "Режим списка"
-
-#: sources/PropGrid/propgrid.cpp:543
-msgid "False"
-msgstr "НЕТ"
-
-#: sources/PropGrid/propgrid.cpp:544
-msgid "True"
-msgstr "ДА"
-
-#: sources/PropGrid/propgrid.cpp:3117
-msgid "Unspecified"
-msgstr "Неуказано"
-
-#: sources/PropGrid/propgrid.cpp:4280
-#, c-format
-msgid "Type operation \"%s\" failed: Property labeled \"%s\" is of type \"%s\", NOT \"%s\"."
-msgstr "Ошибка операции  \"%s\": Свойство м меткой \"%s\" имеет тип \"%s\", А НЕ \"%s\"."
-
-#: sources/PropGrid/propgrid.cpp:12409
-#, c-format
-msgid "Error in resource: %s"
-msgstr "Ошибка в ресурсе: %s"
-
-#: sources/PropGrid/advprops.cpp:654
-msgid "Point Size"
-msgstr "Point Size"
-
-#: sources/PropGrid/advprops.cpp:657
-msgid "Family"
-msgstr "Семейство"
-
-#: sources/PropGrid/advprops.cpp:667
-msgid "Face Name"
-msgstr "Имя начертания"
-
-#: sources/PropGrid/advprops.cpp:674
-msgid "Style"
-msgstr "Стиль"
-
-#: sources/PropGrid/advprops.cpp:677
-msgid "Weight"
-msgstr "Вес"
-
-#: sources/PropGrid/advprops.cpp:680
-msgid "Underlined"
-msgstr "Подчеркивание"
-
-#: sources/PropGrid/advprops.cpp:1916
-msgid "Make a selection:"
-msgstr "Сделайте выбор:"
-
 #: sources/PropGrid/xh_propgrid.cpp:267
 #, c-format
 msgid "Page %i"
 msgstr "Страница %i"
 
-#: sources/wiGuiData.h:95
-msgid "WebAudit Framework"
-msgstr "WebAudit Framework"
+#: sources/wxFlatNotebook/wxFlatNotebook.cpp:1549
+#, c-format
+msgid "Old Page Index = %i"
+msgstr "Old Page Index = %i"
 
-#: sources/wiGuiData.h:420
+#: sources/wxFlatNotebook/wxFlatNotebook.cpp:1554
+#, c-format
+msgid "OnDropTarget: index by HitTest = %i"
+msgstr "OnDropTarget: index by HitTest = %i"
+
+#: sources/wxThings/filebrws.cpp:605
+msgid "Directory"
+msgstr "Каталог"
+
+#: sources/wxThings/filebrws.cpp:609
+msgid "Link"
+msgstr "Ссылка"
+
+#: sources/wxThings/filebrws.cpp:613
+msgid "Drive"
+msgstr "Диск"
+
+#: sources/wiGuiData.h:429
 msgid "Object"
 msgstr "Объект"
 
-#: sources/wiGuiData.h:448
+#: sources/wiGuiData.h:457
 msgid "Connection"
 msgstr "Соединение"
 
-#: sources/wiGuiData.h:471
+#: sources/wiGuiData.h:480
 msgid "Select plugin"
 msgstr "Выберите плагин"
 
+#, fuzzy
+#~ msgid "WebAuditFramework"
+#~ msgstr "WebAudit Framework"
 #~ msgid "Unknown widget class: %s (type=%d, name='%s'"
 #~ msgstr "Неизвестный тип опции: %s (code=%d, name=%s)"
 #~ msgid "Unknown option type: %d (class=%s, name='%s'"
