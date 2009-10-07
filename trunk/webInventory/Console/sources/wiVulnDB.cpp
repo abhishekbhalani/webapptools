@@ -22,8 +22,33 @@
  * @author    Tursas Pohielainen (tursasp@gmail.com)
  * @date      05.10.2009
  **************************************************************/
+#include <wx/wupdlock.h>
+#include <wx/mstream.h>
+#include <wx/xml/xml.h>
 #include "wiVulnDB.h"
 #include "sciLexer.h"
+
+// tasklist images
+#include "../images/tree_unk.xpm"       // gray image
+#include "../images/tree_blue.xpm"      // blue image
+#include "../images/tree_yes.xpm"       // green image
+#include "../images/tree_lgr.xpm"       // light green
+#include "../images/tree_yell.xpm"      // yellow image
+#include "../images/tree_orange.xpm"    // orange image
+#include "../images/tree_no.xpm"        // red image
+#include "../images/opts_vulner.xpm"
+
+WX_DECLARE_STRING_HASH_MAP( wxTreeItemId, wiVulnerIdHash );
+
+// !!!DEBUG
+wxString sampleXML = wxT("<vdescs>\
+    <vdesc id='CVE-2008-5515' severity='1'>Directory traversal in Apache</vdesc>\
+    <vdesc id='CVE-2008-5516' severity='2'>Directory traversal in Tomcat</vdesc>\
+    <vdesc id='CVE-2008-5517' severity='3'>Directory traversal in RequestDispatcher</vdesc>\
+    <vdesc id='NMAP-0001' severity='0'>Nmap services discovery</vdesc>\
+    <vdesc id='NMAP-0002' severity='5'>Nmap OS discovery</vdesc>\
+    <vdesc id='NMAP-0003' severity='4'>Nmap ports discovery</vdesc>\
+</vdescs>");
 
 wiVulnDB::wiVulnDB( wxWindow* parent )
 :
@@ -62,7 +87,18 @@ VulnDB( parent )
 	m_scDesc->StyleSetBold(wxSCI_H_TAGUNKNOWN, true);
 	m_scDesc->StyleSetBold(wxSCI_HJ_KEYWORD, true);
 	m_scDesc->StyleSetBold(wxSCI_HJA_KEYWORD, true);
+	wxImageList* imageList = new wxImageList;
+	imageList->Add(wxIcon(tree_unk_xpm));
+	imageList->Add(wxIcon(tree_blue_xpm));
+	imageList->Add(wxIcon(tree_yes_xpm));
+	imageList->Add(wxIcon(tree_lgr_xpm));
+	imageList->Add(wxIcon(tree_yell_xpm));
+	imageList->Add(wxIcon(tree_orange_xpm));
+	imageList->Add(wxIcon(tree_no_xpm));
+	imageList->Add(wxIcon(opts_vulner_xpm));
+	m_treeVDB->AssignImageList(imageList);
 
+	DrawTree();
 }
 
 void wiVulnDB::OnTreeRefresh( wxCommandEvent& event )
@@ -70,7 +106,7 @@ void wiVulnDB::OnTreeRefresh( wxCommandEvent& event )
     if ( !ContinueUnsaved() ) {
         return;
     }
-	// TODO: Implement OnTreeRefresh
+	DrawTree();
 }
 
 void wiVulnDB::OnDbSlice( wxCommandEvent& event )
@@ -138,4 +174,66 @@ bool wiVulnDB::ContinueUnsaved()
         }
     }
     return true;
+}
+
+void wiVulnDB::DrawTree()
+{
+    wxWindowUpdateLocker noUpdates(m_treeVDB);
+    wiVulnerIdHash hashMap;
+    wiVulnerIdHash::iterator  it;
+    wxTreeItemId parent, rootID;
+    wxString strId, strTitle, strLev;
+    long severity;
+
+    //wxString dt = FRAME_WINDOW->DoClientCommand(wxT("getvdesclist"), wxT(""));
+    wxString dt = sampleXML;
+    if (dt != wxT("")) {
+        wxCharBuffer buff = dt.utf8_str();
+        int buffLen = strlen(buff.data());
+        wxMemoryInputStream xmlStream(buff.data(), buffLen);
+        //wxLogNull logger;
+        wxXmlDocument doc;
+
+        if ( doc.Load(xmlStream) ) {
+            m_treeVDB->DeleteAllItems();
+            rootID = m_treeVDB->AddRoot(wxT("Vulnerabilities"));
+            wxXmlNode *root, *chld;
+            root = doc.GetRoot();
+            if (root != NULL) {
+                chld = root->GetChildren();
+                while (chld != NULL) {
+                    strId = chld->GetPropVal(wxT("id"), wxT(""));
+                    strLev = chld->GetPropVal(wxT("severity"), wxT(""));
+                    if (strLev.ToLong(&severity)) {
+                        severity++;
+                        if (severity < 0 || severity > 6) {
+                            severity = 0;
+                        }
+                    }
+                    else {
+                        severity = 0;
+                    }
+                    strTitle = chld->GetNodeContent();
+                    if (strId != wxT("")) {
+                        wxString plgName;
+                        plgName = strId.BeforeFirst(wxT('-'));
+                        if (plgName.IsEmpty()) {
+                            plgName = strId;
+                        }
+                        it = hashMap.find(plgName);
+                        if (it == hashMap.end() ) {
+                            parent = m_treeVDB->AppendItem(rootID, plgName, 7);
+                            hashMap[plgName] = parent;
+                        }
+                        else {
+                            parent = it->second;
+                        }
+                        strId = wxString::Format(wxT("%s: %s"), strId.c_str(), strTitle.c_str());
+                        m_treeVDB->AppendItem(parent, strId, severity);
+                    }
+                    chld = chld->GetNext();
+                }
+            }
+        }
+    }
 }

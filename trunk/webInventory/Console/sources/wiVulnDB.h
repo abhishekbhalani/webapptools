@@ -48,6 +48,7 @@ protected:
 
 	// functions
 	bool ContinueUnsaved();
+	void DrawTree();
 
 	// members
 	bool m_bDataChanged;
