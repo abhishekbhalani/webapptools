@@ -789,7 +789,7 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	this->Connect( wxID_CLONE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnCloneObj ) );
 	this->Connect( wxID_DEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDelObj ) );
 	this->Connect( wxID_SAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnSaveObj ) );
-	m_treeVDB->Connect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( VulnDB::OnVulnerSelect ), NULL, this );
+	m_treeVDB->Connect( wxEVT_COMMAND_TREE_SEL_CHANGING, wxTreeEventHandler( VulnDB::OnVulnerSelect ), NULL, this );
 	m_txtLabel->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
 	m_chSeverity->Connect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
 	m_txtTiltle->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
@@ -805,7 +805,7 @@ VulnDB::~VulnDB()
 	this->Disconnect( wxID_CLONE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnCloneObj ) );
 	this->Disconnect( wxID_DEL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnDelObj ) );
 	this->Disconnect( wxID_SAVE, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( VulnDB::OnSaveObj ) );
-	m_treeVDB->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGED, wxTreeEventHandler( VulnDB::OnVulnerSelect ), NULL, this );
+	m_treeVDB->Disconnect( wxEVT_COMMAND_TREE_SEL_CHANGING, wxTreeEventHandler( VulnDB::OnVulnerSelect ), NULL, this );
 	m_txtLabel->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
 	m_chSeverity->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );
 	m_txtTiltle->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( VulnDB::OnDataChanged ), NULL, this );

@@ -58,4 +58,7 @@ public:
 	byte *Decrypt(byte *data, int dataLen);
 };
 
+wxString ScreenXML( const wxString& xml );
+wxString UnscreenXML( const wxString& xml );
+
 #endif /* _ICRYPTO_H */
