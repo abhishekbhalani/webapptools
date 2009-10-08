@@ -27,6 +27,7 @@
 #include <wx/xml/xml.h>
 #include "wiVulnDB.h"
 #include "sciLexer.h"
+#include "Crypto.h"
 
 // tasklist images
 #include "../images/tree_unk.xpm"       // gray image
@@ -40,6 +41,13 @@
 
 WX_DECLARE_STRING_HASH_MAP( wxTreeItemId, wiVulnerIdHash );
 
+class wiVulnTreeData : public wxTreeItemData
+{
+    public:
+        wxString    vulnID;
+        wxString    pluginID;
+};
+
 // !!!DEBUG
 wxString sampleXML = wxT("<vdescs>\
     <vdesc id='CVE-2008-5515' severity='1'>Directory traversal in Apache</vdesc>\
@@ -49,12 +57,19 @@ wxString sampleXML = wxT("<vdescs>\
     <vdesc id='NMAP-0002' severity='5'>Nmap OS discovery</vdesc>\
     <vdesc id='NMAP-0003' severity='4'>Nmap ports discovery</vdesc>\
 </vdescs>");
+wxString vdescXML = wxT("<vdesc id='CVE-2008-5515'>\
+<title>Directory traversal in Apache</title>\
+<severity>1</severity>\
+<short_desc>Short description\nin two lines</short_desc>\
+<description>&lt;root&gt;\n&lt;xml_stylesheet&gt;\n&lt;body&gt;\nText\n&lt;/body&gt;\n&lt;/xml_stylesheet&gt;\n&lt;/root&gt;\n</description>\
+</vdesc>");
 
 wiVulnDB::wiVulnDB( wxWindow* parent )
 :
 VulnDB( parent )
 {
     m_bDataChanged = false;
+    m_forceSelect = false;
    	m_scDesc->SetProperty( wxT("fold"), wxT("1") );
    	m_scDesc->SetProperty (wxT("fold.html"), wxT("1") );
    	m_scDesc->SetProperty (wxT("fold.comment"), wxT("1") );
@@ -87,15 +102,15 @@ VulnDB( parent )
 	m_scDesc->StyleSetBold(wxSCI_H_TAGUNKNOWN, true);
 	m_scDesc->StyleSetBold(wxSCI_HJ_KEYWORD, true);
 	m_scDesc->StyleSetBold(wxSCI_HJA_KEYWORD, true);
-	wxImageList* imageList = new wxImageList;
-	imageList->Add(wxIcon(tree_unk_xpm));
-	imageList->Add(wxIcon(tree_blue_xpm));
-	imageList->Add(wxIcon(tree_yes_xpm));
-	imageList->Add(wxIcon(tree_lgr_xpm));
-	imageList->Add(wxIcon(tree_yell_xpm));
-	imageList->Add(wxIcon(tree_orange_xpm));
-	imageList->Add(wxIcon(tree_no_xpm));
-	imageList->Add(wxIcon(opts_vulner_xpm));
+	wxImageList* imageList = new wxImageList(16, 16);
+	imageList->Add(wxBitmap(tree_unk_xpm));
+	imageList->Add(wxBitmap(tree_blue_xpm));
+	imageList->Add(wxBitmap(tree_yes_xpm));
+	imageList->Add(wxBitmap(tree_lgr_xpm));
+	imageList->Add(wxBitmap(tree_yell_xpm));
+	imageList->Add(wxBitmap(tree_orange_xpm));
+	imageList->Add(wxBitmap(tree_no_xpm));
+	imageList->Add(wxBitmap(opts_vulner_xpm));
 	m_treeVDB->AssignImageList(imageList);
 
 	DrawTree();
@@ -119,46 +134,215 @@ void wiVulnDB::OnDbSlice( wxCommandEvent& event )
 
 void wiVulnDB::OnAddObj( wxCommandEvent& event )
 {
+    wxTreeItemId idTree, itemID;
+    wiVulnTreeData* itemData;
+
     if ( !ContinueUnsaved() ) {
         return;
     }
-	// TODO: Implement OnAddObj
+    idTree = m_treeVDB->GetSelection();
+    if (!idTree.IsOk()) {
+        return;
+    }
+    itemData = (wiVulnTreeData*)m_treeVDB->GetItemData(idTree);
+    if (!itemData) {
+        return;
+    }
+
+    m_txtLabel->SetValue(itemData->pluginID);
+    m_chSeverity->Select(0);
+    m_txtTiltle->Clear();
+    m_txtShort->Clear();
+    m_scDesc->ClearAll();
+    m_bDataChanged = false;
+
+    if (itemData->vulnID != wxEmptyString) {
+        idTree = m_treeVDB->GetItemParent(idTree);
+    }
+    itemID = m_treeVDB->AppendItem(idTree, itemData->pluginID, 1);
+    itemData = new wiVulnTreeData;
+    itemData->vulnID = m_txtLabel->GetValue();
+    itemData->pluginID = itemData->vulnID;
+    m_treeVDB->SetItemData(itemID, itemData);
+    m_forceSelect = true;
+    m_treeVDB->SelectItem(itemID);
+    m_forceSelect = false;
 }
 
 void wiVulnDB::OnCloneObj( wxCommandEvent& event )
 {
+    wxTreeItemId idTree, itemID;
+    wiVulnTreeData* itemData;
+
     if ( !ContinueUnsaved() ) {
         return;
     }
-	// TODO: Implement OnCloneObj
+    idTree = m_treeVDB->GetSelection();
+    if (!idTree.IsOk()) {
+        return;
+    }
+    itemData = (wiVulnTreeData*)m_treeVDB->GetItemData(idTree);
+    if (!itemData || itemData->vulnID.IsEmpty() ) {
+        return;
+    }
+
+    m_txtLabel->SetValue(itemData->pluginID);
+
+    idTree = m_treeVDB->GetItemParent(idTree);
+    itemID = m_treeVDB->AppendItem(idTree, itemData->pluginID, m_chSeverity->GetSelection() + 1);
+    itemData = new wiVulnTreeData;
+    itemData->vulnID = m_txtLabel->GetValue();
+    itemData->pluginID = itemData->vulnID;
+    m_treeVDB->SetItemData(itemID, itemData);
+    m_forceSelect = true;
+    m_treeVDB->SelectItem(itemID);
+    m_forceSelect = false;
 }
 
 void wiVulnDB::OnDelObj( wxCommandEvent& event )
 {
+    wxTreeItemId idTree, itemID;
+    wiVulnTreeData* itemData;
+
     if ( !ContinueUnsaved() ) {
         return;
     }
-	// TODO: Implement OnDelObj
+    idTree = m_treeVDB->GetSelection();
+    if (!idTree.IsOk()) {
+        return;
+    }
+    itemData = (wiVulnTreeData*)m_treeVDB->GetItemData(idTree);
+    if (!itemData || itemData->vulnID.IsEmpty() ) {
+        return;
+    }
+    wxString msg = wxString::Format(_("Are you sure to delete vulnerability %s?"), itemData->vulnID.c_str());
+    int res = wxMessageBox(msg, _("WebAudit Framework"), wxICON_WARNING | wxYES_NO);
+    if (res == wxYES) {
+        //FRAME_WINDOW->DoClientCommand(wxT("delvdesc"), itemData->vulnID);
+        DrawTree();
+    }
 }
 
 void wiVulnDB::OnSaveObj( wxCommandEvent& event )
 {
-	// TODO: Implement OnSaveObj
+    SaveVulner();
+   	wxTreeItemId itemID = m_treeVDB->GetSelection();
+	if ( itemID.IsOk() ) {
+	    m_treeVDB->SetItemBold(itemID);
+	}
+
+    DrawTree();
 }
 
 void wiVulnDB::OnVulnerSelect( wxTreeEvent& event )
 {
+    wxTreeItemId idTree;
+    wiVulnTreeData* itemData;
+    wxTreeItemIdValue cookie;
+    wxString vulnDesc;
+    wxString content;
+    wxXmlDocument doc;
+    long idx;
+
+    if (m_forceSelect) {
+        return;
+    }
     if ( !ContinueUnsaved() ) {
         event.Veto();
         return;
     }
-	// TODO: Implement OnVulnerSelect
+    idTree = event.GetItem();
+    if (!idTree.IsOk()) {
+        event.Veto();
+        return;
+    }
+    if (event.GetOldItem().IsOk()) {
+        m_treeVDB->SetItemBold(event.GetOldItem(), false);
+    }
+    itemData = (wiVulnTreeData*)m_treeVDB->GetItemData(idTree);
+    if (itemData) {
+        if ( itemData->vulnID.IsEmpty() ) {
+            idTree = m_treeVDB->GetFirstChild(idTree, cookie);
+            if (idTree.IsOk()) {
+                itemData = (wiVulnTreeData*)m_treeVDB->GetItemData(idTree);
+                if (!itemData || itemData->vulnID.IsEmpty() ) {
+                    event.Veto();
+                    return;
+                }
+            }
+            else {
+                // no childs
+                m_txtLabel->Clear();
+                m_chSeverity->Select(0);
+                m_txtTiltle->Clear();
+                m_txtShort->Clear();
+                m_scDesc->ClearAll();
+                m_bDataChanged = false;
+                return;
+            }
+        }
+        //vulnDesc = FRAME_WINDOW->DoClientCommand(wxT("getvdesc"), itemData->vulnID);
+        vulnDesc = vdescXML;
+        wxCharBuffer buff = vulnDesc.utf8_str();
+        int buffLen = strlen(buff.data());
+        wxMemoryInputStream xmlStream(buff.data(), buffLen);
+        //wxLogNull logger;
+        if ( doc.Load(xmlStream) ) {
+            wxXmlNode *root, *chld;
+            root = doc.GetRoot();
+            if (root != NULL) {
+                m_txtLabel->SetValue(itemData->vulnID);
+                chld = root->GetChildren();
+                while (chld != NULL) {
+                    if (chld->GetName() == wxT("title")) {
+                        content = chld->GetNodeContent();
+                        m_txtTiltle->SetValue(UnscreenXML(content));
+                    }
+                    if (chld->GetName() == wxT("severity")) {
+                        content = chld->GetNodeContent();
+                        if (! content.ToLong(&idx) ) {
+                            idx = 0;
+                        }
+                        if (idx < 0 || idx > 5) {
+                            idx = 0;
+                        }
+                        m_chSeverity->Select(idx);
+                    }
+                    if (chld->GetName() == wxT("short_desc")) {
+                        content = chld->GetNodeContent();
+                        m_txtShort->SetValue(UnscreenXML(content));
+                    }
+                    if (chld->GetName() == wxT("description")) {
+                        content = chld->GetNodeContent();
+                        m_scDesc->SetText(UnscreenXML(content));
+                    }
+
+                    chld = chld->GetNext();
+                }
+                m_treeVDB->SetItemBold(idTree, false);
+                m_bDataChanged = false;
+            }
+            else {
+                event.Veto();
+            }
+        }
+        else {
+            event.Veto();
+        }
+    }
+    else {
+        event.Veto();
+    }
 }
 
 void wiVulnDB::OnDataChanged( wxCommandEvent& event )
 {
 	m_bDataChanged = true;
 	m_toolBar->EnableTool(wxID_SAVE, true);
+	wxTreeItemId itemID = m_treeVDB->GetSelection();
+	if ( itemID.IsOk() ) {
+	    m_treeVDB->SetItemBold(itemID);
+	}
 }
 
 bool wiVulnDB::ContinueUnsaved()
@@ -170,7 +354,7 @@ bool wiVulnDB::ContinueUnsaved()
             return false;
         }
         if (resp == wxYES) {
-            // save current vulner
+            SaveVulner();
         }
     }
     return true;
@@ -181,7 +365,7 @@ void wiVulnDB::DrawTree()
     wxWindowUpdateLocker noUpdates(m_treeVDB);
     wiVulnerIdHash hashMap;
     wiVulnerIdHash::iterator  it;
-    wxTreeItemId parent, rootID;
+    wxTreeItemId parent, rootID, itemID;
     wxString strId, strTitle, strLev;
     long severity;
 
@@ -224,16 +408,30 @@ void wiVulnDB::DrawTree()
                         if (it == hashMap.end() ) {
                             parent = m_treeVDB->AppendItem(rootID, plgName, 7);
                             hashMap[plgName] = parent;
+                            wiVulnTreeData* itemData = new wiVulnTreeData;
+                            itemData->vulnID = wxEmptyString;
+                            itemData->pluginID = plgName;
+                            m_treeVDB->SetItemData(parent, itemData);
                         }
                         else {
                             parent = it->second;
                         }
-                        strId = wxString::Format(wxT("%s: %s"), strId.c_str(), strTitle.c_str());
-                        m_treeVDB->AppendItem(parent, strId, severity);
+                        strLev = wxString::Format(wxT("%s: %s"), strId.c_str(), strTitle.c_str());
+                        itemID = m_treeVDB->AppendItem(parent, strLev, severity);
+                        wiVulnTreeData* itemData = new wiVulnTreeData;
+                        itemData->vulnID = strId;
+                        itemData->pluginID = plgName;
+                        m_treeVDB->SetItemData(itemID, itemData);
                     }
                     chld = chld->GetNext();
-                }
-            }
-        }
+                } // end child loop
+            } // end if root presented
+        } // end if doc loaded
     }
+}
+
+void wiVulnDB::SaveVulner()
+{
+    wxString res = ScreenXML(m_scDesc->GetText());
+    //FRAME_WINDOW->DoClientCommand(wxT("setvdesc"), res);
 }

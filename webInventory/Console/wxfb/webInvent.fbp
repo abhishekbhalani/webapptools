@@ -4525,8 +4525,8 @@
                                             <event name="OnTreeItemMiddleClick"></event>
                                             <event name="OnTreeItemRightClick"></event>
                                             <event name="OnTreeKeyDown"></event>
-                                            <event name="OnTreeSelChanged">OnVulnerSelect</event>
-                                            <event name="OnTreeSelChanging"></event>
+                                            <event name="OnTreeSelChanged"></event>
+                                            <event name="OnTreeSelChanging">OnVulnerSelect</event>
                                             <event name="OnTreeSetInfo"></event>
                                             <event name="OnTreeStateImageClick"></event>
                                             <event name="OnUpdateUI"></event>

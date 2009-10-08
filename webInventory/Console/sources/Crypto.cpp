@@ -23,6 +23,8 @@
  */
 
 #include "Crypto.h"
+#include <wx/regex.h>
+
 #if defined(__WXMSW__)
     #include <Windows.h>
 #else
@@ -47,6 +49,7 @@
   #define ASM __asm
   #define INLINE inline
 #endif
+
 
 INLINE byte GetCode(int offset, byte *key)
 {
@@ -268,3 +271,59 @@ wxString CEasyCrypto::Hash(wxString data)
 	delete lData;
     return wxString::From8BitData((const char*)binHexBuff);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn wxString ScreenXML(const wxString& xml)
+///
+/// @brief  Screens the XML entities in the input string.
+///
+/// @param  xml - The input.
+///
+/// @retval	string - screened data.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+wxString ScreenXML( const wxString& xml )
+{
+    wxString retval = xml;
+    wxRegEx rx;
+
+    rx.Compile(wxT("&"));
+    rx.ReplaceAll(&retval, wxT("\\&amp;"));
+    rx.Compile(wxT("<"));
+    rx.ReplaceAll(&retval, wxT("\\&lt;"));
+    rx.Compile(wxT(">"));
+    rx.ReplaceAll(&retval, wxT("\\&gt;"));
+    rx.Compile(wxT("'"));
+    rx.ReplaceAll(&retval, wxT("\\&#39;"));
+    rx.Compile(wxT("\""));
+    rx.ReplaceAll(&retval, wxT("\\&quot;"));
+    return retval;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn wxString UnscreenXML(const wxString& xml)
+///
+/// @brief  Unscreens the XML entities in the input string.
+///
+/// @param  xml - The input.
+///
+/// @retval	string - unscreened data.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+wxString UnscreenXML( const wxString& xml )
+{
+    wxString retval = xml;
+    wxRegEx rx;
+
+    rx.Compile(wxT("\\&lt;"));
+    rx.ReplaceAll(&retval, wxT("<"));
+    rx.Compile(wxT("\\&gt;"));
+    rx.ReplaceAll(&retval, wxT(">"));
+    rx.Compile(wxT("\\&#39;"));
+    rx.ReplaceAll(&retval, wxT("'"));
+    rx.Compile(wxT("\\&quot;"));
+    rx.ReplaceAll(&retval, wxT("\""));
+    rx.Compile(wxT("\\&amp;"));
+    rx.ReplaceAll(&retval, wxT("\\&"));
+
+    return retval;
+}
+

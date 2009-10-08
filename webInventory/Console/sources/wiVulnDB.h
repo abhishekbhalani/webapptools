@@ -49,9 +49,11 @@ protected:
 	// functions
 	bool ContinueUnsaved();
 	void DrawTree();
+	void SaveVulner();
 
 	// members
 	bool m_bDataChanged;
+	bool m_forceSelect;
 
 public:
 	/** Constructor */
