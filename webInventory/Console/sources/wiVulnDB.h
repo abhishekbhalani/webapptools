@@ -45,6 +45,9 @@ protected:
 	void OnSaveObj( wxCommandEvent& event );
 	void OnVulnerSelect( wxTreeEvent& event );
 	void OnDataChanged( wxCommandEvent& event );
+	// wxScintilla functions
+    void OnMarginClick (wxScintillaEvent &event);
+	void OnCharAdded (wxScintillaEvent &event);
 
 	// functions
 	bool ContinueUnsaved();
@@ -54,6 +57,7 @@ protected:
 	// members
 	bool m_bDataChanged;
 	bool m_forceSelect;
+	bool m_inUpdate;
 
 public:
 	/** Constructor */

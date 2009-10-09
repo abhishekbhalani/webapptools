@@ -80,6 +80,9 @@
 #define wxID_EXPORT 1028
 #define wxID_CLONE 1029
 #define wxID_DEL 1030
+#define wxID_SCVULNER 1031
+#define wxID_SCREPORT 1032
+#define wxID_SCRIPT 1033
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class MainForm

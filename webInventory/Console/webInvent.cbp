@@ -195,6 +195,7 @@
 					<Add library="wxmsw28ud_xrc.lib" />
 					<Add library="wxexpatd.lib" />
 					<Add library="wxscintillaud.lib" />
+					<Add library="wxregexud.lib" />
 					<Add directory="${WXWIN}\lib\vc_lib" />
 					<Add directory="..\..\webEngine\libs\debug" />
 					<Add directory="lib" />
@@ -242,6 +243,7 @@
 					<Add library="wxmsw28u_xrc.lib" />
 					<Add library="wxexpat.lib" />
 					<Add library="wxscintillau.lib" />
+					<Add library="wxregexu.lib" />
 					<Add directory="${WXWIN}\lib\vc_lib" />
 					<Add directory="..\..\webEngine\libs\release" />
 					<Add directory="lib" />

@@ -732,7 +732,7 @@ VulnDB::VulnDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSiz
 	m_stLong->Wrap( -1 );
 	gbSizer1->Add( m_stLong, wxGBPosition( 4, 0 ), wxGBSpan( 1, 4 ), wxALL|wxEXPAND, 5 );
 	
-	m_scDesc = new wxScintilla( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, wxEmptyString );
+	m_scDesc = new wxScintilla( m_panel17, wxID_SCVULNER, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER, wxEmptyString );
 	m_scDesc->SetUseTabs( false );
 	m_scDesc->SetTabWidth( 4 );
 	m_scDesc->SetIndent( 4 );
@@ -856,7 +856,7 @@ RepDB::RepDB( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize&
 	wxBoxSizer* bSzEdit;
 	bSzEdit = new wxBoxSizer( wxVERTICAL );
 	
-	m_scEdit = new wxScintilla( m_pnEdit, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxEmptyString );
+	m_scEdit = new wxScintilla( m_pnEdit, wxID_SCREPORT, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxEmptyString );
 	m_scEdit->SetUseTabs( false );
 	m_scEdit->SetTabWidth( 4 );
 	m_scEdit->SetIndent( 4 );
@@ -977,7 +977,7 @@ Scripts::Scripts( wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxS
 	
 	bSzEdit->Add( m_toolBar14, 0, wxEXPAND, 5 );
 	
-	m_scEdit = new wxScintilla( m_panel17, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxEmptyString );
+	m_scEdit = new wxScintilla( m_panel17, wxID_SCRIPT, wxDefaultPosition, wxDefaultSize, wxNO_BORDER, wxEmptyString );
 	m_scEdit->SetUseTabs( false );
 	m_scEdit->SetTabWidth( 4 );
 	m_scEdit->SetIndent( 4 );

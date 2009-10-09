@@ -25,6 +25,7 @@
 #include <wx/wupdlock.h>
 #include <wx/mstream.h>
 #include <wx/xml/xml.h>
+#include <wx/wxscintilla/wxscintilla.h>
 #include "wiVulnDB.h"
 #include "sciLexer.h"
 #include "Crypto.h"
@@ -64,12 +65,20 @@ wxString vdescXML = wxT("<vdesc id='CVE-2008-5515'>\
 <description>&lt;root&gt;\n&lt;xml_stylesheet&gt;\n&lt;body&gt;\nText\n&lt;/body&gt;\n&lt;/xml_stylesheet&gt;\n&lt;/root&gt;\n</description>\
 </vdesc>");
 
+//BEGIN_EVENT_TABLE (wiVulnDB, wxPanel)
+//    // scintilla
+//    EVT_SCI_MARGINCLICK (-1,           wiVulnDB::OnMarginClick)
+//    EVT_SCI_CHARADDED (-1,             wiVulnDB::OnCharAdded)
+//END_EVENT_TABLE()
+
 wiVulnDB::wiVulnDB( wxWindow* parent )
 :
 VulnDB( parent )
 {
     m_bDataChanged = false;
     m_forceSelect = false;
+    m_inUpdate = false;
+
    	m_scDesc->SetProperty( wxT("fold"), wxT("1") );
    	m_scDesc->SetProperty (wxT("fold.html"), wxT("1") );
    	m_scDesc->SetProperty (wxT("fold.comment"), wxT("1") );
@@ -102,6 +111,7 @@ VulnDB( parent )
 	m_scDesc->StyleSetBold(wxSCI_H_TAGUNKNOWN, true);
 	m_scDesc->StyleSetBold(wxSCI_HJ_KEYWORD, true);
 	m_scDesc->StyleSetBold(wxSCI_HJA_KEYWORD, true);
+	m_scDesc->SetMarginSensitive(1, true);
 	wxImageList* imageList = new wxImageList(16, 16);
 	imageList->Add(wxBitmap(tree_unk_xpm));
 	imageList->Add(wxBitmap(tree_blue_xpm));
@@ -112,6 +122,14 @@ VulnDB( parent )
 	imageList->Add(wxBitmap(tree_no_xpm));
 	imageList->Add(wxBitmap(opts_vulner_xpm));
 	m_treeVDB->AssignImageList(imageList);
+
+	m_scDesc->Connect(wxEVT_SCI_CHANGE, wxID_SCVULNER, wxID_ANY, (wxObjectEventFunction)  & wiVulnDB::OnDataChanged );
+	m_scDesc->Connect(wxEVT_SCI_KEY, wxID_SCVULNER, wxID_ANY, (wxObjectEventFunction)  & wiVulnDB::OnDataChanged );
+	//m_scDesc->Connect( wxEVT_CHAR, (wxObjectEventFunction)  &wiVulnDB::OnDataChanged , NULL, this );
+	m_scDesc->Connect(wxEVT_SCI_MARGINCLICK, wxID_SCVULNER, wxID_ANY, (wxObjectEventFunction) wxStaticCastEvent( wxScintillaEventFunction, & wiVulnDB::OnMarginClick ));
+	m_scDesc->Connect(wxEVT_SCI_CHARADDED, wxID_SCVULNER, wxID_ANY, (wxObjectEventFunction) &wiVulnDB::OnCharAdded);
+    //EVT_SCI_MARGINCLICK (-1,           Edit::OnMarginClick)
+    //EVT_SCI_CHARADDED (-1,             Edit::OnCharAdded)
 
 	DrawTree();
 }
@@ -228,7 +246,7 @@ void wiVulnDB::OnSaveObj( wxCommandEvent& event )
     SaveVulner();
    	wxTreeItemId itemID = m_treeVDB->GetSelection();
 	if ( itemID.IsOk() ) {
-	    m_treeVDB->SetItemBold(itemID);
+	    m_treeVDB->SetItemBold(itemID, false);
 	}
 
     DrawTree();
@@ -257,18 +275,28 @@ void wiVulnDB::OnVulnerSelect( wxTreeEvent& event )
         return;
     }
     if (event.GetOldItem().IsOk()) {
-        m_treeVDB->SetItemBold(event.GetOldItem(), false);
+        if (m_treeVDB->IsBold(event.GetOldItem()) ) {
+            m_treeVDB->SetItemBold(event.GetOldItem(), false);
+        }
     }
     itemData = (wiVulnTreeData*)m_treeVDB->GetItemData(idTree);
     if (itemData) {
+        m_inUpdate = true;
         if ( itemData->vulnID.IsEmpty() ) {
             idTree = m_treeVDB->GetFirstChild(idTree, cookie);
             if (idTree.IsOk()) {
-                itemData = (wiVulnTreeData*)m_treeVDB->GetItemData(idTree);
-                if (!itemData || itemData->vulnID.IsEmpty() ) {
-                    event.Veto();
-                    return;
-                }
+                event.SetItem(idTree);
+                m_bDataChanged = false;
+                m_treeVDB->SelectItem(idTree);
+                m_inUpdate = false;
+                event.Veto();
+                return;
+//                itemData = (wiVulnTreeData*)m_treeVDB->GetItemData(idTree);
+//                if (!itemData || itemData->vulnID.IsEmpty() ) {
+//                    event.Veto();
+//                    m_inUpdate = false;
+//                    return;
+//                }
             }
             else {
                 // no childs
@@ -278,6 +306,7 @@ void wiVulnDB::OnVulnerSelect( wxTreeEvent& event )
                 m_txtShort->Clear();
                 m_scDesc->ClearAll();
                 m_bDataChanged = false;
+                m_inUpdate = false;
                 return;
             }
         }
@@ -319,8 +348,9 @@ void wiVulnDB::OnVulnerSelect( wxTreeEvent& event )
 
                     chld = chld->GetNext();
                 }
-                m_treeVDB->SetItemBold(idTree, false);
+                //m_treeVDB->SetItemBold(idTree, false);
                 m_bDataChanged = false;
+                m_inUpdate = false;
             }
             else {
                 event.Veto();
@@ -337,12 +367,14 @@ void wiVulnDB::OnVulnerSelect( wxTreeEvent& event )
 
 void wiVulnDB::OnDataChanged( wxCommandEvent& event )
 {
-	m_bDataChanged = true;
-	m_toolBar->EnableTool(wxID_SAVE, true);
-	wxTreeItemId itemID = m_treeVDB->GetSelection();
-	if ( itemID.IsOk() ) {
-	    m_treeVDB->SetItemBold(itemID);
-	}
+    if (!m_inUpdate) {
+        m_bDataChanged = true;
+        m_toolBar->EnableTool(wxID_SAVE, true);
+        wxTreeItemId itemID = m_treeVDB->GetSelection();
+        if ( itemID.IsOk() ) {
+             m_treeVDB->SetItemBold(itemID);
+        }
+    }
 }
 
 bool wiVulnDB::ContinueUnsaved()
@@ -434,4 +466,30 @@ void wiVulnDB::SaveVulner()
 {
     wxString res = ScreenXML(m_scDesc->GetText());
     //FRAME_WINDOW->DoClientCommand(wxT("setvdesc"), res);
+}
+
+// wxScintilla functions
+void wiVulnDB::OnMarginClick (wxScintillaEvent &event) {
+    if (event.GetMargin() == 2) {
+        int lineClick = m_scDesc->LineFromPosition (event.GetPosition());
+        int levelClick = m_scDesc->GetFoldLevel (lineClick);
+        if ((levelClick & wxSCI_FOLDLEVELHEADERFLAG) > 0) {
+            m_scDesc->ToggleFold (lineClick);
+        }
+    }
+}
+
+void wiVulnDB::OnCharAdded (wxScintillaEvent &event) {
+    char chr = event.GetKey();
+    int currentLine = m_scDesc->GetCurrentLine();
+    // Change this if support for mac files with \r is needed
+    if (chr == '\n') {
+        int lineInd = 0;
+        if (currentLine > 0) {
+            lineInd = m_scDesc->GetLineIndentation(currentLine - 1);
+        }
+        if (lineInd == 0) return;
+        m_scDesc->SetLineIndentation (currentLine, lineInd);
+        m_scDesc->GotoPos(m_scDesc->PositionFromLine (currentLine) + lineInd);
+    }
 }
