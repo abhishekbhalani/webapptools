@@ -22,12 +22,12 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <map>
-#include <boost/any.hpp>
+//#include <boost/any.hpp>
 #include "weiBase.h"
 #include "weOptions.h"
 
-using boost::any_cast;
-using namespace boost;
+//using boost::any_cast;
+//using namespace boost;
 using namespace std;
 
 namespace webEngine {
