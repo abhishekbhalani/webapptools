@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webInventory 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-10-07 15:50+0300\n"
+"POT-Creation-Date: 2009-10-09 19:13+0300\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Andrew Abramov <stinger@lab18.net>\n"
+"Last-Translator: Tursas Pohielainen <tursas@lab18.net>\n"
 "Language-Team: http://code.google.com/p/webapptools/ <webapptools@lab18.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -14,25 +14,6 @@ msgstr ""
 "X-Poedit-Country: RUSSIAN FEDERATION\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: sources\n"
-
-#: sources/wiVulnDB.cpp:168
-msgid "Description was changed. Do you want to save it?"
-msgstr "Описание было изменено. Хотите сохранить изменения?"
-
-#: sources/wiVulnDB.cpp:168
-msgid "WebAudit Framework"
-msgstr "WebAudit Framework"
-
-#: sources/wiPlgSelector.cpp:17
-msgid "Select plugin to add"
-msgstr "Выберите добавляемый плагин"
-
-#: sources/wiPlgSelector.cpp:17
-#: sources/wiSettings.cpp:266
-#: sources/wiSettings.cpp:275
-#: sources/wiTasks.cpp:571
-msgid "Warning"
-msgstr "Предупреждение"
 
 #: sources/wiGuiData.cpp:74
 msgid "Targets List"
@@ -361,6 +342,33 @@ msgstr "Хост сканера:"
 msgid "Scanner port:"
 msgstr "Порт сканера:"
 
+#: sources/wiMainForm.cpp:55
+msgid "Tasks"
+msgstr "Задачи"
+
+#: sources/wiMainForm.cpp:57
+msgid "Reports"
+msgstr "Отчеты"
+
+#: sources/wiMainForm.cpp:60
+msgid "Service"
+msgstr "Обслуживание"
+
+#: sources/wiMainForm.cpp:63
+msgid "Settings"
+msgstr "Настройки"
+
+#: sources/wiPlgSelector.cpp:17
+msgid "Select plugin to add"
+msgstr "Выберите добавляемый плагин"
+
+#: sources/wiPlgSelector.cpp:17
+#: sources/wiSettings.cpp:266
+#: sources/wiSettings.cpp:275
+#: sources/wiTasks.cpp:571
+msgid "Warning"
+msgstr "Предупреждение"
+
 #: sources/wiPluginSettings.cpp:19
 #: sources/wiPluginSettings.cpp:75
 msgid "Plugin doesn't provide settings"
@@ -374,6 +382,20 @@ msgstr "Настройки плагина %s"
 #: sources/wiPluginSettings.cpp:40
 msgid "Generic settings"
 msgstr "Основные параметры"
+
+#: sources/wiService.cpp:9
+#: sources/wiTasks.cpp:224
+#: sources/wiTasks.cpp:857
+msgid "Vulnerabilities"
+msgstr "Плагины поиска уязвимостей"
+
+#: sources/wiService.cpp:11
+msgid "Reports Templates"
+msgstr "Шаблоны отчетов"
+
+#: sources/wiService.cpp:13
+msgid "Scripts"
+msgstr "Скрипты"
 
 #: sources/wiSettings.cpp:120
 msgid "Generic plugins"
@@ -436,36 +458,6 @@ msgstr "Информация"
 #: sources/wiSettings.cpp:294
 msgid "Disconnect"
 msgstr "Разорвать соединение"
-
-#: sources/wiMainForm.cpp:55
-msgid "Tasks"
-msgstr "Задачи"
-
-#: sources/wiMainForm.cpp:57
-msgid "Reports"
-msgstr "Отчеты"
-
-#: sources/wiMainForm.cpp:60
-msgid "Service"
-msgstr "Обслуживание"
-
-#: sources/wiMainForm.cpp:63
-msgid "Settings"
-msgstr "Настройки"
-
-#: sources/wiService.cpp:9
-#: sources/wiTasks.cpp:224
-#: sources/wiTasks.cpp:857
-msgid "Vulnerabilities"
-msgstr "Плагины поиска уязвимостей"
-
-#: sources/wiService.cpp:11
-msgid "Reports Templates"
-msgstr "Шаблоны отчетов"
-
-#: sources/wiService.cpp:13
-msgid "Scripts"
-msgstr "Скрипты"
 
 #: sources/wiTasks.cpp:51
 msgid "idle"
@@ -555,27 +547,77 @@ msgstr "Плагин уже есть в профиле"
 msgid "Can't create UI for plugin %s"
 msgstr "Не удалось создать настройки для плагина %s"
 
-#: sources/wxThings/filebrws.cpp:605
-msgid "Directory"
-msgstr "Каталог"
-
-#: sources/wxThings/filebrws.cpp:609
-msgid "Link"
-msgstr "Ссылка"
-
-#: sources/wxThings/filebrws.cpp:613
-msgid "Drive"
-msgstr "Диск"
-
-#: sources/wxFlatNotebook/wxFlatNotebook.cpp:1549
+#: sources/wiVulnDB.cpp:236
 #, c-format
-msgid "Old Page Index = %i"
-msgstr "Old Page Index = %i"
+msgid "Are you sure to delete vulnerability %s?"
+msgstr "Вы действительно хотите удалить уязвимость '%s'?"
 
-#: sources/wxFlatNotebook/wxFlatNotebook.cpp:1554
+#: sources/wiVulnDB.cpp:237
+#: sources/wiVulnDB.cpp:384
+msgid "WebAudit Framework"
+msgstr "WebAudit Framework"
+
+#: sources/wiVulnDB.cpp:384
+msgid "Description was changed. Do you want to save it?"
+msgstr "Описание было изменено. Хотите сохранить изменения?"
+
+#: sources/PropGrid/advprops.cpp:654
+msgid "Point Size"
+msgstr "Point Size"
+
+#: sources/PropGrid/advprops.cpp:657
+msgid "Family"
+msgstr "Семейство"
+
+#: sources/PropGrid/advprops.cpp:667
+msgid "Face Name"
+msgstr "Имя начертания"
+
+#: sources/PropGrid/advprops.cpp:674
+msgid "Style"
+msgstr "Стиль"
+
+#: sources/PropGrid/advprops.cpp:677
+msgid "Weight"
+msgstr "Вес"
+
+#: sources/PropGrid/advprops.cpp:680
+msgid "Underlined"
+msgstr "Подчеркивание"
+
+#: sources/PropGrid/advprops.cpp:1916
+msgid "Make a selection:"
+msgstr "Сделайте выбор:"
+
+#: sources/PropGrid/manager.cpp:1270
+msgid "Categorized Mode"
+msgstr "Режим категорий"
+
+#: sources/PropGrid/manager.cpp:1271
+msgid "Alphabetic Mode"
+msgstr "Режим списка"
+
+#: sources/PropGrid/propgrid.cpp:543
+msgid "False"
+msgstr "НЕТ"
+
+#: sources/PropGrid/propgrid.cpp:544
+msgid "True"
+msgstr "ДА"
+
+#: sources/PropGrid/propgrid.cpp:3117
+msgid "Unspecified"
+msgstr "Неуказано"
+
+#: sources/PropGrid/propgrid.cpp:4280
 #, c-format
-msgid "OnDropTarget: index by HitTest = %i"
-msgstr "OnDropTarget: index by HitTest = %i"
+msgid "Type operation \"%s\" failed: Property labeled \"%s\" is of type \"%s\", NOT \"%s\"."
+msgstr "Ошибка операции  \"%s\": Свойство м меткой \"%s\" имеет тип \"%s\", А НЕ \"%s\"."
+
+#: sources/PropGrid/propgrid.cpp:12409
+#, c-format
+msgid "Error in resource: %s"
+msgstr "Ошибка в ресурсе: %s"
 
 #: sources/PropGrid/props.cpp:463
 #: sources/PropGrid/props.cpp:477
@@ -641,78 +683,42 @@ msgstr "Вверх"
 msgid "Down"
 msgstr "Вниз"
 
-#: sources/PropGrid/manager.cpp:1270
-msgid "Categorized Mode"
-msgstr "Режим категорий"
-
-#: sources/PropGrid/manager.cpp:1271
-msgid "Alphabetic Mode"
-msgstr "Режим списка"
-
-#: sources/PropGrid/propgrid.cpp:543
-msgid "False"
-msgstr "НЕТ"
-
-#: sources/PropGrid/propgrid.cpp:544
-msgid "True"
-msgstr "ДА"
-
-#: sources/PropGrid/propgrid.cpp:3117
-msgid "Unspecified"
-msgstr "Неуказано"
-
-#: sources/PropGrid/propgrid.cpp:4280
-#, c-format
-msgid "Type operation \"%s\" failed: Property labeled \"%s\" is of type \"%s\", NOT \"%s\"."
-msgstr "Ошибка операции  \"%s\": Свойство м меткой \"%s\" имеет тип \"%s\", А НЕ \"%s\"."
-
-#: sources/PropGrid/propgrid.cpp:12409
-#, c-format
-msgid "Error in resource: %s"
-msgstr "Ошибка в ресурсе: %s"
-
-#: sources/PropGrid/advprops.cpp:654
-msgid "Point Size"
-msgstr "Point Size"
-
-#: sources/PropGrid/advprops.cpp:657
-msgid "Family"
-msgstr "Семейство"
-
-#: sources/PropGrid/advprops.cpp:667
-msgid "Face Name"
-msgstr "Имя начертания"
-
-#: sources/PropGrid/advprops.cpp:674
-msgid "Style"
-msgstr "Стиль"
-
-#: sources/PropGrid/advprops.cpp:677
-msgid "Weight"
-msgstr "Вес"
-
-#: sources/PropGrid/advprops.cpp:680
-msgid "Underlined"
-msgstr "Подчеркивание"
-
-#: sources/PropGrid/advprops.cpp:1916
-msgid "Make a selection:"
-msgstr "Сделайте выбор:"
-
 #: sources/PropGrid/xh_propgrid.cpp:267
 #, c-format
 msgid "Page %i"
 msgstr "Страница %i"
 
-#: sources/wiGuiData.h:429
+#: sources/wxFlatNotebook/wxFlatNotebook.cpp:1549
+#, c-format
+msgid "Old Page Index = %i"
+msgstr "Old Page Index = %i"
+
+#: sources/wxFlatNotebook/wxFlatNotebook.cpp:1554
+#, c-format
+msgid "OnDropTarget: index by HitTest = %i"
+msgstr "OnDropTarget: index by HitTest = %i"
+
+#: sources/wxThings/filebrws.cpp:605
+msgid "Directory"
+msgstr "Каталог"
+
+#: sources/wxThings/filebrws.cpp:609
+msgid "Link"
+msgstr "Ссылка"
+
+#: sources/wxThings/filebrws.cpp:613
+msgid "Drive"
+msgstr "Диск"
+
+#: sources/wiGuiData.h:432
 msgid "Object"
 msgstr "Объект"
 
-#: sources/wiGuiData.h:457
+#: sources/wiGuiData.h:460
 msgid "Connection"
 msgstr "Соединение"
 
-#: sources/wiGuiData.h:480
+#: sources/wiGuiData.h:483
 msgid "Select plugin"
 msgstr "Выберите плагин"
 
