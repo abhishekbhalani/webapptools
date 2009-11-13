@@ -54,6 +54,9 @@ static bool WeParseNeedToBreakTag(const string& tagName, const string& nextTag)
     bool retval = false;
 
     /// @remark The list of TAGs and rules is the subject to addition
+    if (iequals(tagName, "meta")) {
+        return true;
+    }
     if (iequals(tagName, "br")) {
         return true;
     }
@@ -249,6 +252,7 @@ ScannerToken HtmlEntity::Parse( string tagName, TagScanner& scanner, iTransport*
     HtmlEntity    *chld;
     WeInnerText     *txt;
     string           txtAttr;
+    string        lString;
 
     if (! tagName.empty()) {
         // for WeDocuments this parameter must be empty
@@ -263,7 +267,7 @@ ScannerToken HtmlEntity::Parse( string tagName, TagScanner& scanner, iTransport*
         // if no HttpTransport given - use default options? but no follow the links
         //opts = HttpTransport::weoDefault & (~HttpTransport::weoFollowLinks);
     }
-    startPos = scanner.GetPos() - tagName.length();
+    startPos = (int)(scanner.GetPos() - tagName.length());
     if (tagName.length() > 0) {
         startPos--; // if tagName present - skip the "<" symbol
     }
@@ -290,6 +294,8 @@ parseRestart:
         switch(state)
         {
         case wstTagEnd:
+            lString = scanner.GetTagName();
+            to_lower(lString);
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
                 chldList.push_back(txt);
@@ -297,17 +303,17 @@ parseRestart:
                 txtAttr.clear();
                 txt = NULL;
             }
-            if (iequals(string("form"), string(scanner.GetTagName()))) {
+            if (lString == "form") {
                 /// @todo Add forms processing
                 // right now all form's attributes will be placed to parent entity
 //-DBG: printf("FORM CLOSE\n");
                 break;
             }
-            if (!iequals(entityName, string(scanner.GetTagName()))) {
+            if (entityName != lString) {
                 // incomplete structure - close this tag
                 // and restart parsing on previous level
 //-DBG: printf("TAG END: %s (force)\n", entityName.c_str());
-                if (!IsParentTag(string(scanner.GetTagName()))) {
+                if (!IsParentTag(lString)) {
                     // if tag is not in paren tree - just skip it
                     break;
                 }
@@ -315,9 +321,11 @@ parseRestart:
             else {
 //-DBG: printf("TAG END: %s\n", scanner.GetTagName());
             }
-            endPos = scanner.GetPos();
+            endPos = (int)scanner.GetPos();
             return state;
         case wstTagStart:
+            lString = scanner.GetTagName();
+            to_lower(lString);
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
                 chldList.push_back(txt);
@@ -325,34 +333,34 @@ parseRestart:
                 txtAttr.clear();
                 txt = NULL;
             }
-            if (iequals(string("form"), string(scanner.GetTagName()))) {
+            if (lString == "form") {
                 /// @todo Add forms processing
 //-DBG: printf("NEW FORM BEGIN\n");
             }
-            if (WeParseNeedToBreakTag(entityName, scanner.GetTagName())) {
+            if (WeParseNeedToBreakTag(entityName, lString)) {
                 // incomplete structure - close this tag
                 // and restart parsing on previous level
 //-DBG: printf("TAG END: %s (force)\n", entityName.c_str());
                 return state;
             }
-            if (iequals(string("form"), string(scanner.GetTagName()))) {
+            if (lString == "form") {
                 /// @todo Add forms processing
                 // right now all form's attributes will be placed to parent entity
                 break;
             }
 //-DBG: printf("TAG START: %s\n", scanner.GetTagName());
-            chld = weHtmlFactory.CreateEntity(scanner.GetTagName(), this);
+            chld = weHtmlFactory.CreateEntity(lString, this);
             if (chld != NULL) {
                 ScannerToken chldState;
                 chldList.push_back(chld);
-                chldState = chld->Parse(scanner.GetTagName(), scanner, processor);
-                if (iequals(string("form"), string(scanner.GetTagName()))) {
+                chldState = chld->Parse(lString, scanner, processor);
+                if (iequals(string("form"), lString)) {
                     /// @todo Add forms processing
                     // form finished?
                     // right now all form's attributes will be placed to parent entity
                     break;
                 }
-                if (!iequals(chld->Name(), scanner.GetTagName())) {
+                if (chld->Name() != lString) {
                     // previous tag was closed incorrectly
                     // restart parsing
                     state = chldState;
@@ -370,7 +378,9 @@ parseRestart:
                 txt = NULL;
             }
 //-DBG: printf("\tATTR: %s=%s\n", scanner.GetAttrName(), scanner.GetValue());
-            attributes[scanner.GetAttrName()] = scanner.GetValue();
+            lString = scanner.GetAttrName();
+            to_lower(lString);
+            attributes[lString] = scanner.GetValue();
         	break;
         case wstWord:
         case wstSpace:
@@ -433,7 +443,7 @@ parseRestart:
         }
     }
 
-    endPos = scanner.GetPos();
+    endPos = (int)scanner.GetPos();
     return state;
 }
 
@@ -862,7 +872,9 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, HttpTransport
     bool            inOurTag;
     bool            inOtherTag;
     bool            inProcess;
+    int             enPos, stPos;
 
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: enter for: " << tagName);
     if (! tagName.empty()) {
         // for WeDocuments this parameter must be empty
         // and not to overwrite the 'name' property
@@ -880,60 +892,44 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, HttpTransport
     ClearChildren();
     txtAttr = "";
     inOurTag = true;
-    inOtherTag = false;
     inProcess = true;
+    stPos = -1;
 
     while (inProcess)
     {
+        enPos = (int)scanner.GetPos();
         state = scanner.GetToken();
-        if (state == wstEof || state == wstError) {
+        // skip errors
+        if (state == wstEof ) { //|| state == wstError
+            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: wstEof " << scanner.GetTagName() << "; val " << scanner.GetValue());
             inProcess = false;
-//            data.assign((char*)txtAttr.c_str());
             break;
         }
         switch(state)
         {
         case wstTagEnd:
+            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << scanner.GetTagName());
             inOurTag = false;
-            inOtherTag = false;
             /// @todo process unpaired tag \</script\> inside the data
             // if it our tag - finish parsing
             if (iequals(scanner.GetTagName(), "script")) {
                 // It's the finish
                 inProcess = false;
-//                data.assign((char*)txtAttr.c_str());
             }
             break;
         case wstTagStart:
+            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagstart " << scanner.GetTagName());
             // all TAGs inside script are ignored - it's just a text
             inOurTag = false;
             inOtherTag = true;
-            txtAttr += "<";
-            txtAttr += scanner.GetTagName();
             break;
         case wstAttr:
             // attributes processed only for our tag, else it's just a text
             if (inOurTag) {
                 attributes[scanner.GetAttrName()] = scanner.GetValue();
+                //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: " << scanner.GetAttrName() << " = " << scanner.GetValue());
             }
-            else {
-                string aval = scanner.GetValue();
-                char quote = '"';
-                if (aval.find("\\\"") != string::npos) {
-                    // \" found - use the " mark
-                    quote = '"';
-                }
-                else {
-                    quote = '\'';
-                }
-                txtAttr += " ";
-                txtAttr += scanner.GetAttrName();
-                // insert correct attributes quotation
-                txtAttr += "=";
-                txtAttr += quote;
-                txtAttr += aval;
-                txtAttr += quote;
-            }
+            // reset state to parse content
             break;
 
         // all other cases
@@ -947,23 +943,22 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, HttpTransport
         case wstCDataEnd:
         case wstPiEnd:
         default:
+            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: content " << scanner.GetValue());
+            if (stPos == -1) {
+                stPos = enPos + 1;
+            }
             inOurTag = false;
-            if (inOtherTag)
-            {
-                /// @todo decide about correct tag close - '>' or '/>'
-                txtAttr += ">";
-            }
-            inOtherTag = false;
-
-            if (state == wstSpace && processor->IsSet(weoCollapseSpaces)) { //HttpTransport::weoCollapseSpaces)) {
-                txtAttr += " ";
-            }
-            else {
-                txtAttr += scanner.GetValue();
-            }
             break;
+            }
         }
+    //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: get content from " << stPos << " to " << enPos);
+    if (stPos > -1 && enPos > stPos) {
+        txtAttr = scanner.GetFrom(stPos);
+        enPos -= stPos;
+        txtAttr = txtAttr.substr(0, enPos);
+        Attr("#code", txtAttr);
     }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: exit for: " << scanner.GetTagName());
 
     /// @todo Implement post-process - download and others
     return state;

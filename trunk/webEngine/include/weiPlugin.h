@@ -21,10 +21,10 @@
 #define __WEIPLUGIN_H__
 #include "weiBase.h"
 #include <string>
-#include <boost/shared_ptr.hpp>
+//#include <boost/shared_ptr.hpp>
 #include "weStrings.h"
 
-using namespace boost;
+//using namespace boost;
 using namespace std;
 
 namespace webEngine {

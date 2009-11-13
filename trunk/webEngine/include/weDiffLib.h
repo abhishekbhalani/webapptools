@@ -28,7 +28,6 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/algorithm/string/predicate.hpp>
 
 using namespace std;
-using namespace boost;
 
 /// @file   weDiffLib.h
 /// @brief  Difference building operations and structures
@@ -46,7 +45,7 @@ namespace webEngine {
     } ;
 
     class iEntity;  // forward declaration for pointer
-    typedef variant<string, iEntity*> WeCmpEntity;
+    typedef boost::variant<string, iEntity*> WeCmpEntity;
 
     struct WeCmpBlock
     {
@@ -89,9 +88,9 @@ namespace webEngine {
         {
             if (mode & weCmpCaseInsens)
             {
-                return iequals(word, cpy.word);
+                return boost::iequals(word, cpy.word);
             }
-            return equals(word, cpy.word);
+            return boost::equals(word, cpy.word);
         };
 #endif // __DOXYGEN__
     };

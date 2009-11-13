@@ -25,9 +25,9 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "weBlob.h"
 #include "weOptions.h"
 #include "weiPlugin.h"
-#include <boost/shared_ptr.hpp>
+//#include <boost/shared_ptr.hpp>
 
-using namespace boost;
+//using namespace boost;
 
 namespace webEngine {
 
@@ -35,7 +35,7 @@ namespace webEngine {
 
     class iOperation;
     class iResponse;
-    typedef shared_ptr<iOperation> iweOperationPtr;
+    typedef boost::shared_ptr<iOperation> iweOperationPtr;
     typedef void (fnProcessResponse)(iResponse *resp, void* context);
 
 
