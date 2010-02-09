@@ -1,0 +1,99 @@
+html {
+  height: 100%;
+}
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #fbb030;
+  color: white;
+}
+h1 {
+  color: white;
+  text-align: center;
+}
+#bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+#toolbar {
+  background-image: url(img/tb01.jpg);
+  background-repeat: repeat-x;
+  color: white;
+  vertical-align: text-top;
+}
+#appIcon {
+  margin: 2px;
+  vertical-align: text-top;
+}
+#titleInfo {
+  margin: 2px;
+  vertical-align: text-top;
+  color: white;
+  font-weight: bold;
+}
+.button-panel {
+  width: 1%;
+  white-space: nowrap;
+}
+.right-button {
+  margin: 0px;
+  background-image: url(img/btnBk.png);
+  background-repeat: repeat-x;
+  width: 100%;
+  white-space: nowrap;
+}
+.frameTopLeft {
+  background-image: url(img/tl.png);
+  background-repeat: none;
+  height: 10px;
+  width: 10px;
+}
+.frameTop {
+  background-image: url(img/tt.png);
+  background-repeat: repeat-x;
+  height: 10px;
+}
+.frameTopRight {
+  background-image: url(img/tr.png);
+  background-repeat: none;
+  height: 10px;
+}
+.frameBottomLeft {
+  background-image: url(img/bl.png);
+  background-repeat: none;
+  height: 10px;
+}
+.frameBottom {
+  background-image: url(img/bt.png);
+  background-repeat: repeat-x;
+  height: 10px;
+}
+.frameBottomRight {
+  background-image: url(img/br.png);
+  background-repeat: none;
+  height: 10px;
+  width: 10px;
+}
+.frameLeft {
+  background-image: url(img/lt.png);
+  background-repeat: repeat-y;
+}
+.frameRight {
+  background-image: url(img/rt.png);
+  background-repeat: repeat-y;
+}
+.frameBody {
+  background-image: url(img/bk.png);
+}
+#content {
+  position: static;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
