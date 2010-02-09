@@ -3,13 +3,14 @@
 require('./smarty/Smarty.class.php');
 $smarty = new Smarty();
 
-$baseDir = "/var/www/";
-$smarty->template_dir = '.'; //'./smarty/templates';
-$smarty->compile_dir = './smarty/templates_c';
-$smarty->cache_dir = './smarty/cache';
+$themeDir = '/var/www/theme';
+
+$smarty->template_dir = $themeDir;
+$smarty->compile_dir = $themeDir . '/templates_c';
+$smarty->cache_dir = $themeDir . '/cache';
 $smarty->config_dir = './smarty/configs';
 
-$smarty->assign('name', 'Ned');
+$smarty->assign('name', 'theme');
 $smarty->display('index.tpl');
 
 ?>
