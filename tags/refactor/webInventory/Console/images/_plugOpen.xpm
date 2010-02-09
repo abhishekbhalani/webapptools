@@ -1,0 +1,30 @@
+/* XPM */
+static char *_plugOpen[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 8 1",
+". c gray19",
+"X c gray34",
+"o c gray46",
+"O c #8d8d8d",
+"+ c #b1b1b1",
+"@ c gray81",
+"# c gray99",
+"$ c None",
+/* pixels */
+"$$$$$$$$$$$$$$$$",
+"XXXXXXX$$$$$$$$$",
+"X#####X.$$$$$$$$",
+"X#@#@##XXXXXX$$$",
+"X@@@#@@#####X.$$",
+"X@+OOoOOoOoooo.$",
+"X@o###########o$",
+"X+o@@@@@@@@@O@o$",
+"X+o@@@@@@@@@O+o$",
+"X+O@@@@@@+++O+o$",
+"XOo@+@++++++O+o$",
+"XOo+++++++++O+o$",
+"XOo+++++++O+o+X$",
+"XXXoooooooooXo.$",
+"$$$$$$$$$$$$$$$$",
+"$$$$$$$$$$$$$$$$"
+};

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="webEngine">
+		<Project filename="webEngine.cbp" active="1" />
+		<Project filename="examples/tagscanner/tagscanner.cbp">
+			<Depends filename="webEngine.cbp" />
+		</Project>
+		<Project filename="examples/httpget/httpget.cbp">
+			<Depends filename="webEngine.cbp" />
+		</Project>
+		<Project filename="examples/difflib/difflib.cbp">
+			<Depends filename="webEngine.cbp" />
+		</Project>
+		<Project filename="examples/task/task.cbp">
+			<Depends filename="webEngine.cbp" />
+		</Project>
+	</Workspace>
+</CodeBlocks_workspace_file>
