@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="webInvent" />
+		<Option pch_mode="2" />
+		<Option compiler="" />
+		<Build>
+			<Target title="Debug MSVC 2005">
+				<Option platforms="Windows;" />
+				<Option output="Debug\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug\obj\" />
+				<Option type="0" />
+				<Option compiler="msvc8" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="/MDd" />
+					<Add option="/Zi /D_DEBUG" />
+					<Add option="/Zi" />
+					<Add option='/Fp&quot;Debug\obj\webInvent.pch&quot;' />
+					<Add option="/D_DEBUG" />
+					<Add option="/D__WXDEBUG__" />
+					<Add option="/D_WIN32_WINNT=0x0501" />
+					<Add option="/DwxUSE_UNICODE" />
+					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/DEBUG" />
+					<Add option="/NODEFAULTLIB:libcpmtd.lib" />
+					<Add option="/NODEFAULTLIB:libcmtd.lib" />
+					<Add option="/NODEFAULTLIB:msvcrt.lib" />
+					<Add library="msvcprtd.lib" />
+					<Add library="msvcrtd.lib" />
+					<Add library="wxmsw28ud_richtext.lib" />
+					<Add library="wxmsw28ud_aui.lib" />
+					<Add library="wxbase28ud_xml.lib" />
+					<Add library="wxmsw28ud_adv.lib" />
+					<Add library="wxmsw28ud_html.lib" />
+					<Add library="wxmsw28ud_core.lib" />
+					<Add library="wxbase28ud.lib" />
+					<Add library="wxpngd.lib" />
+					<Add library="wxjpegd.lib" />
+					<Add library="wxtiffd.lib" />
+					<Add library="wxzlibd.lib" />
+					<Add library="wxbase28ud_net.lib" />
+					<Add library="wxmsw28ud_xrc.lib" />
+					<Add library="wxexpatd.lib" />
+					<Add library="wxscintillaud.lib" />
+					<Add directory="${WXWIN}\lib\vc_lib" />
+					<Add directory="..\..\webEngine\libs\debug" />
+					<Add directory="lib" />
+				</Linker>
+			</Target>
+			<Target title="Release MSVC 2005">
+				<Option platforms="Windows;" />
+				<Option output="Release\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release\obj\" />
+				<Option type="0" />
+				<Option compiler="msvc8" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="/MD" />
+					<Add option="/O2" />
+					<Add option="/Ox" />
+					<Add option='/Fp&quot;Release\obj\webInvent.pch&quot;' />
+					<Add option="/Ob1" />
+					<Add option="/DNDEBUG" />
+					<Add option="/D_WIN32_WINNT=0x0501" />
+					<Add option="/DwxUSE_UNICODE" />
+					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcpmt.lib" />
+					<Add option="/NODEFAULTLIB:libcmt.lib" />
+					<Add library="msvcprt.lib" />
+					<Add library="msvcrt.lib" />
+					<Add library="wxmsw28u_richtext.lib" />
+					<Add library="wxmsw28u_aui.lib" />
+					<Add library="wxbase28u_xml.lib" />
+					<Add library="wxmsw28u_adv.lib" />
+					<Add library="wxmsw28u_html.lib" />
+					<Add library="wxmsw28u_core.lib" />
+					<Add library="wxbase28u.lib" />
+					<Add library="wxpng.lib" />
+					<Add library="wxjpeg.lib" />
+					<Add library="wxtiff.lib" />
+					<Add library="wxzlib.lib" />
+					<Add library="wxbase28u_net.lib" />
+					<Add library="wxmsw28u_xrc.lib" />
+					<Add library="wxexpat.lib" />
+					<Add library="wxscintillau.lib" />
+					<Add directory="${WXWIN}\lib\vc_lib" />
+					<Add directory="..\..\webEngine\libs\release" />
+					<Add directory="lib" />
+				</Linker>
+			</Target>
+			<Target title="Debug GCC">
+				<Option output="Debug\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug\obj\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-g" />
+					<Add option="`wx-config --cflags`" />
+					<Add option="-Wno-deprecated" />
+					<Add option="-Wno-write-strings" />
+					<Add option="-DNDEBUG" />
+					<Add directory="..\..\webEngine\include" />
+				</Compiler>
+				<Linker>
+					<Add option="`wx-config --libs`" />
+					<Add library="libboost_serialization-mt.a" />
+					<Add library="libboost_system-mt.a" />
+					<Add directory="..\..\webEngine\libs\debug" />
+					<Add directory="lib" />
+				</Linker>
+			</Target>
+			<Target title="Release GCC">
+				<Option output="Release\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release\obj\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-Os" />
+					<Add option="-O3" />
+					<Add option="-W" />
+					<Add option="`wx-config --cflags`" />
+					<Add option="-Wno-deprecated" />
+					<Add option="-Wno-write-strings" />
+					<Add option="-DNDEBUG" />
+					<Add directory="..\..\webEngine\include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`wx-config --libs`" />
+					<Add library="libboost_serialization-mt.a" />
+					<Add library="libboost_system-mt.a" />
+					<Add directory="..\..\webEngine\libs\release" />
+					<Add directory="lib" />
+				</Linker>
+			</Target>
+			<Target title="Debug MSVC 2005 (Service)">
+				<Option platforms="Windows;" />
+				<Option output="Debug\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug\obj\" />
+				<Option type="0" />
+				<Option compiler="msvc8" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="/MDd" />
+					<Add option="/Zi /D_DEBUG" />
+					<Add option="/Zi" />
+					<Add option='/Fp&quot;Debug\obj\webInvent.pch&quot;' />
+					<Add option="/D_DEBUG" />
+					<Add option="/D__WXDEBUG__" />
+					<Add option="/D_WIN32_WINNT=0x0501" />
+					<Add option="/DwxUSE_UNICODE" />
+					<Add option="/DSERVICE_EDITION" />
+					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="${WXWIN}\lib\vc_lib\mswud" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/DEBUG" />
+					<Add option="/NODEFAULTLIB:libcpmtd.lib" />
+					<Add option="/NODEFAULTLIB:libcmtd.lib" />
+					<Add option="/NODEFAULTLIB:msvcrt.lib" />
+					<Add library="msvcprtd.lib" />
+					<Add library="msvcrtd.lib" />
+					<Add library="wxmsw28ud_richtext.lib" />
+					<Add library="wxmsw28ud_aui.lib" />
+					<Add library="wxbase28ud_xml.lib" />
+					<Add library="wxmsw28ud_adv.lib" />
+					<Add library="wxmsw28ud_html.lib" />
+					<Add library="wxmsw28ud_core.lib" />
+					<Add library="wxbase28ud.lib" />
+					<Add library="wxpngd.lib" />
+					<Add library="wxjpegd.lib" />
+					<Add library="wxtiffd.lib" />
+					<Add library="wxzlibd.lib" />
+					<Add library="wxbase28ud_net.lib" />
+					<Add library="wxmsw28ud_xrc.lib" />
+					<Add library="wxexpatd.lib" />
+					<Add library="wxscintillaud.lib" />
+					<Add library="wxregexud.lib" />
+					<Add directory="${WXWIN}\lib\vc_lib" />
+					<Add directory="..\..\webEngine\libs\debug" />
+					<Add directory="lib" />
+				</Linker>
+			</Target>
+			<Target title="Release MSVC 2005 (Service)">
+				<Option platforms="Windows;" />
+				<Option output="Release\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release\obj\" />
+				<Option type="0" />
+				<Option compiler="msvc8" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="/MD" />
+					<Add option="/O2" />
+					<Add option="/Ox" />
+					<Add option='/Fp&quot;Release\obj\webInvent.pch&quot;' />
+					<Add option="/Ob1" />
+					<Add option="/DNDEBUG" />
+					<Add option="/D_WIN32_WINNT=0x0501" />
+					<Add option="/DwxUSE_UNICODE" />
+					<Add option="/DSERVICE_EDITION" />
+					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="${WXWIN}\lib\vc_lib\mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcpmt.lib" />
+					<Add option="/NODEFAULTLIB:libcmt.lib" />
+					<Add library="msvcprt.lib" />
+					<Add library="msvcrt.lib" />
+					<Add library="wxmsw28u_richtext.lib" />
+					<Add library="wxmsw28u_aui.lib" />
+					<Add library="wxbase28u_xml.lib" />
+					<Add library="wxmsw28u_adv.lib" />
+					<Add library="wxmsw28u_html.lib" />
+					<Add library="wxmsw28u_core.lib" />
+					<Add library="wxbase28u.lib" />
+					<Add library="wxpng.lib" />
+					<Add library="wxjpeg.lib" />
+					<Add library="wxtiff.lib" />
+					<Add library="wxzlib.lib" />
+					<Add library="wxbase28u_net.lib" />
+					<Add library="wxmsw28u_xrc.lib" />
+					<Add library="wxexpat.lib" />
+					<Add library="wxscintillau.lib" />
+					<Add library="wxregexu.lib" />
+					<Add directory="${WXWIN}\lib\vc_lib" />
+					<Add directory="..\..\webEngine\libs\release" />
+					<Add directory="lib" />
+				</Linker>
+			</Target>
+			<Target title="Debug GCC (Service)">
+				<Option output="Debug\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug\obj\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-g" />
+					<Add option="`wx-config --cflags`" />
+					<Add option="-Wno-deprecated" />
+					<Add option="-Wno-write-strings" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DSERVICE_EDITION" />
+					<Add directory="..\..\webEngine\include" />
+				</Compiler>
+				<Linker>
+					<Add option="`wx-config --libs`" />
+					<Add library="libboost_serialization-mt.a" />
+					<Add library="libboost_system-mt.a" />
+					<Add directory="..\..\webEngine\libs\debug" />
+					<Add directory="lib" />
+				</Linker>
+			</Target>
+			<Target title="Release GCC (Service)">
+				<Option output="Release\webInvent" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release\obj\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-Os" />
+					<Add option="-O3" />
+					<Add option="-W" />
+					<Add option="`wx-config --cflags`" />
+					<Add option="-Wno-deprecated" />
+					<Add option="-Wno-write-strings" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DSERVICE_EDITION" />
+					<Add directory="..\..\webEngine\include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`wx-config --libs`" />
+					<Add library="libboost_serialization-mt.a" />
+					<Add library="libboost_system-mt.a" />
+					<Add library="libwxscintilla.a" />
+					<Add directory="..\..\webEngine\libs\release" />
+					<Add directory="lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="/TP" />
+			<Add option="/Gd" />
+			<Add option="/GF" />
+			<Add option="/W3" />
+			<Add option="/EHsc" />
+			<Add option="/DWIN32" />
+			<Add option="/D__WIN32__" />
+			<Add option="/D__WXMSW__" />
+			<Add option="/DwxUSE_UNICODE" />
+			<Add option="/D_WINDOWS" />
+			<Add option="/D_CRT_SECURE_DEPRECATE" />
+			<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
+			<Add directory="." />
+			<Add directory="..\..\webEngine\include" />
+			<Add directory="..\Common" />
+			<Add directory="${WXBASE}\include" />
+			<Add directory="${WXBASE}\contrib\include" />
+		</Compiler>
+		<ResourceCompiler>
+			<Add directory="${WXWIN}\include" />
+		</ResourceCompiler>
+		<Linker>
+			<Add option="/INCREMENTAL:NO" />
+			<Add option="/SUBSYSTEM:WINDOWS" />
+			<Add library="winmm.lib" />
+			<Add library="rpcrt4.lib" />
+			<Add library="kernel32.lib" />
+			<Add library="user32.lib" />
+			<Add library="gdi32.lib" />
+			<Add library="winspool.lib" />
+			<Add library="comdlg32.lib" />
+			<Add library="advapi32.lib" />
+			<Add library="shell32.lib" />
+			<Add library="ole32.lib" />
+			<Add library="oleaut32.lib" />
+			<Add library="uuid.lib" />
+			<Add library="comctl32.lib" />
+			<Add library="wsock32.lib" />
+			<Add library="odbc32.lib" />
+		</Linker>
+		<Unit filename="..\Common\messages.h" />
+		<Unit filename="..\Common\optionnames.h" />
+		<Unit filename="sources\Config.cpp" />
+		<Unit filename="sources\Config.h" />
+		<Unit filename="sources\Crypto.cpp" />
+		<Unit filename="sources\Crypto.h" />
+		<Unit filename="sources\PropGrid\advprops.cpp" />
+		<Unit filename="sources\PropGrid\editors.cpp" />
+		<Unit filename="sources\PropGrid\extras.cpp" />
+		<Unit filename="sources\PropGrid\manager.cpp" />
+		<Unit filename="sources\PropGrid\odcombo.cpp" />
+		<Unit filename="sources\PropGrid\propgrid.cpp" />
+		<Unit filename="sources\PropGrid\props.cpp" />
+		<Unit filename="sources\PropGrid\xh_propgrid.cpp" />
+		<Unit filename="sources\Reporting\weDataHandler.cpp" />
+		<Unit filename="sources\Reporting\weDataHandler.h" />
+		<Unit filename="sources\Reporting\wiLineReport.cpp" />
+		<Unit filename="sources\Reporting\wiLineReport.h" />
+		<Unit filename="sources\Reporting\wiReportData.cpp" />
+		<Unit filename="sources\Reporting\wiReportData.h" />
+		<Unit filename="sources\Sha1.hpp" />
+		<Unit filename="sources\sciLexer.h">
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+			<Option target="Debug GCC (Service)" />
+			<Option target="Release GCC (Service)" />
+		</Unit>
+		<Unit filename="sources\treeData.h" />
+		<Unit filename="sources\version.h" />
+		<Unit filename="sources\wiApp.cpp" />
+		<Unit filename="sources\wiApp.h" />
+		<Unit filename="sources\wiGuiData.cpp" />
+		<Unit filename="sources\wiGuiData.h" />
+		<Unit filename="sources\wiMainForm.cpp" />
+		<Unit filename="sources\wiMainForm.h" />
+		<Unit filename="sources\wiObjDialog.cpp" />
+		<Unit filename="sources\wiObjDialog.h" />
+		<Unit filename="sources\wiPlgSelector.cpp" />
+		<Unit filename="sources\wiPlgSelector.h" />
+		<Unit filename="sources\wiPluginSettings.cpp" />
+		<Unit filename="sources\wiPluginSettings.h" />
+		<Unit filename="sources\wiReports.cpp" />
+		<Unit filename="sources\wiReports.h" />
+		<Unit filename="sources\wiServDialog.cpp" />
+		<Unit filename="sources\wiServDialog.h" />
+		<Unit filename="sources\wiService.cpp">
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+			<Option target="Debug GCC (Service)" />
+			<Option target="Release GCC (Service)" />
+		</Unit>
+		<Unit filename="sources\wiService.h">
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+			<Option target="Debug GCC (Service)" />
+			<Option target="Release GCC (Service)" />
+		</Unit>
+		<Unit filename="sources\wiSettings.cpp" />
+		<Unit filename="sources\wiSettings.h" />
+		<Unit filename="sources\wiStatBar.cpp" />
+		<Unit filename="sources\wiStatBar.h" />
+		<Unit filename="sources\wiTasks.cpp" />
+		<Unit filename="sources\wiTasks.h" />
+		<Unit filename="sources\wiTcpClient.cpp" />
+		<Unit filename="sources\wiTcpClient.h" />
+		<Unit filename="sources\wiVulnDB.cpp">
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+			<Option target="Debug GCC (Service)" />
+			<Option target="Release GCC (Service)" />
+		</Unit>
+		<Unit filename="sources\wiVulnDB.h">
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+			<Option target="Debug GCC (Service)" />
+			<Option target="Release GCC (Service)" />
+		</Unit>
+		<Unit filename="sources\win32res.h">
+			<Option target="Debug MSVC 2005" />
+			<Option target="Release MSVC 2005" />
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+		</Unit>
+		<Unit filename="sources\win32res.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="Debug MSVC 2005" />
+			<Option target="Release MSVC 2005" />
+			<Option target="Debug MSVC 2005 (Service)" />
+			<Option target="Release MSVC 2005 (Service)" />
+		</Unit>
+		<Unit filename="sources\wxFlatNotebook\fnb_customize_dlg.cpp" />
+		<Unit filename="sources\wxFlatNotebook\fnb_resources.cpp" />
+		<Unit filename="sources\wxFlatNotebook\popup_dlg.cpp" />
+		<Unit filename="sources\wxFlatNotebook\renderer.cpp" />
+		<Unit filename="sources\wxFlatNotebook\wxFlatNotebook.cpp" />
+		<Unit filename="sources\wxFlatNotebook\xh_fnb.cpp" />
+		<Unit filename="sources\wxThings.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<AutoVersioning>
+				<Scheme minor_max="99" build_max="999" rev_max="999" rev_rand_max="10" build_times_to_increment_minor="1" />
+				<Settings autoincrement="0" date_declarations="1" do_auto_increment="0" ask_to_increment="1" language="C++" svn="0" svn_directory="." header_path="./sources/version.h" />
+				<Changes_Log generate_log="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
+			</AutoVersioning>
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

@@ -1,0 +1,2 @@
+LIBRARY	"Sqlite.plg"
+EXPORTS WePluginFactory

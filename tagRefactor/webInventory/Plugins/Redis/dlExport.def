@@ -1,0 +1,2 @@
+LIBRARY	"Redis.plg"
+EXPORTS WePluginFactory
