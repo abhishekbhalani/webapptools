@@ -113,7 +113,6 @@ function GetGroupByName($groupName)
             $result['id'] = $gid;
             $mems = $r->smembers("Group:$gid:Members");
             $result['members'] = $mems;
-            print_r($result);
         }
     }
     return $result;
@@ -131,11 +130,25 @@ function GetUserByName($userName)
             $result['id'] = $uid;
             $mems = $r->smembers("User:$uid:Groups");
             $result['members'] = $mems;
-            print_r($result);
         }
     }
     return $result;
 }
 
+function GetUserByID($uid)
+{
+    $result = NULL;
+    
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        if ($r->exists("User:$uid") == 1) {
+            $result = $r->lrange("User:$uid", 0, 2);
+            $result['id'] = $uid;
+            $mems = $r->smembers("User:$uid:Groups");
+            $result['members'] = $mems;
+        }
+    }
+    return $result;
+}
 
 ?>
