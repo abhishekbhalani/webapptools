@@ -24,16 +24,6 @@ function doStage1()
         info.style.display = "none";
     }
     
-    if (document.forms[0].redis_pass.value != document.forms[0].redis_pass2.value) {
-        var info = document.getElementById("passwd");
-        info.style.display = "list-item";
-        errs = errs + 1;
-    }
-    else {
-        var info = document.getElementById("passwd");
-        info.style.display = "none";
-    }
-    
     iv = parseInt(document.forms[0].redis_db.value);
     if (isNaN(iv) || iv < 0 || iv > 15) {
         var info = document.getElementById("dbnum");
@@ -61,7 +51,7 @@ function doStage1()
                         try {
                                 oRequest=new ActiveXObject("Microsoft.XMLHTTP");
                         } catch (e) {
-                                msg = "YOUR BROWSER DOESN'T SUPPORT AJAX!";
+                                rerr.innerHTML = "YOUR BROWSER DOESN'T SUPPORT AJAX!";
                                 return false;
                         }
                 }
@@ -69,7 +59,6 @@ function doStage1()
         oRequest.open("GET", "stage1redis.php", false);
         oRequest.send(null);
         msg = oRequest.responseText;
-        alert(msg);
         rerr.innerHTML = msg;
         if (msg != "SUCCESS") {
             info.style.display = "list-item";
@@ -79,9 +68,6 @@ function doStage1()
             info.style.display = "none";
         }
     }
-
-    // !!!debug
-    errs = errs + 1;
 
     if (errs > 0) {
         block.style.display = "block";

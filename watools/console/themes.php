@@ -4,7 +4,7 @@ require_once('./globals.php');
 require_once('./smarty/Smarty.class.php');
 $smarty = new Smarty();
 
-$themeName = 'sandbox';
+$themeName = 'theme';
 $themeDir = $baseDir . '/' . $themeName;
 
 $smarty->left_delimiter = '[{';
