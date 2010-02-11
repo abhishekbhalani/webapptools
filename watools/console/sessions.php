@@ -5,9 +5,6 @@ require_once('usermgmt.php');
 $gSession = NULL;
 $gUser = NULL;
 
-ob_start();
-echo "<pre>";
-
 $r = GetRedisConnection();
 
 if (is_null($r)) {
@@ -16,12 +13,37 @@ if (is_null($r)) {
     exit(0);
 }
 
+// detect theme settings
+$theme = '';
+if (isset($_COOKIE['WATTHEME'])) {
+    $theme = $_COOKIE['WATTHEME'];
+}
+if ($theme == '') {
+    $theme = $gDefaultTheme;
+}
+
+// detect language settings
+$lang = 'en';
+if (isset($_COOKIE['WATLANG'])) {
+    $lang = $_COOKIE['WATLANG'];
+}
+else {
+    if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+        $slangs = explode(',',$_SERVER['HTTP_ACCEPT_LANGUAGE']);
+        $lang = $slang[0];
+        $lang = substr($lang,0,2);
+    }
+}
+if ($lang == '') {
+    $lang = 'en';
+}
+
+if (isset($_COOKIE['WATLANG'])) {
+}
+
 if (isset($_COOKIE['WATSESSION'])) {
     $sid = $_COOKIE['WATSESSION'];
     if ($r->sismember("Sessions", $sid) == 0) {
-echo "No such :(\n";
-print_r($r->smembers("Sessions"));
-print_r($r->keys("Session:*"));
         $r->delete("Session:$sid");
         // fall throught to the new session creation
     }
@@ -32,7 +54,6 @@ print_r($r->keys("Session:*"));
         $stm = $gSession[0];
         $ltm = time();
         if ($stm < $ltm) {
-echo "timeout $stm < $ltm\n";
             // 5 minutes timeout expired
             $r->delete("Session:$sid");
             $r->srem("Sessions", $sid);
@@ -46,7 +67,6 @@ echo "timeout $stm < $ltm\n";
         // check session hijacking attempt
         if (!is_null($gSession)) {
             if ($gSession[2] != $_SERVER['REMOTE_ADDR']) {
-echo "atatat" . $gSession[2] . "!=" . $_SERVER['REMOTE_ADDR'] . "\n";
                 // atatat!!!
                 $r->delete("Session:$sid");
                 $r->srem("Sessions", $sid);
@@ -58,8 +78,6 @@ echo "atatat" . $gSession[2] . "!=" . $_SERVER['REMOTE_ADDR'] . "\n";
 
 if (is_null($gSession)) {
     // create new session
-echo "new session\n";
-
     $ltm = time();
     $sid = md5($ltm . $_SERVER['HTTP_USER_AGENT'] . $_SERVER['REMOTE_ADDR']);
     while ($r->sismember("Sessions", $sid) == 1) {
@@ -78,22 +96,6 @@ echo "new session\n";
         $theme = $_COOKIE['WATTHEME'];
     }
     $r->rpush("Session:$sid", $theme);           // Theme
-    
-    // get language
-    $lang = 'en';
-    if (isset($_COOKIE['WATLANG'])) {
-        $lang = $_COOKIE['WATLANG'];
-    }
-    else {
-        if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-            $slangs = explode(',',$_SERVER['HTTP_ACCEPT_LANGUAGE']);
-            $lang = $slang[0];
-            $lang = substr($lang,0,2);
-        }
-    }
-    if ($lang == '') {
-        $lang = 'en';
-    }
     $r->rpush("Session:$sid", $lang);            // Language
     // return session
     $gSession = $r->lrange("Session:$sid", 0, 5);
@@ -110,25 +112,56 @@ if (!is_null($gSession)) {
 }
 
 // functions for extarnal use
-function SetSessionTheme() {
-    return true;
-}
-
-function SetSessionLocale() {
-    return true;
-}
-
 function CleanUpSessions() {
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        $alls = $r->keys("Session:*");
+        $ltm = time();
+        foreach ($alls as $sess) {
+            $sid = substr($sess,8);
+            if ($r->sismember("Sessions", $gSession['id']) == 0) {
+                // delete broken session
+                DeleteSession($r, $gSession['id']);
+            }
+            else {
+                $s = $r->lrange("Session:$sid", 0, 5);
+                if ($gSession[0] < $ltm) {
+                    DeleteSession($r, $gSession['id']);
+                }
+            }
+        }
+    }
     return true;
 }
 
-function DeleteSession($sid) {
-    return true;
+function SaveSession() {
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        $ltm = time();
+        if ($gSession[0] < $ltm) {
+            DeleteSession($r, $gSession['id']);
+            $gSession = NULL;
+            return;
+        }
+        if ($r->sismember("Sessions", $gSession['id']) == 0) {
+            // delete broken session
+            DeleteSession($r, $gSession['id']);
+            $gSession = NULL;
+            return;
+        }
+        // fall throught to the new session creation
+        $key = "Session:" . $gSession['id'];
+        $r->lset($key, $gSession[0], 0);
+        $r->lset($key, $gSession[1], 1);
+        $r->lset($key, $gSession[2], 2);
+        $r->lset($key, $gSession[3], 3);
+        $r->lset($key, $gSession[4], 4);
+    }
 }
 
-print_r($gSession);
-print_r($gUser);
-print_r($_COOKIE);
-echo "</pre>";
-ob_end_flush();
+function DeleteSession($redis, $sid) {
+    $redis->srem("Sessions", $sid);
+    $redis->delete("Session:$sid");
+    return true;
+}
 ?>
