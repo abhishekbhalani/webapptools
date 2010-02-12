@@ -7,5 +7,5 @@ $gBaseDir = '/var/www';
 $gRedisHost = '127.0.0.1';
 $gRedisPort = '6379';
 $gRedisAuth = '';
-
+$gRedisDB = 0;
 ?>
