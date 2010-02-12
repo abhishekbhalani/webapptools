@@ -14,8 +14,11 @@
 <fieldset class="fields">
 <legend class="fields">Redis Database</legend>
 <table border='0' class="data">
-<tr><td><img src="[{$theme}]/img/db_size.png" align="left"><b>Database size:</b></td><td>123456</td></tr>
-<tr><td><img src="[{$theme}]/img/db_keys.png" align="left"><b>Number of keys:</b></td><td>1233</td></tr>
+<tr><td><img src="[{$theme}]/img/db_size.png" align="left"><b>Server version:</b></td><td>[{$redisVersion}]</td></tr>
+<tr><td><img src="[{$theme}]/img/db_keys.png" align="left"><b>Server role:</b></td><td>[{$redisRole}]</td></tr>
+<tr><td><img src="[{$theme}]/img/db_keys.png" align="left"><b>Server uptime:</b></td><td>[{$redisUptime}] day(s)</td></tr>
+<tr><td><img src="[{$theme}]/img/db_size.png" align="left"><b>Memory usage:</b></td><td>[{$redisMemory}]</td></tr>
+<tr><td><img src="[{$theme}]/img/db_keys.png" align="left"><b>Keys in DB:</b></td><td>[{$redisKeys}]</td></tr>
 </table>
 </fieldset>
 <br/>
