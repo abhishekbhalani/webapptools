@@ -5,7 +5,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background-color: #fbb030;
+  background-color: #d89020;
   color: white;
 }
 h1 {
@@ -35,6 +35,20 @@ h1 {
   vertical-align: text-top;
   color: white;
   font-weight: bold;
+}
+.data {
+	color: white;
+}
+.fields {
+	font-weight: bold;
+	color: #ffca11;
+	border-color: #ffca11;
+	-moz-border-radius-bottomleft: 7px;
+	-moz-border-radius-bottomright: 7px;
+	-moz-border-radius-topleft: 5px;
+	-moz-border-radius-topright: 7px;
+	-webkit-border-radius: 7px;
+	border-radius: 3px;
 }
 .button-panel {
   width: 1%;
