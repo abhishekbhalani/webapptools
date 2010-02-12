@@ -1,0 +1,2 @@
+en;English|ru;Russian
+SandBox theme, inspired by Ubuntu NetBook Remix 9.10 

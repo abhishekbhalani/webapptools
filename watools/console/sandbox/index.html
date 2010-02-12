@@ -2,7 +2,41 @@
 <head>
 <title>Web "A" Tools</title>
 <link rel="stylesheet" type="text/css" href="/[{$theme}]/wat.css" />
-<script language="JavaScript" src="/scripts/chkUser.js"></script>
+<script language="JavaScript">
+    function checkUser()
+    {
+	user = escape(document.forms[0].uname.value);
+	pswd = escape(document.forms[0].paswd.value);
+	params = "uname=" + user + "&paswd=" + pswd + "&ajax=true";
+
+	var oRequest;
+	try {
+	    oRequest=new XMLHttpRequest();
+	} catch (e)   {
+	    try {
+		oRequest=new ActiveXObject("Msxml2.XMLHTTP");
+	    } catch (e) {
+		try {
+		    oRequest=new ActiveXObject("Microsoft.XMLHTTP");
+		} catch (e) {
+		    alert("YOUR BROWSER DOESN'T SUPPORT AJAX!");
+		    return false;
+		}
+	    }
+	}
+	oRequest.open("POST", "/login.php", false);
+	oRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	oRequest.send(params);
+	
+	msg = oRequest.responseText;
+	if (msg == 'SUCCESS') {
+	    return true;
+	}
+	// else - show message
+	alert(msg);
+	return false;
+    }
+</script>
 </head>
 <body>
 <div id="bg"><img src="/[{$theme}]/img/bg01.jpg" width="100%" height="100%" alt=""></div>
@@ -18,21 +52,23 @@
         <table width="100%" border="0" cellpadding="0" cellspacing="0">
         <tr><td width="0"><img src="/[{$theme}]/img/tl.png" alt="" border="0"></td><td class="frameTop" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/tr.png" alt="" border="0"></td></tr>
         <tr><td width="0" class="frameLeft"></td><td class="frameBody" width="100%" height="100%" id="mainView"><h1>Login</h1>
+	<form action="index.php" method="POST" onsubmit="return checkUser();">
         <table>
             <tr>
                 <td rowspan="3" valign="top"><img src="/[{$theme}]/img/appIcon.png" border="0"></td>
                 <td>Username</td>
-                <td><input type="text"></td>
+                <td><input type="text" name="uname"></td>
             </tr>
             <tr>
                 <td>Password</td>
-                <td><input type="password"></td>
+                <td><input type="password" name="paswd"></td>
             </tr>
             <tr>
                 <td>&nbsp;</td>
-                <td><input type="button" value="Sign in"></td>
+                <td><input type="submit" value="Sign in"></td>
             </tr>
         </table>
+	</form>
         </td><td width="0"  class="frameRight"></td></tr>
         <tr><td width="0"><img src="/[{$theme}]/img/bl.png" alt="" border="0"></td><td class="frameBottom" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/br.png" alt="" border="0"></td></tr>
         </table>

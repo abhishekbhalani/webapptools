@@ -23,7 +23,7 @@ if ($theme == '') {
 }
 
 // detect language settings
-$lang = 'en';
+$lang = $r->get('Global:DefaultLang');;
 if (isset($_COOKIE['WATLANG'])) {
     $lang = $_COOKIE['WATLANG'];
 }
@@ -76,6 +76,15 @@ if (isset($_COOKIE['WATSESSION'])) {
     }
 }
 
+// check for cleanup
+$stm = $r->get('Global:SessionCheck');
+$ltm = time();
+if ($stm < $ltm) {
+    CleanUpSessions();
+    $stm = $ltm + 600; // 10 minutes;
+    $r->set('Global:SessionCheck', $stm);
+}
+
 if (is_null($gSession)) {
     // create new session
     $ltm = time();
@@ -86,17 +95,17 @@ if (is_null($gSession)) {
     }
     $r->sadd("Sessions", $sid);
     $ltm += 300;
-    $r->rpush("Session:$sid", $ltm);             // timeout
-    $r->rpush("Session:$sid", -1);               // ClientID
+    $r->rpush("Session:$sid", $ltm);             // timeout 0
+    $r->rpush("Session:$sid", -1);               // ClientID 1
     $addr = $_SERVER['REMOTE_ADDR'];
-    $r->rpush("Session:$sid", $addr);            // ConnectionID
+    $r->rpush("Session:$sid", $addr);            // ConnectionID 2
     // get theme
-    $theme = 'sandbox';
+    $theme = $r->get('Global:DefaultTheme');
     if (isset($_COOKIE['WATTHEME'])) {
         $theme = $_COOKIE['WATTHEME'];
     }
-    $r->rpush("Session:$sid", $theme);           // Theme
-    $r->rpush("Session:$sid", $lang);            // Language
+    $r->rpush("Session:$sid", $theme);           // Theme 3
+    $r->rpush("Session:$sid", $lang);            // Language 4
     // return session
     $gSession = $r->lrange("Session:$sid", 0, 5);
     $gSession['id'] = $sid;
@@ -119,14 +128,14 @@ function CleanUpSessions() {
         $ltm = time();
         foreach ($alls as $sess) {
             $sid = substr($sess,8);
-            if ($r->sismember("Sessions", $gSession['id']) == 0) {
+            if ($r->sismember("Sessions", $sid) == 0) {
                 // delete broken session
-                DeleteSession($r, $gSession['id']);
+                DeleteSession($r, $sid);
             }
             else {
                 $s = $r->lrange("Session:$sid", 0, 5);
-                if ($gSession[0] < $ltm) {
-                    DeleteSession($r, $gSession['id']);
+                if ($s[0] < $ltm) {
+                    DeleteSession($r, $sid);
                 }
             }
         }
@@ -135,6 +144,8 @@ function CleanUpSessions() {
 }
 
 function SaveSession() {
+    global $gSession;
+    
     $r = GetRedisConnection();
     if (!is_null($r)) {
         $ltm = time();
