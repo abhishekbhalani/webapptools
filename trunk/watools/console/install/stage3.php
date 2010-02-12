@@ -1,4 +1,5 @@
 <?
+header("HTTP/1.0 200 OK");
 require_once('./../globals.php');
 require_once('./../usermgmt.php');
 
@@ -45,31 +46,43 @@ AddUserToGroup($adminUser, $adminGroup);
 $r = GetRedisConnection();
 if (!is_null($r))
 {
-    if ($r->exists("ThemeName:theme") == 0) {
-        $tid = $r->incr('Global:ThemeID');
-        SetValue($r, "ThemeName:theme", $tid);
-        $r->delete("Theme:$tid");
-        $r->rpush("Theme:$tid", "theme", 0);
-        $r->rpush("Theme:$tid", 'Simple default theme', 1);
-        $r->sadd("Theme:$tid:Locales", "en;English");
-        $r->sadd("Theme:$tid:Locales", "ru;Русский");
-    }
-    if ($r->exists("ThemeName:sandbox") == 0) {
-        $tid = $r->incr('Global:ThemeID');
-        SetValue($r, "ThemeName:sandbox", $tid);
-        $r->delete("Theme:$tid");
-        $r->rpush("Theme:$tid", "sandbox", 0);
-        $r->rpush("Theme:$tid", 'SandBox theme', 1);
-        $r->sadd("Theme:$tid:Locales", "en;English");
-        $r->sadd("Theme:$tid:Locales", "ru;Русский");
-    }
-    
+    // search for themes
+    $dirs = glob('../*', GLOB_ONLYDIR);
+    if ($dirs) {
+        foreach ($dirs as $dir) {
+            $files = glob($dir . '/theme.txt');
+            if ($files) {
+                $tname = substr($dir, 3);
+                $handle = @fopen($files[0], "r");
+                if ($handle) {
+                    $locstr = fgets($handle);
+                    $locstr = rtrim($locstr);
+                    $data = "";
+                    while (!feof($handle)) {
+                        $data .= fgets($handle);
+                    }
+                    fclose($handle);
+                    $locales = explode('|', $locstr);
+                    if ($r->exists("ThemeName:$tname") == 0) {
+                        $tid = $r->incr('Global:ThemeID');
+                        SetValue($r, "ThemeName:$tname", $tid);
+                        $r->delete("Theme:$tid");
+                        $r->rpush("Theme:$tid", $tname);
+                        $r->rpush("Theme:$tid", $data);
+                        $r->delete("Theme:$tid:Locales");
+                        foreach ($locales as $loc) {
+                            $r->sadd("Theme:$tid:Locales", $loc);    
+                        }
+                    }
+                } // file handle opened
+            } // any files found
+        } // foraech dirs
+    } // any dirs found
+    // ... and set the defaults!
+    $r->set("Global:DefaultTheme", 'sandbox');
+    $r->set("Global:DefaultLang", 'en');
 }
 
-echo "<pre>";
-GetUserByName($adminUser);
-GetGroupByName($adminGroup);
-echo "</pre>";
 $smarty->assign('redisHost', $redisHost);
 $smarty->assign('redisPort', $redisPort);
 $smarty->assign('redisPass', $redisPass);

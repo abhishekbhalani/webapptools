@@ -151,4 +151,17 @@ function GetUserByID($uid)
     return $result;
 }
 
+function CheckACL($object)
+{
+    global $gSession, $gUser;
+    $result = false;
+    
+    if (is_null($gUser)) {
+        // not authenticated session
+        return false;
+    }
+    
+    return true;
+}
+
 ?>
