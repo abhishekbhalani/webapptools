@@ -1,4 +1,5 @@
 <h1>Dashboard</h1>
+[{if $SysUser}]
 <fieldset class="fields">
 <legend class="fields">Server</legend>
 <table border='0' class="data">
@@ -25,6 +26,16 @@
 <fieldset class="fields">
 <legend class="fields">SQL Database</legend>
 <div class="data"><img src="[{$theme}]/img/sql_info.png" align="left"><b>Haven't any information</b></div>
+</fieldset>
+<br/>
+[{/if}]
+<fieldset class="fields">
+<legend class="fields">Personal Information</legend>
+<table border='0' class="data">
+<tr><td><img src="[{$theme}]/img/sql_info.png" align="left"><b>Information for [{$UserName}]</b></td><td>&nbsp;</td></tr>
+<tr><td><img src="[{$theme}]/img/tasks_active.png" align="left"><b>Active tasks:</b></td><td>20</td></tr>
+<tr><td><img src="[{$theme}]/img/reports_gens.png" align="left"><b>Reports generates:</b></td><td>3</td></tr>
+</table>
 </fieldset>
 <br/>
 </div>
