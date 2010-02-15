@@ -51,17 +51,17 @@ h1 {
   border-radius: 3px;
 }
 .tabEmpty {
-  background-image: url(img/bt.png); /*tabLine.png*/
+  background-image: url(img/tabLine.png); /*tabLine.png*/
   background-repeat: repeat-x;
   white-space: nowrap;
 }
 .tabActive {
-  background-image: url(img/tt.png);  /* tabActive.png */
+  background-image: url(img/tabActive.png);  /* tabActive.png */
   background-repeat: repeat-x;
   white-space: nowrap;
 }
 .tabPassive {
-  background-image: url(img/tt.png);    /* tabActive.png */
+  background-image: url(img/tabPassive.png);    /* tabActive.png */
   background-repeat: repeat-x;
   white-space: nowrap;
 }
