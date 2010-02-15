@@ -129,7 +129,7 @@ function GetUserByName($userName)
             $result = $r->lrange("User:$uid", 0, 2);
             $result['id'] = $uid;
             $mems = $r->smembers("User:$uid:Groups");
-            $result['members'] = $mems;
+            $result['groups'] = $mems;
         }
     }
     return $result;
@@ -145,7 +145,7 @@ function GetUserByID($uid)
             $result = $r->lrange("User:$uid", 0, 2);
             $result['id'] = $uid;
             $mems = $r->smembers("User:$uid:Groups");
-            $result['members'] = $mems;
+            $result['groups'] = $mems;
         }
     }
     return $result;

@@ -1,0 +1,47 @@
+<script language="JavaScript">
+    var prevTabSettings = "setsPersonal";
+    function SwitchTab (newTabId) {
+        if (prevTabSettings != newTabId) {
+            cell = $('#'+prevTabSettings);
+            prev = cell.prev();
+            prev.children('img').attr('src', '/[{$theme}]/img/tl.png'); //tabPassiveLeft.png
+            prev = cell.next();
+            prev.children('img').attr('src', '/[{$theme}]/img/tr.png'); //tabPassiveRight.png
+            cell.css('background-image', 'url(/[{$theme}]/img/bt.png)'); //tabPassive.png
+            cell = $('#'+newTabId);
+            prev = cell.prev();
+            prev.children('img').attr('src', '/[{$theme}]/img/tl.png'); //tabActiveLeft.png
+            prev = cell.next();
+            prev.children('img').attr('src', '/[{$theme}]/img/tr.png'); //tabActiveRight.png
+            cell.css('background-image', 'url(/[{$theme}]/img/tt.png)'); //tabActive.png
+            $("#setPage").load(newTabId + ".php");
+            prevTabSettings = newTabId;
+            return true;
+        }
+    }
+</script>
+<table border="0" width="100%" cellpadding='0' cellspacing='0'><tr valign="center">
+<td width="0" class="tabEmpty" id="leftMostTab">&nbsp;</td>
+<td width="0"><img src="[{$theme}]/img/tl.png" height="28"><!-- tabActiveLeft.png --></td>
+<td width="0" class="tabActive" id="setsPersonal" onclick="SwitchTab('setsPersonal');"> Personal settings </td>
+<td width="0"><img src="[{$theme}]/img/tr.png" height="28"><!-- tabActiveRight.png --></td>
+[{if $SysUser}]
+<td width="0" class="tabPassive" id="setsSystem" onclick="SwitchTab('setsSystem');"> System settings </td>
+<td width="0"><img src="[{$theme}]/img/tr.png" height="28"><!-- tabActiveRight.png --></td>
+<td width="0" class="tabPassive" id="setsUsers" onclick="SwitchTab('setsUsers');"> Users &amp; Groups </td>
+<td width="0"><img src="[{$theme}]/img/tr.png" height="28"><!--tabPassiveRight.png --></td>
+<td width="0" class="tabPassive" id="setsACL" onclick="SwitchTab('setsACL');"> Access Control </td>
+<td width="0"><img src="[{$theme}]/img/tr.png" height="28"><!--tabPassiveRight.png --></td>
+<td width="0" class="tabPassive" id="setsDatabase" onclick="SwitchTab('setsDatabase');"> Databases </td>
+<td width="0"><img src="[{$theme}]/img/tr.png" height="28" id="rightMostTab"></td>
+[{/if}]
+<td width="100%" class="tabEmpty">&nbsp;</td>
+</tr></table>
+<div id="setPage">
+</div>
+<script language="JavaScript">
+$(document).ready(function() {
+    // load the default page
+    $("#setPage").load("setsPersonal.php");
+});
+</script>
