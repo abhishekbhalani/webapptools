@@ -5,9 +5,7 @@ require_once('./usermgmt.php');
 
 // todo check ACL for access
 if (!CheckACL('dashboard')) {
-    $smarty->assign('UserName', $gUser[0]);
-    $smarty->assign('theme', $themeName);
-    $smarty->display('noaccess.html' . $themeLangExt);
+    PrintNoAccess();
     exit(0);
 }
 $r = GetRedisConnection();

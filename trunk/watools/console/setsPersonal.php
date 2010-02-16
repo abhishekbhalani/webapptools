@@ -4,12 +4,13 @@ require_once('./themes.php');
 require_once('./usermgmt.php');
 
 // todo check ACL for access
-if (!CheckACL('dashboard')) {
-    $smarty->assign('UserName', $gUser[0]);
-    $smarty->assign('theme', $themeName);
-    $smarty->display('noaccess.html' . $themeLangExt);
+if (!CheckACL('settings/personal')) {
+    PrintNoAccess();
     exit(0);
 }
 
-echo "<h1> Personal Settings</h1>\n";
+$smarty->assign('UserName', $gUser[0]);
+$smarty->assign('userName', $gUser[1]);
+$smarty->assign('theme', $themeName);
+$smarty->display('settings/personal.html' . $themeLangExt);
 ?>

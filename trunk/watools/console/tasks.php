@@ -9,5 +9,5 @@ if (!CheckACL('dashboard')) {
     exit(0);
 }
 
-echo "<h1>Access Control Settings</h1>\n";
+echo "<h1>Tasks manipulation</h1>\n";
 ?>

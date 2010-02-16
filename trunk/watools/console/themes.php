@@ -35,4 +35,16 @@ $smarty->compile_dir = $themeDir . '/templates_c';
 $smarty->cache_dir = $themeDir . '/cache';
 $smarty->config_dir = './smarty/configs';
 
+function PrintNoAccess()
+{
+    global $smarty, $gUser, $themeName, $themeLangExt;
+    
+    $smarty->assign('UserName', $gUser[0]);
+    $smarty->assign('theme', $themeName);
+    $smarty->assign('messageTitle', gettext('Access Denied'));
+    $smarty->assign('messageText', gettext('Access denied for user ') . $gUser[0] . gettext('!<br>Contact your system administrator!'));
+    $smarty->assign('messageIcon', 'exit.png');
+    $smarty->assign('messageButton', 'OK');
+    $smarty->display('messageBox.html' . $themeLangExt);
+}
 ?>
