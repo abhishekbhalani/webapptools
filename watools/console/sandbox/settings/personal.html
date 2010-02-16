@@ -1,0 +1,21 @@
+<fieldset class="fields" width="100%">
+<legend class="fields"><img src="[{$theme}]/img/users_total.png" align="left">Account</legend>
+<table border='0' class="data">
+<tr><td><b>Login:</b></td><td><input type="text" value="[{$UserName}]" readonly="1" class="readonly"></td></tr>
+<tr><td><b>Full Name:</b></td><td><input type="text" id="userDesc" name="udesc" value="[{$userName}]" class="text"></td></tr>
+<tr><td><b>Current password:</b></td><td><input type="password" id="userPwd" name="upwd" value="" class="text"></td></tr>
+<tr><td><b>New password:</b></td><td><input type="password" id="userPwdNew" name="upwdn" value="" class="text"></td></tr>
+<tr><td><b>Confirm password:</b></td><td><input type="password" id="userPwdCnf" name="upwdc" value="" class="text"></td></tr>
+<tr><td><b>&nbsp;</b></td><td><input type="button" id="accSettings" name="accSettings" value="Apply"></td></tr>
+</table>
+</fieldset>
+<br/>
+<fieldset class="fields" width="100%">
+<legend class="fields"><img src="[{$theme}]/img/scanners_active.png" align="left">GUI settings</legend>
+<table border='0' class="data">
+<tr><td><b>Theme:</b></td><td><select name="theme">[{html_options values=$themes output=$thNames selected=$defTheme}]</select></td></tr>
+<tr><td><b>Language:</b></td><td><select name="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select></td></tr>
+<tr><td><b>&nbsp;</b></td><td><input type="button" id="guiSettings" name="guiSettings" value="Apply"></td></tr>
+</table>
+</fieldset>
+<br/>

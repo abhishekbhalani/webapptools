@@ -1,0 +1,70 @@
+<script>
+function SelectUsers (id) {
+    $('#'+id).find('input').attr('checked', true);
+}
+function UnselectUsers (id) {
+    $('#'+id).find('input').attr('checked', false);
+}
+function InvertUsers (id) {
+    var bx = $('#'+id).find('input');
+    bx.each(function(idx,elem) {
+        if(elem.checked) {
+            elem.checked = false;
+        }
+        else {
+            elem.checked = true;
+        }
+    });
+}
+</script>
+<table width="100%"><tr valign="top">
+    <td widht="50%"><fieldset class="fields">
+        <legend class="fields"><img src="[{$theme}]/img/users_online.png" class="actionIco"> Users</legend>
+        <a href="#"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco"></a>
+        <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
+        <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a>
+        <br/>
+        <table class="grid" width="100%" id='userstable'>
+        <tr><th class="grid">Login</th><th class="grid">Full Name</th><th class="grid">Groups</th><th class="grid">Actions</th></tr>
+        [{section name=user loop=$userList}]
+        <tr><td class="grid"><input type="checkbox" name="uid[{$userList[user][9]}]" id="uid[{$userList[user][9]}]">[{$userList[user][0]}]</td><td class="grid">[{$userList[user][1]}]</td>
+                <td class="grid">[{section name=grpN loop=$userList[user][10]}]
+                    [{$userList[user][10][grpN]}][{if not $smarty.section.grpN.last}], [{/if}]
+                [{/section}]</td><td class="grid">
+                                <a href="#"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco"></a>
+                                <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
+                                <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a></td></tr>
+        [{/section}]
+        <tr><td class="grid"><input type="checkbox" name="uid2" id="uid2">user</td><td class="grid">System user</td><td class="grid">nobody</td><td class="grid">
+                                <a href="#"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco"></a>
+                                <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
+                                <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a></td></tr>
+        </table>
+        <br/>
+        <span><a href="#" class="action" onclick="SelectUsers('userstable'); return false;"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco">&nbsp;Select all</a></span>
+        <span><a href="#" class="action" onclick="UnselectUsers('userstable'); return false;"><img src="bad.gif" alt="change" class="actionIco">&nbsp;Unselect all</a></span>
+        <span><a href="#" class="action" onclick="InvertUsers('userstable'); return false;"><img src="bad.gif" alt="reset password" class="actionIco">&nbsp;Invert selection</a></span>
+        </fieldset>
+    </td><td><fieldset class="fields">
+        <legend class="fields"><img src="[{$theme}]/img/users_total.png" class="actionIco"> Groups</legend>
+        <a href="#"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco"></a>
+        <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
+        <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a>
+        <br/>
+        <table class="grid" width="100%" id='groupstable'>
+        <tr><th class="grid">Name</th><th class="grid">Description</th><th class="grid">Actions</th></tr>
+        [{section name=group loop=$groupList}]
+        <tr><td class="grid"><input type="checkbox" name="gid[{$groupList[group][9]}]" id="gid[{$groupList[group][9]}]">[{$groupList[group][0]}]</td><td class="grid">[{$groupList[group][1]}]</td><td class="grid">
+                                <a href="#"><img src="bad.gif" alt="delete" class="actionIco"></a>
+                                <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
+                                <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a>
+        [{/section}]
+        </td></tr>
+        </table>
+        <br/>
+        <span><a href="#" class="action" onclick="SelectUsers('groupstable'); return false;"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco">&nbsp;Select all</a></span>
+        <span><a href="#" class="action" onclick="UnselectUsers('groupstable'); return false;"><img src="bad.gif" alt="change" class="actionIco">&nbsp;Unselect all</a></span>
+        <span><a href="#" class="action" onclick="InvertUsers('groupstable'); return false;"><img src="bad.gif" alt="reset password" class="actionIco">&nbsp;Invert selection</a></span>
+        </fieldset>
+    </td>
+</tr></table>

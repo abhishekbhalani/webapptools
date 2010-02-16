@@ -118,6 +118,22 @@ function GetGroupByName($groupName)
     return $result;
 }
 
+function GetGroupByID($gid)
+{
+    $result = NULL;
+    
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        if ($r->exists("Group:$gid") == 1) {
+            $result = $r->lrange("Group:$gid", 0, 1);
+            $result['id'] = $gid;
+            $mems = $r->smembers("Group:$gid:Members");
+            $result['members'] = $mems;
+        }
+    }
+    return $result;
+}
+
 function GetUserByName($userName)
 {
     $result = NULL;
@@ -146,6 +162,24 @@ function GetUserByID($uid)
             $result['id'] = $uid;
             $mems = $r->smembers("User:$uid:Groups");
             $result['groups'] = $mems;
+        }
+    }
+    return $result;
+}
+
+function GetUserGroups($uid)
+{
+    $result = null;
+    $usr = GetUserByID($uid);
+    if (!is_null($usr)) {
+        if ($usr['groups']) {
+            $result = array();
+            foreach ($usr['groups'] as $g) {
+                $grp = GetGroupByID($g);
+                if ($grp) {
+                    $result[] = $grp[0];
+                }
+            }
         }
     }
     return $result;
