@@ -41,15 +41,20 @@ function groupBoxClick(status) {
         gnm = $('#gName').attr('value');
         gds = $('#gDesc').attr('value');
         $('#errorMessageText').html('');
-        $('#errorMessageText').load('uagModify.php', {'object': 'group', 'gid': gid, 'gname': gnm, 'gdesc': gds});
-        resp = $('#errorMessageText').text();
-        if (resp == "") {
-            $('#errorMessageText').html("Unknown error");
-        }
-        toggle('blanket');
-        if (resp != 'OK') {
-            popup('errorBox');
-        }
+        $('#errorMessageText').load('uagModify.php', {'object': 'group', 'gid': gid, 'gname': gnm, 'gdesc': gds},
+                function(data) {
+                    resp = jQuery.trim(data);
+                    if (resp == "") {
+                        $('#errorMessageText').html("Unknown error");
+                    }
+                    toggle('blanket');
+                    if (resp != "OK") {
+                        popup('errorBox');
+                    }
+                    else {
+                        $("#setPage").load("setsUsers.php");
+                    }
+                });
     }
     else {
         toggle('blanket');
@@ -120,15 +125,20 @@ function userBoxClick(status) {
             $('#errorMessageText').html("Login is empty!");
         }
         else {
-            $('#errorMessageText').load('uagModify.php', {'object': 'user', 'uid': gid, 'uname': gnm, 'udesc': gds, 'pwd': gpw});
-        }
-        resp = $('#errorMessageText').text();
-        if (resp == "") {
-            $('#errorMessageText').html("Unknown error");
-        }
-        toggle('blanket');
-        if (resp != "OK") {
-            popup('errorBox');
+            $('#errorMessageText').load('uagModify.php', {'object': 'user', 'uid': gid, 'uname': gnm, 'udesc': gds, 'pwd': gpw},
+                function(data) {
+                    resp = jQuery.trim(data);
+                    if (resp == "") {
+                        $('#errorMessageText').html("Unknown error");
+                    }
+                    toggle('blanket');
+                    if (resp != "OK") {
+                        popup('errorBox');
+                    }
+                    else {
+                        $("#setPage").load("setsUsers.php");
+                    }
+                });
         }
     }
     else {
@@ -142,14 +152,19 @@ function confirmClose() {
 function deleteUser(id) {
     popup('confirmBox');
     $('#errorMessageText').html("User to delete: " + id);
-    $('#errorMessageText').load('uagModify.php', {'object': 'userdel', 'uid': id});
-    resp = $('#errorMessageText').text();
-    if (resp == "") {
-        $('#errorMessageText').html("Unknown error");
-    }
-    if (resp != "OK") {
-        popup('errorBox');
-    }
+    $('#errorMessageText').load('uagModify.php', {'object': 'userdel', 'uid': id},
+                function(data) {
+                    resp = jQuery.trim(data);
+                    if (resp == "") {
+                        $('#errorMessageText').html("Unknown error");
+                    }
+                    if (resp != "OK") {
+                        popup('errorBox');
+                    }
+                    else {
+                        $("#setPage").load("setsUsers.php");
+                    }
+                });
     return false;
 }
 function deleteUserMsg(uid, uname) {
@@ -163,15 +178,19 @@ function deleteUserMsg(uid, uname) {
 function deleteGroup(id) {
     popup('confirmBox');
     $('#errorMessageText').html("Group to delete: " + id);
-    $('#errorMessageText').load('uagModify.php', {'object': 'groupdel', 'gid': id});
-    resp = $('#errorMessageText').text();
-    if (resp == "") {
-        $('#errorMessageText').html("Unknown error");
-    }
-    if (resp != "OK") {
-        popup('errorBox');
-    }
-    //$('#confirmOkButton').click(function(){return false;});
+    $('#errorMessageText').load('uagModify.php', {'object': 'groupdel', 'gid': id},
+                function(data) {
+                    resp = jQuery.trim(data);
+                    if (resp == "") {
+                        $('#errorMessageText').html("Unknown error");
+                    }
+                    if (resp != "OK") {
+                        popup('errorBox');
+                    }
+                    else {
+                        $("#setPage").load("setsUsers.php");
+                    }
+                });
     return false;
 }
 function deleteGroupMsg(uid, uname) {
