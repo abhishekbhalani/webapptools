@@ -53,6 +53,7 @@ a.action {
 }
 a.action:hover {
   color: yellow;
+  border-color: yellow;
 }
 img.actionIco {
   width: 16px;

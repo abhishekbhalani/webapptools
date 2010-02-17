@@ -47,13 +47,11 @@ if (is_null($r)) {
 }
 $user = GetUserByName($uname);
 if (is_null($user)) {
-echo "User not found!\n";
     AuthError();
 }
 
 $pwd = md5($paswd);
 if ($user[2] != $pwd) {
-echo "Pwd error $pwd != " . $user[2] ."!\n";
     AuthError();
 }
 // set authentication to the session
