@@ -1,3 +1,5 @@
+<script src="/scripts/windows.js"></script>
+<link rel="stylesheet" type="text/css" href="/[{$theme}]/windows.css" />
 <script>
 function SelectUsers (id) {
     $('#'+id).find('input').attr('checked', true);
@@ -16,13 +18,179 @@ function InvertUsers (id) {
         }
     });
 }
+function groupAdd() {
+    $('#groupsHead').html('Add group');
+    $('#gName').attr('value', '');
+    $('#gDesc').attr('value', '');
+    $('#gID').attr('value', '-1');
+    popup('groupEdit');
+    return false;
+}
+function groupEdit(gname, gdesc, gid) {
+    $('#groupsHead').html('Edit group');
+    $('#gName').attr('value', gname);
+    $('#gDesc').attr('value', gdesc);
+    $('#gID').attr('value', gid);
+    popup('groupEdit');
+    return false;
+}
+function groupBoxClick(status) {
+    toggle('groupEdit');
+    if (status == 'ok') {
+        gid = $('#gID').attr('value');
+        gnm = $('#gName').attr('value');
+        gds = $('#gDesc').attr('value');
+        $('#errorMessageText').html('');
+        $('#errorMessageText').load('uagModify.php', {'object': 'group', 'gid': gid, 'gname': gnm, 'gdesc': gds});
+        resp = $('#errorMessageText').text();
+        if (resp == "") {
+            $('#errorMessageText').html("Unknown error");
+        }
+        toggle('blanket');
+        if (resp != 'OK') {
+            popup('errorBox');
+        }
+    }
+    else {
+        toggle('blanket');
+    }
+    return false;
+}
+function userAdd() {
+    $('#usersHead').html('Add user');
+    $('#uLogin').attr('value', '');
+    $('#uDesc').attr('value', '');
+    $('#uID').attr('value', '-1');
+    $('#uPwd').attr('value', '');
+    $('#uPwd2').attr('value', '');
+    $('#uLogin').attr('class', 'text');
+    $('#uLogin').attr('readonly', false);
+    $('#uDesc').attr('class', 'text');
+    $('#uDesc').attr('readonly', false);
+    $('#pwd1row').css('display','table-row');
+    $('#pwd2row').css('display','table-row');
+    popup('userEdit');
+    return false;
+}
+function userEdit(uname, udesc, uid) {
+    $('#usersHead').html('Edit user');
+    $('#uLogin').attr('value', uname);
+    $('#uDesc').attr('value', udesc);
+    $('#uID').attr('value', uid);
+    $('#uPwd').attr('value', '');
+    $('#uPwd2').attr('value', '');
+    $('#uLogin').attr('class', 'text');
+    $('#uLogin').attr('readonly', false);
+    $('#uDesc').attr('class', 'text');
+    $('#uDesc').attr('readonly', false);
+    $('#pwd1row').css('display','none');
+    $('#pwd2row').css('display','none');
+    popup('userEdit');
+    return false;
+}
+function userPwd(uname, udesc, uid) {
+    $('#usersHead').html('Reset password');
+    $('#uLogin').attr('value', uname);
+    $('#uDesc').attr('value', udesc);
+    $('#uID').attr('value', uid);
+    $('#uPwd').attr('value', '');
+    $('#uPwd2').attr('value', '');
+    $('#uLogin').attr('class', 'readonly');
+    $('#uLogin').attr('readonly', true);
+    $('#uDesc').attr('class', 'readonly');
+    $('#uDesc').attr('readonly', true);
+    $('#pwd1row').css('display','table-row');
+    $('#pwd2row').css('display','table-row');
+    popup('userEdit');
+    return false;
+}
+function userBoxClick(status) {
+    toggle('userEdit');
+    if (status == 'ok') {
+        gid = $('#uID').attr('value');
+        gnm = $('#uLogin').attr('value');
+        gds = $('#uDesc').attr('value');
+        gpw = $('#uPwd').attr('value');
+        gp2 = $('#uPwd2').attr('value');
+        $('#errorMessageText').html('');
+        if (gpw != gp2) {
+            $('#errorMessageText').html("Passwords doesn't match!");
+        }
+        else if (gnm == "") {
+            $('#errorMessageText').html("Login is empty!");
+        }
+        else {
+            $('#errorMessageText').load('uagModify.php', {'object': 'user', 'uid': gid, 'uname': gnm, 'udesc': gds, 'pwd': gpw});
+        }
+        resp = $('#errorMessageText').text();
+        if (resp == "") {
+            $('#errorMessageText').html("Unknown error");
+        }
+        toggle('blanket');
+        if (resp != "OK") {
+            popup('errorBox');
+        }
+    }
+    else {
+        toggle('blanket');
+    }
+    return false;
+}
+function confirmClose() {
+    popup('confirmBox');
+}
+function deleteUser(id) {
+    popup('confirmBox');
+    $('#errorMessageText').html("User to delete: " + id);
+    $('#errorMessageText').load('uagModify.php', {'object': 'userdel', 'uid': id});
+    resp = $('#errorMessageText').text();
+    if (resp == "") {
+        $('#errorMessageText').html("Unknown error");
+    }
+    if (resp != "OK") {
+        popup('errorBox');
+    }
+    return false;
+}
+function deleteUserMsg(uid, uname) {
+    btn = document.getElementById('confirmOkButton');
+    btn.onclick = new Function("deleteUser(" + uid + ")");
+    //$('#confirmOkButton').click(function(){return deleteUser(uid);});
+    $('#confirmMessageText').html("Are you sure to delete user '" + uname + "'?");
+    popup('confirmBox');
+    return false;
+}
+function deleteGroup(id) {
+    popup('confirmBox');
+    $('#errorMessageText').html("Group to delete: " + id);
+    $('#errorMessageText').load('uagModify.php', {'object': 'groupdel', 'gid': id});
+    resp = $('#errorMessageText').text();
+    if (resp == "") {
+        $('#errorMessageText').html("Unknown error");
+    }
+    if (resp != "OK") {
+        popup('errorBox');
+    }
+    //$('#confirmOkButton').click(function(){return false;});
+    return false;
+}
+function deleteGroupMsg(uid, uname) {
+    btn = document.getElementById('confirmOkButton');
+    btn.onclick = new Function("deleteGroup(" + uid + ")");
+    //$('#confirmOkButton').click(function(){return deleteGroup(uid);});
+    $('#confirmMessageText').html("Are you sure to delete group '" + uname + "'?");
+    popup('confirmBox');
+    return false;
+}
+function handleErrorBoxClick(st) {
+    popup('errorBox');
+}
 </script>
 <table width="100%"><tr valign="top">
     <td widht="50%"><fieldset class="fields">
         <legend class="fields"><img src="[{$theme}]/img/users_online.png" class="actionIco"> Users</legend>
-        <a href="#"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco"></a>
-        <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
-        <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a>
+        <a href="#" onclick="return userAdd();"><img src="[{$theme}]/img/btn_add.png" title="add user" class="actionIco"></a>
+        <a href="#" onclick="return false;"><img src="[{$theme}]/img/btn_stop.png" title="delete selected users" class="actionIco"></a>
         <br/>
         <table class="grid" width="100%" id='userstable'>
         <tr><th class="grid">Login</th><th class="grid">Full Name</th><th class="grid">Groups</th><th class="grid">Actions</th></tr>
@@ -31,40 +199,122 @@ function InvertUsers (id) {
                 <td class="grid">[{section name=grpN loop=$userList[user][10]}]
                     [{$userList[user][10][grpN]}][{if not $smarty.section.grpN.last}], [{/if}]
                 [{/section}]</td><td class="grid">
-                                <a href="#"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco"></a>
-                                <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
-                                <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a></td></tr>
+                                <a href="#" onclick="return deleteUserMsg('[{$userList[user][9]}]', '[{$userList[user][0]}]');">
+                                    <img src="[{$theme}]/img/btn_stop.png" title="delete user" class="actionIco"></a>
+                                <a href="#" onclick="return userEdit('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
+                                    <img src="[{$theme}]/img/btn_edit.png" title="change user" class="actionIco"></a>
+                                <a href="#" onclick="return userPwd('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');"">
+                                    <img src="[{$theme}]/img/btn_pwd.png" title="reset password" class="actionIco"></a></td></tr>
         [{/section}]
-        <tr><td class="grid"><input type="checkbox" name="uid2" id="uid2">user</td><td class="grid">System user</td><td class="grid">nobody</td><td class="grid">
-                                <a href="#"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco"></a>
-                                <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
-                                <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a></td></tr>
         </table>
         <br/>
-        <span><a href="#" class="action" onclick="SelectUsers('userstable'); return false;"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco">&nbsp;Select all</a></span>
-        <span><a href="#" class="action" onclick="UnselectUsers('userstable'); return false;"><img src="bad.gif" alt="change" class="actionIco">&nbsp;Unselect all</a></span>
-        <span><a href="#" class="action" onclick="InvertUsers('userstable'); return false;"><img src="bad.gif" alt="reset password" class="actionIco">&nbsp;Invert selection</a></span>
+        <span><a href="#" class="action" onclick="SelectUsers('userstable'); return false;"><img src="[{$theme}]/img/users_total.png" class="actionIco">&nbsp;Select all</a></span>
+        <span><a href="#" class="action" onclick="UnselectUsers('userstable'); return false;"><img src="[{$theme}]/img/users_online.png" class="actionIco">&nbsp;Unselect all</a></span>
+        <span><a href="#" class="action" onclick="InvertUsers('userstable'); return false;"><img src="[{$theme}]/img/db_keys.png" class="actionIco">&nbsp;Invert selection</a></span>
         </fieldset>
     </td><td><fieldset class="fields">
         <legend class="fields"><img src="[{$theme}]/img/users_total.png" class="actionIco"> Groups</legend>
-        <a href="#"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco"></a>
-        <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
-        <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a>
+        <a href="#" onclick="return groupAdd();"><img src="[{$theme}]/img/btn_add.png" title="add group" class="actionIco"></a>
+        <a href="#"onclick="return false;"><img src="[{$theme}]/img/btn_stop.png" title="delete selected groups" class="actionIco"></a>
         <br/>
         <table class="grid" width="100%" id='groupstable'>
         <tr><th class="grid">Name</th><th class="grid">Description</th><th class="grid">Actions</th></tr>
         [{section name=group loop=$groupList}]
         <tr><td class="grid"><input type="checkbox" name="gid[{$groupList[group][9]}]" id="gid[{$groupList[group][9]}]">[{$groupList[group][0]}]</td><td class="grid">[{$groupList[group][1]}]</td><td class="grid">
-                                <a href="#"><img src="bad.gif" alt="delete" class="actionIco"></a>
-                                <a href="#"><img src="bad.gif" alt="change" class="actionIco"></a>
-                                <a href="#"><img src="bad.gif" alt="reset password" class="actionIco"></a>
+                                <a href="#" onclick="return deleteGroupMsg('[{$groupList[group][9]}]', '[{$groupList[group][0]}]');">
+                                    <img src="[{$theme}]/img/btn_stop.png" title="delete group" class="actionIco"></a>
+                                <a href="#" onclick="return groupEdit('[{$groupList[group][0]}]', '[{$groupList[group][1]}]', '[{$groupList[group][9]}]')">
+                                    <img src="[{$theme}]/img/btn_edit.png" title="change group" class="actionIco"></a>
         [{/section}]
         </td></tr>
         </table>
         <br/>
-        <span><a href="#" class="action" onclick="SelectUsers('groupstable'); return false;"><img src="[{$theme}]/img/users_online.png" alt="delete" class="actionIco">&nbsp;Select all</a></span>
-        <span><a href="#" class="action" onclick="UnselectUsers('groupstable'); return false;"><img src="bad.gif" alt="change" class="actionIco">&nbsp;Unselect all</a></span>
-        <span><a href="#" class="action" onclick="InvertUsers('groupstable'); return false;"><img src="bad.gif" alt="reset password" class="actionIco">&nbsp;Invert selection</a></span>
+        <span><a href="#" class="action" onclick="SelectUsers('groupstable'); return false;"><img src="[{$theme}]/img/users_total.png" class="actionIco">&nbsp;Select all</a></span>
+        <span><a href="#" class="action" onclick="UnselectUsers('groupstable'); return false;"><img src="[{$theme}]/img/users_online.png" class="actionIco">&nbsp;Unselect all</a></span>
+        <span><a href="#" class="action" onclick="InvertUsers('groupstable'); return false;"><img src="[{$theme}]/img/db_keys.png" class="actionIco">&nbsp;Invert selection</a></span>
         </fieldset>
     </td>
 </tr></table>
+<!-- popup windows -->
+<div id="blanket" style='display:none;'></div>
+<!-- group edit -->
+<div id="groupEdit" class="messageBox" style='display:none;'>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr><td width="0"><img src="/[{$theme}]/img/tl.png" alt="" border="0"></td><td class="frameTop" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/tr.png" alt="" border="0"></td></tr>
+        <tr><td width="0" class="frameLeft"></td><td class="frameBody" width="100%" height="100%" id="mainView">
+        <h3 id="groupsHead" class="messageBoxNotifyHead">Edit Group</h3>
+        <table class="data" width="100%">
+            <tr><td><b>Group Name</b></td><td><input type="text" id="gName" value="" class="text"></td></tr>
+            <tr><td><b>Group Description</b></td><td><input type="text" id="gDesc" value="" class="text"></td></tr>
+        </table>
+        <input type="hidden" id="gID" value="">
+        <div align="center" style="margin: 5px;">
+            <a href="#" onclick="groupBoxClick('ok'); return false;" class="okButton">
+                <span id="groupBoxNotifyOk">OK</span>
+            </a>
+            <a href="#" onclick="groupBoxClick('cancel'); return false;" class="cancelButton">
+                <span id="groupBoxNotifyCancel">Cancel</span>
+            </a>
+        </div>
+        </td><td width="0"  class="frameRight"></td></tr>
+        <tr><td width="0"><img src="/[{$theme}]/img/bl.png" alt="" border="0"></td><td class="frameBottom" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/br.png" alt="" border="0"></td></tr>
+    </table>
+</div>
+<!-- user edit -->
+<div id="userEdit" class="messageBox" style='display:none;'>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr><td width="0"><img src="/[{$theme}]/img/tl.png" alt="" border="0"></td><td class="frameTop" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/tr.png" alt="" border="0"></td></tr>
+        <tr><td width="0" class="frameLeft"></td><td class="frameBody" width="100%" height="100%" id="mainView">
+        <h3 id="usersHead" class="messageBoxNotifyHead">Edit Group</h3>
+        <table class="data" width="100%">
+            <tr><td><b>Login name</b></td><td><input type="text" id="uLogin" value="" class="text"></td></tr>
+            <tr><td><b>Full user name</b></td><td><input type="text" id="uDesc" value="" class="text"></td></tr>
+            <tr id="pwd1row"><td><b>Password</b></td><td><input type="password" id="uPwd" value="" class="text"></td></tr>
+            <tr id="pwd2row"><td><b>Confirm password</b></td><td><input type="password" id="uPwd2" value="" class="text"></td></tr>
+        </table>
+        <input type="hidden" name="uID" value="">
+        <div align="center" style="margin: 5px;">
+            <a href="#" onclick="userBoxClick('ok'); return false;" class="okButton">
+                <span id="userBoxNotifyOk">OK</span>
+            </a>
+            <a href="#" onclick="userBoxClick('cancel'); return false;" class="cancelButton">
+                <span id="userBoxNotifyCancel">Cancel</span>
+            </a>
+        </div>
+        </td><td width="0"  class="frameRight"></td></tr>
+        <tr><td width="0"><img src="/[{$theme}]/img/bl.png" alt="" border="0"></td><td class="frameBottom" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/br.png" alt="" border="0"></td></tr>
+    </table>
+</div>
+<!-- error box -->
+<div id="errorBox" class="messageBox" style='display:none;'>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr><td width="0"><img src="/[{$theme}]/img/tl.png" alt="" border="0"></td><td class="frameTop" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/tr.png" alt="" border="0"></td></tr>
+        <tr><td width="0" class="frameLeft"></td><td class="frameBody" width="100%" height="100%" id="mainView">
+        <h3 id="groupsHead" class="messageBoxNotifyHead">Error!</h3>
+        <img src="/[{$theme}]/img/exit.png" align="left"><p class="message" id="errorMessageText">-</p>
+        <div class="spacer" align="center">
+            <a href="#" onclick="handleErrorBoxClick('ok'); return false;" class="cancelButton">
+                <span id="errorBoxNotifyOk">Close</span>
+            </a>
+        </div>        </td><td width="0"  class="frameRight"></td></tr>
+        <tr><td width="0"><img src="/[{$theme}]/img/bl.png" alt="" border="0"></td><td class="frameBottom" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/br.png" alt="" border="0"></td></tr>
+    </table>
+</div>
+<!-- confirm box -->
+<div id="confirmBox" class="messageBox" style='display:none;'>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr><td width="0"><img src="/[{$theme}]/img/tl.png" alt="" border="0"></td><td class="frameTop" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/tr.png" alt="" border="0"></td></tr>
+        <tr><td width="0" class="frameLeft"></td><td class="frameBody" width="100%" height="100%" id="mainView">
+        <h3 id="groupsHead" class="messageBoxNotifyHead">Confirmation</h3>
+        <img src="/[{$theme}]/img/warning.png" align="left"><p class="message" id="confirmMessageText">-</p>
+        <div class="spacer" align="center">
+            <a href="#" onclick="return false;" class="okButton" id="confirmOkButton">
+                <span id="errorBoxNotifyOk">Yes</span>
+            </a>
+            <a href="#" onclick="confirmClose(); return false;" class="cancelButton">
+                <span id="userBoxNotifyCancel">No</span>
+            </a>
+        </div>        </td><td width="0"  class="frameRight"></td></tr>
+        <tr><td width="0"><img src="/[{$theme}]/img/bl.png" alt="" border="0"></td><td class="frameBottom" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/br.png" alt="" border="0"></td></tr>
+    </table>
+</div>

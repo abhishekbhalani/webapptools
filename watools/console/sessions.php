@@ -38,9 +38,6 @@ if ($lang == '') {
     $lang = 'en';
 }
 
-if (isset($_COOKIE['WATLANG'])) {
-}
-
 if (isset($_COOKIE['WATSESSION'])) {
     $sid = $_COOKIE['WATSESSION'];
     if ($r->sismember("Sessions", $sid) == 0) {
@@ -115,6 +112,8 @@ if (is_null($gSession)) {
 if (!is_null($gSession)) {
     // save session
     setcookie('WATSESSION', $gSession['id'], $gSession[0]);
+    setcookie('WATTHEME', $theme);
+    setcookie('WATLANG', $lang);
 
     // check for authentication mode
     $gUser = GetUserByID($gSession[1]);
