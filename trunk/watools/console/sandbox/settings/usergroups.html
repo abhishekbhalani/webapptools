@@ -222,8 +222,10 @@ function handleErrorBoxClick(st) {
                                     <img src="[{$theme}]/img/btn_stop.png" title="delete user" class="actionIco"></a>
                                 <a href="#" onclick="return userEdit('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
                                     <img src="[{$theme}]/img/btn_edit.png" title="change user" class="actionIco"></a>
-                                <a href="#" onclick="return userPwd('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');"">
-                                    <img src="[{$theme}]/img/btn_pwd.png" title="reset password" class="actionIco"></a></td></tr>
+                                <a href="#" onclick="return userPwd('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
+                                    <img src="[{$theme}]/img/btn_pwd.png" title="reset password" class="actionIco"></a>
+                                <a href="#" onclick="return false;">
+                                    <img src="[{$theme}]/img/users_total.png" title="define groups" class="actionIco"></a></td></tr>
         [{/section}]
         </table>
         <br/>
@@ -266,7 +268,7 @@ function handleErrorBoxClick(st) {
             <tr><td><b>Group Name</b></td><td><input type="text" id="gName" value="" class="text"></td></tr>
             <tr><td><b>Group Description</b></td><td><input type="text" id="gDesc" value="" class="text"></td></tr>
         </table>
-        <input type="hidden" id="gID" value="">
+        <input type="hidden" id="gID" name="gID" value="">
         <div align="center" style="margin: 5px;">
             <a href="#" onclick="groupBoxClick('ok'); return false;" class="okButton">
                 <span id="groupBoxNotifyOk">OK</span>
@@ -280,7 +282,7 @@ function handleErrorBoxClick(st) {
     </table>
 </div>
 <!-- user edit -->
-<div id="userEdit" class="messageBox" style='display:none;'>
+<div id="userEdit" class="messageBox" style='display:none; height: 400px;'>
     <table width="100%" border="0" cellpadding="0" cellspacing="0">
         <tr><td width="0"><img src="/[{$theme}]/img/tl.png" alt="" border="0"></td><td class="frameTop" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/tr.png" alt="" border="0"></td></tr>
         <tr><td width="0" class="frameLeft"></td><td class="frameBody" width="100%" height="100%" id="mainView">
@@ -290,8 +292,11 @@ function handleErrorBoxClick(st) {
             <tr><td><b>Full user name</b></td><td><input type="text" id="uDesc" value="" class="text"></td></tr>
             <tr id="pwd1row"><td><b>Password</b></td><td><input type="password" id="uPwd" value="" class="text"></td></tr>
             <tr id="pwd2row"><td><b>Confirm password</b></td><td><input type="password" id="uPwd2" value="" class="text"></td></tr>
+            <tr><td><b>Primary group</b></td><td><select id="uGroup" name="uGroup">
+                    [{html_options values=$grpIds output=$grpNames}]
+                    </select></td></tr>
         </table>
-        <input type="hidden" name="uID" value="">
+        <input type="hidden" name="uID" id="uID" value="">
         <div align="center" style="margin: 5px;">
             <a href="#" onclick="userBoxClick('ok'); return false;" class="okButton">
                 <span id="userBoxNotifyOk">OK</span>
