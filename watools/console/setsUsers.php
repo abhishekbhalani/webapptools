@@ -22,6 +22,8 @@ if (!is_null($r)) {
     }
 }
 $groups = array();
+$grpIds = array();
+$grpNames = array();
 if (!is_null($r)) {
     $grpnm = $r->keys("GroupName:*");
     foreach ($grpnm as $l) {
@@ -29,6 +31,8 @@ if (!is_null($r)) {
         $u = GetGroupByName($l);
         $u[9] = $u['id'];
         $groups[] = $u;
+        $grpIds[] = $u['id'];
+        $grpNames[] = $u[0];
     }
 }
 
@@ -36,5 +40,7 @@ $smarty->assign('UserName', $gUser[0]);
 $smarty->assign('theme', $themeName);
 $smarty->assign('userList', $users);
 $smarty->assign('groupList', $groups);
+$smarty->assign('grpIds', $grpIds);
+$smarty->assign('grpNames', $grpNames);
 $smarty->display('settings/usergroups.html' . $themeLangExt);
 ?>
