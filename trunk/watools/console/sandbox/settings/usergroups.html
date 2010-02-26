@@ -117,6 +117,8 @@ function userBoxClick(status) {
         gds = $('#uDesc').attr('value');
         gpw = $('#uPwd').attr('value');
         gp2 = $('#uPwd2').attr('value');
+        grp = $('#uGroup').attr('value');
+        
         $('#errorMessageText').html('');
         if (gpw != gp2) {
             $('#errorMessageText').html("Passwords doesn't match!");
@@ -125,7 +127,7 @@ function userBoxClick(status) {
             $('#errorMessageText').html("Login is empty!");
         }
         else {
-            $('#errorMessageText').load('uagModify.php', {'object': 'user', 'uid': gid, 'uname': gnm, 'udesc': gds, 'pwd': gpw},
+            $('#errorMessageText').load('uagModify.php', {'object': 'user', 'uid': gid, 'uname': gnm, 'udesc': gds, 'pwd': gpw, 'grp': grp},
                 function(data) {
                     resp = jQuery.trim(data);
                     if (resp == "") {

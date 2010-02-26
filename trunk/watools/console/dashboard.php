@@ -63,6 +63,7 @@ $smarty->assign('ramStat', $ramStat);
 $smarty->assign('dskStat', $dskStat);
 
 $smarty->assign('UserName', $gUser[0]);
+$smarty->assign('UserDesc', $gUser[1]);
 $smarty->assign('SysUser', $isSystem);
 $smarty->assign('theme', $themeName);
 $smarty->display('dashboard.html' . $themeLangExt);
