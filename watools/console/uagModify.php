@@ -18,19 +18,50 @@ if (is_null($r)) {
 
 $action = $_POST['object'];
 if ($action == 'user') {
+    $msg = "OK";
+    $uid = $_POST['uid'];
+    $uname = $_POST['uname'];
+    $udesc = $_POST['udesc'];
+    $pwd = $_POST['pwd'];
+    $grp = $_POST['grp'];
+    $uid *= 2;
+    $uid /= 2;
+    
+    if ($uid == -1) {
+        if ($uname != "") {
+            $res = CreateUser($uname, $udesc, $pwd);
+            if ($res == -2) {
+                $msg .= gettext('User with same name already exist: ') . $uname;
+            }
+            else if ($res < 1) {
+                $msg .= gettext('Can\'t create user!');
+            }
+            else {
+                if (!AddUserToGroupID($uname, $grp)) {
+                    //$msg .= gettext('Can\'t add user to group! ') . $RedisError;
+                }
+            }
+        }
+        else {
+            $msg = gettext('Invalid request!');
+        }
+    }
+    else {
+        // edit user
+        $res = ModifyUser($uid, $uname, $udesc, $pwd);
+    }
+    echo $msg;
+    exit(0);
 }
 else if ($action == 'group') {
     $msg = "OK";
     $gid = $_POST['gid'];
     $gname = $_POST['gname'];
     $gdesc = $_POST['gdesc'];
-    if (!is_int($gid)) {
-        $gid = -1;
-    }
-//$msg = "OK: $gid, $gname, $gdesc";
-//echo $msg;
-//exit(0);
-    if ($gid == -1) {
+    $gid *= 2;
+    $gid /= 2;
+
+    if ($gid <= 0) {
         // add new group
         $res = CreateGroup($gname, $gdesc);
         if ($res == -2) {
@@ -42,6 +73,9 @@ else if ($action == 'group') {
     }
     else {
         // modify existing group
+        $data = $r->lrange("Group:$gid", 0, 1);
+        $r->delete("GroupName:" . $data[0]);
+        $r->set("GroupName:" . $gname, $gid);
         $r->lset("Group:$gid", $gname, 0);
         $r->lset("Group:$gid", $gdesc, 1);
     }
@@ -49,8 +83,44 @@ else if ($action == 'group') {
     exit(0);
 }
 else if ($action == 'userdel') {
+    $msg = "OK";
+    $uid = $_POST['uid'];
+    $uid *= 2;
+    $uid /= 2;
+
+    if ($uid > 0) {
+        if ($uid == 1) {
+            $msg = gettext("Can't delete system owner!");
+        }
+        else {
+            DeleteUser($uid);
+        }
+    }
+    else {
+        $msg = gettext('Invalid request!');
+    }
+    echo $msg;
+    exit(0);
 }
 else if ($action == 'groupdel') {
+    $msg = "OK";
+    $gid = $_POST['gid'];
+    $gid *= 2;
+    $gid /= 2;
+
+    if ($gid > 0) {
+        if ($gid == 1) {
+            $msg = gettext("Can't delete system group!");
+        }
+        else {
+            DeleteGroup($gid);
+        }
+    }
+    else {
+        $msg = gettext('Invalid request!');
+    }
+    echo $msg;
+    exit(0);
 }
 else {
     echo gettext('Invalid request!');

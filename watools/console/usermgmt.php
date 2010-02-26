@@ -28,6 +28,26 @@ function CreateGroup($groupName, $groupDesc)
     return $gid;
 }
 
+function DeleteGroup($gid)
+{
+    $result = NULL;
+    
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        if ($r->exists("Group:$gid") == 1) {
+            $nm = $r->lrange("Group:$gid", 0, 1);
+            $mems = $r->smembers("Group:$gid:Members");
+            foreach ($mems as $m) {
+                RemoveUserGroup($m, $gid);
+            }
+            $r->delete("Group:$gid:Members");
+            $r->delete("Group:$gid");
+            $r->delete("GroupName:". $nm[0]);
+            $result = true;
+        }
+    }
+    return $result;
+}
 function CreateUser($userName, $userDesc, $userPwd)
 {
     $uid = -1;
@@ -60,8 +80,44 @@ function CreateUser($userName, $userDesc, $userPwd)
     return $uid;
 }
 
+function DeleteUser($uid)
+{
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        if ($r->exists("User:$uid") == 1) {
+            $data = $r->lrange("User:$uid", 0, 1);
+            $r->delete("Login:" . $data[0]);
+            $mems = $r->smembers("User:$uid:Groups");
+            foreach($mems as $m) {
+                if ($r->exists("Group:$m:Members") == 1) {
+                     $r->srem("Group:$m:Members", $uid);
+                }
+            }
+            $r->delete("User:$uid");
+            $r->delete("User:$uid:Groups");
+        }
+    }    
+}
+
+function ModifyUser($uid, $userName, $userDesc, $userPwd)
+{
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        $data = $r->lrange("User:$uid", 0, 1);
+        $r->delete("Login:" . $data[0]);
+        $r->set("Login:" . $userName, $uid);
+        $r->lset("User:$uid", $userName, 0);
+        $r->lset("User:$uid", $userDesc, 1);
+        if ($userPwd != "") {
+            $pwd = md5($userPwd);
+            $r->lset("User:$uid", $pwd, 2);
+        }
+    }
+    return true;
+}
 function AddUserToGroup($userName, $groupName)
 {
+    global $RedisError;
     $result = false;
 
     $r = GetRedisConnection();
@@ -73,6 +129,48 @@ function AddUserToGroup($userName, $groupName)
         }
         if ($r->exists("GroupName:$groupName") == 1) {
             $gid = $r->get("GroupName:$groupName");
+        }
+        if ($uid > -1 && $gid > -1) {
+            // add user to group
+            if ($r->sismember("User:$uid:Groups", $gid) == 0) {
+                $msg = $r->sadd("User:$uid:Groups", $gid);
+                if ($msg == 0) {
+                    $RedisError = gettext("Can't save") . " User:$uid:Groups => $msg.";
+                    return $result;
+                }
+            }
+            if ($r->sismember("Group:$gid:Members", $uid) == 0) {
+                $msg = $r->sadd("Group:$gid:Members", $uid);
+                if ($msg == 0) {
+                    $RedisError = gettext("Can't save") . " Group:$gid:Members => $msg.";
+                    return $result;
+                }
+            }
+            $RedisError = "";
+            $result = true;
+        }
+        else {
+            $RedisError = gettext("Can't find User or Group!");
+        }
+    }
+    
+    return $refult;
+}
+
+function AddUserToGroupID($userName, $groupID)
+{
+    global $RedisError;
+    $result = false;
+
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        $uid = -1;
+        $gid = -1;
+        if ($r->exists("Login:$userName") == 1) {
+            $uid = $r->get("Login:$userName");
+        }
+        if ($r->exists("Group:$groupID") == 1) {
+            $gid = $groupID;
         }
         if ($uid > -1 && $gid > -1) {
             // add user to group
@@ -118,6 +216,17 @@ function GetGroupByName($groupName)
     return $result;
 }
 
+function RemoveUserGroup($uid, $gid)
+{
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        if ($r->exists("User:$uid") == 1) {
+            if ($r->exists("User:$uid:Groups") == 1) {
+                 $r->sdel("User:$uid:Groups", $gid);
+            }
+        }
+    }
+}
 function GetGroupByID($gid)
 {
     $result = NULL;
