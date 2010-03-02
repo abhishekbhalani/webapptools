@@ -1,7 +1,7 @@
 <h3 class="ui-widget-header-h3">Dashboard</h3>
 [{if $SysUser === 18 }]
-<fieldset class="fields">
-<legend class="fields">Server</legend>
+<fieldset class="ui-widget">
+<legend class="ui-widget">Server</legend>
 <table border='0' class="data">
 <tr><td><img src="[{$theme}]/img/users_total.png" align="left"><b>Users in system:</b></td><td>12</td></tr>
 <tr><td><img src="[{$theme}]/img/users_online.png" align="left"><b>Users online:</b></td><td>5</td></tr>
@@ -14,8 +14,8 @@
 <br/>
 [{/if}]
 [{if $SysUser}]
-<fieldset class="fields">
-<legend class="fields">Redis Database</legend>
+<fieldset class="ui-widget ui-corner-all">
+<legend class="ui-widget">Redis Database</legend>
 <table border='0' class="data">
 <tr><td><img src="[{$theme}]/img/db_size.png" align="left"><b>Server version:</b></td><td>[{$redisVersion}]</td></tr>
 <tr><td><img src="[{$theme}]/img/db_keys.png" align="left"><b>Server role:</b></td><td>[{$redisRole}]</td></tr>
@@ -25,14 +25,14 @@
 </table>
 </fieldset>
 <br/>
-<fieldset class="fields">
-<legend class="fields">SQL Database</legend>
+<fieldset class="ui-widget ui-corner-all">
+<legend class="ui-widget">SQL Database</legend>
 <div class="data"><img src="[{$theme}]/img/sql_info.png" align="left"><b>Haven't any information</b></div>
 </fieldset>
 <br/>
 [{/if}]
-<fieldset class="fields">
-<legend class="fields">Server</legend>
+<fieldset class="ui-widget ui-corner-all">
+<legend class="ui-widget">Server</legend>
 <table border='0' class="data">
 <tr><td><img src="[{$theme}]/img/scanners_active.png" align="left"><b>Operating System:</b></td><td>[{$osName}]</td></tr>
 <tr><td><img src="[{$theme}]/img/db_keys.png" align="left"><b>CPU utilization:</b></td><td>[{$cpuStat}]</td></tr>
@@ -41,10 +41,10 @@
 </table>
 </fieldset>
 <br/>
-<fieldset class="fields">
-<legend class="fields">Personal Information</legend>
+<fieldset class="ui-widget ui-corner-all">
+<legend class="ui-widget">Personal Information</legend>
 <table border='0' class="data">
-<tr><td><img src="[{$theme}]/img/sql_info.png" align="left"><b>Information for [{$UserDesc}]</b></td><td>&nbsp;</td></tr>
+<tr><td colspan="2"><img src="[{$theme}]/img/sql_info.png" align="left"><b>Information for [{$UserDesc}]</b></td></tr>
 <tr><td><img src="[{$theme}]/img/tasks_active.png" align="left"><b>Active tasks:</b></td><td>20</td></tr>
 <tr><td><img src="[{$theme}]/img/reports_gens.png" align="left"><b>Reports generates:</b></td><td>3</td></tr>
 </table>
