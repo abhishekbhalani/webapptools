@@ -89,8 +89,11 @@ function DisplayThemePage($page, $lang)
         }
     }
     // somthing wrong...
-    $smarty->assign('BadTheme', $themeName);
-    $smarty->assign('BadPage', $page);
-    $smarty->display('templates_error.html');
+    $smarty->assign('messageTitle', gettext('Visualisation broken'));
+    $smarty->assign('messageText', gettext('Can\'t display page') . $page . gettext('in theme ') . $themeName .
+                    gettext('!<br>Contact your system administrator!'));
+    $smarty->assign('messageIcon', 'exit.png');
+    $smarty->assign('messageButton', 'OK');
+    $smarty->display('messageBox.html');
 }
 ?>

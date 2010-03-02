@@ -1,0 +1,22 @@
+<div id="messageBox" title="[{$messageTitle}]">
+    <table><tr>
+    <td><img src="/[{$theme}]/images/[{$messageIcon}]"</td>
+    <td><p>[{$messageText}]</p></td>
+    </tr></table>
+</div>
+<script>
+$(document).ready(function() {
+    $('#messageBox').dialog({
+        autoOpen: true,
+        height: 300,
+        width: 400,
+        modal: true,
+        buttons: {
+            '[{$messageButton}]': function() {
+                $(this).dialog('close');
+                document.location = '/';
+            }
+        }
+    });
+});
+</script>
