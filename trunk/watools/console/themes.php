@@ -72,7 +72,6 @@ function DisplayThemePage($page, $lang)
     $smarty->template_dir = $gBaseDir . '/theme';
     $smarty->compile_dir = $gBaseDir . '/theme/templates_c';
     $smarty->cache_dir = $gBaseDir . '/theme/cache';
-    $smarty->assign('theme', 'theme');
     $ext = $themeLangExt;
     if ($ext != "") {
         if (file_exists($gBaseDir . '/theme/' . $page . '.' . $themeLangExt)) {
