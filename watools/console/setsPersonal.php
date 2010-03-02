@@ -11,6 +11,5 @@ if (!CheckACL('settings/personal')) {
 
 $smarty->assign('UserName', $gUser[0]);
 $smarty->assign('userName', $gUser[1]);
-$smarty->assign('theme', $themeName);
-$smarty->display('settings/personal.html' . $themeLangExt);
+DisplayThemePage('settings/personal.html');
 ?>

@@ -9,5 +9,5 @@ if (!CheckACL('dashboard')) {
     exit(0);
 }
 
-echo "<h1>Authentication schemas and profiles</h1>\n";
+DisplayThemePage('auths.html');
 ?>

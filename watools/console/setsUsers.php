@@ -37,10 +37,9 @@ if (!is_null($r)) {
 }
 
 $smarty->assign('UserName', $gUser[0]);
-$smarty->assign('theme', $themeName);
 $smarty->assign('userList', $users);
 $smarty->assign('groupList', $groups);
 $smarty->assign('grpIds', $grpIds);
 $smarty->assign('grpNames', $grpNames);
-$smarty->display('settings/usergroups.html' . $themeLangExt);
+DisplayThemePage('settings/usergroups.html');
 ?>
