@@ -1,0 +1,25 @@
+<script>
+$(function() {
+    $('button').button();
+});
+</script>
+<div class="ui-widget">
+<table>
+<tr><td>Default system theme:</td><td><select name="theme">[{html_options values=$themes output=$thNames selected=$defTheme}]</select></td></tr>
+<tr><td>Default system language:</td><td><select name="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select></td></tr>
+<tr><td>&nbsp;</td><td><button onclick="SaveTheme();">Save</button></td></tr>
+</table>
+<table width="100%" id='themestable'>
+    <tr class="ui-widget-header">
+        <td width="150">Theme Name</td>
+        <td width="350">Screenshot</td>
+        <td>Description</td>
+    </tr>
+    [{section name=thm loop=$themes}]
+    <tr valign="top">
+        <td width="150">[{$thNames[thm]}]</td>
+        <td width="350"><img src="/[{$theme}]/images/screen_s.jpg" width="320" height="240"/></td>
+        <td>[{$thDesc[thm]}]</td>
+    </tr>
+    [{/section}]
+</div>

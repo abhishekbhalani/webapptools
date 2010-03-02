@@ -260,7 +260,7 @@ function deleteGroupMsg(uid, uname) {
         <a href="#" id="user-add" onclick="return userAdd();"><img src="[{$theme}]/img/btn_add.png" title="add user" class="ui-icon-img"></a>
         <a href="#" id="user-del" onclick="return false;"><img src="[{$theme}]/img/btn_stop.png" title="delete selected users" class="ui-icon-img"></a>
         <br/>
-        <table class="grid" width="100%" id='userstable'>
+        <table width="100%" id='userstable'>
         <tr class="ui-widget-header"><th class="grid">Login</th><th class="grid">Full Name</th><th class="grid">Groups</th><th class="grid">Actions</th></tr>
         [{section name=user loop=$userList}]
         <tr><td class="grid"><input type="checkbox" name="uid[{$userList[user][9]}]" id="uid[{$userList[user][9]}]">[{$userList[user][0]}]</td><td class="grid">[{$userList[user][1]}]</td>
@@ -268,13 +268,13 @@ function deleteGroupMsg(uid, uname) {
                     [{$userList[user][10][grpN]}][{if not $smarty.section.grpN.last}], [{/if}]
                 [{/section}]</td><td class="grid">
                                 <a href="#" onclick="return deleteUserMsg('[{$userList[user][9]}]', '[{$userList[user][0]}]');">
-                                    <img src="[{$theme}]/img/btn_stop.png" title="delete user" class="ui-icon-img"></a>
+                                    <img src="/[{$theme}]/img/btn_stop.png" title="delete user" class="ui-icon-img"></a>
                                 <a href="#" onclick="return userEdit('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
-                                    <img src="[{$theme}]/img/btn_edit.png" title="change user" class="ui-icon-img"></a>
+                                    <img src="/[{$theme}]/img/btn_edit.png" title="change user" class="ui-icon-img"></a>
                                 <a href="#" onclick="return userPwd('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
-                                    <img src="[{$theme}]/img/btn_pwd.png" title="reset password" class="ui-icon-img"></a>
+                                    <img src="/[{$theme}]/img/btn_pwd.png" title="reset password" class="ui-icon-img"></a>
                                 <a href="#" onclick="return false;">
-                                    <img src="[{$theme}]/img/users_total.png" title="define groups" class="ui-icon-img"></a></td></tr>
+                                    <img src="/[{$theme}]/img/users_total.png" title="define groups" class="ui-icon-img"></a></td></tr>
         [{/section}]
         </table>
         <br/>
@@ -287,7 +287,7 @@ function deleteGroupMsg(uid, uname) {
         <a href="#" id="group-add" onclick="return groupAdd();"><img src="[{$theme}]/img/btn_add.png" title="add group" class="ui-icon-img"></a>
         <a href="#" id="group-del" onclick="return false;"><img src="[{$theme}]/img/btn_stop.png" title="delete selected groups" class="ui-icon-img"></a>
         <br/>
-        <table class="grid" width="100%" id='groupstable'>
+        <table width="100%" id='groupstable'>
         <tr class="ui-widget-header"><th class="grid">Name</th><th class="grid">Description</th><th class="grid">Actions</th></tr>
         [{section name=group loop=$groupList}]
         <tr><td class="grid"><input type="checkbox" name="gid[{$groupList[group][9]}]" id="gid[{$groupList[group][9]}]">[{$groupList[group][0]}]</td><td class="grid">[{$groupList[group][1]}]</td><td class="grid">
