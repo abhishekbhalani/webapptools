@@ -9,7 +9,5 @@ if (!is_null($gSession) && !is_null($gUser)) {
     exit(0);
 }
 
-$smarty->assign('theme', $themeName);
-$smarty->display('index.html' . $themeLangExt);
-
+DisplayThemePage('index.html');
 ?>

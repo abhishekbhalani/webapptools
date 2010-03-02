@@ -9,5 +9,5 @@ if (!CheckACL('dashboard')) {
     exit(0);
 }
 
-echo "<h1>Dictionaries and directories</h1>\n";
+DisplayThemePage('dicts.html');
 ?>

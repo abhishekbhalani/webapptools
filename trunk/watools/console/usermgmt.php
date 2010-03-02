@@ -222,7 +222,7 @@ function RemoveUserGroup($uid, $gid)
     if (!is_null($r)) {
         if ($r->exists("User:$uid") == 1) {
             if ($r->exists("User:$uid:Groups") == 1) {
-                 $r->sdel("User:$uid:Groups", $gid);
+                 $r->srem("User:$uid:Groups", $gid);
             }
         }
     }

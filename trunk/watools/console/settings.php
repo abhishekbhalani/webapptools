@@ -4,7 +4,7 @@ require_once('./themes.php');
 require_once('./usermgmt.php');
 
 // todo check ACL for access
-if (!CheckACL('dashboard')) {
+if (!CheckACL('settings')) {
     PrintNoAccess();
     exit(0);
 }
@@ -17,6 +17,5 @@ if (!is_null($r)) {
 }
 $smarty->assign('UserName', $gUser[0]);
 $smarty->assign('SysUser', $isSystem);
-$smarty->assign('theme', $themeName);
-$smarty->display('settings.html' . $themeLangExt);
+DisplayThemePage('settings.html');
 ?>

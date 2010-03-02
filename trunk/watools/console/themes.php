@@ -40,11 +40,58 @@ function PrintNoAccess()
     global $smarty, $gUser, $themeName, $themeLangExt;
     
     $smarty->assign('UserName', $gUser[0]);
-    $smarty->assign('theme', $themeName);
     $smarty->assign('messageTitle', gettext('Access Denied'));
     $smarty->assign('messageText', gettext('Access denied for user ') . $gUser[0] . gettext('!<br>Contact your system administrator!'));
     $smarty->assign('messageIcon', 'exit.png');
     $smarty->assign('messageButton', 'OK');
-    $smarty->display('messageBox.html' . $themeLangExt);
+    DisplayThemePage('messageBox.html');
+}
+
+function DisplayThemePage($page, $lang)
+{
+    global $smarty, $themeName, $themeLangExt, $themeDir, $gBaseDir;
+    
+    $smarty->assign('theme', $themeName);
+    $ext = $themeLangExt;
+    if ($ext != "") {
+        if (file_exists($themeDir . '/' . $page . '.' . $themeLangExt)) {
+            $smarty->display($page . '.' . $themeLangExt);
+            return;
+        }
+        else {
+            $ext = "";
+        }
+    }
+    if ($ext == "") {
+        if (file_exists($themeDir . '/' . $page )) {
+            $smarty->display($page);
+            return;
+        }
+    }
+    // try to search in the default theme
+    $smarty->template_dir = $gBaseDir . '/theme';
+    $smarty->compile_dir = $gBaseDir . '/theme/templates_c';
+    $smarty->cache_dir = $gBaseDir . '/theme/cache';
+    $smarty->assign('theme', 'theme');
+    $ext = $themeLangExt;
+    if ($ext != "") {
+        if (file_exists($gBaseDir . '/theme/' . $page . '.' . $themeLangExt)) {
+            $smarty->display($page . '.' . $themeLangExt);
+            return;
+        }
+        else {
+            $ext = "";
+        }
+    }
+    if ($ext == "") {
+        if (file_exists($gBaseDir . '/theme/' . $page )) {
+            $smarty->display($page);
+            return;
+        }
+    }
+    // somthing wrong...
+    $smarty->assign('BadTheme', $themeName);
+    $smarty->assign('BadPage', $page);
+    $smarty->display('templates_error.html');
 }
 ?>

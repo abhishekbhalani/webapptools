@@ -1,79 +1,70 @@
 <html>
 <head>
 <title>Web "A" Tools</title>
-<link rel="stylesheet" type="text/css" href="/[{$theme}]/wat.css" />
-<script language="JavaScript">
-    function checkUser()
-    {
-	user = escape(document.forms[0].uname.value);
-	pswd = escape(document.forms[0].paswd.value);
-	params = "uname=" + user + "&paswd=" + pswd + "&ajax=true";
-
-	var oRequest;
-	try {
-	    oRequest=new XMLHttpRequest();
-	} catch (e)   {
-	    try {
-		oRequest=new ActiveXObject("Msxml2.XMLHTTP");
-	    } catch (e) {
-		try {
-		    oRequest=new ActiveXObject("Microsoft.XMLHTTP");
-		} catch (e) {
-		    alert("YOUR BROWSER DOESN'T SUPPORT AJAX!");
-		    return false;
-		}
-	    }
-	}
-	oRequest.open("POST", "/login.php", false);
-	oRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	oRequest.send(params);
-	
-	msg = oRequest.responseText;
-	if (msg == 'SUCCESS') {
-	    return true;
-	}
-	// else - show message
-	alert(msg);
-	return false;
-    }
+<link type="text/css" href="/[{$theme}]/wat.css" rel="stylesheet" />	
+<script type="text/javascript" src="/scripts/jquery.js"></script>
+<script type="text/javascript" src="/scripts/jquery-ui.js"></script>
+<script language="JavaScript" src="/scripts/chkUser.js"></script>
+<script type="text/javascript">
+    $(function(){
+        // Dialog			
+        $('#dialog').dialog({
+            autoOpen: true,
+            draggable: false,
+            resizable: false,
+            closeOnEscape:false,
+            modal: false,
+            width: 400,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+            buttons: {
+                "Sign in": function() {
+                    var name = $("#uname").attr('value');
+                    var pwd = $("#paswd").attr('value');
+                    var resp = CheckUser(name, pwd);
+                    if (resp == 'SUCCESS') {
+                        $('#tips')
+                            .text('')
+                            .hide();
+                            document.location = "index.php";
+                    }
+                    else {
+                        $('#tips')
+                            .html('<span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>' + resp)
+                            .show();
+                        setTimeout(function() {
+                            $('#tips').fadeOut("slow");
+                        }, 2000);
+                    }
+                }
+            }
+        });
+        $('#tips').hide();
+    });
 </script>
 </head>
 <body>
 <div id="bg"><img src="/[{$theme}]/img/bg01.jpg" width="100%" height="100%" alt=""></div>
-<div id="toolbar" width="100%">
-<table width="100%" border="0"><tr valign="top">
-	<td width="1"><img id="appIcon" src="/[{$theme}]/img/appIcon.png" alt="" border="0"></td>
-	<td><p id="titleInfo">Login to Web "A" Tools Server</p></div></td>
-</tr></table></div>
-<div id="content">
-<table border="0" cellpadding="0" cellspacing="0" width="100%">
-    <tr><td width="50%">&nbsp;</td>
-    <td>
-        <table width="100%" border="0" cellpadding="0" cellspacing="0">
-        <tr><td width="0"><img src="/[{$theme}]/img/tl.png" alt="" border="0"></td><td class="frameTop" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/tr.png" alt="" border="0"></td></tr>
-        <tr><td width="0" class="frameLeft"></td><td class="frameBody" width="100%" height="100%" id="mainView"><h1>Login</h1>
-	<form action="index.php" method="POST" onsubmit="return checkUser();">
-        <table>
-            <tr>
-                <td rowspan="3" valign="top"><img src="/[{$theme}]/img/appIcon.png" border="0"></td>
-                <td>Username</td>
-                <td><input type="text" name="uname"></td>
-            </tr>
-            <tr>
-                <td>Password</td>
-                <td><input type="password" name="paswd"></td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td><input type="submit" value="Sign in"></td>
-            </tr>
-        </table>
-	</form>
-        </td><td width="0"  class="frameRight"></td></tr>
-        <tr><td width="0"><img src="/[{$theme}]/img/bl.png" alt="" border="0"></td><td class="frameBottom" width="100%"> </td><td width="0"><img src="/[{$theme}]/img/br.png" alt="" border="0"></td></tr>
-        </table>
-    </td><td width="50%"> </td></tr>
-</table>
+<div id="toolbar" width="100%" class="toolbar">
+    <table width="100%" border="0"><tr valign="top">
+    <td width="1"><a href="/main.php"><img id="appIcon" src="/[{$theme}]/img/appIcon.png" alt="" border="0"></a></td>
+    <td><p class="toolbar">Web "A" Tools Server</p></td>
+    </tr></table>
+</div>
+<div id="dialog" title="Login">
+    <table>
+        <tr>
+            <td rowspan="3" valign="top"><img src="/[{$theme}]/images/appIcon.png" border="0"></td>
+            <td>Username</td>
+            <td><input type="text" id="uname" name="uname"></td>
+        </tr>
+        <tr>
+            <td>Password</td>
+            <td><input type="password" id="paswd" name="paswd"></td>
+        </tr>
+        <tr>
+            <td colspan="2"><p id="tips" class="ui-state-error ui-corner-all" width="100%">All fields are required.</p></td>
+        </tr>
+    </table>
 </div>
 </body>
 </html>

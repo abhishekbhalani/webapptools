@@ -9,5 +9,5 @@ if (!CheckACL('dashboard')) {
     exit(0);
 }
 
-echo "<h1>Scanning profiles</h1>\n";
+DisplayThemePage('profiles.html');
 ?>
