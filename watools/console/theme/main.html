@@ -40,7 +40,11 @@
 <body>
 <div id="content">
 <table width="100%" border="0"><tr>
-    <td class="button-panel" valign="top" width="250px">
+    <td class="button-panel" valign="top" width="200px">
+        <button id="btnTestRefresh" onClick="document.location='/';">Logged as [{$UserName}]</button>
+        <script>
+        $("#btnTestRefresh").button({icons: {primary: 'ui-icon-refresh'}}).width("200px");
+        </script>
         <ol id="selectable" class="leftMenu">
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/task.png" border="0" align="middle"/>Tasks</li>

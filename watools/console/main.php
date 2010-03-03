@@ -10,6 +10,5 @@ if (! CheckACL('main')) {
 }
 
 $smarty->assign('UserName', $gUser[0]);
-$smarty->assign('theme', $themeName);
-$smarty->display('main.html' . $themeLangExt);
+DisplayThemePage('main.html');
 ?>
