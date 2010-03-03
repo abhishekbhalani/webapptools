@@ -485,7 +485,7 @@ body { margin: 0; padding: 0; height: 100%; font: 13px "Trebuchet MS", sans-seri
 table {font-size: 100%;}
 
 .leftMenu .ui-selecting { background: #3BAAE3; }
-.leftMenu .ui-selected { background: #3BAAE3 url(images/ui-bg_glass_50_3baae3_1x400.png) repeat-x scroll 50% 50%; }
+.leftMenu .ui-selected { background: #3BAAE3 url(images/ui-bg_glass_50_3baae3_1x400.png) repeat-x scroll 50% 50%; color: #ffffff; }
 .leftMenu { list-style-type: none; margin-bottom: 5px; padding: 0; font-family: Segoe UI, Arial, sans-serif; font-weight: bold; }
 .leftMenu li { margin: 3px; padding: 0.4em; font-size: 1em; border: 1px solid #8e846b; }
 
