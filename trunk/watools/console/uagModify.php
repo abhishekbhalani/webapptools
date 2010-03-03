@@ -122,6 +122,39 @@ else if ($action == 'groupdel') {
     echo $msg;
     exit(0);
 }
+else if ($action == 'userself') {
+    $msg = gettext('Invalid request!');
+    $desc = $_POST['desc'];
+    $opwd = $_POST['opwd'];
+    $pwd1 = $_POST['pwd1'];
+    $pwd2 = $_POST['pwd2'];
+    
+    if (!is_null($gUser)) {
+        $uid = $gUser['id'];
+        if ($opwd == "") {
+            $gUser[1] = $desc;
+            $r->lset("User:$uid", $desc, 1);
+            $msg = "OK";
+        }
+        else {
+            if (CheckUserPassword($opwd)) {
+                if ($pwd1 == $pwd2) {
+                    $res = ModifyUser($uid, $gUser[0], $desc, $pwd1);
+                    $msg = "OK";
+                }
+                else {
+                    $msg = gettext('New password doesn\'t match the confirmation!');
+                }
+            }
+            else {
+                $msg = gettext('Invalid password!');
+            }
+        }
+    }
+    
+    echo $msg;
+    exit(0);
+}
 else {
     echo gettext('Invalid request!');
 }

@@ -90,7 +90,7 @@ function DisplayThemePage($page, $lang)
     }
     // somthing wrong...
     $smarty->assign('messageTitle', gettext('Visualisation broken'));
-    $smarty->assign('messageText', gettext('Can\'t display page') . $page . gettext('in theme ') . $themeName .
+    $smarty->assign('messageText', gettext('Can\'t display page ') . $page . gettext(' in theme ') . $themeName .
                     gettext('!<br>Contact your system administrator!'));
     $smarty->assign('messageIcon', 'exit.png');
     $smarty->assign('messageButton', 'OK');

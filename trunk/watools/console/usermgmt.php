@@ -72,6 +72,16 @@ function CreateUser($userName, $userDesc, $userPwd)
             if ($msg != "OK") {
                 trigger_error(gettext("Can't save") . " User:$uid => $msg.", E_USER_ERROR);
             }
+            $id = $r->get("Global:DefaultTheme");
+            $msg = $r->rpush("User:$uid", $id);
+            if ($msg != "OK") {
+                trigger_error(gettext("Can't save") . " User:$uid => $msg.", E_USER_ERROR);
+            }
+            $id = $r->get("Global:DefaultLang");
+            $msg = $r->rpush("User:$uid", $id);
+            if ($msg != "OK") {
+                trigger_error(gettext("Can't save") . " User:$uid => $msg.", E_USER_ERROR);
+            }
         }
         else {
             $uid = -2;
@@ -251,7 +261,7 @@ function GetUserByName($userName)
     if (!is_null($r)) {
         if ($r->exists("Login:$userName") == 1) {
             $uid = $r->get("Login:$userName");
-            $result = $r->lrange("User:$uid", 0, 2);
+            $result = $r->lrange("User:$uid", 0, 5);
             $result['id'] = $uid;
             $mems = $r->smembers("User:$uid:Groups");
             $result['groups'] = $mems;
@@ -267,7 +277,7 @@ function GetUserByID($uid)
     $r = GetRedisConnection();
     if (!is_null($r)) {
         if ($r->exists("User:$uid") == 1) {
-            $result = $r->lrange("User:$uid", 0, 2);
+            $result = $r->lrange("User:$uid", 0, 5);
             $result['id'] = $uid;
             $mems = $r->smembers("User:$uid:Groups");
             $result['groups'] = $mems;
@@ -304,6 +314,19 @@ function CheckACL($object)
         return false;
     }
     
+    return true;
+}
+
+function CheckUserPassword($pwd)
+{
+    global $gUser;
+    $code = md5($pwd);
+    if(is_null($gUser)) {
+        return false;
+    }
+    if ($code != $gUser[2]) {
+        return false;
+    }
     return true;
 }
 

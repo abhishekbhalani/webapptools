@@ -47,14 +47,14 @@
 
 /* Component containers
 ----------------------------------*/
-.ui-widget { font-family: Lucida Grande, Lucida Sans, Arial, sans-serif; font-size: 1.1em; }
+.ui-widget { font-family: Lucida Grande, Lucida Sans, Arial, sans-serif; font-size: 1em; }
 .ui-widget .ui-widget { font-size: 1em; }
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: Lucida Grande, Lucida Sans, Arial, sans-serif; font-size: 1em; }
 .ui-widget-content { border: 1px solid #dddddd; background: #f2f5f7 url(images/ui-bg_highlight-hard_100_f2f5f7_1x100.png) 50% top repeat-x; color: #362b36; }
 .ui-widget-content a { color: #362b36; }
 .ui-widget-header { border: 1px solid #aed0ea; background: #deedf7 url(images/ui-bg_highlight-soft_100_deedf7_1x100.png) 50% 50% repeat-x; color: #222222; font-weight: bold; }
 .ui-widget-header a { color: #222222; }
-.ui-widget-header-h3 { border: 1px solid #494437; background: #e59d1f url(images/ui-bg_gloss-wave_45_e59d1f_500x100.png) 50% 50% repeat-x; color: #ffffff;font-weight: bold; padding-left:10px; margin:3px;font-size: 2.3em; }
+.ui-widget-header-h3 { border: 1px solid #494437; background: #3BAAE3 url(images/ui-bg_glass_50_3baae3_1x400.png) repeat-x scroll 50% 50%; color: #ffffff;font-weight: bold; padding: .1em 1em .1em 1em; margin:3px; font-size: 2.3em; }
 
 /* Interaction states
 ----------------------------------*/
@@ -350,12 +350,12 @@ button.ui-button-icons-only { width: 3.2em; }
 
 /*button text element */
 .ui-button .ui-button-text { display: block; line-height: 1.4;  }
-.ui-button-text-only .ui-button-text { padding: .4em 1em; }
-.ui-button-icon-only .ui-button-text, .ui-button-icons-only .ui-button-text { padding: .4em; text-indent: -9999999px; }
-.ui-button-text-icon .ui-button-text, .ui-button-text-icons .ui-button-text { padding: .4em 1em .4em 1.8em; }
-.ui-button-text-icons .ui-button-text { padding-right: 1.8em; }
+.ui-button-text-only .ui-button-text { padding: .1em 1em; }
+.ui-button-icon-only .ui-button-text, .ui-button-icons-only .ui-button-text { padding: .1em; text-indent: -9999999px; }
+.ui-button-text-icon .ui-button-text, .ui-button-text-icons .ui-button-text { padding: .1em 1em .1em 1em; }
+.ui-button-text-icons .ui-button-text { padding-right: 1em; }
 /* no icon support for input elements, provide padding by default */
-input.ui-button { padding: .4em 1em; }
+input.ui-button { padding: .1em 1em; }
 
 /*button icon element(s) */
 .ui-button-icon-only .ui-icon, .ui-button-text-icon .ui-icon, .ui-button-text-icons .ui-icon, .ui-button-icons-only .ui-icon { position: absolute; top: 50%; margin-top: -8px; }
@@ -480,7 +480,13 @@ button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra pad
 .ui-progressbar .ui-progressbar-value {margin: -1px; height:100%; }
 
 /* Themes additions */
-.leftMenu .ui-selecting { background: #FECA40; }
-.leftMenu .ui-selected { background: #e59d1f url(images/ui-bg_gloss-wave_45_e59d1f_500x100.png) 50% 50% repeat-x; color: white; }
+html {font: 12px "Trebuchet MS", sans-serif;}
+body { margin: 0; padding: 0; height: 100%; font: 13px "Trebuchet MS", sans-serif; }
+table {font-size: 100%;}
+
+.leftMenu .ui-selecting { background: #3BAAE3; }
+.leftMenu .ui-selected { background: #3BAAE3 url(images/ui-bg_glass_50_3baae3_1x400.png) repeat-x scroll 50% 50%; }
 .leftMenu { list-style-type: none; margin-bottom: 5px; padding: 0; font-family: Segoe UI, Arial, sans-serif; font-weight: bold; }
 .leftMenu li { margin: 3px; padding: 0.4em; font-size: 1em; border: 1px solid #8e846b; }
+
+.ui-icon-img {border: 0px;   width: 16px; height: 16px; float: inherit; display: inline; margin: 1px;}

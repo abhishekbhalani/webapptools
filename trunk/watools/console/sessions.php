@@ -19,7 +19,7 @@ if (isset($_COOKIE['WATTHEME'])) {
     $theme = $_COOKIE['WATTHEME'];
 }
 if ($theme == '') {
-    $theme = $gDefaultTheme;
+    $theme = $r->get('Global:DefaultTheme');
 }
 
 // detect language settings
@@ -110,13 +110,26 @@ if (is_null($gSession)) {
 }
 
 if (!is_null($gSession)) {
+    // check for authentication mode
+    $gUser = GetUserByID($gSession[1]);
+    // overwrite user defined parameters
+    if (!is_null($gUser)) {
+        $inf = $gUser[3];
+        if (!is_null($inf) && $inf != "") {
+            $theme = $inf;
+            $r->lset("Session:$sid", $theme, 3);
+        }
+        $inf = $gUser[4];
+        if (!is_null($inf) && $inf != "") {
+            $lang = $inf;
+            $r->lset("Session:$sid", $lang, 4);
+        }
+    }
     // save session
     setcookie('WATSESSION', $gSession['id'], $gSession[0]);
     setcookie('WATTHEME', $theme);
     setcookie('WATLANG', $lang);
 
-    // check for authentication mode
-    $gUser = GetUserByID($gSession[1]);
 }
 
 // functions for extarnal use
@@ -140,6 +153,24 @@ function CleanUpSessions() {
         }
     }
     return true;
+}
+
+function GetLoggedUsers()
+{
+    $res = array();
+    $r = GetRedisConnection();
+    if (!is_null($r)) {
+        $alls = $r->keys("Session:*");
+        foreach ($alls as $sess) {
+            $sid = substr($sess,8);
+            $s = $r->lrange("Session:$sid", 0, 5);
+            $u = GetUserByID($s[1]);
+            if (!is_null($u)) {
+                $res[] = $u[0];
+            }
+        }
+    }
+    return $res;
 }
 
 function SaveSession() {

@@ -112,7 +112,6 @@ function groupBoxClick(status) {
                     if (resp == "") {
                         $('#errorMessageText').html("Unknown error");
                     }
-                    toggle('blanket');
                     if (resp != "OK") {
                         $('#errorBox').dialog('open');
                     }
@@ -195,7 +194,6 @@ function userBoxClick(status) {
                     if (resp == "") {
                         $('#errorMessageText').html("Unknown error");
                     }
-                    toggle('blanket');
                     if (resp != "OK") {
                         $('#errorBox').dialog('open');
                     }
@@ -329,7 +327,7 @@ function deleteGroupMsg(uid, uname) {
     <input type="hidden" name="uID" id="uID" value="">
 </div>
 <!-- error box -->
-<div id="errorBox" title="Error!">
+<div id="errorBox" title="Error!" class='ui-state-error'>
     <img src="/[{$theme}]/img/exit.png" align="left"><p id="errorMessageText">-</p>
 </div>
 <!-- confirm box -->

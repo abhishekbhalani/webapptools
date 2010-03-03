@@ -24,8 +24,14 @@ if (!is_null($r)) {
     }
 }
 
-$smarty->assign('osName', php_uname());
+$users = $r->keys("Login:*");
+$smarty->assign('sysUsers', sizeof($users));
+$usersOnline = GetLoggedUsers();
+$smarty->assign('sysUsersOnline', sizeof($usersOnline)); // . ' ' . print_r($usersOnline, true));
+$sess = $r->keys("Session:*");
+$smarty->assign('sysSessions', sizeof($sess));
 
+$smarty->assign('osName', php_uname());
 $cpuStat = gettext('Unknown');
 $ramStat = gettext('Unknown');
 $dskStat = gettext('Unknown');
