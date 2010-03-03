@@ -47,9 +47,9 @@
 
 /* Component containers
 ----------------------------------*/
-.ui-widget { font-family: Segoe UI, Arial, sans-serif; font-size: 1.1em; }
-.ui-widget .ui-widget { font-size: 0.9em; }
-.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: Segoe UI, Arial, sans-serif; font-size: 0.9em; }
+.ui-widget { font-family: Segoe UI, Arial, sans-serif; } /*font-size: 1.1em; */
+.ui-widget .ui-widget { font-size: 1em; }
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: Segoe UI, Arial, sans-serif; font-size: 1em; }
 .ui-widget-content { border: 1px solid #8e846b; background: #feeebd url(images/ui-bg_highlight-soft_100_feeebd_1x100.png) 50% top repeat-x; color: #383838; }
 .ui-widget-content a { color: #383838; }
 .ui-widget-header { border: 1px solid #494437; background: #e59d1f url(images/ui-bg_gloss-wave_45_e59d1f_500x100.png) 50% 50% repeat-x; color: #ffffff;font-weight: bold; margin: 0;}
@@ -480,7 +480,9 @@ button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra pad
 .ui-progressbar .ui-progressbar-value {margin: -1px; height:100%; }
 
 /* Themes additions */
-body { margin: 0; padding: 0; height: 100%; background-color: #d89020; color: #383838; }
+html {font: 12px "Trebuchet MS", sans-serif;}
+body { margin: 0; padding: 0; height: 100%; background-color: #d89020; color: #383838; font: 12px "Trebuchet MS", sans-serif; }
+table {font-size: 100%;}
 #bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
 .toolbar { background-image: url(img/tb01.jpg); background-repeat: repeat-x; color: white; vertical-align: text-top; font-family: Segoe UI, Arial, sans-serif; font-size: 1.1em; font-weight: bold;}
 /*.leftMenu {padding-bottom: 5px; margin-bottom: 5px;}*/
