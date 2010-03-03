@@ -42,7 +42,7 @@ function PrintNoAccess()
     $smarty->assign('UserName', $gUser[0]);
     $smarty->assign('messageTitle', gettext('Access Denied'));
     $smarty->assign('messageText', gettext('Access denied for user ') . $gUser[0] . gettext('!<br>Contact your system administrator!'));
-    $smarty->assign('messageIcon', 'exit.png');
+    $smarty->assign('messageIcon', 'warning.png');
     $smarty->assign('messageButton', 'OK');
     DisplayThemePage('messageBox.html');
 }
@@ -92,7 +92,7 @@ function DisplayThemePage($page, $lang)
     $smarty->assign('messageTitle', gettext('Visualisation broken'));
     $smarty->assign('messageText', gettext('Can\'t display page ') . $page . gettext(' in theme ') . $themeName .
                     gettext('!<br>Contact your system administrator!'));
-    $smarty->assign('messageIcon', 'exit.png');
+    $smarty->assign('messageIcon', 'warning.png');
     $smarty->assign('messageButton', 'OK');
     $smarty->display('messageBox.html');
 }
