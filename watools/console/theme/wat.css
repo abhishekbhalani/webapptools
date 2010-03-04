@@ -221,6 +221,14 @@
 .ui-icon-radio-on { background-position: -112px -144px; }
 .ui-icon-pin-w { background-position: -128px -144px; }
 .ui-icon-pin-s { background-position: -144px -144px; }
+/* additional icons */
+.ui-icon-group { background-position: -160px -144px; }
+.ui-icon-key-export { background-position: -176px -144px; }
+.ui-icon-computer { background-position: -192px -144px; }
+.ui-icon-cpu { background-position: -208px -144px; }
+.ui-icon-dice { background-position: -224px -144px; }
+.ui-icon-compress { background-position: -240px -144px; }
+
 .ui-icon-play { background-position: 0 -160px; }
 .ui-icon-pause { background-position: -16px -160px; }
 .ui-icon-seek-next { background-position: -32px -160px; }
@@ -484,9 +492,8 @@ html {font: 12px "Trebuchet MS", sans-serif;}
 body { margin: 0; padding: 0; height: 100%; font: 13px "Trebuchet MS", sans-serif; }
 table {font-size: 100%;}
 
+.ui-icon-btn {float: left; margin-right: 4px;}
 .leftMenu .ui-selecting { background: #3BAAE3; }
 .leftMenu .ui-selected { background: #3BAAE3 url(images/ui-bg_glass_50_3baae3_1x400.png) repeat-x scroll 50% 50%; color: #ffffff; }
 .leftMenu { list-style-type: none; margin-bottom: 5px; padding: 0; font-family: Segoe UI, Arial, sans-serif; font-weight: bold; }
 .leftMenu li { margin: 3px; padding: 0.4em; font-size: 1em; border: 1px solid #8e846b; }
-
-.ui-icon-img {border: 0px;   width: 16px; height: 16px; float: inherit; display: inline; margin: 1px;}
