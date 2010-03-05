@@ -4,7 +4,7 @@
         $("#tabs").tabs({
             ajaxOptions: {
                 error: function(xhr, status, index, anchor) {
-                    $(anchor.hash).html("Couldn't load this tab. We'll try to fix this as soon as possible. If this wouldn't be a demo.");
+                    $(anchor.hash).html("Couldn't load this tab. We'll try to fix this as soon as possible.");
                 }
             }
         });
@@ -13,6 +13,7 @@
 <div id="tabs">
     <ul>
         <li><a href="setsPersonal.php">Personal settings</a></li>
+        <li><a href="setsModules.php">Modules</a></li>
 [{if $SysUser}]
         <li><a href="setsSystem.php">System settings</a></li>
         <li><a href="setsUsers.php">Users &amp; Groups</a></li>

@@ -221,14 +221,6 @@
 .ui-icon-radio-on { background-position: -112px -144px; }
 .ui-icon-pin-w { background-position: -128px -144px; }
 .ui-icon-pin-s { background-position: -144px -144px; }
-/* additional icons */
-.ui-icon-group { background-position: -160px -144px; }
-.ui-icon-key-export { background-position: -176px -144px; }
-.ui-icon-computer { background-position: -192px -144px; }
-.ui-icon-cpu { background-position: -208px -144px; }
-.ui-icon-dice { background-position: -224px -144px; }
-.ui-icon-compress { background-position: -240px -144px; }
-
 .ui-icon-play { background-position: 0 -160px; }
 .ui-icon-pause { background-position: -16px -160px; }
 .ui-icon-seek-next { background-position: -32px -160px; }
@@ -274,7 +266,14 @@
 .ui-icon-grip-solid-horizontal { background-position: -48px -224px; }
 .ui-icon-gripsmall-diagonal-se { background-position: -64px -224px; }
 .ui-icon-grip-diagonal-se { background-position: -80px -224px; }
-
+/* additional icons */
+.ui-icon-group { background-position: -160px -144px; }
+.ui-icon-key-export { background-position: -176px -144px; }
+.ui-icon-computer { background-position: -192px -144px; }
+.ui-icon-cpu { background-position: -208px -144px; }
+.ui-icon-dice { background-position: -224px -144px; }
+.ui-icon-compress { background-position: -240px -144px; }
+.ui-icon-bug { background-position: -160px -160px; }
 
 /* Misc visuals
 ----------------------------------*/

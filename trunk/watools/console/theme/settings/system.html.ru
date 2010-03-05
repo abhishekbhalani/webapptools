@@ -44,7 +44,7 @@ function SaveTheme() {
                 function(data) {
                     resp = jQuery.trim(data);
                     if (resp == "") {
-                        $('#themeWarnMsg').html("Unknown error");
+                        $('#themeWarnMsg').html("Неизвестная ошибка");
                     }
                     if (resp != "OK") {
                         $('#themeWarn').dialog('open');
@@ -61,7 +61,7 @@ function InstallTheme(name) {
             function(data) {
                 resp = jQuery.trim(data);
                 if (resp == "") {
-                    $('#themeWarnMsg').html("Unknown error");
+                    $('#themeWarnMsg').html("Неизвестная ошибка");
                 }
                 if (resp != "OK") {
                     $('#themeWarn').dialog('open');
@@ -74,25 +74,25 @@ function InstallTheme(name) {
 </script>
 <div class="ui-widget">
 <table>
-<tr><td>Default system theme:</td><td><select id="theme">[{html_options values=$themes output=$thNames selected=$defTheme}]</select></td></tr>
-<tr><td>Default system language:</td><td><select id="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select></td></tr>
-<tr><td>&nbsp;</td><td><button id="savebtn" onclick="SaveTheme();">Save</button></td></tr>
+<tr><td>Системная тема:</td><td><select id="theme">[{html_options values=$themes output=$thNames selected=$defTheme}]</select></td></tr>
+<tr><td>Системный язык:</td><td><select id="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select></td></tr>
+<tr><td>&nbsp;</td><td><button id="savebtn" onclick="SaveTheme();">Сохранить</button></td></tr>
 </table>
 <table width="100%" id='themestable'>
     <tr class="ui-widget-header">
-        <td width="150">Theme Name</td>
-        <td width="350">Screenshot</td>
-        <td>Description</td>
+        <td width="150">Название темы</td>
+        <td width="350">Предпросмотр</td>
+        <td>Описание</td>
     </tr>
     [{section name=thm loop=$themes}]
     <tr valign="top">
         <td width="150">[{$thNames[thm]}]
             [{if $themes[thm] == 0}]
-            <br/><button onclick="InstallTheme('[{$thNames[thm]}]');">Install</button>
+            <br/><button onclick="InstallTheme('[{$thNames[thm]}]');">Установить</button>
             [{/if}]
         </td>
         <td width="350"><img src="/[{$theme}]/images/screen_s.jpg" width="320" height="240"/></td>
-        <td>[{$thDesc[thm]}]<br/><p><b>Supported languages:</b></p>
+        <td>[{$thDesc[thm]}]<br/><p><b>Поддерживаемые языки:</b></p>
         [{section name=thl loop=$thLangs[thm]}]
         <ul id="thl[{$thm}]">
             <li><img src='/[{$theme}]/images/flag_[{$thLangs[thm][thl][0]}]'>[{$thLangs[thm][thl][1]}]</li>
@@ -103,15 +103,15 @@ function InstallTheme(name) {
     [{/section}]
 </table>
 </div>
-<div id="instWarn" title='Warning'>
+<div id="instWarn" title='Предупреждение'>
     <table><tr>
     <td><img src="/[{$theme}]/images/warning.png"</td>
-    <td><p>You must install this theme first!</p></td>
+    <td><p>Тема должна быть установлена перед использованием!</p></td>
     </tr></table>
 </div>
-<div id='themeWarn' title='Warning' class='ui-state-error'>
+<div id='themeWarn' title='Предупреждение' class='ui-state-error'>
     <table class='ui-state-error' width='100%'><tr>
     <td><img src="/[{$theme}]/images/warning.png"</td>
-    <td><p id='themeWarnMsg' width='100%'>You must install this theme first!</p></td>
+    <td><p id='themeWarnMsg' width='100%'>Тема должна быть установлена перед использованием!</p></td>
     </tr></table>
 </div>

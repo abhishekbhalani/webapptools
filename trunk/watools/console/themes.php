@@ -51,6 +51,7 @@ function DisplayThemePage($page, $lang)
 {
     global $smarty, $themeName, $themeLangExt, $themeDir, $gBaseDir;
     
+    header("Content-Type: text/html; charset=utf-8");
     $smarty->assign('theme', $themeName);
     $ext = $themeLangExt;
     if ($ext != "") {

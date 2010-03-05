@@ -53,7 +53,7 @@ $lgDef = $gUser[4];
 $lgIDs[] = 'en';
 $lgNms[] = 'English';
 $lgIDs[] = 'ru';
-$lgNms[] = 'Ðóññêèé';
+$lgNms[] = 'Ð ÑƒÑÑÐºÐ¸Ð¹';
 
 $smarty->assign('themes', $thIDs);
 $smarty->assign('thNames', $thNms);
