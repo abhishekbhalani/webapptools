@@ -39,7 +39,7 @@ function SaveTheme() {
                 function(data) {
                     resp = jQuery.trim(data);
                     if (resp == "") {
-                        $('#themeWarnMsg').html("Unknown error");
+                        $('#themeWarnMsg').html("Неизвестная ошибка");
                     }
                     if (resp != "OK") {
                         $('#themeWarn').dialog('open');
@@ -57,12 +57,12 @@ function SaveData() {
     var pwd1 = $("#userPwdNew").attr('value');
     var pwd2 = $("#userPwdCnf").attr('value');
     if (opwd == "" && (pwd1 != "" || pwd2 != "")) {
-        $('#instWarnMsg').text('You must enter your current password to change it!');
+        $('#instWarnMsg').text('Вы должны ввести текущий пароль чтобы сменить его!');
         $('#instWarn').dialog('open');
         return false;
     }
     if (pwd1 != "" && pwd1 != pwd2) {
-        $('#instWarnMsg').text('New password doesn\'t match the confirmation!');
+        $('#instWarnMsg').text('Новый пароль не совпадает с подтверждением!');
         $('#instWarn').dialog('open');
         return false;
     }
@@ -71,7 +71,7 @@ function SaveData() {
         function(data) {
             resp = jQuery.trim(data);
             if (resp == "") {
-                $('#themeWarnMsg').html("Unknown error");
+                $('#themeWarnMsg').html("Неизвестная ошибка");
             }
             if (resp != "OK") {
                 $('#themeWarn').dialog('open');
@@ -83,33 +83,33 @@ function SaveData() {
 }
 </script>
 <fieldset class="ui-widget ui-corner-all" width="100%">
-<legend class="ui-widget"><span class="ui-icon ui-icon-person ui-icon-btn"></span> Account</legend>
+<legend class="ui-widget"><span class="ui-icon ui-icon-person ui-icon-btn"></span> Учетная запись</legend>
 <table border='0' class="data">
-<tr><td><b>Login:</b></td><td><input type="text" value="[{$UserName}]" readonly="1"></td></tr>
-<tr><td><b>Full Name:</b></td><td><input type="text" id="userDesc" name="udesc" value="[{$userName}]" class="text"></td></tr>
-<tr><td><b>Current password:</b></td><td><input type="password" id="userPwd" name="upwd" value="" class="text"></td></tr>
-<tr><td><b>New password:</b></td><td><input type="password" id="userPwdNew" name="upwdn" value="" class="text"></td></tr>
-<tr><td><b>Confirm password:</b></td><td><input type="password" id="userPwdCnf" name="upwdc" value="" class="text"></td></tr>
-<tr><td><b>&nbsp;</b></td><td><button id="accSettings" onClick="SaveData();">Apply</button></td></tr>
+<tr><td><b>Учетная запись:</b></td><td><input type="text" value="[{$UserName}]" readonly="1"></td></tr>
+<tr><td><b>Имя пользователя:</b></td><td><input type="text" id="userDesc" name="udesc" value="[{$userName}]" class="text"></td></tr>
+<tr><td><b>Текущий пароль:</b></td><td><input type="password" id="userPwd" name="upwd" value="" class="text"></td></tr>
+<tr><td><b>Новый пароль:</b></td><td><input type="password" id="userPwdNew" name="upwdn" value="" class="text"></td></tr>
+<tr><td><b>Подтверждение пароля:</b></td><td><input type="password" id="userPwdCnf" name="upwdc" value="" class="text"></td></tr>
+<tr><td><b>&nbsp;</b></td><td><button id="accSettings" onClick="SaveData();">Применить</button></td></tr>
 </table>
 </fieldset>
 <br/>
 <fieldset class="ui-widget ui-corner-all" width="100%">
-<legend class="ui-widget"><span class="ui-icon ui-icon-computer ui-icon-btn"></span> GUI settings</legend>
+<legend class="ui-widget"><span class="ui-icon ui-icon-computer ui-icon-btn"></span> Настройки отображения</legend>
 <table border='0' class="data">
-<tr><td><b>Theme:</b></td><td><select id="theme">[{html_options values=$themes output=$thNames selected=$defTheme}]</select></td></tr>
-<tr><td><b>Language:</b></td><td><select id="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select></td></tr>
-<tr><td><b>&nbsp;</b></td><td><button id="guiSettings" onClick="SaveTheme();">Apply</button></td></tr>
+<tr><td><b>Тема:</b></td><td><select id="theme">[{html_options values=$themes output=$thNames selected=$defTheme}]</select></td></tr>
+<tr><td><b>Язык:</b></td><td><select id="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select></td></tr>
+<tr><td><b>&nbsp;</b></td><td><button id="guiSettings" onClick="SaveTheme();">Применить</button></td></tr>
 </table>
 </fieldset>
 <br/>
-<div id="instWarn" title='Warning'>
+<div id="instWarn" title='Предупреждение'>
     <table><tr>
     <td><img src="/[{$theme}]/images/warning.png"</td>
-    <td><p id='instWarnMsg'>You must install this theme first!</p></td>
+    <td><p id='instWarnMsg'>Тема должна быть установлена перед использованием!</p></td>
     </tr></table>
 </div>
-<div id='themeWarn' title='Warning' class='ui-state-error'>
+<div id='themeWarn' title='Предупреждение' class='ui-state-error'>
     <table class='ui-state-error' width='100%'><tr>
     <td><img src="/[{$theme}]/images/warning.png"</td>
     <td><p id='themeWarnMsg' width='100%'>-</p></td>

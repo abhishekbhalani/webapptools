@@ -47,9 +47,10 @@
 
 /* Component containers
 ----------------------------------*/
-.ui-widget { font-family: Lucida Grande, Lucida Sans, Arial, sans-serif; font-size: 1em; }
+/*.ui-widget { font-family: Lucida Grande, Lucida Sans, Arial, sans-serif; font-size: 1em; }*/
+.ui-widget { font-size: 1em; }
 .ui-widget .ui-widget { font-size: 1em; }
-.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: Lucida Grande, Lucida Sans, Arial, sans-serif; font-size: 1em; }
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-size: 1em; }
 .ui-widget-content { border: 1px solid #dddddd; background: #f2f5f7 url(images/ui-bg_highlight-hard_100_f2f5f7_1x100.png) 50% top repeat-x; color: #362b36; }
 .ui-widget-content a { color: #362b36; }
 .ui-widget-header { border: 1px solid #aed0ea; background: #deedf7 url(images/ui-bg_highlight-soft_100_deedf7_1x100.png) 50% 50% repeat-x; color: #222222; font-weight: bold; }
@@ -221,14 +222,6 @@
 .ui-icon-radio-on { background-position: -112px -144px; }
 .ui-icon-pin-w { background-position: -128px -144px; }
 .ui-icon-pin-s { background-position: -144px -144px; }
-/* additional icons */
-.ui-icon-group { background-position: -160px -144px; }
-.ui-icon-key-export { background-position: -176px -144px; }
-.ui-icon-computer { background-position: -192px -144px; }
-.ui-icon-cpu { background-position: -208px -144px; }
-.ui-icon-dice { background-position: -224px -144px; }
-.ui-icon-compress { background-position: -240px -144px; }
-
 .ui-icon-play { background-position: 0 -160px; }
 .ui-icon-pause { background-position: -16px -160px; }
 .ui-icon-seek-next { background-position: -32px -160px; }
@@ -274,21 +267,29 @@
 .ui-icon-grip-solid-horizontal { background-position: -48px -224px; }
 .ui-icon-gripsmall-diagonal-se { background-position: -64px -224px; }
 .ui-icon-grip-diagonal-se { background-position: -80px -224px; }
+/* additional icons */
+.ui-icon-group { background-position: -160px -144px; }
+.ui-icon-key-export { background-position: -176px -144px; }
+.ui-icon-computer { background-position: -192px -144px; }
+.ui-icon-cpu { background-position: -208px -144px; }
+.ui-icon-dice { background-position: -224px -144px; }
+.ui-icon-compress { background-position: -240px -144px; }
+.ui-icon-bug { background-position: -160px -160px; }
 
 
 /* Misc visuals
 ----------------------------------*/
 
 /* Corner radius */
-.ui-corner-tl { -moz-border-radius-topleft: 0px; -webkit-border-top-left-radius: 0px; border-top-left-radius: 0px; }
-.ui-corner-tr { -moz-border-radius-topright: 0px; -webkit-border-top-right-radius: 0px; border-top-right-radius: 0px; }
-.ui-corner-bl { -moz-border-radius-bottomleft: 0px; -webkit-border-bottom-left-radius: 0px; border-bottom-left-radius: 0px; }
-.ui-corner-br { -moz-border-radius-bottomright: 0px; -webkit-border-bottom-right-radius: 0px; border-bottom-right-radius: 0px; }
-.ui-corner-top { -moz-border-radius-topleft: 0px; -webkit-border-top-left-radius: 0px; border-top-left-radius: 0px; -moz-border-radius-topright: 0px; -webkit-border-top-right-radius: 0px; border-top-right-radius: 0px; }
-.ui-corner-bottom { -moz-border-radius-bottomleft: 0px; -webkit-border-bottom-left-radius: 0px; border-bottom-left-radius: 0px; -moz-border-radius-bottomright: 0px; -webkit-border-bottom-right-radius: 0px; border-bottom-right-radius: 0px; }
-.ui-corner-right {  -moz-border-radius-topright: 0px; -webkit-border-top-right-radius: 0px; border-top-right-radius: 0px; -moz-border-radius-bottomright: 0px; -webkit-border-bottom-right-radius: 0px; border-bottom-right-radius: 0px; }
-.ui-corner-left { -moz-border-radius-topleft: 0px; -webkit-border-top-left-radius: 0px; border-top-left-radius: 0px; -moz-border-radius-bottomleft: 0px; -webkit-border-bottom-left-radius: 0px; border-bottom-left-radius: 0px; }
-.ui-corner-all { -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; }
+.ui-corner-tl { -moz-border-radius-topleft: 3px; -webkit-border-top-left-radius: 3px; border-top-left-radius: 3px; }
+.ui-corner-tr { -moz-border-radius-topright: 3px; -webkit-border-top-right-radius: 3px; border-top-right-radius: 3px; }
+.ui-corner-bl { -moz-border-radius-bottomleft: 3px; -webkit-border-bottom-left-radius: 3px; border-bottom-left-radius: 3px; }
+.ui-corner-br { -moz-border-radius-bottomright: 3px; -webkit-border-bottom-right-radius: 3px; border-bottom-right-radius: 3px; }
+.ui-corner-top { -moz-border-radius-topleft: 3px; -webkit-border-top-left-radius: 3px; border-top-left-radius: 3px; -moz-border-radius-topright: 3px; -webkit-border-top-right-radius: 3px; border-top-right-radius: 3px; }
+.ui-corner-bottom { -moz-border-radius-bottomleft: 3px; -webkit-border-bottom-left-radius: 3px; border-bottom-left-radius: 3px; -moz-border-radius-bottomright: 3px; -webkit-border-bottom-right-radius: 3px; border-bottom-right-radius: 3px; }
+.ui-corner-right {  -moz-border-radius-topright: 3px; -webkit-border-top-right-radius: 3px; border-top-right-radius: 3px; -moz-border-radius-bottomright: 3px; -webkit-border-bottom-right-radius: 3px; border-bottom-right-radius: 3px; }
+.ui-corner-left { -moz-border-radius-topleft: 3px; -webkit-border-top-left-radius: 3px; border-top-left-radius: 3px; -moz-border-radius-bottomleft: 3px; -webkit-border-bottom-left-radius: 3px; border-bottom-left-radius: 3px; }
+.ui-corner-all { -moz-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; }
 
 /* Overlays */
 .ui-widget-overlay { background: #eeeeee url(images/ui-bg_diagonals-thick_90_eeeeee_40x40.png) 50% 50% repeat; opacity: .80;filter:Alpha(Opacity=80); }
@@ -488,8 +489,9 @@ button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra pad
 .ui-progressbar .ui-progressbar-value {margin: -1px; height:100%; }
 
 /* Themes additions */
-html {font: 12px "Trebuchet MS", sans-serif;}
-body { margin: 0; padding: 0; height: 100%; font: 13px "Trebuchet MS", sans-serif; }
+/*html {font: 12px "Trebuchet MS", sans-serif;}*/
+/*Lucida Grande, Lucida Sans*/
+body { margin: 0; padding: 0; height: 100%; font: 13px Tahoma,Arial,sans-serif; }
 table {font-size: 100%;}
 
 .ui-icon-btn {float: left; margin-right: 4px;}

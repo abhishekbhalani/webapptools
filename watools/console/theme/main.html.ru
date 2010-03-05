@@ -1,6 +1,7 @@
 <html>
 <head>
 <title>Web "A" Tools</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel="stylesheet" type="text/css" href="/[{$theme}]/wat.css" />
 <script language="JavaScript" src="scripts/jquery.js"></script>
 <script type="text/javascript" src="/scripts/jquery-ui.js"></script>
@@ -9,24 +10,6 @@
     var prevIndex = -1;
     var methods = Array('tasks.php','profiles.php','auths.php','reports.php','dicts.php','settings.php');
 
-    function showDate() {
-        today = new Date();
-        var hours=today.getHours();
-        var minutes=today.getMinutes();
-        var seconds=today.getSeconds();
-        if (hours<=9)
-            hours="0"+hours;
-        if (minutes<=9)
-            minutes="0"+minutes;
-        if (seconds<=9)
-            seconds="0"+seconds;
-        
-        myclock=hours+":"+minutes+":"+seconds;
-        
-        liveclock.innerHTML= today.toLocaleDateString() + " " + myclock;
-        setTimeout("showDate()",1000);
-    }
-    
     $(function() {
         $("#selectable").selectable({
                 stop: function(){
@@ -55,36 +38,33 @@
 
 </script>
 </head>
-<body onload="showDate();">
-<div id="bg"><img src="/[{$theme}]/img/bg01.jpg" width="100%" height="100%" alt=""></div>
-<div id="toolbar" width="100%" class="toolbar">
-    <table width="100%" border="0"><tr valign="top">
-    <td width="1"><a href="/main.php"><img id="appIcon" src="/[{$theme}]/img/appIcon.png" alt="" border="0"></a></td>
-    <td><p class="toolbar">Logged as: [{$UserName}]</p></td><td align="right"><p class="toolbar" id="liveclock" style="font-size: 0.8em;"></p></td>
-    </tr></table>
-</div>
+<body>
 <div id="content">
 <table width="100%" border="0"><tr>
-    <td class="button-panel" valign="top" width="250px">
+    <td class="button-panel" valign="top" width="200px">
+        <button id="btnTestRefresh" onClick="document.location='/';">Пользователь [{$UserName}]</button>
+        <script>
+        $("#btnTestRefresh").button({icons: {primary: 'ui-icon-refresh'}}).width("200px");
+        </script>
         <ol id="selectable" class="leftMenu">
             <li class="ui-widget-content ui-state-default ui-corner-all">
-                <img src="/[{$theme}]/images/task.png" border="0" align="middle"/>Tasks</li>
+                <img src="/[{$theme}]/images/task.png" border="0" align="middle"/>Задачи</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
-                <img src="/[{$theme}]/images/scanner.png" border="0" align="middle" />Scanning profiles</li>
+                <img src="/[{$theme}]/images/scanner.png" border="0" align="middle" />Профили сканирования</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
-                <img src="/[{$theme}]/images/auth.png" border="0" align="middle" />Authentication profiles</li>
+                <img src="/[{$theme}]/images/auth.png" border="0" align="middle" />Профили авторизации</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
-                <img src="/[{$theme}]/images/report.png" border="0" align="middle" />Reporting</li>
+                <img src="/[{$theme}]/images/report.png" border="0" align="middle" />Отчеты</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
-                <img src="/[{$theme}]/images/dictionary.png" border="0" align="middle"/>Dictionaries</li>
+                <img src="/[{$theme}]/images/dictionary.png" border="0" align="middle"/>Справочники</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
-                <img src="/[{$theme}]/images/settings.png" border="0" align="middle" />Settings</li>
+                <img src="/[{$theme}]/images/settings.png" border="0" align="middle" />Настройки</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
-                <img src="/[{$theme}]/images/exit.png" border="0" align="middle" />Logout</li>
+                <img src="/[{$theme}]/images/exit.png" border="0" align="middle" />Выход</li>
         </ol>
     </td>
 <td valign="top">
-<div width="100%" height="100%" class="ui-widget-content ui-corner-all" id="mainView"> Some text<br/>Many text</div>
+<div width="100%" height="100%" class="ui-widget-content" id="mainView"></div>
 </td>
 </tr></table>
 </div>
