@@ -184,6 +184,22 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\boost\seed_rng.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\boost\sha1.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\boost\uuid.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\boost\uuid_generators.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

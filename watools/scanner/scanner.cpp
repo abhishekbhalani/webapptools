@@ -2,15 +2,29 @@
 #include <iostream>
 #include <fstream>
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
+//! todo: upgrade to the boost_1.42 to use natuve version
+#include "boost/uuid.hpp"
+#include "boost/uuid_generators.hpp"
 
 using namespace std;
 namespace po = boost::program_options;
+namespace bfs = boost::filesystem;
 
 #ifdef WIN32
 string default_config = ".\\scanner.conf";
+string default_trace  = ".\\watools.scanner.log";
 #else
 string default_config = "/etc/watools/scanner.conf";
+string default_trace  = "/tmp/watools.scanner.trace";
 #endif
+string default_trace_level = "INFO";
+
+bool get_bool_option(const string& value)
+{
+	bool retval = false;
+	return retval;
+}
 
 int main(int argc, char* argv[])
 {
@@ -25,6 +39,7 @@ int main(int argc, char* argv[])
         ("redis_port",  po::value<int>()->default_value(6379), "port of the Redis database")
         ("log_file",  po::value<string>(), "file to store log information")
         ("log_level",  po::value<string>(), "level of the log information [ERROR, WARN, INFO, DEBUG, TRACE]")
+		("daemonize",  po::value<string>(), "run program as daemon")
     ;
 
     cmd_line.add_options()
@@ -60,8 +75,31 @@ int main(int argc, char* argv[])
     }
 
     // init log subsystem
-    if (vm.count("identity")) {
-        cout << "Identity: " << vm["identity"].as<string>() << endl;
+    if (vm.count("trace")) {
+		bool traceFile = false;
+		bool traceLevel = false;
+
+		if ( bfs::exists(vm["trace"].as<string>()) ){
+			// try to load given trace configuration
+		}
+		if (!traceFile) {
+			// set trace file from config file
+		}
+		if (!traceLevel) {
+			// set trace level from config file
+		}
+		if (!traceFile) {
+			// set trace destination by default
+			if(get_bool_option(vm["daemonize"].as<string>())) {
+				// set trace to file: default_trace
+			}
+			else {
+				// set trace to console
+			}
+		}
+		if (!traceLevel) {
+			// set trace level by default_trace_level
+		}
     }
 
     return 0;
