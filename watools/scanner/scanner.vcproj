@@ -25,6 +25,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="Increment build number"
+				CommandLine="..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -100,6 +102,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="Increment build number"
+				CommandLine="..\..\verbuild.exe version.h *.*.+.* -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -219,5 +223,21 @@
 		</File>
 	</Files>
 	<Globals>
+		<Global
+			Name="AssemblyFileVersion"
+			Value="0"
+		/>
+		<Global
+			Name="AssemblyVersion"
+			Value="0"
+		/>
+		<Global
+			Name="Reset"
+			Value="1"
+		/>
+		<Global
+			Name="StartDate"
+			Value="20100310"
+		/>
 	</Globals>
 </VisualStudioProject>
