@@ -370,5 +370,21 @@
 		</Filter>
 	</Files>
 	<Globals>
+		<Global
+			Name="AssemblyFileVersion"
+			Value="1"
+		/>
+		<Global
+			Name="AssemblyVersion"
+			Value="1"
+		/>
+		<Global
+			Name="Reset"
+			Value="1"
+		/>
+		<Global
+			Name="StartDate"
+			Value="20100309"
+		/>
 	</Globals>
 </VisualStudioProject>
