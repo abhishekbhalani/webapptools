@@ -19,6 +19,10 @@
 */
 #ifndef __WEVULNERS_H__
 #define __WEVULNERS_H__
+#include <string>
+#include "weiStorage.h"
+
+using namespace std;
 
 namespace webEngine {
 

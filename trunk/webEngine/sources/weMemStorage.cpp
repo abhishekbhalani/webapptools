@@ -29,6 +29,8 @@
 #include "weMemStorage.h"
 #include "weiBase.h"
 
+using namespace boost;
+
 namespace webEngine {
 
 static void OptionFromString(wOption& opt, const string& str)

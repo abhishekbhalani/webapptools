@@ -19,10 +19,11 @@
 */
 #include <weVulners.h>
 #include <weTagScanner.h>
+#include "weHelper.h"
 
 namespace webEngine {
 
-RecordSet* VulnerDesc::ToRS( const string& parentID = "" )
+RecordSet* VulnerDesc::ToRS( const string& parentID /*= ""*/ )
 {
     RecordSet* retval = new RecordSet;
     Record* rec = new Record;
