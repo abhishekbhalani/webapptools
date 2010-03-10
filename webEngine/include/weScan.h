@@ -20,9 +20,9 @@ along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __WESCAN_H__
 #define __WESCAN_H__
 #include <weTagScanner.h>
-//#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
-//using namespace boost;
+using namespace boost;
 
 namespace webEngine {
 

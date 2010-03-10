@@ -37,6 +37,22 @@ namespace webEngine {
 HtmlFactory  weHtmlFactory;
 static bool isLibInited = false;
 
+static void LibInitCommon()
+{
+    CURLcode    cCode;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "LibInit status = " << isLibInited);
+    if (!isLibInited)
+    {
+        weHtmlFactory.Init();
+        cCode = curl_global_init(CURL_GLOBAL_ALL);
+        if (cCode != 0) {
+            LOG4CXX_FATAL(iLogger::GetLogger(), "cURL initialization failed : " << cCode);
+        }
+    }
+    isLibInited = true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	void LibInit(void)
 ///
@@ -45,12 +61,11 @@ static bool isLibInited = false;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void LibInit(const string& config /*= ""*/)
 {
-    CURLcode    cCode;
     string      cfgFile;
 
     try {
         cfgFile = config;
-        if (cfgFile == "") {
+        if (cfgFile != "") { // no configuration needed
             cfgFile = "trace.config";
         }
         path p(cfgFile);
@@ -75,16 +90,14 @@ void LibInit(const string& config /*= ""*/)
             throw WeError("Can't initialize logging subsystem!");
         }
     };
-    LOG4CXX_TRACE(iLogger::GetLogger(), "LibInit status = " << isLibInited);
-    if (!isLibInited)
-    {
-        weHtmlFactory.Init();
-        cCode = curl_global_init(CURL_GLOBAL_ALL);
-        if (cCode != 0) {
-            throw WeError(string("cURL initialization failed : ") + boost::lexical_cast<std::string>(cCode));
-        }
-    }
-    isLibInited = true;
+    LibInitCommon();
+}
+void LibInit(AppenderPtr appender, LevelPtr level )
+{
+    iLogger::m_logger->removeAllAppenders();
+    iLogger::m_logger->addAppender(appender);
+    iLogger::m_logger->setLevel(level);
+    LibInitCommon();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -953,7 +953,7 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, HttpTransport
         }
     //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: get content from " << stPos << " to " << enPos);
     if (stPos > -1 && enPos > stPos) {
-        txtAttr = scanner.GetFrom(stPos);
+        //txtAttr = scanner.GetFrom(stPos);
         enPos -= stPos;
         txtAttr = txtAttr.substr(0, enPos);
         Attr("#code", txtAttr);

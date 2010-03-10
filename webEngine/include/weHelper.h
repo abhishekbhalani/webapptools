@@ -36,6 +36,7 @@ also presented in this module.
 #include "weStrings.h"
 #include "weiTransport.h"
 #include "weHtmlEntity.h"
+#include <log4cxx/appender.h>
 
 namespace webEngine {
 
@@ -91,6 +92,7 @@ extern HtmlFactory  weHtmlFactory;
 extern TransportFactory weTransportFactory;
 
 void LibInit(const string& config = "");
+void LibInit(log4cxx::AppenderPtr appender, log4cxx::LevelPtr level);
 void LibClose(void);
 string ScreenXML(const string& xml);
 string UnscreenXML(const string& xml);

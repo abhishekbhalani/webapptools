@@ -46,7 +46,7 @@ private:
         return name.str();
     }
 
-private:
+public:
     static log4cxx::LoggerPtr	m_logger;
 };
 

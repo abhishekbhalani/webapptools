@@ -25,7 +25,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "weBlob.h"
 #include "weOptions.h"
 #include "weiPlugin.h"
-//#include <boost/shared_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 //using namespace boost;
 

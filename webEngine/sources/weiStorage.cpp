@@ -25,6 +25,7 @@
 #include "iweStorage.xpm"
 
 using namespace webEngine;
+using namespace boost;
 
 int iStorage::lastId = 0;
 
