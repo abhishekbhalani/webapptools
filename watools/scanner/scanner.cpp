@@ -2,8 +2,13 @@
 #include <iostream>
 #include <strstream>
 #include <fstream>
+#ifdef WIN32
+#include <errno.h>
+#include <winsock2.h>
+#endif
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/thread.hpp>
 //! todo: upgrade to the boost_1.42 to use natuve version
 #include "boost/uuid.hpp"
 #include "boost/uuid_generators.hpp"
@@ -14,8 +19,13 @@
 #include <log4cxx/consoleappender.h>
 #include <log4cxx/patternlayout.h>
 #include <log4cxx/appender.h>
+#include "../common/redisclient.h"
 // webEngine
 #include <weHelper.h>
+// temporaty excluded for win64 dependencies
+// libs: log4cxx.lib webEngine.lib curllib_static.lib ws2_32.lib ssleay32.lib libeay32.lib openldap.lib
+
+#include "version.h"
 
 using namespace log4cxx;
 using namespace log4cxx::helpers;
@@ -38,6 +48,8 @@ wstring default_layout = L"%d{dd MMM yyyy HH:mm:ss,SSS} [%-7p] - %m%n";
 // global variables
 LoggerPtr scanLogger = Logger::getLogger("watScanner");
 string scanerUuid = "";
+redis::client* db1_client;
+boost::mutex db1_lock;
 
 bool get_bool_option(const string& value)
 {
@@ -58,37 +70,43 @@ inline bool is_any(const boost::any& op)
   return (op.type() == typeid(T));
 }
 
-void save_config(const string& fname, po::variables_map& vm)
+void save_config(const string& fname, po::variables_map& vm, po::options_description& desc)
 {
     LOG4CXX_INFO(scanLogger, "Save configuration to " << fname);
 
     try{
         ofstream ofs(fname.c_str());
-        for ( po::variables_map::iterator i = vm.begin() ; i != vm.end() ; ++ i )
-        {
-            try
-            {
-                boost::any val = (*i).second.value();
-                ofs << (*i).first << "=";
-                LOG4CXX_DEBUG(scanLogger, "Save variable " << (*i).first);
+		vector< boost::shared_ptr<po::option_description>> opts = desc.options();
+		for ( int i = 0; i < opts.size(); i++) {
+			string comment = "#";
+			string value = "";
+			string name = opts[i]->long_name();
+			LOG4CXX_DEBUG(scanLogger, "Save variable " << name);
+			ofs << "#" << opts[i]->description() << endl;
+			if (vm.count(name)) {
+				comment = "";
+				boost::any val = vm[name].value();
                 if (is_any<string>(val)) {
-                    ofs << boost::any_cast<string>(val);
+                    value = boost::any_cast<string>(val);
                 }
                 else if (is_any<const char*>(val)) {
-                    ofs << boost::any_cast<const char*>(val);
+                    value = boost::any_cast<const char*>(val);
                 }
                 else if (is_any<double>(val)) {
-                    ofs << boost::any_cast<double>(val);
+					value = boost::lexical_cast<string>(boost::any_cast<double>(val));
                 }
                 else if (is_any<int>(val)) {
-                    ofs << boost::any_cast<int>(val);
+                    value = boost::lexical_cast<string>(boost::any_cast<int>(val));
                 }
-                ofs << endl;
-            }
-            catch(const boost::bad_any_cast& ex) {
-                LOG4CXX_ERROR(scanLogger, "Can't save " << (*i).first << ": " << ex.what());
-            }
-        }
+				else {
+					LOG4CXX_ERROR(scanLogger, "Unknown variable type " << val.type().name());
+				}
+			}
+			else {
+				// get the default value
+			}
+			ofs << comment << name << "=" << value << endl << endl;
+		}
     }
     catch(std::exception& e) {
         LOG4CXX_ERROR(scanLogger, "Configuration not saved: " << e.what());
@@ -108,6 +126,7 @@ int main(int argc, char* argv[])
         ("instances",  po::value<int>(), "number of instances")
         ("redis_host",  po::value<string>()->default_value(string("127.0.0.1")), "host of the Redis database")
         ("redis_port",  po::value<int>()->default_value(6379), "port of the Redis database")
+		("redis_auth",  po::value<string>(), "authentication to redis database")
         ("log_file",  po::value<string>(), "file to store log information")
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
         ("log_layout",  po::value<string>(), "layout of the log messages")
@@ -118,21 +137,47 @@ int main(int argc, char* argv[])
         ("help", "this help message")
         ("config",  po::value<string>()->default_value(default_config), "configuration file")
         ("trace",  po::value<string>(), "trace configuration file")
+		("generate", po::value<string>(), "make config file with current values")
     ;
 
     store(parse_command_line(argc, argv, cmd_line), vm);
     notify(vm);
 
+	string version;
+	{
+		stringstream ost;
+		ost << VERSION_MAJOR << "." << VERSION_MINOR << "." <<
+			VERSION_BUILDNO << "." << VERSION_EXTEND << 
+			" build at " << VERSION_DATE <<
+#ifdef _DEBUG
+			" " << VERSION_TIME << " " << VERSION_SVN <<
+#endif
+#ifdef WIN32
+			" (Windows)" <<
+#else
+			" (Linux)" <<
+#endif
+			" ";
+		version = ost.str();
+	}
+
     if (vm.count("help")) {
         cout << cmd_line << endl;
         return 0;
     }
+	// create config file
+	if (vm.count("generate")) {
+		cout << "WAT scanner " << version << endl;
+		cout << "write config file " << vm["generate"].as<string>() << endl;
+		save_config(vm["generate"].as<string>(), vm, cfg_file);
+		return 0;
+	}
+
+	// parse configuration
     if (vm.count("config")) {
         ifstream ifs;
         ifs.open(vm["config"].as<string>().c_str());
         if (ifs.rdbuf()->is_open() ) {
-            //vm["config"].as<string>().c_str()
-            //store(parse_config_file( ".\\scanner.conf", cfg_file), vm);
             try{
                 store(parse_config_file(ifs, cfg_file, true), vm);
                 notify(vm);
@@ -228,9 +273,10 @@ int main(int argc, char* argv[])
         };
         traceLevel = true;
 	}
-    LOG4CXX_INFO(scanLogger, "WAT Scanner started");
+	LOG4CXX_INFO(scanLogger, "WAT Scanner started. Version: " << version);
+	LOG4CXX_INFO(scanLogger, "Loaded configuration from " << vm["config"].as<string>());
 
-    // init webEngine library
+	// init webEngine library
     if (vm.count("trace")) {
         // init library with the given trace configuration
         webEngine::LibInit(vm["trace"].as<string>());
@@ -238,7 +284,7 @@ int main(int argc, char* argv[])
     else {
         // init library with the existing logger
         AppenderList appList = scanLogger->getAllAppenders();
-        webEngine::LibInit(appList[0], scanLogger->getLevel());
+		webEngine::LibInit(appList[0], scanLogger->getLevel());
     }
     // verify instalation UUID
     if (vm.count("identity")) {
@@ -251,13 +297,28 @@ int main(int argc, char* argv[])
         scanerUuid = boost::lexical_cast<string>(tag);
         // todo: save config
         string value = "identity=" + scanerUuid;
-        istrstream ss(value.c_str());
-        store(parse_config_file(ss, cfg_file), vm);
-        notify(vm);
+		{
+			istrstream ss(value.c_str());
+			store(parse_config_file(ss, cfg_file), vm);
+			notify(vm);
+		}
         LOG4CXX_TRACE(scanLogger, "New config value for identity is " << vm["identity"].as<string>());
-        save_config(vm["config"].as<string>(), vm);
+        save_config(vm["config"].as<string>(), vm, cfg_file);
     }
     LOG4CXX_INFO(scanLogger, "WAT Scanner identificator is " << scanerUuid);
+
+#ifdef WIN32
+    //----------------------
+    // Initialize Winsock
+    WSADATA wsaData;
+    int iResult;
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != NO_ERROR) {
+        LOG4CXX_FATAL(scanLogger, "WSAStartup failed: " << iResult);
+		return 1;
+    }
+#endif
+
     // create connection to server
 
     // verify instance id
