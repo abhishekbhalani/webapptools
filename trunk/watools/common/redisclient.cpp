@@ -100,7 +100,7 @@ namespace
         while ((pos = escaped_data.find("\r")) != string::npos)
               escaped_data.replace(pos, 1, "\\r");
 
-        if (redisLogger)
+        if (scanLogger)
         {
             LOG4CXX_DEBUG(scanLogger, (is_received ? "RECV '" : "SEND '") << escaped_data << "'");
         }
