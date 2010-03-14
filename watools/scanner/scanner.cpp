@@ -50,10 +50,25 @@ LoggerPtr scanLogger = Logger::getLogger("watScanner");
 string scanerUuid = "";
 redis::client* db1_client;
 boost::mutex db1_lock;
+bool daemonize = false;
 
 bool get_bool_option(const string& value)
 {
 	bool retval = false;
+	string val = value;
+
+	boost::to_lower(val);
+	if (val == "yes") {
+		retval = true;
+	}
+	if (val == "true") {
+		retval = true;
+	}
+	int i = boost::lexical_cast<int>(val);
+	if (i != 0) {
+		retval = true;
+	}
+	LOG4CXX_DEBUG(scanLogger, "get_bool_option(" << value << ") = " << retval);
 	return retval;
 }
 
@@ -77,7 +92,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
     try{
         ofstream ofs(fname.c_str());
 		vector< boost::shared_ptr<po::option_description>> opts = desc.options();
-		for ( int i = 0; i < opts.size(); i++) {
+		for ( unsigned i = 0; i < opts.size(); i++) {
 			string comment = "#";
 			string value = "";
 			string name = opts[i]->long_name();
@@ -119,26 +134,35 @@ int main(int argc, char* argv[])
 {
     po::options_description cfg_file("Configuration");
     po::options_description cmd_line("Command-line configuration");
+    po::options_description cmd_line_vis("Command-line configuration");
     po::variables_map vm;
 
     cfg_file.add_options()
         ("identity", po::value<string>(), "instalation identificator")
-        ("instances",  po::value<int>(), "number of instances")
+        ("instances",  po::value<int>()->default_value(1), "number of instances")
         ("redis_host",  po::value<string>()->default_value(string("127.0.0.1")), "host of the Redis database")
         ("redis_port",  po::value<int>()->default_value(6379), "port of the Redis database")
 		("redis_auth",  po::value<string>(), "authentication to redis database")
+		("keepalive-timeout", po::value<int>()->default_value(5), "keep-alive timeout in seconds")
+		("sysinfo-timeout", po::value<int>()->default_value(60), "system information timeout in seconds")
         ("log_file",  po::value<string>(), "file to store log information")
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
-        ("log_layout",  po::value<string>(), "layout of the log messages")
+        ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
 		("daemonize",  po::value<string>(), "run program as daemon")
     ;
 
-    cmd_line.add_options()
+    cmd_line_vis.add_options()
         ("help", "this help message")
         ("config",  po::value<string>()->default_value(default_config), "configuration file")
         ("trace",  po::value<string>(), "trace configuration file")
 		("generate", po::value<string>(), "make config file with current values")
     ;
+	// hidden options
+    cmd_line.add_options()
+        ("instance", "used to run instance")
+	;
+
+	cmd_line.add(cmd_line_vis);
 
     store(parse_command_line(argc, argv, cmd_line), vm);
     notify(vm);
@@ -162,7 +186,7 @@ int main(int argc, char* argv[])
 	}
 
     if (vm.count("help")) {
-        cout << cmd_line << endl;
+        cout << cmd_line_vis << endl;
         return 0;
     }
 	// create config file
@@ -218,6 +242,12 @@ int main(int argc, char* argv[])
             }
 		}
     }
+
+	// check daemonize
+	if (vm.count("daemonize")) {
+		daemonize = get_bool_option(vm["daemonize"].as<string>());
+	}
+
     // no trace configuration file - make configuration programmatically
     if (vm.count("log_layout")) {
         default_layout = string_to_string(vm["log_layout"].as<string>());
@@ -233,7 +263,7 @@ int main(int argc, char* argv[])
         else {
 		    // set trace destination by default
 
-		    if(vm.count("daemonize") && get_bool_option(vm["daemonize"].as<string>())) {
+		    if(daemonize) {
                 FileAppenderPtr appender(new FileAppender(layout, default_trace, true));
                 scanLogger->addAppender(appender);
                 traceFile = true;
@@ -318,6 +348,17 @@ int main(int argc, char* argv[])
 		return 1;
     }
 #endif
+
+	// demonize and run instances
+	if (daemonize) {
+		int instances = vm["instances"].as<int>();
+		LOG4CXX_INFO(scanLogger, "daemonize. try to run " << instances << " instances");
+		bool master = true;
+		for (int i = 0; i < instances; i++) {
+			LOG4CXX_DEBUG(scanLogger, "Start inscance");
+			// master = fork();
+		}
+	}
 
     // create connection to server
 
