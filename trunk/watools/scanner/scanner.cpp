@@ -5,7 +5,11 @@
 #ifdef WIN32
 #include <errno.h>
 #include <winsock2.h>
-#endif
+#include <process.h>
+#else
+#include <sys/types.h>
+#include <unistd.h>
+#endif //WIN32
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
@@ -22,8 +26,6 @@
 #include "../common/redisclient.h"
 // webEngine
 #include <weHelper.h>
-// temporaty excluded for win64 dependencies
-// libs: log4cxx.lib webEngine.lib curllib_static.lib ws2_32.lib ssleay32.lib libeay32.lib openldap.lib
 
 #include "version.h"
 
@@ -46,13 +48,17 @@ int default_trace_level = 3; //INFO
 wstring default_layout = L"%d{dd MMM yyyy HH:mm:ss,SSS} [%-7p] - %m%n";
 
 // global variables
-LoggerPtr scanLogger = Logger::getLogger("watScanner");
-string scanerUuid = "";
+LoggerPtr scan_logger = Logger::getLogger("watScanner");
+string scaner_uuid = "";
 redis::client* db1_client;
 boost::mutex db1_lock;
 bool daemonize = false;
+string db1_instance_name = "";
 
-bool get_bool_option(const string& value)
+// dispatcher prototype
+extern void dispatcher_routine(int inst, po::variables_map& vm);
+
+bool get_bool_option(const string& value, bool noLogging = false)
 {
 	bool retval = false;
 	string val = value;
@@ -61,14 +67,28 @@ bool get_bool_option(const string& value)
 	if (val == "yes") {
 		retval = true;
 	}
-	if (val == "true") {
+    else if (val == "true") {
 		retval = true;
 	}
-	int i = boost::lexical_cast<int>(val);
-	if (i != 0) {
-		retval = true;
-	}
-	LOG4CXX_DEBUG(scanLogger, "get_bool_option(" << value << ") = " << retval);
+    else {
+        int i = 0;
+        try {
+	        i = boost::lexical_cast<int>(val);
+        } catch (std::exception &e) {
+            if (noLogging) {
+                cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.";
+            }
+            else {
+                LOG4CXX_WARN(scan_logger, "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.");
+            }
+        }
+	    if (i != 0) {
+		    retval = true;
+	    }
+    }
+    if (!noLogging) {
+	    LOG4CXX_DEBUG(scan_logger, "get_bool_option(" << value << ") = " << retval);
+    }
 	return retval;
 }
 
@@ -87,7 +107,7 @@ inline bool is_any(const boost::any& op)
 
 void save_config(const string& fname, po::variables_map& vm, po::options_description& desc)
 {
-    LOG4CXX_INFO(scanLogger, "Save configuration to " << fname);
+    LOG4CXX_INFO(scan_logger, "Save configuration to " << fname);
 
     try{
         ofstream ofs(fname.c_str());
@@ -96,7 +116,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
 			string comment = "#";
 			string value = "";
 			string name = opts[i]->long_name();
-			LOG4CXX_DEBUG(scanLogger, "Save variable " << name);
+			LOG4CXX_DEBUG(scan_logger, "Save variable " << name);
 			ofs << "#" << opts[i]->description() << endl;
 			if (vm.count(name)) {
 				comment = "";
@@ -114,7 +134,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
                     value = boost::lexical_cast<string>(boost::any_cast<int>(val));
                 }
 				else {
-					LOG4CXX_ERROR(scanLogger, "Unknown variable type " << val.type().name());
+					LOG4CXX_ERROR(scan_logger, "Unknown variable type " << val.type().name());
 				}
 			}
 			else {
@@ -124,10 +144,10 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
 		}
     }
     catch(std::exception& e) {
-        LOG4CXX_ERROR(scanLogger, "Configuration not saved: " << e.what());
+        LOG4CXX_ERROR(scan_logger, "Configuration not saved: " << e.what());
         return;
     }
-    LOG4CXX_INFO(scanLogger, "Configuration saved successfully");
+    LOG4CXX_INFO(scan_logger, "Configuration saved successfully");
 }
 
 int main(int argc, char* argv[])
@@ -136,19 +156,25 @@ int main(int argc, char* argv[])
     po::options_description cmd_line("Command-line configuration");
     po::options_description cmd_line_vis("Command-line configuration");
     po::variables_map vm;
+    string db1_stage;
+
+    vector<string> redis_out;
+    int inst_num, max_inst;
 
     cfg_file.add_options()
         ("identity", po::value<string>(), "instalation identificator")
-        ("instances",  po::value<int>()->default_value(1), "number of instances")
+        ("instances",  po::value<int>()->default_value(int(1)), "number of instances")
         ("redis_host",  po::value<string>()->default_value(string("127.0.0.1")), "host of the Redis database")
-        ("redis_port",  po::value<int>()->default_value(6379), "port of the Redis database")
+        ("redis_port",  po::value<int>()->default_value(int(6379)), "port of the Redis database")
 		("redis_auth",  po::value<string>(), "authentication to redis database")
-		("keepalive-timeout", po::value<int>()->default_value(5), "keep-alive timeout in seconds")
-		("sysinfo-timeout", po::value<int>()->default_value(60), "system information timeout in seconds")
+		("redis_db",  po::value<int>()->default_value(int(0)), "redis database index (0-16)")
+		("keepalive_timeout", po::value<int>()->default_value(int(5)), "keep-alive timeout in seconds")
+		("sysinfo_timeout", po::value<int>()->default_value(int(60)), "system information timeout in seconds")
+		("scanner_name", po::value<string>()->default_value(string("default scanner")), "human-readable identificator of the scanner instalation")
         ("log_file",  po::value<string>(), "file to store log information")
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
         ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
-		("daemonize",  po::value<string>(), "run program as daemon")
+		("daemonize",  po::value<string>(), "run program as daemon (yes|no or true|false)")
     ;
 
     cmd_line_vis.add_options()
@@ -193,6 +219,11 @@ int main(int argc, char* argv[])
 	if (vm.count("generate")) {
 		cout << "WAT scanner " << version << endl;
 		cout << "write config file " << vm["generate"].as<string>() << endl;
+        {   
+            istrstream ss("");
+			store(parse_config_file(ss, cfg_file), vm);
+			notify(vm);
+        }
 		save_config(vm["generate"].as<string>(), vm, cfg_file);
 		return 0;
 	}
@@ -245,7 +276,7 @@ int main(int argc, char* argv[])
 
 	// check daemonize
 	if (vm.count("daemonize")) {
-		daemonize = get_bool_option(vm["daemonize"].as<string>());
+		daemonize = get_bool_option(vm["daemonize"].as<string>(), true);
 	}
 
     // no trace configuration file - make configuration programmatically
@@ -257,7 +288,7 @@ int main(int argc, char* argv[])
 		// set log file from config file
         if (vm.count("log_file")) {
             FileAppenderPtr appender(new FileAppender(layout, string_to_string(vm["log_file"].as<string>()), true));
-            scanLogger->addAppender(appender);
+            scan_logger->addAppender(appender);
             traceFile = true;
         }
         else {
@@ -265,13 +296,13 @@ int main(int argc, char* argv[])
 
 		    if(daemonize) {
                 FileAppenderPtr appender(new FileAppender(layout, default_trace, true));
-                scanLogger->addAppender(appender);
+                scan_logger->addAppender(appender);
                 traceFile = true;
 		    }
 		    else {
 			    // set trace to console
                 ConsoleAppenderPtr appender(new ConsoleAppender(layout));
-                scanLogger->addAppender(appender);
+                scan_logger->addAppender(appender);
                 traceFile = true;
 		    }
         }
@@ -284,27 +315,27 @@ int main(int argc, char* argv[])
         }
         switch (lvl) {
             case 0:
-                scanLogger->setLevel(Level::getFatal());
+                scan_logger->setLevel(Level::getFatal());
                 break;
             case 1:
-                scanLogger->setLevel(Level::getError());
+                scan_logger->setLevel(Level::getError());
                 break;
             case 2:
-                scanLogger->setLevel(Level::getWarn());
+                scan_logger->setLevel(Level::getWarn());
                 break;
             case 3:
-                scanLogger->setLevel(Level::getInfo());
+                scan_logger->setLevel(Level::getInfo());
                 break;
             case 4:
-                scanLogger->setLevel(Level::getDebug());
+                scan_logger->setLevel(Level::getDebug());
                 break;
             default: // TRACE and bad values
-                scanLogger->setLevel(Level::getTrace());
+                scan_logger->setLevel(Level::getTrace());
         };
         traceLevel = true;
 	}
-	LOG4CXX_INFO(scanLogger, "WAT Scanner started. Version: " << version);
-	LOG4CXX_INFO(scanLogger, "Loaded configuration from " << vm["config"].as<string>());
+	LOG4CXX_INFO(scan_logger, "WAT Scanner started. Version: " << version);
+	LOG4CXX_INFO(scan_logger, "Loaded configuration from " << vm["config"].as<string>());
 
 	// init webEngine library
     if (vm.count("trace")) {
@@ -313,29 +344,29 @@ int main(int argc, char* argv[])
     }
     else {
         // init library with the existing logger
-        AppenderList appList = scanLogger->getAllAppenders();
-		webEngine::LibInit(appList[0], scanLogger->getLevel());
+        AppenderList appList = scan_logger->getAllAppenders();
+		webEngine::LibInit(appList[0], scan_logger->getLevel());
     }
-    // verify instalation UUID
+    // verify installation UUID
     if (vm.count("identity")) {
-        scanerUuid = vm["identity"].as<string>();
+        scaner_uuid = vm["identity"].as<string>();
     }
     else {
-        LOG4CXX_INFO(scanLogger, "WAT Scanner identificator is undefined, create new");
+        LOG4CXX_INFO(scan_logger, "WAT Scanner identificator is undefined, create new");
         basic_random_generator<boost::mt19937> gen;
         uuid tag = gen();
-        scanerUuid = boost::lexical_cast<string>(tag);
+        scaner_uuid = boost::lexical_cast<string>(tag);
         // todo: save config
-        string value = "identity=" + scanerUuid;
+        string value = "identity=" + scaner_uuid;
 		{
 			istrstream ss(value.c_str());
 			store(parse_config_file(ss, cfg_file), vm);
 			notify(vm);
 		}
-        LOG4CXX_TRACE(scanLogger, "New config value for identity is " << vm["identity"].as<string>());
+        LOG4CXX_TRACE(scan_logger, "New config value for identity is " << vm["identity"].as<string>());
         save_config(vm["config"].as<string>(), vm, cfg_file);
     }
-    LOG4CXX_INFO(scanLogger, "WAT Scanner identificator is " << scanerUuid);
+    LOG4CXX_INFO(scan_logger, "WAT Scanner identificator is " << scaner_uuid);
 
 #ifdef WIN32
     //----------------------
@@ -344,35 +375,118 @@ int main(int argc, char* argv[])
     int iResult;
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != NO_ERROR) {
-        LOG4CXX_FATAL(scanLogger, "WSAStartup failed: " << iResult);
+        LOG4CXX_FATAL(scan_logger, "WSAStartup failed: " << iResult);
 		return 1;
     }
 #endif
 
 	// demonize and run instances
+#ifdef WIN32
+    // prevent instance to fall into endless "run-the-instances" loop
+    // only on Win32, 'cause the *NIX have the fork() syscall, which do all this work
+    LOG4CXX_TRACE(scan_logger, "running as " << argv[0]);
+    if (boost::iequals(argv[0], "instance") ) {
+        daemonize = false;
+        LOG4CXX_DEBUG(scan_logger, "Win32 - already daemonized instance");
+    }
+#endif
 	if (daemonize) {
 		int instances = vm["instances"].as<int>();
-		LOG4CXX_INFO(scanLogger, "daemonize. try to run " << instances << " instances");
+		LOG4CXX_INFO(scan_logger, "daemonize. try to run " << instances << " instances");
 		bool master = true;
 		for (int i = 0; i < instances; i++) {
-			LOG4CXX_DEBUG(scanLogger, "Start inscance");
-			// master = fork();
+			LOG4CXX_TRACE(scan_logger, "Start instance");
+#ifdef WIN32
+            char** cmd = new char*[argc+1];
+            for (int j = 1; j < argc; j++) {
+                cmd[j] = strdup(argv[j]);
+            }
+            cmd[argc] = NULL;
+            cmd[0] = strdup("instance");
+            int pid = _spawnv(_P_NOWAIT, argv[0], cmd);
+            if (pid <= 0) {
+                LOG4CXX_ERROR(scan_logger, "_spawnv failed: (" << pid << ") ERRNO=" << errno);
+            }
+#else
+            pid_t pid = vfork();
+            if (pid < 0) {
+                // error 
+                LOG4CXX_ERROR(scan_logger, "vfork returns error: " << pid);
+            }
+            else if (pid == 0) {
+                // child process
+                LOG4CXX_INFO(scan_logger, "instance started!");
+                master = false;
+                break;
+            }
+#endif
+            LOG4CXX_DEBUG(scan_logger, "running instance #" << i+1);
 		}
+        if (master) {
+            LOG4CXX_INFO(scan_logger, "All instances started, exit launcher");
+            goto finish;
+        }
 	}
 
-    // create connection to server
+    // create connection to Redis server
+    db1_stage = "connection creation";
+    db1_client = NULL;
+    try {
+        db1_client = new redis::client(vm["redis_host"].as<string>(), vm["redis_port"].as<int>());
+        if (vm.count("redis_auth")) {
+            string db_auth = vm["redis_auth"].as<string>();
+            if (db_auth != "")
+            {
+                db1_stage = "authentication";
+                db1_client->auth(db_auth);
+            }
+        }
+        int db_index = vm["redis_db"].as<int>();
+        db1_stage = "select DB";
+        db1_client->select(db_index);
+    }
+    catch (redis::redis_error& re) {
+    	LOG4CXX_FATAL(scan_logger, "Redis DB connection error (" << db1_stage << "): " << (string)re);
+        if (db1_client != NULL) {
+            delete db1_client;
+        }
+        db1_client = NULL;
+    }
+    if (db1_client == NULL) {
+        LOG4CXX_TRACE(scan_logger, "Redis DB connection error - exit");
+        goto finish;
+    }
+    LOG4CXX_INFO(scan_logger, "Redis connection established");
 
     // verify instance id
+    inst_num = db1_client->keys("ScanModule:" + scaner_uuid + "*", redis_out);
+    LOG4CXX_TRACE(scan_logger, "DB1 returns " << inst_num << " as number of instances");
+    inst_num++;
+    max_inst = vm["instances"].as<int>();
+    if (inst_num > max_inst) {
+        LOG4CXX_FATAL(scan_logger, "Can't run instance " << inst_num << " 'cause the limit is " << max_inst);
+        goto finish;
+    }
+    LOG4CXX_DEBUG(scan_logger, "Register instance #" << inst_num);
+    db1_instance_name = "ScanModule:" + scaner_uuid + ":" + boost::lexical_cast<string>(inst_num);
+    db1_client->set(db1_instance_name, "0");
+    db1_client->expire(db1_instance_name, 10);
 
     // init plugin factory
 
     // init dispatcher
 
     // run dispatcher
+    dispatcher_routine(inst_num, vm);
+    
 
+finish:
     // cleanup
+    if (db1_client != NULL) {
+        delete db1_client;
+    }
     webEngine::LibClose();
 
-    LOG4CXX_INFO(scanLogger, "WAT Scanner stopped\n\n");
+    LOG4CXX_INFO(scan_logger, "WAT Scanner stopped\n\n");
     return 0;
 }

@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dispatcher.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\common\redisclient.cpp"
 				>
 			</File>
