@@ -53,7 +53,7 @@ extern "C" {
 
 using namespace std;
 
-extern log4cxx::LoggerPtr scanLogger;
+extern log4cxx::LoggerPtr scan_logger;
 
 namespace 
 {
@@ -100,9 +100,9 @@ namespace
         while ((pos = escaped_data.find("\r")) != string::npos)
               escaped_data.replace(pos, 1, "\\r");
 
-        if (scanLogger)
+        if (scan_logger)
         {
-            LOG4CXX_DEBUG(scanLogger, (is_received ? "RECV '" : "SEND '") << escaped_data << "'");
+            LOG4CXX_TRACE(scan_logger, (is_received ? "RECV '" : "SEND '") << escaped_data << "'");
         }
     }
 
