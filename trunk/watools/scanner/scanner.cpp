@@ -45,7 +45,7 @@ string default_config = "/etc/watools/scanner.conf";
 wstring default_trace  = L"/tmp/watools.scanner.trace";
 #endif
 int default_trace_level = 3; //INFO
-wstring default_layout = L"%d{dd MMM yyyy HH:mm:ss,SSS} [%-7p] - %m%n";
+wstring default_layout = L"%d{dd MMM yyyy HH:mm:ss,SSS} [%-5p] - %m%n";
 
 // global variables
 LoggerPtr scan_logger = Logger::getLogger("watScanner");
@@ -76,7 +76,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
 	        i = boost::lexical_cast<int>(val);
         } catch (std::exception &e) {
             if (noLogging) {
-                cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.";
+                cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false." << endl;
             }
             else {
                 LOG4CXX_WARN(scan_logger, "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.");
@@ -105,9 +105,11 @@ inline bool is_any(const boost::any& op)
   return (op.type() == typeid(T));
 }
 
-void save_config(const string& fname, po::variables_map& vm, po::options_description& desc)
+void save_config(const string& fname, po::variables_map& vm, po::options_description& desc, bool noLogging = false )
 {
-    LOG4CXX_INFO(scan_logger, "Save configuration to " << fname);
+	if (!noLogging) {
+		LOG4CXX_INFO(scan_logger, "Save configuration to " << fname);
+	}
 
     try{
         ofstream ofs(fname.c_str());
@@ -116,7 +118,9 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
 			string comment = "#";
 			string value = "";
 			string name = opts[i]->long_name();
-			LOG4CXX_DEBUG(scan_logger, "Save variable " << name);
+			if (!noLogging) {
+				LOG4CXX_DEBUG(scan_logger, "Save variable " << name);
+			}
 			ofs << "#" << opts[i]->description() << endl;
 			if (vm.count(name)) {
 				comment = "";
@@ -134,7 +138,12 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
                     value = boost::lexical_cast<string>(boost::any_cast<int>(val));
                 }
 				else {
-					LOG4CXX_ERROR(scan_logger, "Unknown variable type " << val.type().name());
+					if (noLogging) {
+						cerr << "Unknown variable type " << val.type().name() << endl;
+					}
+					else {
+						LOG4CXX_ERROR(scan_logger, "Unknown variable type " << val.type().name());
+					}
 				}
 			}
 			else {
@@ -144,10 +153,17 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
 		}
     }
     catch(std::exception& e) {
-        LOG4CXX_ERROR(scan_logger, "Configuration not saved: " << e.what());
+		if (noLogging) {
+			cerr << "Configuration not saved: " << e.what() << endl;
+		}
+		else {
+			LOG4CXX_ERROR(scan_logger, "Configuration not saved: " << e.what());
+		}
         return;
     }
-    LOG4CXX_INFO(scan_logger, "Configuration saved successfully");
+	if (!noLogging) {
+		LOG4CXX_INFO(scan_logger, "Configuration saved successfully");
+	}
 }
 
 int main(int argc, char* argv[])
@@ -224,7 +240,7 @@ int main(int argc, char* argv[])
 			store(parse_config_file(ss, cfg_file), vm);
 			notify(vm);
         }
-		save_config(vm["generate"].as<string>(), vm, cfg_file);
+		save_config(vm["generate"].as<string>(), vm, cfg_file, true);
 		return 0;
 	}
 
