@@ -64,7 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib ws2_32.lib libboost_regex-vc90-mt-gd-1_38.lib webEngine.lib curllib.lib ssleay32.lib libeay32.lib"
+				AdditionalDependencies="Psapi.lib log4cxx.lib ws2_32.lib libboost_regex-vc90-mt-gd-1_38.lib webEngine.lib curllib.lib ssleay32.lib libeay32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\webEngine\libs\Debug"
 				EnableUAC="true"
@@ -198,6 +198,10 @@
 				RelativePath=".\scanner.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\common\sysinfo.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -218,6 +222,10 @@
 			</File>
 			<File
 				RelativePath=".\boost\sha1.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\common\sysinfo.h"
 				>
 			</File>
 			<File
