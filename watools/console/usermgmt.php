@@ -308,13 +308,36 @@ function CheckACL($object)
 {
     global $gSession, $gUser;
     $result = false;
+    $acl = GetACL($object);
     
-    if (is_null($gUser)) {
+    if (in_array('read', $acl)) {
         // not authenticated session
-        return false;
+        $result = true;
     }
     
-    return true;
+    return $result;
+}
+
+function GetACL($object)
+{
+    global $gSession, $gUser;
+    $result = array();
+    
+    if (!is_null($gUser)) {
+        // authenticated session
+        $result[] = 'read';
+        if ($gUser['id'] == 1) {
+            $result[] = 'write';
+            $result[] = 'delete';
+            $result[] = 'execute';
+            $result[] = 'system';
+        }
+        if (in_array(1, $gUser['groups']) && !in_array('system', $result)) {
+            $result[] = 'system';
+        }
+    }
+    
+    return $result;
 }
 
 function CheckUserPassword($pwd)

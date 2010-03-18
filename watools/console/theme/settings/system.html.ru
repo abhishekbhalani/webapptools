@@ -91,7 +91,7 @@ function InstallTheme(name) {
             <br/><button onclick="InstallTheme('[{$thNames[thm]}]');">Установить</button>
             [{/if}]
         </td>
-        <td width="350"><img src="/[{$theme}]/images/screen_s.jpg" width="320" height="240"/></td>
+        <td width="350"><img src="/[{$thNames[thm]}]/images/screen_s.jpg" width="320" height="200"/></td>
         <td>[{$thDesc[thm]}]<br/><p><b>Поддерживаемые языки:</b></p>
         [{section name=thl loop=$thLangs[thm]}]
         <ul id="thl[{$thm}]">

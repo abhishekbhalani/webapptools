@@ -39,8 +39,8 @@ $(function() {
         modal: true,
         buttons: {
             'Ok': function() {
+                userBoxClick('ok', $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val());
                 $(this).dialog('close');
-                userBoxClick('ok');
             },
             'Cancel': function() {
                 $(this).dialog('close');
@@ -117,9 +117,9 @@ function groupEdit(gname, gdesc, gid) {
 }
 function groupBoxClick(status) {
     if (status == 'ok') {
-        gid = $('#gID').attr('value');
-        gnm = $('#gName').attr('value');
-        gds = $('#gDesc').attr('value');
+        var gid = $('#gID').attr('value');
+        var gnm = $('#gName').attr('value');
+        var gds = $('#gDesc').attr('value');
         $('#errorMessageText').html('');
         $('#errorMessageText').load('uagModify.php', {'object': 'group', 'gid': gid, 'gname': gnm, 'gdesc': gds},
                 function(data) {
@@ -173,9 +173,9 @@ function userEdit(uname, udesc, uid) {
 }
 function userPwd(uname, udesc, uid) {
     $("#ui-dialog-title-userEdit").text('Reset password'); 
-    $('#uLogin').attr('value', uname);
-    $('#uDesc').attr('value', udesc);
-    $('#uID').attr('value', uid);
+    $('#uLogin').val(uname);
+    $('#uDesc').val(udesc);
+    $('#uID').val(uid);
     $('#uPwd').attr('value', '');
     $('#uPwd2').attr('value', '');
     $('#uLogin').attr('class', 'readonly');
@@ -187,21 +187,28 @@ function userPwd(uname, udesc, uid) {
     $('#userEdit').dialog('open');
     return false;
 }
-function userBoxClick(status) {
+function userBoxClick(status, mid, muname, mdesc, mpw, mpw2) {
+    alert ("UserClick: " + status);
     if (status == 'ok') {
-        gid = $('#uID').attr('value');
-        gnm = $('#uLogin').attr('value');
-        gds = $('#uDesc').attr('value');
-        gpw = $('#uPwd').attr('value');
-        gp2 = $('#uPwd2').attr('value');
-        grp = $('#uGroup').attr('value');
+        alert($('[name=uID]').val());
+
+        var gid = $('#uID').val();
+        var gnm = $('#uLogin').val();
+        var gds = $('#uDesc').val();
+        var gpw = $('#uPwd').val();
+        var gp2 = $('#uPwd2').val();
+        var grp = $('#uGroup').attr('value');
         
+        alert(gid + ", " + gnm + ", " + gds + ", " + gpw + "(" + gp2 + "), " + grp + "\n" +
+              mid + ", " + muname + ", " + mdesc + ", " + mpw + ", " + mpw2);
         $('#errorMessageText').html('');
         if (gpw != gp2) {
             $('#errorMessageText').html("Passwords doesn't match!");
+            $('#errorBox').dialog('open');
         }
         else if (gnm == "") {
             $('#errorMessageText').html("Login is empty!");
+            $('#errorBox').dialog('open');
         }
         else {
             $('#errorMessageText').load('uagModify.php', {'object': 'user', 'uid': gid, 'uname': gnm, 'udesc': gds, 'pwd': gpw, 'grp': grp},
@@ -332,11 +339,11 @@ function deleteGroupMsg(uid, uname) {
 <!-- user edit -->
 <div id="userEdit" title="Edit User">
     <table width="100%">
-        <tr><td><b>Login name</b></td><td><input type="text" id="uLogin" value="" class="text"></td></tr>
-        <tr><td><b>Full user name</b></td><td><input type="text" id="uDesc" value="" class="text"></td></tr>
-        <tr id="pwd1row"><td><b>Password</b></td><td><input type="password" id="uPwd" value="" class="text"></td></tr>
-        <tr id="pwd2row"><td><b>Confirm password</b></td><td><input type="password" id="uPwd2" value="" class="text"></td></tr>
-        <tr><td><b>Primary group</b></td><td><select id="uGroup" name="uGroup">
+        <tr><td><b>Login name</b></td><td><input type="text" id="uLogin" name="uLogin" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+        <tr><td><b>Full user name</b></td><td><input type="text" id="uDesc" name="uDesc" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+        <tr id="pwd1row"><td><b>Password</b></td><td><input type="password" id="uPwd" name="uPwd" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+        <tr id="pwd2row"><td><b>Confirm password</b></td><td><input type="password" id="uPwd2" name="uPwd2" value="" class="text ui-widget-content ui-corner-all"></td></tr>
+        <tr><td><b>Primary group</b></td><td><select id="uGroup" name="uGroup" class="ui-widget-content ui-corner-all">
                 [{html_options values=$grpIds output=$grpNames}]
                 </select></td></tr>
     </table>
@@ -344,7 +351,9 @@ function deleteGroupMsg(uid, uname) {
 </div>
 <!-- error box -->
 <div id="errorBox" title="Error!" class='ui-state-error'>
-    <img src="/[{$theme}]/img/exit.png" align="left"><p id="errorMessageText">-</p>
+    <div class='ui-state-error ui-conner-all'>
+    <img src="/[{$theme}]/images/exit.png" align="left"><p id="errorMessageText">-</p>
+    </div>
 </div>
 <!-- confirm box -->
 <div id="confirmBox" title="Confirmation">
