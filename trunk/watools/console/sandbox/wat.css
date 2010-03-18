@@ -491,7 +491,7 @@ html {font: 12px "Trebuchet MS", sans-serif;}
 body { margin: 0; padding: 0; height: 100%; background-color: #d89020; color: #383838; font: 12px "Trebuchet MS", sans-serif; }
 table {font-size: 100%;}
 #bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-.toolbar { background-image: url(img/tb01.jpg); background-repeat: repeat-x; color: white; vertical-align: text-top; font-family: Segoe UI, Arial, sans-serif; font-size: 1.1em; font-weight: bold;}
+.toolbar { background-image: url(images/tb01.jpg); background-repeat: repeat-x; color: white; vertical-align: text-top; font-family: Segoe UI, Arial, sans-serif; font-size: 1.1em; font-weight: bold;}
 /*.leftMenu {padding-bottom: 5px; margin-bottom: 5px;}*/
 
 .ui-icon-btn {float: left; margin-right: 4px;}

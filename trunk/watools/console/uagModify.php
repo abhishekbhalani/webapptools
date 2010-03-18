@@ -49,6 +49,14 @@ if ($action == 'user') {
     else {
         // edit user
         $res = ModifyUser($uid, $uname, $udesc, $pwd);
+/*        RemoveUserGroup($uid, $grp);
+        if ($r->sismember("User:$uid:Groups", $grp) == 0) {
+            $res = $r->sadd("User:$uid:Groups", $grp);
+        }
+        if ($r->sismember("Group:$grp:Members", $uid) == 0) {
+            $res = $r->sadd("Group:$grp:Members", $uid);
+        }*/
+        
     }
     echo $msg;
     exit(0);

@@ -10,8 +10,9 @@ if (!CheckACL('settings')) {
 }
 $r = GetRedisConnection();
 $isSystem = false;
+$acl = GetACL('settings');
 if (!is_null($r)) {
-    if (in_array(1, $gUser['groups']) || $gUser['id'] == 1) {
+    if (in_array('system', $acl)) {
         $isSystem = true;
     }
 }
