@@ -32,7 +32,7 @@ int running_tasks_count = 0;
 
 enum _keep_alive_fileds {
     ip_addr = 0,
-    instance,
+    //instance,
     scanner_name,
     keepalive_timeout,
 	running_task,
@@ -171,7 +171,7 @@ void dispatcher_routine(int inst, po::variables_map& vm)
         keep_alive_packet[ip_addr] = "<unknown>";
     }
 
-    keep_alive_packet[instance] =  boost::lexical_cast<string>(inst);
+    //keep_alive_packet[instance] =  boost::lexical_cast<string>(inst);
     keep_alive_packet[scanner_name] = vm["scanner_name"].as<string>();
     keep_alive_packet[keepalive_timeout] = boost::lexical_cast<string>(keep_alive_timeout);
     keep_alive_packet[status] = "READY";

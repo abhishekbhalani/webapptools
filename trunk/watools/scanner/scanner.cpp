@@ -235,8 +235,12 @@ int main(int argc, char* argv[])
 	if (vm.count("generate")) {
 		cout << "WAT scanner " << version << endl;
 		cout << "write config file " << vm["generate"].as<string>() << endl;
+        basic_random_generator<boost::mt19937> gen;
+        uuid tag = gen();
+        scaner_uuid = boost::lexical_cast<string>(tag);
+        string value = "identity=" + scaner_uuid;
         {   
-            istrstream ss("");
+            istrstream ss(value.c_str());
 			store(parse_config_file(ss, cfg_file), vm);
 			notify(vm);
         }
