@@ -1,0 +1,17 @@
+<table>
+    <tr class="ui-widget-header"><td colspan="2">Scanner instance information</td></tr>
+    <tr><td>Scanner identity:</td><td>[{$identity}]</td></tr>
+    <tr><td>Scanner tasks:</td><td>[{$currtasks}] from [{$maxtasks}]</td></tr>
+    <tr><td>Scanner address:</td><td>[{$address}]</td></tr>
+    <tr><td>Scanner name:</td><td>[{$scanname}]</td></tr>
+    <tr class="ui-widget-header"><td colspan="2">Scanner's system information</td></tr>
+    <tr><td>Operating sysytem:</td><td>[{$osname}]</td></tr>
+    <tr><td>Memory usage:</td><td>[{$memory}]</td></tr>
+    <tr><td>Disk usage:</td><td>[{$disks}]</td></tr>
+    <tr><td>CPU usage:</td><td>[{$cpu}]</td></tr>
+    <tr><td>Commands in queue</td><td>[{$queuelen}]</td></tr>
+[{if $queuelen > 0 && $showqueue == 'true'}]
+    <tr><td>Commands:</td><td><textarea>[{section name=cmds loop=$queue}][{$queue[$cmds]}]
+[{/section}]</textarea></td></tr>
+[{/if}]
+</table>

@@ -1,4 +1,5 @@
 <div class="ui-widget">
+    <script src="/scripts/modules.js"></script>
     <!-- pre>Debug:[{$debug}]</pre -->
     <fieldset class="fields">
         <legend class="fields"><span class="ui-icon ui-icon-gear ui-icon-btn"></span> Scanning Modules</legend>
@@ -21,10 +22,15 @@
                 <td style="width: auto; text-align: center;">[{$ScanModules[scanner][4]}]</td>
                 <td style="width: auto; text-align: center;">[{$ScanModules[scanner][5]}]</td>
                 <td style="white-space: nowrap">
-                    <a href="#" onclick="return false;"><span class="ui-icon ui-icon-info ui-icon-btn"></span></a>
+                    <a href="#" onclick="return showInfo('scanner', '[{$ScanModules[scanner][0]}]', '[{$ScanModules[scanner][1]}]');">
+                        <span class="ui-icon ui-icon-info ui-icon-btn" title="Module Information"></span></a>
 [{if $ScanACL == 1}]
-                    <a href="#" onclick="return false;"><span class="ui-icon ui-icon-cancel ui-icon-btn"></span></a>
-                    <a href="#" onclick="return false;"><span class="ui-icon ui-icon-alert ui-icon-btn"></span></a>
+                    <a href="#" onclick="return false;">
+                        <span class="ui-icon ui-icon-cancel ui-icon-btn" title="Stop Module"></span></a>
+                    <a href="#" onclick="return false;">
+                        <span class="ui-icon ui-icon-refresh ui-icon-btn" title="Restart Module"></span></a>
+                    <a href="#" onclick="return false;">
+                        <span class="ui-icon ui-icon-wrench ui-icon-btn" title="Edit command queue"></span></a>
 [{/if}]
                 </td>
             </tr>
@@ -49,3 +55,4 @@
         [{/if}]
     </fieldset>
 </div>
+<div id="moduleNotify" title="Module Information"></div>
