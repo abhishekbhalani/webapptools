@@ -23,7 +23,7 @@
         
         myclock=hours+":"+minutes+":"+seconds;
         
-        liveclock.innerHTML= today.toLocaleDateString() + " " + myclock;
+        $("#liveclock").html(today.toLocaleDateString() + " " + myclock);
         setTimeout("showDate()",1000);
     }
     

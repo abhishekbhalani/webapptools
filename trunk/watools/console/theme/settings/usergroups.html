@@ -33,20 +33,6 @@ $(function() {
             }
         }
     });
-    $('#userEdit').dialog({
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        buttons: {
-            'Ok': function() {
-                userBoxClick('ok', $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val());
-                $(this).dialog('close');
-            },
-            'Cancel': function() {
-                $(this).dialog('close');
-            }
-        }
-    });
     $('#errorBox').dialog({
         autoOpen: false,
         width: 400,
@@ -152,7 +138,20 @@ function userAdd() {
     $('#uDesc').attr('readonly', false);
     $('#pwd1row').css('display','table-row');
     $('#pwd2row').css('display','table-row');
-    $('#userEdit').dialog('open');
+    $('#userEdit').dialog({
+        autoOpen: true,
+        width: 400,
+        modal: true,
+        buttons: {
+            'Ok': function() {
+                userBoxClick('ok', $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val());
+                $(this).dialog('close');
+            },
+            'Cancel': function() {
+                $(this).dialog('close');
+            }
+        }
+    });
     return false;
 }
 function userEdit(uname, udesc, uid) {
@@ -168,7 +167,20 @@ function userEdit(uname, udesc, uid) {
     $('#uDesc').attr('readonly', false);
     $('#pwd1row').css('display','none');
     $('#pwd2row').css('display','none');
-    $('#userEdit').dialog('open');
+    $('#userEdit').dialog({
+        autoOpen: true,
+        width: 400,
+        modal: true,
+        buttons: {
+            'Ok': function() {
+                userBoxClick('ok', $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val());
+                $(this).dialog('close');
+            },
+            'Cancel': function() {
+                $(this).dialog('close');
+            }
+        }
+    });
     return false;
 }
 function userPwd(uname, udesc, uid) {
@@ -184,7 +196,20 @@ function userPwd(uname, udesc, uid) {
     $('#uDesc').attr('readonly', true);
     $('#pwd1row').css('display','table-row');
     $('#pwd2row').css('display','table-row');
-    $('#userEdit').dialog('open');
+    $('#userEdit').dialog({
+        autoOpen: true,
+        width: 400,
+        modal: true,
+        buttons: {
+            'Ok': function() {
+                $(this).dialog('close');
+                userBoxClick('ok', $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val());
+            },
+            'Cancel': function() {
+                $(this).dialog('close');
+            }
+        }
+    });
     return false;
 }
 function userBoxClick(status, mid, muname, mdesc, mpw, mpw2) {
@@ -337,7 +362,7 @@ function deleteGroupMsg(uid, uname) {
     <input type="hidden" id="gID" name="gID" value="">
 </div>
 <!-- user edit -->
-<div id="userEdit" title="Edit User">
+<div id="userEdit" title="Edit User" style="display: none;">
     <table width="100%">
         <tr><td><b>Login name</b></td><td><input type="text" id="uLogin" name="uLogin" value="" class="text ui-widget-content ui-corner-all"></td></tr>
         <tr><td><b>Full user name</b></td><td><input type="text" id="uDesc" name="uDesc" value="" class="text ui-widget-content ui-corner-all"></td></tr>
