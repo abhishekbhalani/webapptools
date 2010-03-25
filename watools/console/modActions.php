@@ -3,16 +3,26 @@ require_once('./sessions.php');
 require_once('./themes.php');
 require_once('./usermgmt.php');
 
+function PrintError($message) {
+    $smarty->assign('messageIcon', "warning.png");
+    $smarty->assign('messageText', $message);
+    DisplayThemePage('modules/modError.html');
+    exit(0);
+}
+
+function PrintMessage($message) {
+    echo $message;
+    exit(0);
+}
+
 // todo check ACL for access
 if (!CheckACL('usermanagament')) {
-    echo gettext('Access denied');
-    exit(0);
+    PrintError('Access denied');
 }
 
 $r = GetRedisConnection();
 if (is_null($r)) {
-    echo gettext('Database access error!');
-    exit(0);
+    PrintError('Database access error!');
 }
 
 $action = $_POST['action'];
@@ -65,24 +75,61 @@ if ($action == "info") {
             DisplayThemePage('modules/modScanInfo.html');
         }
         else {
-            $smarty->assign('messageIcon', "warning.png");
-            $smarty->assign('messageText', "Can't find selected instance ($module:$inst)!");
-            DisplayThemePage('modules/modError.html');
+            PrintError("Can't find selected instance ($module:$inst)!");
         }
     }
     else if ($class == 'reporter') {
         // no information yet
     }
     else {
-        echo gettext('Invalid request!');
+        PrintError("Invalid request!");
     }
     exit (0);
 }
 else if ($action == "stop") {
-    
+    if ($class == 'scanner') {
+        $acl = GetACL('modules/scanners');
+        $scanACL = 0;
+        if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
+            $scanACL = 1;
+        }
+        else {
+            PrintError("Access denied for user $gUser[0]!");
+        }
+        // send commnad to scanner
+        $r->rpush("ScanModule:Queue:$module:$inst", "EXIT");
+        PrintMessage("Exit request was send to scanner $module:$inst!");
+    }
+    else if ($class == 'reporter') {
+        // no information yet
+    }
+    else {
+        PrintError("Invalid request!");
+    }
+}
+else if ($action == "restart") {
+    if ($class == 'scanner') {
+        $acl = GetACL('modules/scanners');
+        $scanACL = 0;
+        if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
+            $scanACL = 1;
+        }
+        else {
+            PrintError("Access denied for user $gUser[0]!");
+        }
+        // send commnad to scanner
+        $r->rpush("ScanModule:Queue:$module:$inst", "RESTART");
+        PrintMessage("Restart request was send to scanner $module:$inst!");
+    }
+    else if ($class == 'reporter') {
+        // no information yet
+    }
+    else {
+        PrintError("Invalid request!");
+    }
 }
 else {
-    echo gettext('Invalid request!');
+    PrintError("Invalid request!");
 }
 
 ?>
