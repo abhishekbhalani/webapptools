@@ -1,5 +1,56 @@
 <script>
 var tabUsrIndex = 3;
+var user = {
+    uid: 0,
+    login: '',
+    desc: '',
+    pwd1: '',
+    pwd2: '',
+    grp: 0,
+    setID: function(sval) {
+        $('#uID').value = sval;
+        this.uid = sval;
+    },
+    setLogin: function(sval) {
+        alert("Login: " + sval);
+        $('#uLogin').val(sval);
+        this.login = sval;
+    },
+    setDesc: function(sval) {
+        $('#uDesc').val(sval);
+        this.desc = sval;
+    },
+    setPwd1: function(sval) {
+        $('#uPwd').val(sval);
+        this.pwd1 = sval;
+    },
+    setPwd2: function(sval) {
+        $('#uPwd2').val(sval);
+        this.pwd2 = sval;
+    },
+    setGroup: function(sval) {
+        $('#uGroup').val(sval);
+        this.grp = sval;
+    }
+};
+var group = {
+    gid: 0,
+    name: '',
+    desc: '',
+    setID: function(sval) {
+        $('#gID').val(sval);
+        this.gid = sval;
+    },
+    setName: function(sval) {
+        $('#gName').val(sval);
+        this.name = sval;
+    },
+    setDesc: function(sval) {
+        $('#gDesc').val(sval);
+        this.desc = sval;
+    },
+};
+
 $(function() {
     $('#users-all').button({
         icons: {primary: 'ui-icon-person'}
@@ -86,26 +137,32 @@ function InvertUsers (id) {
     });
 }
 function groupAdd() {
-    $("#ui-dialog-title-groupEdit").text('Create new group'); 
-    $('#gName').attr('value', '');
-    $('#gDesc').attr('value', '');
-    $('#gID').attr('value', '-1');
+    $("#ui-dialog-title-groupEdit").text('Create new group');
+    group.setName('');
+    //$('#gName').attr('value', '');
+    group.setDesc('');
+    //$('#gDesc').attr('value', '');
+    group.setID('-1');
+    //$('#gID').attr('value', '-1');
     $('#groupEdit').dialog('open');
     return false;
 }
 function groupEdit(gname, gdesc, gid) {
     $("#ui-dialog-title-groupEdit").text('Edit group'); 
-    $('#gName').attr('value', gname);
-    $('#gDesc').attr('value', gdesc);
-    $('#gID').attr('value', gid);
+    group.setName(gname);
+    //$('#gName').attr('value', gname);
+    group.setDesc(gdesc);
+    //$('#gDesc').attr('value', gdesc);
+    group.setID(gid);
+    //$('#gID').attr('value', gid);
     $('#groupEdit').dialog('open');
     return false;
 }
 function groupBoxClick(status) {
     if (status == 'ok') {
-        var gid = $('#gID').attr('value');
-        var gnm = $('#gName').attr('value');
-        var gds = $('#gDesc').attr('value');
+        var gid = group.gid; //$('#gID').attr('value');
+        var gnm = group.name; //$('#gName').attr('value');
+        var gds = group.desc; //$('#gDesc').attr('value');
         $('#errorMessageText').html('');
         $('#errorMessageText').load('uagModify.php', {'object': 'group', 'gid': gid, 'gname': gnm, 'gdesc': gds},
                 function(data) {
@@ -127,11 +184,16 @@ function groupBoxClick(status) {
 function userAdd() {
     $("#ui-dialog-title-userEdit").text('Add new user'); 
     //$('#userEdit').data('title.dialog', 'Add new user'); 
-    $('#uLogin').attr('value', '');
-    $('#uDesc').attr('value', '');
-    $('#uID').attr('value', '-1');
-    $('#uPwd').attr('value', '');
-    $('#uPwd2').attr('value', '');
+    user.setLogin('');
+    //$('#uLogin').val(uname);
+    user.setDesc('');
+    //$('#uDesc').val(udesc);
+    user.setID('-1');
+    //$('#uID').val(uid);
+    user.setPwd1('');
+    //$('#uPwd').attr('value', '');
+    user.setPwd2('');
+    //$('#uPwd2').attr('value', '');
     $('#uLogin').attr('class', 'text');
     $('#uLogin').attr('readonly', false);
     $('#uDesc').attr('class', 'text');
@@ -144,7 +206,7 @@ function userAdd() {
         modal: true,
         buttons: {
             'Ok': function() {
-                userBoxClick('ok', $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val());
+                userBoxClick('ok'); // , $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val()
                 $(this).dialog('close');
             },
             'Cancel': function() {
@@ -156,11 +218,16 @@ function userAdd() {
 }
 function userEdit(uname, udesc, uid) {
     $("#ui-dialog-title-userEdit").text('Edit user'); 
-    $('#uLogin').attr('value', uname);
-    $('#uDesc').attr('value', udesc);
-    $('#uID').attr('value', uid);
-    $('#uPwd').attr('value', '');
-    $('#uPwd2').attr('value', '');
+    user.setLogin(uname);
+    //$('#uLogin').val(uname);
+    user.setDesc(udesc);
+    //$('#uDesc').val(udesc);
+    user.setID(uid);
+    //$('#uID').val(uid);
+    user.setPwd1('');
+    //$('#uPwd').attr('value', '');
+    user.setPwd2('');
+    //$('#uPwd2').attr('value', '');
     $('#uLogin').attr('class', 'text');
     $('#uLogin').attr('readonly', false);
     $('#uDesc').attr('class', 'text');
@@ -173,7 +240,7 @@ function userEdit(uname, udesc, uid) {
         modal: true,
         buttons: {
             'Ok': function() {
-                userBoxClick('ok', $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val());
+                userBoxClick('ok'); // , $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val()
                 $(this).dialog('close');
             },
             'Cancel': function() {
@@ -184,18 +251,24 @@ function userEdit(uname, udesc, uid) {
     return false;
 }
 function userPwd(uname, udesc, uid) {
-    $("#ui-dialog-title-userEdit").text('Reset password'); 
-    $('#uLogin').val(uname);
-    $('#uDesc').val(udesc);
-    $('#uID').val(uid);
-    $('#uPwd').attr('value', '');
-    $('#uPwd2').attr('value', '');
+    $("#ui-dialog-title-userEdit").text('Reset password');
+    user.setLogin(uname);
+    //$('#uLogin').val(uname);
+    user.setDesc(udesc);
+    //$('#uDesc').val(udesc);
+    user.setID(uid);
+    //$('#uID').val(uid);
+    user.setPwd1('');
+    //$('#uPwd').attr('value', '');
+    user.setPwd2('');
+    //$('#uPwd2').attr('value', '');
     $('#uLogin').attr('class', 'readonly');
     $('#uLogin').attr('readonly', true);
     $('#uDesc').attr('class', 'readonly');
     $('#uDesc').attr('readonly', true);
     $('#pwd1row').css('display','table-row');
     $('#pwd2row').css('display','table-row');
+    var state = false;
     $('#userEdit').dialog({
         autoOpen: true,
         width: 400,
@@ -203,7 +276,9 @@ function userPwd(uname, udesc, uid) {
         buttons: {
             'Ok': function() {
                 $(this).dialog('close');
-                userBoxClick('ok', $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val());
+                state = true;
+                alert ("UserClick: " + state + ": " + user.pwd1);
+                userBoxClick('ok'); // , $('#uID').val(), $('#uLogin').val(), $('#uDesc').val(), $('#uPwd').val(), $('#uPwd2').val()
             },
             'Cancel': function() {
                 $(this).dialog('close');
@@ -212,20 +287,16 @@ function userPwd(uname, udesc, uid) {
     });
     return false;
 }
-function userBoxClick(status, mid, muname, mdesc, mpw, mpw2) {
-    alert ("UserClick: " + status);
+function userBoxClick(status) { // , mid, muname, mdesc, mpw, mpw2
     if (status == 'ok') {
-        alert($('[name=uID]').val());
-
-        var gid = $('#uID').val();
-        var gnm = $('#uLogin').val();
-        var gds = $('#uDesc').val();
-        var gpw = $('#uPwd').val();
-        var gp2 = $('#uPwd2').val();
-        var grp = $('#uGroup').attr('value');
+        var gid = user.uid; //$('#uID').val();
+        var gnm = user.login; // $('#uLogin').val()
+        var gds = user.desc; // $('#uDesc').val()
+        var gpw = user.pwd1; //$('#uPwd').val();
+        var gp2 = user.pwd2; //$('#uPwd2').val();
+        var grp = user.grp;
         
-        alert(gid + ", " + gnm + ", " + gds + ", " + gpw + "(" + gp2 + "), " + grp + "\n" +
-              mid + ", " + muname + ", " + mdesc + ", " + mpw + ", " + mpw2);
+        alert(gid + ", " + gnm + ", " + gds + ", " + gpw + "(" + gp2 + "), " + grp);
         $('#errorMessageText').html('');
         if (gpw != gp2) {
             $('#errorMessageText').html("Passwords doesn't match!");
@@ -303,8 +374,8 @@ function deleteGroupMsg(uid, uname) {
 <table width="100%"><tr valign="top">
     <td widht="50%"><fieldset class="fields">
         <legend class="fields"><span class="ui-icon ui-icon-person ui-icon-btn"></span> Users</legend>
-        <a href="#" id="user-add" onclick="return userAdd();"><span class="ui-icon ui-icon-plusthick ui-icon-btn"></span></a>
-        <a href="#" id="user-del" onclick="return false;"><span class="ui-icon ui-icon-closethick ui-icon-btn"></span></a>
+        <a href="#" id="user-add" onclick="return userAdd();"><span class="ui-icon ui-icon-plusthick ui-icon-btn" title="Add new user"></span></a>
+        <a href="#" id="user-del" onclick="return false;"><span class="ui-icon ui-icon-closethick ui-icon-btn" title="Delete selected users"></span></a>
         <br/>
         <table width="100%" id='userstable'>
         <tr class="ui-widget-header"><th class="grid">Login</th><th class="grid">Full Name</th><th class="grid">Groups</th><th class="grid">Actions</th></tr>
@@ -314,13 +385,13 @@ function deleteGroupMsg(uid, uname) {
                     [{$userList[user][10][grpN]}][{if not $smarty.section.grpN.last}], [{/if}]
                 [{/section}]</td><td class="grid">
                                 <a href="#" onclick="return deleteUserMsg('[{$userList[user][9]}]', '[{$userList[user][0]}]');">
-                                    <span class="ui-icon ui-icon-closethick ui-icon-btn"></span></a>&nbsp;
+                                    <span class="ui-icon ui-icon-closethick ui-icon-btn" title="Delete user"></span></a>&nbsp;
                                 <a href="#" onclick="return userEdit('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
-                                    <span class="ui-icon ui-icon-clipboard ui-icon-btn"></span></a>&nbsp;
+                                    <span class="ui-icon ui-icon-clipboard ui-icon-btn" title="Edit user"></span></a>&nbsp;
                                 <a href="#" onclick="return userPwd('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
-                                    <span class="ui-icon ui-icon-key-export ui-icon-btn"></span></a>&nbsp;
+                                    <span class="ui-icon ui-icon-key-export ui-icon-btn" title="Reset password"></span></a>&nbsp;
                                 <a href="#" onclick="return false;">
-                                    <span class="ui-icon ui-icon-group ui-icon-btn"></span></a></td></tr>
+                                    <span class="ui-icon ui-icon-group ui-icon-btn" title="Define groups membership"></span></a></td></tr>
         [{/section}]
         </table>
         <br/>
@@ -330,17 +401,17 @@ function deleteGroupMsg(uid, uname) {
         </fieldset>
     </td><td><fieldset class="fields">
         <legend class="fields"><span class="ui-icon ui-icon-group ui-icon-btn"></span>Groups</legend>
-        <a href="#" id="group-add" onclick="return groupAdd();"><span class="ui-icon ui-icon-plusthick ui-icon-btn"></span></a>
-        <a href="#" id="group-del" onclick="return false;"><span class="ui-icon ui-icon-closethick ui-icon-btn"></span></a>
+        <a href="#" id="group-add" onclick="return groupAdd();"><span class="ui-icon ui-icon-plusthick ui-icon-btn" title="Add new group"></span></a>
+        <a href="#" id="group-del" onclick="return false;"><span class="ui-icon ui-icon-closethick ui-icon-btn" title="Delete selected groups"></span></a>
         <br/>
         <table width="100%" id='groupstable'>
         <tr class="ui-widget-header"><th class="grid">Name</th><th class="grid">Description</th><th class="grid">Actions</th></tr>
         [{section name=group loop=$groupList}]
         <tr><td class="grid"><input type="checkbox" name="gid[{$groupList[group][9]}]" id="gid[{$groupList[group][9]}]">[{$groupList[group][0]}]</td><td class="grid">[{$groupList[group][1]}]</td><td class="grid">
                                 <a href="#" onclick="return deleteGroupMsg('[{$groupList[group][9]}]', '[{$groupList[group][0]}]');">
-                                    <span class="ui-icon ui-icon-closethick ui-icon-btn"></span></a>&nbsp;
+                                    <span class="ui-icon ui-icon-closethick ui-icon-btn" title="Delete group"></span></a>&nbsp;
                                 <a href="#" onclick="return groupEdit('[{$groupList[group][0]}]', '[{$groupList[group][1]}]', '[{$groupList[group][9]}]')">
-                                    <span class="ui-icon ui-icon-clipboard ui-icon-btn"></span></a></td></tr>
+                                    <span class="ui-icon ui-icon-clipboard ui-icon-btn" title="Edit group"></span></a></td></tr>
         [{/section}]
         </td></tr>
         </table>
@@ -351,10 +422,8 @@ function deleteGroupMsg(uid, uname) {
         </fieldset>
     </td>
 </tr></table>
-<!-- popup windows -->
-<div id="blanket" style='display:none;'></div>
 <!-- group edit -->
-<div id="groupEdit" title="Edit Group">
+<div id="groupEdit" title="Edit Group" style="display: none;">
     <table width="100%">
         <tr><td><b>Group Name</b></td><td><input type="text" id="gName" value="" class="text"></td></tr>
         <tr><td><b>Group Description</b></td><td><input type="text" id="gDesc" value="" class="text"></td></tr>
@@ -364,11 +433,11 @@ function deleteGroupMsg(uid, uname) {
 <!-- user edit -->
 <div id="userEdit" title="Edit User" style="display: none;">
     <table width="100%">
-        <tr><td><b>Login name</b></td><td><input type="text" id="uLogin" name="uLogin" value="" class="text ui-widget-content ui-corner-all"></td></tr>
-        <tr><td><b>Full user name</b></td><td><input type="text" id="uDesc" name="uDesc" value="" class="text ui-widget-content ui-corner-all"></td></tr>
-        <tr id="pwd1row"><td><b>Password</b></td><td><input type="password" id="uPwd" name="uPwd" value="" class="text ui-widget-content ui-corner-all"></td></tr>
-        <tr id="pwd2row"><td><b>Confirm password</b></td><td><input type="password" id="uPwd2" name="uPwd2" value="" class="text ui-widget-content ui-corner-all"></td></tr>
-        <tr><td><b>Primary group</b></td><td><select id="uGroup" name="uGroup" class="ui-widget-content ui-corner-all">
+        <tr><td><b>Login name</b></td><td><input type="text" id="uLogin" name="uLogin" value="" class="text ui-widget-content ui-corner-all" onchange="user.login=this.value; return false;"></td></tr>
+        <tr><td><b>Full user name</b></td><td><input type="text" id="uDesc" name="uDesc" value="" class="text ui-widget-content ui-corner-all" onchange="user.desc=this.value; return false;"></td></tr>
+        <tr id="pwd1row"><td><b>Password</b></td><td><input type="password" id="uPwd" name="uPwd" value="" class="text ui-widget-content ui-corner-all" onchange="user.pwd1=this.value; return false;"></td></tr>
+        <tr id="pwd2row"><td><b>Confirm password</b></td><td><input type="password" id="uPwd2" name="uPwd2" value="" class="text ui-widget-content ui-corner-all" onchange="user.pwd2=this.value; return false;"></td></tr>
+        <tr><td><b>Primary group</b></td><td><select id="uGroup" name="uGroup" class="ui-widget-content ui-corner-all" onchange="user.grp=this.value; return false;">
                 [{html_options values=$grpIds output=$grpNames}]
                 </select></td></tr>
     </table>
