@@ -12,6 +12,7 @@
 #endif //WIN32
 
 #include <log4cxx/logger.h>
+#include <weDispatch.h>
 
 #include "../common/redisclient.h"
 #include "../common/sysinfo.h"
@@ -29,6 +30,7 @@ namespace btm = boost::posix_time;
 bool inLoop = true;
 int max_tasks_count = 10;  // why? no comments...
 int running_tasks_count = 0;
+webEngine::engine_dispatcher* we_dispatcer;
 
 enum _keep_alive_fileds {
     ip_addr = 0,
@@ -129,6 +131,11 @@ void dispatcher_routine(int inst, po::variables_map& vm)
     // set signal processor
     signal(SIGINT, signal_halt);
 
+    we_dispatcer = new webEngine::engine_dispatcher;
+    if (we_dispatcer == NULL) {
+        LOG4CXX_FATAL(scan_logger, "Can't create webEngine dispatcher - exit!");
+        return;
+    }
     // init values 
     sys_cpu();
     queue_key = "ScanModule:Queue:" + scaner_uuid + ":" + boost::lexical_cast<string>(inst);
