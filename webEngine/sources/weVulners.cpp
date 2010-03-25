@@ -23,10 +23,10 @@
 
 namespace webEngine {
 
-RecordSet* VulnerDesc::ToRS( const string& parentID /*= ""*/ )
+db_recordset* VulnerDesc::ToRS( const string& parentID /*= ""*/ )
 {
-    RecordSet* retval = new RecordSet;
-    Record* rec = new Record;
+    db_recordset* retval = new db_recordset;
+    db_record* rec = new db_record;
 
     rec->Option(weoID, id);
     rec->Option(weoName, title);
@@ -37,7 +37,7 @@ RecordSet* VulnerDesc::ToRS( const string& parentID /*= ""*/ )
     return retval;
 }
 
-void VulnerDesc::FromRS( RecordSet *rs )
+void VulnerDesc::FromRS( db_recordset *rs )
 {
 
 }

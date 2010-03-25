@@ -30,10 +30,10 @@ using namespace webEngine;
 static const wOption empty_option("_empty_");
 #endif //__DOXYGEN_ _
 
-static StringList FindFiles ( path baseDir)
+static string_list find_files ( path baseDir)
 {
-    StringList files;
-    StringList subs;
+    string_list files;
+    string_list subs;
 
     files.clear();
     if ( exists( baseDir ) ) {
@@ -44,7 +44,7 @@ static StringList FindFiles ( path baseDir)
         {
             if ( is_directory(itr->status()) )
             {
-                subs = FindFiles( itr->path() );
+                subs = find_files( itr->path() );
                 files.insert(files.end(), subs.begin(), subs.end());
             }
             else if ( ends_with(itr->leaf(), ".plg") ) // see below
@@ -56,94 +56,94 @@ static StringList FindFiles ( path baseDir)
     return files;
 }
 
-NullStorage::NullStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
-    iStorage(krnl, handle)
+null_storage::null_storage( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
+    i_storage(krnl, handle)
 {
-    pluginInfo.IfaceName = "NullStorage";
-    pluginInfo.IfaceList.push_back("NullStorage");
+    pluginInfo.IfaceName = "null_storage";
+    pluginInfo.IfaceList.push_back("null_storage");
     pluginInfo.PluginDesc = "Placeholder storage";
     pluginInfo.PluginId = "7CB7A5F18348";
 }
 
-NullStorage::~NullStorage()
+null_storage::~null_storage()
 {
 }
 
-void* NullStorage::GetInterface( const string& ifName )
+void* null_storage::get_interface( const string& ifName )
 {
-    if (iequals(ifName, "iStorage"))
+    if (iequals(ifName, "i_storage"))
     {
         usageCount++;
-        return (void*)((iStorage*)this);
+        return (void*)((i_storage*)this);
     }
-    if (iequals(ifName, "NullStorage"))
+    if (iequals(ifName, "null_storage"))
     {
         usageCount++;
-        return (void*)((NullStorage*)this);
+        return (void*)((null_storage*)this);
     }
-    return iStorage::GetInterface(ifName);
+    return i_storage::get_interface(ifName);
 }
 
-int NullStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
+int null_storage::get(db_record& filter, db_record& respFilter, db_recordset& results)
 {
     return 0;
 }
 
-int NullStorage::Set(Record& filter, Record& data)
+int null_storage::set(db_record& filter, db_record& data)
 {
     return 0;
 }
 
-int NullStorage::Set(RecordSet& data)
+int null_storage::set(db_recordset& data)
 {
     return 0;
 }
 
-int NullStorage::Delete(Record& filter)
+int null_storage::del(db_record& filter)
 {
     return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Dispatch class
+// engine_dispatcher class
 //////////////////////////////////////////////////////////////////////////
-Dispatch::Dispatch(void)
+engine_dispatcher::engine_dispatcher(void)
 {
-    storage = new NullStorage(this);
-    pluginList.clear();
+    plg_storage = new null_storage(this);
+    plg_list.clear();
 }
 
-Dispatch::~Dispatch(void)
+engine_dispatcher::~engine_dispatcher(void)
 {
-    if (storage != NULL)
+    if (plg_storage != NULL)
     {
-        Flush();
-        delete storage;
+        flush();
+        delete plg_storage;
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void Dispatch::RefreshPluginList( void )
+/// @fn void engine_dispatcher::refresh_plugin_list( void )
 ///
 /// @brief  Refresh plugin list. Rebuilds list of the available plugins even embedded or external
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Dispatch::RefreshPluginList( boost::filesystem::path& baseDir )
+void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
 {
-    PluginInfo *info;
-    iPlugin *plg;
+    plugin_info *info;
+    i_plugin *plg;
 
-    pluginList.clear();
+    plg_list.clear();
 
     MemStorage memStore(this);
-    pluginList.push_back(*(PluginInfo*)memStore.Info());
+    plg_list.push_back(*(plugin_info*)memStore.info());
     HttpTransport httpTrans(this);
-    pluginList.push_back(*(PluginInfo*)httpTrans.Info());
+    plg_list.push_back(*(plugin_info*)httpTrans.info());
     HttpInventory httpInvent(this);
-    pluginList.push_back(*(PluginInfo*)httpInvent.Info());
+    plg_list.push_back(*(plugin_info*)httpInvent.info());
 
     // search for dynamic libraries with plugin interface
-    StringList files = FindFiles(baseDir.string());
-    StringList::iterator fl;
+    string_list files = find_files(baseDir.string());
+    string_list::iterator fl;
     for (fl = files.begin(); fl != files.end(); fl++)
     {
         // load library, get info, free library
@@ -152,33 +152,33 @@ void Dispatch::RefreshPluginList( boost::filesystem::path& baseDir )
             dyn::shared_object* so = new dyn::shared_object((*fl).c_str());
             fnWePluginFactory ptr = NULL;
             so->get_symbol("WePluginFactory", ptr);
-            plg = (iPlugin*)ptr(this, NULL); // not need to store SO link
+            plg = (i_plugin*)ptr(this, NULL); // not need to store SO link
             if (plg != NULL)
             {
-                info = (PluginInfo*)plg->Info();
+                info = (plugin_info*)plg->info();
                 info->PluginPath = *fl;
-                pluginList.push_back(*info);
-                LOG4CXX_INFO(iLogger::GetLogger(), "Dispatch::RefreshPluginList: loaded plugin " << *fl);
+                plg_list.push_back(*info);
+                LOG4CXX_INFO(iLogger::GetLogger(), "engine_dispatcher::refresh_plugin_list: loaded plugin " << *fl);
                 LOG4CXX_TRACE(iLogger::GetLogger(), ">>>> ID=" << info->PluginId << "; Desc=" << info->PluginDesc);
-                plg->Release();
+                plg->release();
                 plg = NULL;
-                //pluginFactory.Add(info->PluginId, ptr);
+                //plg_factory.add_plugin_class(info->PluginId, ptr);
             }
             else {
-                LOG4CXX_WARN(iLogger::GetLogger(), "Dispatch::RefreshPluginList: can't get information from plugin " <<*fl);
+                LOG4CXX_WARN(iLogger::GetLogger(), "engine_dispatcher::refresh_plugin_list: can't get information from plugin " <<*fl);
             }
             delete so;
         }
         catch (std::exception& e)
         {
-            LOG4CXX_ERROR(iLogger::GetLogger(), "Dispatch::RefreshPluginList: can't load plugin " << *fl << ". Error: " << e.what());
+            LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::refresh_plugin_list: can't load plugin " << *fl << ". Error: " << e.what());
         }
     }
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn iPlugin* Dispatch::LoadPlugin( string id )
+/// @fn i_plugin* engine_dispatcher::load_plugin( string id )
 ///
 /// @brief  Loads a plugin form shared library or internal implementation.
 ///
@@ -186,34 +186,34 @@ void Dispatch::RefreshPluginList( boost::filesystem::path& baseDir )
 ///
 /// @retval null if it fails, else the plugin interface.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iPlugin* Dispatch::LoadPlugin( string id )
+i_plugin* engine_dispatcher::load_plugin( string id )
 {
-    iPlugin* retval = NULL;
+    i_plugin* retval = NULL;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin " << id);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::load_plugin " << id);
     // first step - in-memory plugins
-    retval = (iPlugin*)pluginFactory.CreatePlugin(id, this);
+    retval = (i_plugin*)plg_factory.create_plugin(id, this);
 
     if (retval == NULL) {
         // external plugins
         // go through loop and search plugin
         // if found - loads shared library and create instance
-        for (size_t i = 0; i < pluginList.size(); i++)
+        for (size_t i = 0; i < plg_list.size(); i++)
         {
-            if (pluginList[i].PluginId == id) {
-                LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::LoadPlugin - found plugin: " << pluginList[i].PluginDesc << "; " << pluginList[i].PluginPath);
+            if (plg_list[i].PluginId == id) {
+                LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::load_plugin - found plugin: " << plg_list[i].PluginDesc << "; " << plg_list[i].PluginPath);
                 try
                 {
-                    //char* pth = strdup(pluginList[i].PluginPath.c_str());
-                    dyn::shared_object* so = new dyn::shared_object(pluginList[i].PluginPath.c_str());
+                    //char* pth = strdup(plg_list[i].PluginPath.c_str());
+                    dyn::shared_object* so = new dyn::shared_object(plg_list[i].PluginPath.c_str());
                     fnWePluginFactory ptr = NULL;
                     so->get_symbol("WePluginFactory", ptr);
-                    retval = (iPlugin*)ptr(this, so);
+                    retval = (i_plugin*)ptr(this, so);
                     //delete pth;
                 }
                 catch (std::exception& e)
                 {
-                    LOG4CXX_ERROR(iLogger::GetLogger(), "Dispatch::LoadPlugin: can't load plugin " << pluginList[i].PluginPath << ". Error: " << e.what());
+                    LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::load_plugin: can't load plugin " << plg_list[i].PluginPath << ". Error: " << e.what());
                 }
                 break;
             }
@@ -221,129 +221,129 @@ iPlugin* Dispatch::LoadPlugin( string id )
     }
     if (retval == NULL)
     {
-        LOG4CXX_WARN(iLogger::GetLogger(), "Dispatch::LoadPlugin: '" << id << "' not found!");
+        LOG4CXX_WARN(iLogger::GetLogger(), "engine_dispatcher::load_plugin: '" << id << "' not found!");
     }
     return retval;
 }
 
-void Dispatch::Storage( const iStorage* store )
+void engine_dispatcher::storage( const i_storage* store )
 {
-    if (storage != NULL)
+    if (plg_storage != NULL)
     {
-        storage->Release();
+        plg_storage->release();
     }
 
-    storage = (iStorage*)store;
-    if (storage == NULL)
+    plg_storage = (i_storage*)store;
+    if (plg_storage == NULL)
     {
-        storage = new NullStorage(this);
+        plg_storage = new null_storage(this);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::SetStorage - plugin: " << storage->GetDesc());
-    RecordSet res;
-    Record filter;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::SetStorage - plugin: " << plg_storage->get_description());
+    db_recordset res;
+    db_record filter;
     filter.Clear();
     filter.objectID = weObjTypeSysOption;
     filter.Option(weoParentID, string("0"));
-    storage->Get(filter, filter, res);
+    plg_storage->get(filter, filter, res);
     iOptionsProvider::FromRS(&res);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void Dispatch::Flush()
+/// @fn void engine_dispatcher::flush()
 ///
 /// @brief  Stores the options into the storage.
 ///
 /// @author A. Abramov
 /// @date   23.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Dispatch::Flush()
+void engine_dispatcher::flush()
 {
-    if (storage != NULL)
+    if (plg_storage != NULL)
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Dispatch::Flush ");
-        RecordSet* rs = iOptionsProvider::ToRS();
-        storage->Set(*rs);
+        LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::flush ");
+        db_recordset* rs = iOptionsProvider::ToRS();
+        plg_storage->set(*rs);
     }
 }
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-static void* CreateNullStorage(void* krnl, void* handle = NULL)
+static void* create_null_storage(void* krnl, void* handle = NULL)
 {
-    return (void*) (new NullStorage((Dispatch*)krnl, handle));
+    return (void*) (new null_storage((engine_dispatcher*)krnl, handle));
 }
 
-static void* CreateMemStorage(void* krnl, void* handle = NULL)
+static void* create_mem_storage(void* krnl, void* handle = NULL)
 {
-    return (void*) (new MemStorage((Dispatch*)krnl, handle));
+    return (void*) (new MemStorage((engine_dispatcher*)krnl, handle));
 }
 
-static void* CreateHttpTransport(void* krnl, void* handle = NULL)
+static void* create_http_transport(void* krnl, void* handle = NULL)
 {
-    return (void*) (new HttpTransport((Dispatch*)krnl, handle));
+    return (void*) (new HttpTransport((engine_dispatcher*)krnl, handle));
 }
 
-static void* CreateHttpInventory(void* krnl, void* handle = NULL)
+static void* create_http_inventory(void* krnl, void* handle = NULL)
 {
-    return (void*) (new HttpInventory((Dispatch*)krnl, handle));
+    return (void*) (new HttpInventory((engine_dispatcher*)krnl, handle));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn PluginFactory::PluginFactory()
+/// @fn plugin_factory::plugin_factory()
 ///
 /// @brief  Default constructor.
 ///
 /// @author A. Abramov
 /// @date   24.08.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PluginFactory::PluginFactory() :
-    LinkedList<string, fnWePluginFactory>()
+plugin_factory::plugin_factory() :
+    linked_list<string, fnWePluginFactory>()
 {
-    data = new LinkedListElem<string, fnWePluginFactory>;
-    data->Key("");
-    data->Value(NULL);
-    data->Link(NULL);
+    data = new linked_list_elem<string, fnWePluginFactory>;
+    data->key("");
+    data->value(NULL);
+    data->link(NULL);
     // add "default" plugins
-    Add("7CB7A5F18348", CreateNullStorage);
-    Add("D82B31419339", CreateMemStorage);
-    Add("A44A9A1E7C25", CreateHttpTransport);
-    Add("AB7ED6E5A7B3", CreateHttpInventory);
+    add_plugin_class("7CB7A5F18348", create_null_storage);
+    add_plugin_class("D82B31419339", create_mem_storage);
+    add_plugin_class("A44A9A1E7C25", create_http_transport);
+    add_plugin_class("AB7ED6E5A7B3", create_http_inventory);
 }
 
-void PluginFactory::Add( string name, fnWePluginFactory func )
+void plugin_factory::add_plugin_class( string name, fnWePluginFactory func )
 {
-    LinkedListElem<string, fnWePluginFactory>* obj;
+    linked_list_elem<string, fnWePluginFactory>* obj;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "new PluginFactory added for " << name);
-    obj = new LinkedListElem<string, fnWePluginFactory>();
-    obj->Key(name);
-    obj->Value(func);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "new plugin_factory added for " << name);
+    obj = new linked_list_elem<string, fnWePluginFactory>();
+    obj->key(name);
+    obj->value(func);
     curr = data;
     while (curr != NULL) {
-        if (curr->Key() == name)
+        if (curr->key() == name)
         {
             break;
         }
-        curr = curr->Next();
+        curr = curr->next();
     }
     if (curr != NULL)
     {
-        curr->Value(func);
+        curr->value(func);
     }
     else {
-        data->Add(obj);
+        data->add(obj);
     }
 }
 
-void* PluginFactory::CreatePlugin( string pluginID, Dispatch* krnl )
+void* plugin_factory::create_plugin( string pluginID, engine_dispatcher* krnl )
 {
     fnWePluginFactory func;
 
-    func = FindFirst(pluginID);
+    func = find_first(pluginID);
     if (func == NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "PluginFactory::CreatePlugin plugin doesn't register in memory");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "plugin_factory::create_plugin plugin doesn't register in memory");
         return NULL;
     }
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "PluginFactory::CreatePlugin " << pluginID);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "plugin_factory::create_plugin " << pluginID);
     return func(krnl, NULL);
 }

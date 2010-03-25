@@ -30,7 +30,7 @@ using namespace boost::algorithm;
 namespace webEngine {
 
 #ifndef __DOXYGEN__
-static string& fixDoubleSlash(string& req)
+static string& fix_double_slash(string& req)
 {
     string path, vals;
     size_t pos;
@@ -52,7 +52,7 @@ static string& fixDoubleSlash(string& req)
 }
 #endif //__DOXYGEN__
 
-URL::URL()
+transport_url::transport_url()
 {
     port = -1;
     host = "";
@@ -60,16 +60,16 @@ URL::URL()
     valid = false;
 }
 
-URL::URL( const string url )
+transport_url::transport_url( const string url )
 {
     port = -1;
     host = "";
     request = "";
     valid = false;
-    Assign(url);
+    assign(url);
 }
 
-URL::URL( const URL& url )
+transport_url::transport_url( const transport_url& url )
 {
     protocol = url.protocol;
     host = url.host;
@@ -81,12 +81,12 @@ URL::URL( const URL& url )
     valid = url.valid;
 }
 
-URL::~URL()
+transport_url::~transport_url()
 {
     // nothing special
 }
 
-URL& URL::operator=( const URL& url )
+transport_url& transport_url::operator=( const transport_url& url )
 {
     protocol = url.protocol;
     host = url.host;
@@ -99,7 +99,7 @@ URL& URL::operator=( const URL& url )
     return *this;
 }
 
-string URL::ToString(bool noDefPort /*= true*/)
+string transport_url::tostring(bool noDefPort /*= true*/)
 {
     string *retval = new string;
 
@@ -123,7 +123,7 @@ string URL::ToString(bool noDefPort /*= true*/)
     return *retval;
 }
 
-void URL::Assign(const string& url )
+void transport_url::assign(const string& url )
 {
     string temp = url;
     size_t pos;
@@ -195,7 +195,7 @@ void URL::Assign(const string& url )
     {
         request = request.substr(2);
     }
-    fixDoubleSlash(request);
+    fix_double_slash(request);
     pos = request.find('?');
     if (pos != string::npos) {
         params = request.substr(pos + 1);
@@ -207,7 +207,7 @@ void URL::Assign(const string& url )
     valid = true;
 }
 
-void URL::Restore( const string& url_, URL* base /*= NULL*/ )
+void transport_url::assign_with_referer( const string& url_, transport_url* base /*= NULL*/ )
 {
     string  temp;
     size_t  pos;
@@ -219,7 +219,7 @@ void URL::Restore( const string& url_, URL* base /*= NULL*/ )
     // Find protocol end
     pos = url.find("://");
     if (pos == string::npos) {
-        // reduced URL - only local path
+        // reduced transport_url - only local path
         protocol = base->protocol;
         to_lower(protocol);
         username = base->username;
@@ -228,7 +228,7 @@ void URL::Restore( const string& url_, URL* base /*= NULL*/ )
         port = base->port;
         if (starts_with(url, "/")) {
             request = url;
-            fixDoubleSlash(request);
+            fix_double_slash(request);
             pos = request.find('?');
             if (pos != string::npos) {
                 params = request.substr(pos + 1);
@@ -265,7 +265,7 @@ void URL::Restore( const string& url_, URL* base /*= NULL*/ )
             temp += '/';
             temp += url;
             request = temp;
-            fixDoubleSlash(request);
+            fix_double_slash(request);
             pos = request.find('?');
             if (pos != string::npos) {
                 params = request.substr(pos + 1);
@@ -278,25 +278,25 @@ void URL::Restore( const string& url_, URL* base /*= NULL*/ )
         valid = true;
     }
     else {
-        Assign(url);
+        assign(url);
     }
 }
 
-bool URL::IsValid( void )
+bool transport_url::is_valid( void )
 {
     bool retval = (valid && !host.empty() && !request.empty() && port > 0 && port < 65535);
     valid = retval;
     return retval;
 }
 
-const bool URL::Equals( const string& url )
+const bool transport_url::is_equal( const string& url )
 {
-    URL tmp;
-    tmp.Assign(url);
-    return Equals(tmp);
+    transport_url tmp;
+    tmp.assign(url);
+    return is_equal(tmp);
 }
 
-const bool URL::Equals( const URL& url )
+const bool transport_url::is_equal( const transport_url& url )
 {
     bool retval = true;
 
@@ -332,42 +332,42 @@ const bool URL::Equals( const URL& url )
     return retval;
 }
 
-const bool URL::IsHostEquals( const string& url )
+const bool transport_url::is_host_equal( const string& url )
 {
-    URL tmp;
-    tmp.Assign(url);
-    return IsHostEquals(tmp);
+    transport_url tmp;
+    tmp.assign(url);
+    return is_host_equal(tmp);
 }
 
-const bool URL::IsHostEquals( const URL& url )
+const bool transport_url::is_host_equal( const transport_url& url )
 {
     bool retval = true;
 
     if (protocol != url.protocol)
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsHostEquals - protocols doesn't match");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_host_equal - protocols doesn't match");
         retval = false;
     }
     if (host != url.host)
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsHostEquals - hostnames doesn't match: " << url.host << " != " << host);
+        LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_host_equal - hostnames doesn't match: " << url.host << " != " << host);
         if (host != "www." + url.host )
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsHostEquals - hostnames doesn't match: www." << url.host << " != " << host);
+            LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_host_equal - hostnames doesn't match: www." << url.host << " != " << host);
             retval = false;
         }
     }
     return retval;
 }
 
-const bool URL::IsDomainEquals( const string& url )
+const bool transport_url::is_domain_equal( const string& url )
 {
-    URL tmp;
-    tmp.Assign(url);
-    return IsDomainEquals(tmp);
+    transport_url tmp;
+    tmp.assign(url);
+    return is_domain_equal(tmp);
 }
 
-const bool URL::IsDomainEquals( const URL& url )
+const bool transport_url::is_domain_equal( const transport_url& url )
 {
     bool retval = true;
     string second_level;
@@ -375,7 +375,7 @@ const bool URL::IsDomainEquals( const URL& url )
 
     if (protocol != url.protocol)
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsDomainEquals - protocols doesn't match");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - protocols doesn't match");
         retval = false;
     }
     dot_pos = find_nth(host, ".", -2);
@@ -392,17 +392,17 @@ const bool URL::IsDomainEquals( const URL& url )
     else {
         second_level = host;
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsDomainEquals - compare " << second_level << " and " << url.host);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - compare " << second_level << " and " << url.host);
     if (!iends_with(url.host, second_level))
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "URL::IsDomainEquals - iends_with returns fasle");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - iends_with returns fasle");
         retval = false;
     }
 
     return retval;
 }
 
-string URL::ToStringNoParam( bool noDefPort /*= true*/ )
+string transport_url::tostring_noparam( bool noDefPort /*= true*/ )
 {
     string *retval = new string;
 

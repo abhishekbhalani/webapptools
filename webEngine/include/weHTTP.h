@@ -45,7 +45,7 @@ namespace webEngine {
     class WeProxy
     {
     public:
-        URL   proxyAddr;
+        transport_url   proxyAddr;
         curl_proxytype type;
     };
 
@@ -157,9 +157,9 @@ namespace webEngine {
         HttpRequest();
         HttpRequest(string url, weHttpMethod meth = wemGet, HttpResponse* resp = NULL);
 
-        virtual URL  &RequestUrl(void)  { return(reqUrl);   };
+        virtual transport_url  &RequestUrl(void)  { return(reqUrl);   };
         virtual void RequestUrl(const string &ReqUrl, iOperation* resp = NULL);
-        virtual void RequestUrl(const URL &ReqUrl, iOperation* resp = NULL);
+        virtual void RequestUrl(const transport_url &ReqUrl, iOperation* resp = NULL);
 
         void ComposePost(int method = composeOverwrite);
 
@@ -188,7 +188,7 @@ namespace webEngine {
 #ifndef __DOXYGEN__
     protected:
         weHttpMethod    method;
-        URL           reqUrl;
+        transport_url           reqUrl;
         Blob          data;
         StringLinks    postData;
         WeProxy         *proxy;
@@ -206,7 +206,7 @@ namespace webEngine {
     class HttpTransport : public iTransport
     {
     public:
-        HttpTransport(Dispatch* krnl, void* handle = NULL);
+        HttpTransport(engine_dispatcher* krnl, void* handle = NULL);
         ~HttpTransport();
 
         virtual void* GetInterface( const string& ifName );
@@ -214,7 +214,7 @@ namespace webEngine {
 
         virtual iResponse* Request(iRequest* req, iResponse* resp = NULL);
         virtual iResponse* Request(string url, iResponse* resp = NULL);
-        virtual iResponse* Request(URL& url, iResponse* resp = NULL);
+        virtual iResponse* Request(transport_url& url, iResponse* resp = NULL);
 
         /// @brief  Gets the CURLMcode - the last cURL operation status.
         const CURLMcode &GetLastError(void) const   { return(lastError);    };

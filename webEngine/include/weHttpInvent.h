@@ -29,7 +29,7 @@ namespace webEngine {
         public iInventory
     {
     public:
-        HttpInventory(Dispatch* krnl, void* handle = NULL);
+        HttpInventory(engine_dispatcher* krnl, void* handle = NULL);
         virtual ~HttpInventory(void);
 
         // iwePlugin functions

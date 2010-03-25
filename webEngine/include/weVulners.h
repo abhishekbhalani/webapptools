@@ -34,8 +34,8 @@ public:
     string  longDesc;
     int     severity;
 
-    RecordSet* ToRS( const string& parentID = "" );
-    void FromRS( RecordSet *rs );
+    db_recordset* ToRS( const string& parentID = "" );
+    void FromRS( db_recordset *rs );
     string ToXML();
     bool FromXML(const string& xml);
 };

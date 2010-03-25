@@ -63,16 +63,16 @@ namespace webEngine {
         //@{
         /// @brief  Access the BaseUrl property
         ///
-        /// This property represents the base URL of the document, as it's given by user.
-        URL &BaseUrl(void)            { return(baseUrl);	};
+        /// This property represents the base transport_url of the document, as it's given by user.
+        transport_url &BaseUrl(void)            { return(baseUrl);	};
         void BaseUrl(const string &url) { baseUrl = url;    };
-        void BaseUrl(const URL &url)  { baseUrl = url;    };
+        void BaseUrl(const transport_url &url)  { baseUrl = url;    };
         //@}
 
         //@{
         /// @brief  Access the ID property
         ///
-        /// This property represents the base URL of the document, as it's given by user.
+        /// This property represents the base transport_url of the document, as it's given by user.
         void ID(const string &id)   { identifier = id;  };
         const string & ID()         { return identifier;};
         //@}
@@ -84,7 +84,7 @@ namespace webEngine {
 #ifndef __DOXYGEN__
     protected:
         int usageCount;
-        URL baseUrl;
+        transport_url baseUrl;
         iOperation* previous;
         vector<iweOperationPtr*> children;
         string identifier;
@@ -112,10 +112,10 @@ namespace webEngine {
         //@{
         /// @brief  Access the ReqUrl property.
         ///
-        /// @throw  WeError if given URL is malformed and can't be reconstructed from the WeHttpResponse
-        virtual URL  &RequestUrl(void)  { return(baseUrl);   };
+        /// @throw  WeError if given transport_url is malformed and can't be reconstructed from the WeHttpResponse
+        virtual transport_url  &RequestUrl(void)  { return(baseUrl);   };
         virtual void RequestUrl(const string &ReqUrl, iOperation* resp = NULL) = 0;
-        virtual void RequestUrl(const URL &ReqUrl, iOperation* resp = NULL) = 0;
+        virtual void RequestUrl(const transport_url &ReqUrl, iOperation* resp = NULL) = 0;
         //@}
     };
 
@@ -138,12 +138,12 @@ namespace webEngine {
         //@{
         /// @brief  Access the RealUrl property
         ///
-        /// This property represents the URL of the document, from which the resulting
+        /// This property represents the transport_url of the document, from which the resulting
         /// data was downloaded. It may differs from the BaseUrl, if relocations
         /// presents.
-        URL &RealUrl(void)            { return(realUrl);	};
+        transport_url &RealUrl(void)            { return(realUrl);	};
         void RealUrl(const string &url) { realUrl = url;    };
-        void RealUrl(const URL &url)  { realUrl = url;    };
+        void RealUrl(const transport_url &url)  { realUrl = url;    };
         //@}
 
         //@{
@@ -173,7 +173,7 @@ namespace webEngine {
 
 #ifndef __DOXYGEN__
     protected:
-        URL realUrl;
+        transport_url realUrl;
         unsigned int relocCount;
         Blob data;
         int downTime;
@@ -195,10 +195,10 @@ namespace webEngine {
     /// @date   10.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class iTransport : virtual public iOptionsProvider,
-        public iPlugin
+        public i_plugin
     {
     public:
-        iTransport(Dispatch* krnl, void* handle = NULL );
+        iTransport(engine_dispatcher* krnl, void* handle = NULL );
         virtual ~iTransport() {};
 
         virtual iResponse* Request(string url, iResponse *resp = NULL) = 0;
@@ -211,19 +211,19 @@ namespace webEngine {
         virtual bool IsSet(const string& name);
         virtual void Option(const string& name, wOptionVal val);
 
-        // iPlugin functions
+        // i_plugin functions
         virtual void* GetInterface(const string& ifName);
 
         //@{
         /// @brief  Access the BaseUrl property
         ///
-        /// This property represents the base URL for the analyzing and may be used for
-        /// domain control and URL reconstructing. Will be overwrite by the request URL
+        /// This property represents the base transport_url for the analyzing and may be used for
+        /// domain control and transport_url reconstructing. Will be overwrite by the request transport_url
         /// if not valid.
-        /// @param bUrl - URL to set as base
-        /// @throw  WeError if given URL is malformed
-        const URL &BaseUrl(void) const    { return(baseUrl);  };
-        void BaseUrl(const URL &bUrl);
+        /// @param bUrl - transport_url to set as base
+        /// @throw  WeError if given transport_url is malformed
+        const transport_url &BaseUrl(void) const    { return(baseUrl);  };
+        void BaseUrl(const transport_url &bUrl);
         void BaseUrl(const string &bUrl);
         //@}
 
@@ -251,7 +251,7 @@ namespace webEngine {
 
 #ifndef __DOXYGEN__
     protected:
-        URL           baseUrl;
+        transport_url           baseUrl;
         unsigned int    relocCount;
         unsigned int    siteDepth;
         ResponseList  responces;
@@ -263,6 +263,6 @@ namespace webEngine {
 
 } // namespace webEngine
 
-webEngine::iTransport* WeCreateNamedTransport(string name, webEngine::Dispatch* krnl);
+webEngine::iTransport* WeCreateNamedTransport(string name, webEngine::engine_dispatcher* krnl);
 
 #endif // __WEITRANSPORT_H__

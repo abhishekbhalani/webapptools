@@ -57,7 +57,7 @@ namespace webEngine {
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  LinkedListElem
+    /// @class  linked_list_elem
     ///
     /// @brief  Element of the linked list of objects.
     ///
@@ -65,62 +65,62 @@ namespace webEngine {
     /// @date   27.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     template <typename _Key, typename _Val>
-    class LinkedListElem
+    class linked_list_elem
     {
     public:
-        LinkedListElem() :
+        linked_list_elem() :
           first(), second()
           {
-              next = NULL;
+              nxt = NULL;
           };
 
-          LinkedListElem( LinkedListElem<_Key, _Val> &elem ) :
+          linked_list_elem( linked_list_elem<_Key, _Val> &elem ) :
           first(), second()
           {
               first = elem.first;
               second = elem.second;
-              next = NULL;
+              nxt = NULL;
           };
 
-          ~LinkedListElem()
+          ~linked_list_elem()
           {
-              next = NULL;
+              nxt = NULL;
           }
 
-          void Add(LinkedListElem<_Key, _Val> *elem)
+          void add(linked_list_elem<_Key, _Val> *elem)
           {
-              LinkedListElem<_Key, _Val> *curr = next;
-              next = elem;
-              elem->next = curr;
+              linked_list_elem<_Key, _Val> *curr = nxt;
+              nxt = elem;
+              elem->nxt = curr;
           }
 
 
-          void Link(LinkedListElem<_Key, _Val> *elem)   { next = elem; };
-          LinkedListElem<_Key, _Val>* Next() {return next;};
+          void link(linked_list_elem<_Key, _Val> *elem)   { nxt = elem; };
+          linked_list_elem<_Key, _Val>* next() {return nxt;};
 
-          // Access the Key
-          const _Key &Key(void) const   { return(first);  };
-          void Key(const _Key &elem)    { first = elem;   };
+          // Access the key
+          const _Key &key(void) const   { return(first);  };
+          void key(const _Key &elem)    { first = elem;   };
 
-          // Access the Value
-          const _Val &Value(void) const   { return(second);   };
-          void Value(const _Val &elem)    { second = elem;    };
+          // Access the value
+          const _Val &value(void) const   { return(second);   };
+          void value(const _Val &elem)    { second = elem;    };
 
     protected:
         _Key    first;
         _Val    second;
-        LinkedListElem<_Key, _Val> *next;
+        linked_list_elem<_Key, _Val> *nxt;
 
     private:
         DECLARE_SERIAL_BASE;
         DECLARE_SERIAL_SAVE
         {
-            bool last = (next == NULL);
+            bool last = (nxt == NULL);
             ar & BOOST_SERIALIZATION_NVP(first);
             ar & BOOST_SERIALIZATION_NVP(second);
             ar & BOOST_SERIALIZATION_NVP(last);
             if (! last) {
-                ar & BOOST_SERIALIZATION_NVP(next);
+                ar & BOOST_SERIALIZATION_NVP(nxt);
             };
         };
         DECLARE_SERIAL_LOAD
@@ -130,15 +130,15 @@ namespace webEngine {
             ar & BOOST_SERIALIZATION_NVP(second);
             ar & BOOST_SERIALIZATION_NVP(last);
             if (!last) {
-                next = new LinkedListElem<_Key, _Val>;
-                ar & BOOST_SERIALIZATION_NVP(next);
+                nxt = new linked_list_elem<_Key, _Val>;
+                ar & BOOST_SERIALIZATION_NVP(nxt);
             }
         };
         BOOST_SERIALIZATION_SPLIT_MEMBER();
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  LinkedList
+    /// @class  linked_list
     ///
     /// @brief  List of linked objects.
     ///
@@ -146,157 +146,157 @@ namespace webEngine {
     /// @date   10.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     template <typename _Key, typename _Val>
-    class LinkedList
+    class linked_list
     {
     public:
-        LinkedList()
+        linked_list()
         {
             data = NULL;
             curr = NULL;
         };
-        LinkedList(LinkedList<_Key, _Val>& lst)
+        linked_list(linked_list<_Key, _Val>& lst)
         {
-            LinkedListElem<_Key, _Val> *obj;
+            linked_list_elem<_Key, _Val> *obj;
 
             data = NULL;
             curr = NULL;
             obj = lst.First();
-            data = new LinkedListElem<_Key, _Val>(*obj);
+            data = new linked_list_elem<_Key, _Val>(*obj);
             curr = data;
             obj = lst++;
             while (obj != NULL) {
-                curr->Add(new LinkedListElem<_Key, _Val>(*obj));
-                curr = curr->Next();
+                curr->add(new linked_list_elem<_Key, _Val>(*obj));
+                curr = curr->next();
                 obj = lst++;
             }
         };
-        virtual ~LinkedList()
+        virtual ~linked_list()
         {
-            Clear();
+            clear();
             data = NULL;
             curr = NULL;
         };
 
-        virtual _Val& FindFirst(_Key name)
+        virtual _Val& find_first(_Key name)
         {
-            LinkedListElem<_Key, _Val>* elem = curr;
+            linked_list_elem<_Key, _Val>* elem = curr;
 
             curr = data;
             while (curr != NULL) {
-                if (curr->Key() == name) {
+                if (curr->key() == name) {
                     break;
                 }
-                curr = curr->Next();
+                curr = curr->next();
             }
             if (curr != NULL) {
-                return *(new _Val(curr->Value()));
+                return *(new _Val(curr->value()));
             }
             curr = elem;
             return *(new _Val());
         };
 
-        virtual _Val& FindNext(_Key name)
+        virtual _Val& find_next(_Key name)
         {
-            LinkedListElem<_Key, _Val>* elem = curr;
+            linked_list_elem<_Key, _Val>* elem = curr;
 
             if (curr != NULL) {
-                curr = curr->Next();
+                curr = curr->next();
             }
             while (curr != NULL) {
-                if (curr->Key() == name) {
+                if (curr->key() == name) {
                     break;
                 }
-                curr = curr->Next();
+                curr = curr->next();
             }
             if (curr != NULL) {
-                return *(new _Val(curr->Value()));
+                return *(new _Val(curr->value()));
             }
             curr = elem;
             return *(new _Val());
         };
 
-        void Append(_Key name, _Val value)
+        void append(_Key name, _Val value)
         {
-            LinkedListElem<_Key, _Val>* elem;
-            LinkedListElem<_Key, _Val>* obj;
+            linked_list_elem<_Key, _Val>* elem;
+            linked_list_elem<_Key, _Val>* obj;
 
-            obj = new LinkedListElem<_Key, _Val>();
-            obj->Key(name);
-            obj->Value(value);
+            obj = new linked_list_elem<_Key, _Val>();
+            obj->key(name);
+            obj->value(value);
             if (data == NULL) {
                 data = obj;
                 curr = data;
             }
             else {
                 elem = curr;
-                Last();
-                curr->Add(obj);
+                last();
+                curr->add(obj);
                 curr = elem;
             }
         };
-        void Insert(_Key name, _Val value)
+        void insert(_Key name, _Val value)
         {
-            LinkedListElem<_Key, _Val>* obj;
+            linked_list_elem<_Key, _Val>* obj;
 
-            obj = new LinkedListElem<_Key, _Val>();
-            obj->Key(name);
-            obj->Value(value);
+            obj = new linked_list_elem<_Key, _Val>();
+            obj->key(name);
+            obj->value(value);
             if (data == NULL) {
                 data = obj;
                 curr = data;
             }
             else {
-                curr->Add(obj);
+                curr->add(obj);
             }
         };
-        void Clear()
+        void clear()
         {
             curr = data;
             while (curr != NULL) {
-                curr = curr->Next();
+                curr = curr->next();
                 delete data;
                 data = curr;
             }
         };
 
-        LinkedListElem<_Key, _Val>* First() { curr = data; return (curr); };
-        LinkedListElem<_Key, _Val>* Last()
+        linked_list_elem<_Key, _Val>* first() { curr = data; return (curr); };
+        linked_list_elem<_Key, _Val>* last()
         {
             if (curr == NULL) {
                 return curr;
             }
-            while (curr->Next() != NULL) {
-                curr = curr->Next();
+            while (curr->next() != NULL) {
+                curr = curr->next();
             }
             return curr;
         };
-        LinkedListElem<_Key, _Val>* Current() { return curr;  };
-        void Erase()
+        linked_list_elem<_Key, _Val>* current() { return curr;  };
+        void erase()
         {
-            LinkedListElem<_Key, _Val>* obj;
+            linked_list_elem<_Key, _Val>* obj;
 
             if (curr == NULL) {
                 return;
             }
             obj = data;
             while (obj != NULL) {
-                if (obj->Next() == curr) {
+                if (obj->next() == curr) {
                     break;
                 }
-                obj = obj->Next();
+                obj = obj->next();
             }
             if (obj == NULL) {
                 return;
             }
-            obj->Link(curr->Next());
+            obj->Link(curr->next());
 
         };
-        LinkedListElem<_Key, _Val>* operator++(int) { if(curr != NULL) { curr = curr->Next(); } return curr;    };
+        linked_list_elem<_Key, _Val>* operator++(int) { if(curr != NULL) { curr = curr->next(); } return curr;    };
 
     protected:
 #ifndef __DOXYGEN__
-        LinkedListElem<_Key, _Val>* data;
-        LinkedListElem<_Key, _Val>* curr;
+        linked_list_elem<_Key, _Val>* data;
+        linked_list_elem<_Key, _Val>* curr;
 #endif //__DOXYGEN__
     private:
         DECLARE_SERIAL_BASE;
@@ -313,7 +313,7 @@ namespace webEngine {
             bool last;
             ar & BOOST_SERIALIZATION_NVP(last);
             if (! last) {
-                data = new LinkedListElem<_Key, _Val>;
+                data = new linked_list_elem<_Key, _Val>;
                 ar & BOOST_SERIALIZATION_NVP(data);
             }
             else {

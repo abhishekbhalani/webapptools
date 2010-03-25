@@ -55,7 +55,7 @@ string HttpTransport::protoName = "http";
 //////////////////////////////////////////////////////////////////////////
 // Transport creation functions
 //////////////////////////////////////////////////////////////////////////
-static iTransport* weCreateHttp(Dispatch* krnl)
+static iTransport* weCreateHttp(engine_dispatcher* krnl)
 {
     LOG4CXX_DEBUG(iLogger::GetLogger(), "TransportFactory: create HttpTransport");
     return new HttpTransport(krnl); //new HttpTransport();
@@ -80,7 +80,7 @@ HttpRequest::HttpRequest()
 /// @param	url	 - The url.
 /// @param	meth - The request method. Default - wemGet.
 /// @param	resp - If non-null, the HttpResponse, to create chained HttpRequest to.
-/// @throw  WeError if given URL is malformed and can't be reconstructed from the HttpResponse
+/// @throw  WeError if given transport_url is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*/, HttpResponse* resp /*= NULL*/ )
 {
@@ -94,13 +94,13 @@ HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*
 
 void HttpRequest::RequestUrl( const string &ReqUrl, iOperation* resp /*= NULL*/ )
 {
-    URL   weurl;
+    transport_url   weurl;
 
     weurl = ReqUrl;
     return RequestUrl(weurl, resp);
 }
 
-void HttpRequest::RequestUrl( const URL &ReqUrl, iOperation* resp /*= NULL*/ )
+void HttpRequest::RequestUrl( const transport_url &ReqUrl, iOperation* resp /*= NULL*/ )
 {
     reqUrl = ReqUrl;
     if (resp != NULL) {
@@ -120,7 +120,7 @@ void HttpRequest::ComposePost( int method /*= composeOverwrite*/ )
 /// @brief  Default constructor.
 /// @throw  WeError if the curl initialization failed
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-HttpTransport::HttpTransport(Dispatch* krnl, void* handle /*= NULL*/) :
+HttpTransport::HttpTransport(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     iTransport(krnl, handle)
 {
     transferHandle = curl_multi_init();
@@ -190,14 +190,14 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
     wOption opt;
     int portNum;
 
-    if (!req->RequestUrl().IsValid()) {
+    if (!req->RequestUrl().is_valid()) {
         if (resp != NULL) {
-            string url = req->RequestUrl().ToString();
-            req->RequestUrl().Restore(url, &(resp->RealUrl()));
+            string url = req->RequestUrl().tostring();
+            req->RequestUrl().assign_with_referer(url, &(resp->RealUrl()));
         }
     }
 
-    if (!req->RequestUrl().IsValid()) {
+    if (!req->RequestUrl().is_valid()) {
         if (req->RequestUrl().protocol == "") {
             req->RequestUrl().protocol = protoName;
         }
@@ -207,9 +207,9 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
             req->RequestUrl().port = portNum;
         }
     }
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "HttpTransport::Request: url=" << req->RequestUrl().ToString());
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "HttpTransport::Request: url=" << req->RequestUrl().tostring());
 
-    if (!req->RequestUrl().IsValid()) {
+    if (!req->RequestUrl().is_valid()) {
         // bad luck! still not valid request... :(
         /// @todo Add error processing. Throw exception or return NULL
     }
@@ -221,7 +221,7 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
     }
     else {
         retval = dynamic_cast<HttpResponse*>(resp);
-        if (!retval->BaseUrl().IsValid()) {
+        if (!retval->BaseUrl().is_valid()) {
             retval->BaseUrl(req->RequestUrl());
         }
         if (!retval->CurlInit()) {
@@ -254,7 +254,7 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
 /// @param	url	 - The url.
 /// @param	resp - If non-null, the resp.
 /// @retval	null if it fails, pointer to the HttpResponse else.
-/// @throw  WeError if given URL is malformed and can't be reconstructed from the HttpResponse
+/// @throw  WeError if given transport_url is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 iResponse* HttpTransport::Request( string url, iResponse* resp /*= NULL*/ )
 {
@@ -265,9 +265,9 @@ iResponse* HttpTransport::Request( string url, iResponse* resp /*= NULL*/ )
         return NULL;
     }
     req->RequestUrl(url, resp);
-    if (!req->RequestUrl().IsValid()) {
+    if (!req->RequestUrl().is_valid()) {
         if (resp != NULL) {
-            req->RequestUrl().Restore(url, &(resp->RealUrl()));
+            req->RequestUrl().assign_with_referer(url, &(resp->RealUrl()));
         }
     }
     req->Method(HttpRequest::wemGet);
@@ -275,16 +275,16 @@ iResponse* HttpTransport::Request( string url, iResponse* resp /*= NULL*/ )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn iResponse* HttpTransport::Request( URL& url,
+/// @fn iResponse* HttpTransport::Request( transport_url& url,
 ///     iResponse* resp )
 ///
 /// @brief  Requests.
 /// @param	url	 - The url.
 /// @param	resp - If non-null, the resp.
 /// @retval	null if it fails, pointer to the HttpResponse else.
-/// @throw  WeError if given URL is malformed and can't be reconstructed from the HttpResponse
+/// @throw  WeError if given transport_url is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iResponse* HttpTransport::Request( URL& url, iResponse* resp /*= NULL*/ )
+iResponse* HttpTransport::Request( transport_url& url, iResponse* resp /*= NULL*/ )
 {
     HttpRequest* req = new HttpRequest;
 

@@ -23,68 +23,68 @@
 
 namespace webEngine {
 
-iPlugin::iPlugin( Dispatch* krnl, void* handle /*= NULL*/ )
+i_plugin::i_plugin( engine_dispatcher* krnl, void* handle /*= NULL*/ )
 {
     kernel = krnl;
     usageCount = 0;
     libHandle = handle;
-    pluginInfo.IfaceName = "iPlugin";
+    pluginInfo.IfaceName = "i_plugin";
     pluginInfo.IfaceList.clear();
-    pluginInfo.IfaceList.push_back("iPlugin");
+    pluginInfo.IfaceList.push_back("i_plugin");
     pluginInfo.PluginDesc = "Base plugin interface";
     pluginInfo.PluginId = "C665E995E5B4";
     pluginInfo.PluginIcon.clear();
     pluginInfo.PluginPath = "";
     priority = 50;
     if (krnl != NULL) {
-        logger = krnl->GetLogger();
+        logger = krnl->get_logger();
     }
     else {
         logger = iLogger::GetLogger();
     }
 }
 
-const string iPlugin::InterfaceName()
+const string i_plugin::interface_name()
 {
     return pluginInfo.IfaceName;
 }
 
-StringList iPlugin::InterfaceList()
+string_list i_plugin::interface_list()
 {
     return pluginInfo.IfaceList;
 }
 
-void* iPlugin::GetInterface( const string& ifName )
+void* i_plugin::get_interface( const string& ifName )
 {
-    if (ifName == "iPlugin") {
+    if (ifName == "i_plugin") {
         usageCount++;
         return this;
     }
     return NULL;
 }
 
-const string iPlugin::GetDesc()
+const string i_plugin::get_description()
 {
     return pluginInfo.PluginDesc;
 }
 
-const string iPlugin::GetID()
+const string i_plugin::get_id()
 {
     return pluginInfo.PluginId;
 }
 
-StringList iPlugin::GetIcon()
+string_list i_plugin::get_icon()
 {
     return pluginInfo.PluginIcon;
 }
 
-void iPlugin::Release()
+void i_plugin::release()
 {
     if (usageCount == 0)
     {
         if (libHandle != NULL)
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "iPlugin::Release: (" << pluginInfo.PluginId << ") free the shared library");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "i_plugin::release: (" << pluginInfo.PluginId << ") free the shared library");
             delete ((dyn::shared_object*)libHandle);
         }
         delete this;
@@ -94,9 +94,9 @@ void iPlugin::Release()
     }
 }
 
-StringList WeXpmToStringList( char** xpm, int lines )
+string_list WeXpmToStringList( char** xpm, int lines )
 {
-    StringList retval;
+    string_list retval;
     retval.clear();
 
     for (int i = 0; i < lines; i++)

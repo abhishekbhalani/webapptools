@@ -95,14 +95,14 @@ namespace webEngine {
         void AddPlgVulner(iVulner* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn	void StorePlugins(vector<iPlugin*>& plugins)
+        /// @fn	void StorePlugins(vector<i_plugin*>& plugins)
         ///
         /// @brief	Adds plugins to the Task object. Plugins wil br separeted to categories and sorted by
         ///         priority.
         ///
         /// @param [in,out]	plugins	 - if non-null, the plugins. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void StorePlugins(vector<iPlugin*>& plugins);
+        void StorePlugins(vector<i_plugin*>& plugins);
 
         void Run();
         void Pause(const bool& state = true);
@@ -112,8 +112,8 @@ namespace webEngine {
         virtual iResponse* GetRequest(iRequest* req);
         virtual void GetRequestAsync(iRequest* req);
 
-        RecordSet* ToRS( const string& parentID = "" );
-        void FromRS( RecordSet *rs );
+        db_recordset* ToRS( const string& parentID = "" );
+        void FromRS( db_recordset *rs );
 
         void WaitForData();
         void CalcStatus();

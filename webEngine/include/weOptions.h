@@ -32,7 +32,7 @@ using namespace std;
 
 namespace webEngine {
 
-    class RecordSet;
+    class db_recordset;
 
     typedef ::boost::variant< char,
         unsigned char,
@@ -145,11 +145,11 @@ public:
     virtual void Clear() { options.clear(); };
 
     void CopyOptions(iOptionsProvider* cpy);
-    StringList OptionsList();
+    string_list OptionsList();
     size_t OptionSize() { return options.size(); };
 
-    RecordSet* ToRS( const string& parentID = "" );
-    void FromRS( RecordSet *rs );
+    db_recordset* ToRS( const string& parentID = "" );
+    void FromRS( db_recordset *rs );
 
     // simplified serialization
     string ToXml( void );

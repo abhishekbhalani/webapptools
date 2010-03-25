@@ -26,7 +26,7 @@ using namespace boost;
 
 namespace webEngine {
 
-    class RecordSet;
+    class db_recordset;
     class ScanData;
 
     class ScanInfo
@@ -55,8 +55,8 @@ namespace webEngine {
 
         void push_back(ScanData* elem) { scan_data.push_back(elem);}
 
-        RecordSet* ToRS( const string& parentID = "" );
-        void FromRS( RecordSet *rs );
+        db_recordset* ToRS( const string& parentID = "" );
+        void FromRS( db_recordset *rs );
 
         ScanData* GetScanData(const string& baseUrl, const string& realUrl);
         void SetScanData(ScanData* scData);
@@ -77,8 +77,8 @@ namespace webEngine {
         int     dataSize;
         int     downloadTime;
 
-        RecordSet* ToRS( const string& parentID = "" );
-        void FromRS( RecordSet *rs );
+        db_recordset* ToRS( const string& parentID = "" );
+        void FromRS( db_recordset *rs );
     };
 
 } // namespace webEngine

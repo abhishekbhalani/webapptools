@@ -22,8 +22,8 @@
 
 namespace webEngine {
 
-iAudit::iAudit(Dispatch* krnl, void* handle /*= NULL*/) :
-    iPlugin(krnl, handle)
+iAudit::iAudit(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+    i_plugin(krnl, handle)
 {
 }
 

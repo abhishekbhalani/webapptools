@@ -34,10 +34,10 @@ namespace webEngine {
 /// @date   19.08.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class iVulner :
-    public iPlugin
+    public i_plugin
 {
 public:
-    iVulner(Dispatch* krnl, void* handle = NULL);
+    iVulner(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~iVulner(void);
 };
 
