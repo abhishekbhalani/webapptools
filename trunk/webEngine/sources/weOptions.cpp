@@ -42,10 +42,10 @@ static const wOption empty_option("_empty_");
 ///
 /// @retval This object as a std::string. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-RecordSet* iOptionsProvider::ToRS( const string& parentID/* = ""*/ )
+db_recordset* iOptionsProvider::ToRS( const string& parentID/* = ""*/ )
 {
-    RecordSet* res = new RecordSet;
-    Record* rec;
+    db_recordset* res = new db_recordset;
+    db_record* rec;
     wOptions::iterator it;
     wOptionVal optVal;
     string strData;
@@ -53,7 +53,7 @@ RecordSet* iOptionsProvider::ToRS( const string& parentID/* = ""*/ )
     for (it = options.begin(); it != options.end(); it++) {
         strData = it->first;
         optVal = it->second->Value();
-        rec = new Record;
+        rec = new db_record;
         rec->objectID = weObjTypeSysOption;
         rec->Option(weoName, strData);
         rec->Option(weoParentID, parentID);
@@ -71,9 +71,9 @@ RecordSet* iOptionsProvider::ToRS( const string& parentID/* = ""*/ )
     return res;
 }
 
-void iOptionsProvider::FromRS( RecordSet *rs )
+void iOptionsProvider::FromRS( db_recordset *rs )
 {
-    Record rec;
+    db_record rec;
     size_t r;
     int tp;
     wOptionVal optVal;
@@ -218,9 +218,9 @@ void iOptionsProvider::CopyOptions( iOptionsProvider* cpy )
     }
 }
 
-StringList iOptionsProvider::OptionsList()
+string_list iOptionsProvider::OptionsList()
 {
-    StringList retval;
+    string_list retval;
 
     retval.clear();
     wOptions::iterator it;

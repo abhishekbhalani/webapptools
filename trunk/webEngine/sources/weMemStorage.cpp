@@ -66,50 +66,50 @@ static void OptionToString(wOption& opt, string& str)
     }
 }
 
-MemStorage::MemStorage( Dispatch* krnl, void* handle /*= NULL*/ ) :
-    iStorage(krnl, handle)
+MemStorage::MemStorage( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
+    i_storage(krnl, handle)
 {
     pluginInfo.IfaceName = "MemStorage";
     pluginInfo.IfaceList.push_back("MemStorage");
     pluginInfo.PluginDesc = "In-memory storage";
     pluginInfo.PluginId = "D82B31419339";
     fileName = "";
-    lastId = 1;
+    last_id = 1;
 }
 
 MemStorage::~MemStorage(void)
 {
-    Flush(fileName);
+    flush(fileName);
 }
 
 void* MemStorage::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "iStorage"))
+    if (iequals(ifName, "i_storage"))
     {
         usageCount++;
-        return (void*)((iStorage*)this);
+        return (void*)((i_storage*)this);
     }
     if (iequals(ifName, "MemStorage"))
     {
         usageCount++;
         return (void*)((MemStorage*)this);
     }
-    return iStorage::GetInterface(ifName);
+    return i_storage::get_interface(ifName);
 }
 
-int MemStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
+int MemStorage::get(db_record& filter, db_record& respFilter, db_recordset& results)
 {
     string fID, stData, key;
     wOption opt;
     StringMap::iterator obj;
-    StringList* objIdxs;
-    StringList filterNames;
-    StringList reportNames;
-    StringList nonflNames;
-    StringList::iterator lstIt;
+    string_list* objIdxs;
+    string_list filterNames;
+    string_list reportNames;
+    string_list nonflNames;
+    string_list::iterator lstIt;
     size_t i, j;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Get");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::get");
 
     results.clear();
 
@@ -125,7 +125,7 @@ int MemStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
         reportNames = respFilter.OptionsList();
         if (reportNames.size() == 0)
         {
-            StringList* strct;
+            string_list* strct;
             strct = GetNamespaceStruct(filter);
             if (strct != NULL)
             {
@@ -137,7 +137,7 @@ int MemStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
         SAFE_GET_OPTION_VAL(opt, fID, "");
 
         for (i = 0; i < objIdxs->size(); i++) {
-            Record* objRes = new Record;
+            db_record* objRes = new db_record;
             objRes->objectID = filter.objectID;
             for (j = 0; j < reportNames.size(); j++)
             {
@@ -158,19 +158,19 @@ int MemStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
     return results.size();
 }
 
-int MemStorage::Set(Record& filter, Record& data)
+int MemStorage::set(db_record& filter, db_record& data)
 {
     wOption opt;
     string idx;
-    StringList* lst;
-    StringList* objIdxs;
-    StringList objProps;
+    string_list* lst;
+    string_list* objIdxs;
+    string_list objProps;
     size_t i, j;
     string stData, stValue;
     StringMap::iterator obj;
-    StringList::iterator idIt;
+    string_list::iterator idIt;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Set(filter, Record)");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::set(filter, db_record)");
 
     if (filter.OptionSize() > 0)
     {   // try to update
@@ -178,12 +178,12 @@ int MemStorage::Set(Record& filter, Record& data)
     }
     else
     {   // insert data
-        lst = new StringList;
+        lst = new string_list;
         opt = data.Option(weoID);
         SAFE_GET_OPTION_VAL(opt, idx, "");
         if (idx == "")
         {   // get next index from list
-            idx = GenerateID(data.objectID);
+            idx = generate_id(data.objectID);
         }
         lst->push_back(idx);
     }
@@ -216,34 +216,34 @@ int MemStorage::Set(Record& filter, Record& data)
     return (int)i;
 }
 
-int MemStorage::Set(RecordSet& data)
+int MemStorage::set(db_recordset& data)
 {
     int retval;
     size_t i;
-    Record filt;
+    db_record filt;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Set(RecordSet)");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::set(db_recordset)");
     filt.Clear();
     retval = 0;
     for (i = 0; i < data.size(); i++)
     {
         filt.objectID = data[i].objectID;
-        retval += Set(filt, data[i]);
+        retval += set(filt, data[i]);
     }
 
     return retval;
 }
 
-int MemStorage::Delete(Record& filter)
+int MemStorage::del(db_record& filter)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Delete");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::delete");
 
-    StringList* lst = Search(filter);
-    StringList* objs = GetNamespaceIdxs(filter.objectID);
+    string_list* lst = Search(filter);
+    string_list* objs = GetNamespaceIdxs(filter.objectID);
     int retval;
     size_t i;
     StringMap::iterator obj;
-    StringList::iterator idxIt;
+    string_list::iterator idxIt;
 
     retval = (int)lst->size();
     for (i = 0; i < lst->size(); i++)
@@ -273,7 +273,7 @@ void MemStorage::Save( const string& fileName )
         {
             boost::archive::xml_oarchive oa(ofs);
             // write class instance to archive
-            oa << BOOST_SERIALIZATION_NVP(lastId);
+            oa << BOOST_SERIALIZATION_NVP(last_id);
             oa << BOOST_SERIALIZATION_NVP(storage);
             // archive and stream closed when destructor are called
         }
@@ -295,7 +295,7 @@ void MemStorage::Load( const string& fileName )
         {
             boost::archive::xml_iarchive ia(ifs);
             // write class instance to archive
-            ia >> BOOST_SERIALIZATION_NVP(lastId);
+            ia >> BOOST_SERIALIZATION_NVP(last_id);
             ia >> BOOST_SERIALIZATION_NVP(storage);
             // archive and stream closed when destructor are called
         }
@@ -308,21 +308,21 @@ void MemStorage::Load( const string& fileName )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn bool MemStorage::InitStorage( const string& params )
+/// @fn bool MemStorage::init_storage( const string& params )
 ///
 /// @brief  Initializes the storage. 
 ///
 /// @param  params - Pathname for the storage file.
 /// @retval	true if it succeeds, false if it fails. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool MemStorage::InitStorage( const string& params )
+bool MemStorage::init_storage( const string& params )
 {
     fileName = params;
     Load(fileName);
     return true;
 }
 
-void MemStorage::Flush( const string& params /*= ""*/)
+void MemStorage::flush( const string& params /*= ""*/)
 {
     if (params != "")
     {
@@ -330,18 +330,18 @@ void MemStorage::Flush( const string& params /*= ""*/)
     }
     if (fileName != "")
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::Flush: filename not empty, save data");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "MemStorage::flush: filename not empty, save data");
         Save(fileName);
     }
 }
 
-StringList* MemStorage::Search(Record& filter)
+string_list* MemStorage::Search(db_record& filter)
 {
-    StringList* retlist = new StringList;
+    string_list* retlist = new string_list;
     StringMap::iterator obj;
     string stData, stValue;
-    StringList* objIdxs;
-    StringList objProps;
+    string_list* objIdxs;
+    string_list objProps;
     size_t i, j;
 
     objIdxs = GetNamespaceIdxs(filter.objectID);
@@ -379,9 +379,9 @@ StringList* MemStorage::Search(Record& filter)
     return retlist;
 }
 
-StringList* MemStorage::GetNamespaceIdxs(const string& objType)
+string_list* MemStorage::GetNamespaceIdxs(const string& objType)
 {
-    StringList* objIdxs = new StringList;
+    string_list* objIdxs = new string_list;
     StringMap::iterator obj;
     string stData;
 
@@ -405,7 +405,7 @@ StringList* MemStorage::GetNamespaceIdxs(const string& objType)
     return objIdxs;
 }
 
-void MemStorage::SetNamespaceIdxs(const string& objType, StringList* lst)
+void MemStorage::SetNamespaceIdxs(const string& objType, string_list* lst)
 {
     string stData;
 
@@ -425,13 +425,13 @@ void MemStorage::SetNamespaceIdxs(const string& objType, StringList* lst)
     storage[objType] = stData;
 }
 
-void MemStorage::FixNamespaceStruct(Record& filter)
+void MemStorage::FixNamespaceStruct(db_record& filter)
 {
     StringMap::iterator obj;
-    StringList::iterator lst;
+    string_list::iterator lst;
     string stData;
-    StringList structNames;
-    StringList flNames;
+    string_list structNames;
+    string_list flNames;
     size_t i;
 
 
@@ -478,13 +478,13 @@ void MemStorage::FixNamespaceStruct(Record& filter)
     storage[filter.objectID + "_struct"] = stData;
 }
 
-StringList* MemStorage::GetNamespaceStruct(Record& filter)
+string_list* MemStorage::GetNamespaceStruct(db_record& filter)
 {
     StringMap::iterator obj;
-    StringList *structNames;
+    string_list *structNames;
     string stData;
 
-    structNames = new StringList;
+    structNames = new string_list;
     obj = storage.find(filter.objectID + "_struct");
     if (obj != storage.end()) {
         stData = obj->second;

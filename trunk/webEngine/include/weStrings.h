@@ -31,9 +31,9 @@ namespace webEngine {
 
     typedef map<string, string> StringMap;
     typedef orderedmap<string, string> AttrMap;
-    typedef vector<string> StringList;
-    typedef LinkedListElem<string, string> LinkedString;
-    typedef LinkedList<string, string> LinkedListStr;
+    typedef vector<string> string_list;
+    typedef linked_list_elem<string, string> LinkedString;
+    typedef linked_list<string, string> LinkedListStr;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @class  StringLinks
@@ -46,7 +46,7 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   27.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class StringLinks : public LinkedList<string, string>
+    class StringLinks : public linked_list<string, string>
     {
     public:
         StringLinks(string sep = "=", string delim = "\n\r");
@@ -79,12 +79,12 @@ namespace webEngine {
         };
     };
 
-string SListToString(StringList& lst);
-StringList* StringToSList(const string& lst);
+string SListToString(string_list& lst);
+string_list* StringToSList(const string& lst);
 
 } // namespace webEngine
 
 BOOST_CLASS_TRACKING(webEngine::LinkedString, boost::serialization::track_never)
-BOOST_CLASS_TRACKING(webEngine::StringList, boost::serialization::track_never)
+BOOST_CLASS_TRACKING(webEngine::string_list, boost::serialization::track_never)
 
 #endif //__WESTRINGS_H__

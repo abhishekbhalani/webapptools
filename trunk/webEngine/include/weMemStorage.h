@@ -28,47 +28,47 @@ namespace webEngine {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  MemStorage :
 ///
-/// @brief  Memory storage class. Provides iStorage interface with keeping data in memory
+/// @brief  Memory storage class. Provides i_storage interface with keeping data in memory
 ///         and abilities to save/load state into the file(s)
 ///
 /// @author A. Abramov
 /// @date   14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class MemStorage :
-    public iStorage
+    public i_storage
 {
 public:
-    MemStorage(Dispatch* krnl, void* handle = NULL);
+    MemStorage(engine_dispatcher* krnl, void* handle = NULL);
     ~MemStorage(void);
 
     // iwePlugin functions
     virtual void* GetInterface(const string& ifName);
 
-    // iStorage functions
-    virtual bool InitStorage(const string& params);
-    virtual void Flush(const string& params = "");
-    virtual int Get(Record& filter, Record& respFilter, RecordSet& results);
-    virtual int Set(Record& filter, Record& data);
-    virtual int Set(RecordSet& data);
-    virtual int Delete(Record& filter);
+    // i_storage functions
+    virtual bool init_storage(const string& params);
+    virtual void flush(const string& params = "");
+    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results);
+    virtual int set(db_record& filter, db_record& data);
+    virtual int set(db_recordset& data);
+    virtual int del(db_record& filter);
 
     // MemStorage functions
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn StringList* Search(const string& objType,
-    /// 	Record& filters)
+    /// @fn string_list* Search(const string& objType,
+    /// 	db_record& filters)
     ///
     /// @brief  Searches database for objects. 
     ///
-    /// @param  filters - the Record to filter the request 
+    /// @param  filters - the db_record to filter the request 
     ///
     /// @retval List of object ID's 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    StringList* Search(Record& filter);
-    StringList* GetNamespaceIdxs(const string& objType);
-    void SetNamespaceIdxs(const string& objType, StringList* lst);
-    void FixNamespaceStruct(Record& filter);
-    StringList* GetNamespaceStruct(Record& filter);
+    string_list* Search(db_record& filter);
+    string_list* GetNamespaceIdxs(const string& objType);
+    void SetNamespaceIdxs(const string& objType, string_list* lst);
+    void FixNamespaceStruct(db_record& filter);
+    string_list* GetNamespaceStruct(db_record& filter);
     void Save(const string& fileName);
     void Load(const string& fileName);
 

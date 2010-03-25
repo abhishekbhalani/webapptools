@@ -29,45 +29,45 @@ using namespace std;
 
 namespace webEngine {
 
-struct PluginInfo
+struct plugin_info
 {
     string  PluginId;
     string  PluginDesc;
     string  IfaceName;
-    StringList IfaceList;
-    StringList PluginIcon;
+    string_list IfaceList;
+    string_list PluginIcon;
     int     PluginStatus;
     string  PluginPath;
 };
 
 // forward declaration
-class Dispatch;
+class engine_dispatcher;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iPlugin
+/// @interface  i_plugin
 ///
 /// @brief  Basic interface for the plugins.
 ///
-/// iPlugin is the basic interface for the plugins.
+/// i_plugin is the basic interface for the plugins.
 ///
 /// Plugin is the interface to the external dynamic library. The library provides method to
-/// create the contained plugin as the basic iPlugin interface. Other interfaces may be
-/// requested from the plugin by calling the GetInterface function. Plugin object can't be copied,
-/// use the GetInterface function instead to obtain pointer to the plugin or copy the existing
+/// create the contained plugin as the basic i_plugin interface. Other interfaces may be
+/// requested from the plugin by calling the get_interface function. Plugin object can't be copied,
+/// use the get_interface function instead to obtain pointer to the plugin or copy the existing
 /// pointer if you are sure to control the object's lifetime. Program must avoid the explicit
 /// destruction of the plugin, because it may destroy the object, that can be used somewhere
-/// else. Use the Release function to free the pointer to the interface when it is no
+/// else. Use the release function to free the pointer to the interface when it is no
 /// longer needed.
 ///
 /// @author A. Abramov
 /// @date   19.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iPlugin
+class i_plugin
 {
 public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn iPlugin(void* handle = NULL)
+    /// @fn i_plugin(void* handle = NULL)
     ///
     /// @brief  Constructor.
     ///
@@ -75,7 +75,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn iPlugin(Dispatch* krnl,
+    /// @fn i_plugin(engine_dispatcher* krnl,
     /// 	void* handle = NULL)
     ///
     /// @brief  Constructor. 
@@ -83,17 +83,17 @@ public:
     /// @param  krnl   - Back link to the kernel
     /// @param  handle - The handle to the contained library. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    iPlugin(Dispatch* krnl, void* handle = NULL);
+    i_plugin(engine_dispatcher* krnl, void* handle = NULL);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual ~iPlugin()
+    /// @fn virtual ~i_plugin()
     ///
     /// @brief  Destructor.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual ~iPlugin() {};
+    virtual ~i_plugin() {};
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void* GetInterface(const string& ifName)
+    /// @fn virtual void* get_interface(const string& ifName)
     ///
     /// @brief  Gets an interface.
     ///
@@ -104,46 +104,46 @@ public:
     ///
     /// @retval	null if it fails, else the interface.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void* GetInterface(const string& ifName);
+    virtual void* get_interface(const string& ifName);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void Release()
+    /// @fn virtual void release()
     ///
     /// @brief  Releases this object.
     ///
     /// Decrease usage counter and destroy object if counter is NULL
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void Release();
+    virtual void release();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual const string InterfaceName()
+    /// @fn virtual const string interface_name()
     ///
     /// @brief  Gets the final Interface name.
     ///
     /// @retval	string. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string InterfaceName();
+    virtual const string interface_name();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual StringList InterfaceList()
+    /// @fn virtual string_list interface_list()
     ///
     /// @brief  Gets the list of supported Interfaces. 
     ///
     /// @retval strings list. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual StringList InterfaceList();
+    virtual string_list interface_list();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual const string& GetDesc()
+    /// @fn virtual const string& get_description()
     ///
     /// @brief  Gets the plugin description.
     ///
     /// @retval	The description.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string GetDesc();
+    virtual const string get_description();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn	virtual const string& GetID() = 0
+    /// @fn	virtual const string& get_id() = 0
     ///
     /// @brief	Gets the identifier.
     ///
@@ -151,10 +151,10 @@ public:
     ///
     /// @retval	The identifier.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string GetID();
+    virtual const string get_id();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual char* GetIcon()
+    /// @fn virtual char* get_icon()
     ///
     /// @brief  Gets the icon.
     ///
@@ -163,58 +163,58 @@ public:
     ///
     /// @retval null if no icon, else the icon.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual StringList GetIcon();
+    virtual string_list get_icon();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn	const PluginInfo* Info(void)
+    /// @fn	const plugin_info* info(void)
     ///
     /// @brief	Returns information about this object. 
     ///
-    /// @retval	null if it fails, PluginInfo else. 
+    /// @retval	null if it fails, plugin_info else. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    const PluginInfo* Info(void) { return &pluginInfo; };
+    const plugin_info* info(void) { return &pluginInfo; };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual const string GetSetupUI( void )
+    /// @fn virtual const string get_setup_ui( void )
     ///
     /// @brief  Gets the user interface for the setup dialog. 
     ///
-    /// @retval The user interface in the XRC format (wxWidgets) or empty string if no setup dialog. 
+    /// @retval The user interface in the XML-based format or empty string if no setup dialog. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string GetSetupUI( void ) { return ""; };
+    virtual const string get_setup_ui( void ) { return ""; };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void ApplySettings( const string& xmlData )
+    /// @fn virtual void apply_settings( const string& xmlData )
     ///
     /// @brief  Applies the settings described by xmlData.
     ///
     /// @param  xmlData	 - Plugin settings describing the XML. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void ApplySettings( const string& xmlData ) {};
+    virtual void apply_settings( const string& xmlData ) {};
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void GetPriority()
+    /// @fn virtual void get_priority()
     ///
     /// @brief  Gets the plugin's priority (0 - 100, default: 50).
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int GetPriority() { return priority; };
+    virtual int get_priority() { return priority; };
 
 #ifndef __DOXYGEN__
 protected:
     int usageCount;
     int priority;
     void* libHandle;
-    PluginInfo pluginInfo;
-    Dispatch* kernel;
+    plugin_info pluginInfo;
+    engine_dispatcher* kernel;
     log4cxx::LoggerPtr logger;
 
 private:
-    iPlugin(iPlugin&) {};               ///< Avoid object copying
-    iPlugin& operator=(iPlugin&) { return *this; };    ///< Avoid object copying
+    i_plugin(i_plugin&) {};               ///< Avoid object copying
+    i_plugin& operator=(i_plugin&) { return *this; };    ///< Avoid object copying
 #endif // __DOXYGEN__
 };
 
-typedef vector<PluginInfo> WePluginList;
+typedef vector<plugin_info> plugin_list;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @typedef    void* (*fnWePluginFactory)(void)
@@ -227,7 +227,7 @@ typedef vector<PluginInfo> WePluginList;
 typedef void* (*fnWePluginFactory)(void* kernel, void* handle);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn StringList WeXpmToStringList(char** xpm,
+/// @fn string_list WeXpmToStringList(char** xpm,
 /// 	int lines)
 ///
 /// @brief  Convetrs XPM to string list. 
@@ -240,7 +240,7 @@ typedef void* (*fnWePluginFactory)(void* kernel, void* handle);
 ///
 /// @retval	. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-StringList WeXpmToStringList(char** xpm, int lines);
+string_list WeXpmToStringList(char** xpm, int lines);
 
 } // namespace webEngine
 

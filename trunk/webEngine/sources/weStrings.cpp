@@ -26,7 +26,7 @@ using namespace boost;
 namespace webEngine {
 
 StringLinks::StringLinks( string sep /*= "="*/, string delim /*= "\n\r"*/ ) :
-    LinkedList<string, string>()
+    linked_list<string, string>()
 {
     separator = sep;
     delimiter = delim;
@@ -40,13 +40,13 @@ StringLinks::StringLinks( StringLinks& lst )
     curr = NULL;
     separator = lst.separator;
     delimiter = lst.delimiter;
-    obj = lst.First();
+    obj = lst.first();
     data = new LinkedString(*obj);
     curr = data;
     obj = lst++;
     while (obj != NULL) {
-        curr->Add(new LinkedString(*obj));
-        curr = curr->Next();
+        curr->add(new LinkedString(*obj));
+        curr = curr->next();
         obj = lst++;
     }
 }
@@ -64,7 +64,7 @@ void StringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/
     if (sep.empty()) {
         sep = separator;
     }
-    Clear();
+    clear();
 
     string dlRexp = string("(.*?)") + delim + string("(.*)");
     regex dl(dlRexp);
@@ -83,7 +83,7 @@ void StringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/
             k = head;
             v = head;
         }
-        Append(k, v);
+        append(k, v);
     }
     if (!process.empty()) {
         if (regex_match(process, spRes, sp)) {
@@ -94,7 +94,7 @@ void StringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/
             k = head;
             v = head;
         }
-        Append(k, v);
+        append(k, v);
     }
 }
 
@@ -110,16 +110,16 @@ string& StringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
         sep = separator;
     }
     while (elem) {
-        *retval += elem->Key() + sep + elem->Value();
-        if (elem->Next() != NULL) {
+        *retval += elem->key() + sep + elem->value();
+        if (elem->next() != NULL) {
             *retval += delim;
         }
-        elem = elem->Next();
+        elem = elem->next();
     }
     return *retval;
 }
 
-string SListToString(StringList& lst)
+string SListToString(string_list& lst)
 {
     string retval;
 
@@ -132,9 +132,9 @@ string SListToString(StringList& lst)
     return retval;
 }
 
-StringList* StringToSList(const string& lst)
+string_list* StringToSList(const string& lst)
 {
-    StringList* retval = new StringList;
+    string_list* retval = new string_list;
     string parse = lst;
     size_t pos;
 

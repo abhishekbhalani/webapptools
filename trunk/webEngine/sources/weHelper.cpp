@@ -207,32 +207,32 @@ static HtmlEntity* weCreateScript(iEntity* prnt)
 }
 
 HtmlFactory::HtmlFactory() :
-    LinkedList<string, fnEntityFactory>()
+    linked_list<string, fnEntityFactory>()
 {
-    data = new LinkedListElem<string, fnEntityFactory>;
-    data->Key("");
-    data->Value(NULL);
-    data->Link(NULL);
+    data = new linked_list_elem<string, fnEntityFactory>;
+    data->key("");
+    data->value(NULL);
+    data->link(NULL);
 }
 
 void HtmlFactory::Add( string name, fnEntityFactory func )
 {
-    LinkedListElem<string, fnEntityFactory>* obj;
+    linked_list_elem<string, fnEntityFactory>* obj;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "new EntityFactory added for " << name);
-    obj = new LinkedListElem<string, fnEntityFactory>();
-    obj->Key(name);
-    obj->Value(func);
-    data->Add(obj);
+    obj = new linked_list_elem<string, fnEntityFactory>();
+    obj->key(name);
+    obj->value(func);
+    data->add(obj);
 }
 
 void HtmlFactory::Init()
 {
-    Clear();
-    data = new LinkedListElem<string, fnEntityFactory>;
-    data->Key("");
-    data->Value(NULL);
-    data->Link(NULL);
+    clear();
+    data = new linked_list_elem<string, fnEntityFactory>;
+    data->key("");
+    data->value(NULL);
+    data->link(NULL);
     Add("#document",    weCreateDocument);
     Add("#text",        weCreateText);
     Add("#comment",     weCreateComment);
@@ -259,7 +259,7 @@ HtmlEntity* HtmlFactory::CreateEntity( string tagName, HtmlEntity* prnt )
     fnEntityFactory func;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory::CreateEntity => " << tagName);
-    func = FindFirst(tagName);
+    func = find_first(tagName);
     if (func == NULL) {
         return new HtmlEntity(prnt);
     }

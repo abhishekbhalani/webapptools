@@ -27,34 +27,34 @@
 using namespace webEngine;
 using namespace boost;
 
-int iStorage::lastId = 0;
+int i_storage::last_id = 0;
 
-iStorage::iStorage(Dispatch* krnl, void* handle /*= NULL*/) :
-    iPlugin(krnl, handle)
+i_storage::i_storage(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+    i_plugin(krnl, handle)
 {
-    pluginInfo.IfaceName = "iStorage";
-    pluginInfo.IfaceList.push_back("iStorage");
+    pluginInfo.IfaceName = "i_storage";
+    pluginInfo.IfaceList.push_back("i_storage");
     pluginInfo.PluginDesc = "Base plugin interface";
     pluginInfo.PluginId = "C7F595160595";
     pluginInfo.PluginIcon = WeXpmToStringList(iweStorage_xpm, sizeof(iweStorage_xpm) / sizeof(char*) );
-    lastId = rand();
+    last_id = rand();
 }
 
-iStorage::~iStorage(void)
+i_storage::~i_storage(void)
 {
 }
 
-void* iStorage::GetInterface( const string& ifName )
+void* i_storage::get_interface( const string& ifName )
 {
-    if (iequals(ifName, "iStorage"))
+    if (iequals(ifName, "i_storage"))
     {
         usageCount++;
-        return (void*)((iStorage*)this);
+        return (void*)((i_storage*)this);
     }
-    return iPlugin::GetInterface(ifName);
+    return i_plugin::get_interface(ifName);
 }
 
-std::string iStorage::GenerateID( const string& objType /*= ""*/ )
+std::string i_storage::generate_id( const string& objType /*= ""*/ )
 {
-    return lexical_cast<string>(++lastId);
+    return lexical_cast<string>(++last_id);
 }

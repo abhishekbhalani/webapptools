@@ -28,40 +28,40 @@ using namespace std;
 namespace webEngine {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  URL
+/// @class  transport_url
 ///
-/// @brief  URL storage and operations  
+/// @brief  transport_url storage and operations  
 ///
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class URL
+class transport_url
 {
 public:
-    URL();
-    URL(const string url);
-    URL(const URL& url);
-    ~URL();
+    transport_url();
+    transport_url(const string url);
+    transport_url(const transport_url& url);
+    ~transport_url();
 
-    URL& operator=(const string& url)  { Assign(url); return *this; };
-    URL& operator=(const URL& url);
+    transport_url& operator=(const string& url)  { assign(url); return *this; };
+    transport_url& operator=(const transport_url& url);
 
-    string ToString(bool noDefPort = true);
-    string ToStringNoParam(bool noDefPort = true);
+    string tostring(bool noDefPort = true);
+    string tostring_noparam(bool noDefPort = true);
 
-    void Assign(const string& url);
-    void Restore(const string& url, URL* base = NULL);
+    void assign(const string& url);
+    void assign_with_referer(const string& url, transport_url* base = NULL);
 
-    const bool Equals(const string& url);
-    const bool Equals(const URL& url);
+    const bool is_equal(const string& url);
+    const bool is_equal(const transport_url& url);
 
-    const bool IsHostEquals(const string& url);
-    const bool IsHostEquals(const URL& url);
+    const bool is_host_equal(const string& url);
+    const bool is_host_equal(const transport_url& url);
 
-    const bool IsDomainEquals(const string& url);
-    const bool IsDomainEquals(const URL& url);
+    const bool is_domain_equal(const string& url);
+    const bool is_domain_equal(const transport_url& url);
 
-    bool IsValid(void);
+    bool is_valid(void);
 
     string  protocol;       ///< transfer protocol
     string  host;           ///< hostname

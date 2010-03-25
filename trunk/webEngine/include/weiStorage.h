@@ -27,14 +27,14 @@
 namespace webEngine {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  Record
+/// @class  db_record
 ///
-/// @brief  Set of fields (individual data) as name-value pairs.
+/// @brief  set of fields (individual data) as name-value pairs.
 ///
 /// @author A. Abramov
 /// @date	03.09.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class Record : public iOptionsProvider
+class db_record : public iOptionsProvider
 {
 public:
     /// namespace of the object
@@ -43,101 +43,102 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  RecordSet
+/// @class  db_recordset
 ///
-/// @brief  Set of records of class Record.
+/// @brief  set of records of class db_record.
 ///
 /// @author A. Abramov
 /// @date	03.09.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class RecordSet : public vector<Record>
+class db_recordset : public vector<db_record>
 {
     // nothing special
+    /// @todo: add logical operators to build complex queries from separate db_record's
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iStorage
+/// @interface  i_storage
 ///
 /// @brief  Interface for storage subsystem.
 ///
 /// @author A. Abramov, A. Yudin
 /// @date	14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iStorage :
-    public iPlugin
+class i_storage :
+    public i_plugin
 {
 public:
-    iStorage(Dispatch* krnl, void* handle = NULL);
-    virtual ~iStorage(void);
+    i_storage(engine_dispatcher* krnl, void* handle = NULL);
+    virtual ~i_storage(void);
 
-    // iPlugin functions
-    virtual void* GetInterface(const string& ifName);
+    // i_plugin functions
+    virtual void* get_interface(const string& ifName);
 
-    // iStorage functions
+    // i_storage functions
     typedef enum { mask = 0xff} Operation;
     static const Operation insert = (Operation)0x01;
     static const Operation update = (Operation)0x02;
     static const Operation remove = (Operation)0x03;
     static const Operation autoop = (Operation)0xff;
 
-    virtual bool InitStorage(const string& params) {return false;};
-    virtual void Flush(const string& params = "") {};
-    virtual string GenerateID(const string& objType = "");
+    virtual bool init_storage(const string& params) {return false;};
+    virtual void flush(const string& params = "") {};
+    virtual string generate_id(const string& objType = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Get( Record& filters, Record& respFilter, RecordSet& results)
+    /// @fn int get( db_record& filters, db_record& respFilter, db_recordset& results)
     ///
-    /// @brief  Gets the RecordSet from given namespace (objType). The response filtered to
+    /// @brief  Gets the db_recordset from given namespace (objType). The response filtered to
     ///         equality of the selected field to the given values. The response will contains only
     ///         the fields included into the given @b respFilter structure.
     ///
-    /// @param  filter          - the Record to filter the request 
-    /// @param  respFilter      - Set of field to be placed into result. If empty - all data will be retrieved
-    /// @param  [out] results   - the RecordSet to fill it with results 
+    /// @param  filter          - the db_record to filter the request 
+    /// @param  respFilter      - set of field to be placed into result. If empty - all data will be retrieved
+    /// @param  [out] results   - the db_recordset to fill it with results 
     ///
     /// @retval number of records in the response. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Get(Record& filter, Record& respFilter, RecordSet& results) = 0;
+    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Set(Record& filters, Record& data)
+    /// @fn int set(db_record& filters, db_record& data)
     ///
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object), and non-empty @b filters may be used to
     ///         update selected object(s).
     ///
-    /// @param  filter  - the Record to select object(s) for update 
-    /// @param  data    - the Record to be stored 
+    /// @param  filter  - the db_record to select object(s) for update 
+    /// @param  data    - the db_record to be stored 
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Set(Record& filter, Record& data) = 0;
+    virtual int set(db_record& filter, db_record& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Set(RecordSet& data)
+    /// @fn int set(db_recordset& data)
     ///
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object).
     ///
-    /// @param  data - the RecordSet to be stored 
+    /// @param  data - the db_recordset to be stored 
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Set(RecordSet& data) = 0;
+    virtual int set(db_recordset& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Delete(Record& filters)
+    /// @fn int delete(db_record& filters)
     ///
     /// @brief	Deletes the filtered object(s). 
     ///
-    /// @param  filter - the Record to select object(s) for deletion 
+    /// @param  filter - the db_record to select object(s) for deletion 
     ///
     /// @retval	Number of deleted records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Delete(Record& filter) = 0;
+    virtual int del(db_record& filter) = 0;
 
 protected:
-    static int lastId;
+    static int last_id;
 };
 
 } // namespace webEngine

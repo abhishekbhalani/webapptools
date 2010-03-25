@@ -26,13 +26,13 @@ class Task;
 class iResponse;
 
 class iInventory :
-    public iPlugin
+    public i_plugin
 {
 public:
-    iInventory(Dispatch* krnl, void* handle = NULL);
+    iInventory(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~iInventory(void);
 
-    // iPlugin functions
+    // i_plugin functions
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual void* GetInterface(const string& ifName)
     ///

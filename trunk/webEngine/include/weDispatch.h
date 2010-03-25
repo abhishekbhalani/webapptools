@@ -29,89 +29,88 @@
 namespace webEngine {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  NullStorage
+/// @class  null_storage
 ///
-/// @brief  null storage for the iStorage placeholder.
+/// @brief  null storage for the i_storage placeholder.
 ///
 /// @author A. Abramov
 /// @date   23.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class NullStorage :
-    public iStorage
+class null_storage :
+    public i_storage
 {
 public:
-    NullStorage(Dispatch* krnl, void* handle = NULL);
-    ~NullStorage(void);
+    null_storage(engine_dispatcher* krnl, void* handle = NULL);
+    ~null_storage(void);
 
-    // iPlugin functions
-    virtual void* GetInterface(const string& ifName);
+    // i_plugin functions
+    virtual void* get_interface(const string& ifName);
 
-    // iStorage functions
-    virtual bool InitStorage(const string& params) { return true; };
-    virtual void Flush(const string& params = "") { return; };
-    virtual int Get(Record& filter, Record& respFilter, RecordSet& results);
-    virtual int Set(Record& filter, Record& data);
-    virtual int Set(RecordSet& data);
-    virtual int Delete(Record& filter);
+    // i_storage functions
+    virtual bool init_storage(const string& params) { return true; };
+    virtual void flush(const string& params = "") { return; };
+    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results);
+    virtual int set(db_record& filter, db_record& data);
+    virtual int set(db_recordset& data);
+    virtual int del(db_record& filter);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  PluginFactory
+/// @class  plugin_factory
 ///
-/// @brief  The iPlugin creator for "in-memory" plugins. 
+/// @brief  The i_plugin creator for "in-memory" plugins. 
 ///
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class PluginFactory : public LinkedList<string, fnWePluginFactory>
+class plugin_factory : public linked_list<string, fnWePluginFactory>
 {
 public:
-    PluginFactory();
-    void Add(string name, fnWePluginFactory func);
-    void* CreatePlugin(string pluginID, Dispatch* krnl);
+    plugin_factory();
+    void add_plugin_class(string name, fnWePluginFactory func);
+    void* create_plugin(string pluginID, engine_dispatcher* krnl);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  Dispatch
+/// @class  engine_dispatcher
 ///
 /// @brief  Dispatcher for tasks processing and system options storage.
 ///
 /// @author A. Abramov
 /// @date   16.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class Dispatch :
+class engine_dispatcher :
     public iOptionsProvider
 {
 public:
-    Dispatch(void);
-    virtual ~Dispatch(void);
+    engine_dispatcher(void);
+    virtual ~engine_dispatcher(void);
 
-    // Dispatch
-    // Access the Storage
-    iStorage* Storage(void) const  { return(storage);  };
-    void Storage(const iStorage* store);
+    // engine_dispatcher
+    // Access the storage
+    i_storage* storage(void) const  { return(plg_storage);  };
+    void storage(const i_storage* store);
 
-    void Flush();
+    void flush();
 
-    // Access the PluginList
-    const WePluginList &PluginList(void) const  { return(pluginList); };
-    void RefreshPluginList(boost::filesystem::path& baseDir);
+    // Access the plugin_list
+    const plugin_list &get_plugin_list(void) const  { return(plg_list); };
+    void refresh_plugin_list(boost::filesystem::path& baseDir);
 
     // Provide Logger to plugins
-    log4cxx::LoggerPtr GetLogger() { return iLogger::GetLogger(); };
+    log4cxx::LoggerPtr get_logger() { return iLogger::GetLogger(); };
 
-    iPlugin* LoadPlugin(string id);
-
-    PluginFactory pluginFactory;
+    i_plugin* load_plugin(string id);
 
 #ifndef __DOXYGEN__
 protected:
-    WePluginList pluginList;
-    iStorage* storage;
+    plugin_factory plg_factory;
+    plugin_list plg_list;
+    i_storage* plg_storage;
 
 private:
-    Dispatch(Dispatch&) {};               ///< Avoid object copying
-    Dispatch& operator=(Dispatch&) { return *this; };    ///< Avoid object copying
+    engine_dispatcher(engine_dispatcher&) {};               ///< Avoid object copying
+    engine_dispatcher& operator=(engine_dispatcher&) { return *this; };    ///< Avoid object copying
 #endif // __DOXYGEN__
 };
 

@@ -24,7 +24,7 @@
 #include <weScan.h>
 
 static string xrc = "<plugin><category label='Basic settings' name='generic'>\
- <option name='httpInventory/BaseURL' label='Start URL' type='8' control='string' mode='window'>/</option>\
+ <option name='httpInventory/BaseURL' label='Start transport_url' type='8' control='string' mode='window'>/</option>\
  <category label='Crawler' name='crawler'>\
   <option name='' label='Crawling mode'>&lt;composed&gt;\
    <option name='httpInventory/StayInDir' label='Stay in directory' type='6' control='bool' chkbox='1'>1</option>\
@@ -33,7 +33,7 @@ static string xrc = "<plugin><category label='Basic settings' name='generic'>\
    <option name='httpInventory/StayInDomain' label='Stay in domain' type='6' control='bool' chkbox='1'>0</option>\
   </option>\
   <option name='httpInventory/ScanDepth' label='Scan depth' type='2' control='int'>-1</option>\
-  <option name='httpInventory/noParamUrl' label='Ignore URL parameters' type='6' control='bool' chkbox='1'>0</option>\
+  <option name='httpInventory/noParamUrl' label='Ignore transport_url parameters' type='6' control='bool' chkbox='1'>0</option>\
  </category>\
  <option name='httpInventory/ParallelReq' label='Number of downloaders' type='2' control='int' min='1' max='100'>10</option>\
  <option name='httpInventory/AllowedCType' label='Allowed content-type' type='2' control='enum'>Any;empty and \"text/*\";only \"text/*\";empty and \"text/html\";only \"text/html\"</option>\
@@ -42,7 +42,7 @@ static string xrc = "<plugin><category label='Basic settings' name='generic'>\
 
 namespace webEngine {
 
-HttpInventory::HttpInventory(Dispatch* krnl, void* handle /*= NULL*/) :
+HttpInventory::HttpInventory(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     iInventory(krnl, handle)
 {
     pluginInfo.IfaceName = "httpInventory";
@@ -74,7 +74,7 @@ const string HttpInventory::GetSetupUI( void )
 
 void HttpInventory::Start( Task* tsk )
 {
-    URL   start_url;
+    transport_url   start_url;
 
     if (tsk)
     {
@@ -99,10 +99,10 @@ void HttpInventory::Start( Task* tsk )
                 start_url.host = host;
                 start_url.request = path;
                 host += path;
-                LOG4CXX_INFO(logger, "HttpInventory::Start: start scanning from: " << host << " ==> " << start_url.ToString());
+                LOG4CXX_INFO(logger, "HttpInventory::Start: start scanning from: " << host << " ==> " << start_url.tostring());
                 HttpRequest* req = new HttpRequest;
                 req->RequestUrl(start_url);
-                LOG4CXX_TRACE(logger, "HttpInventory::Start: start request = " << req->RequestUrl().ToString());
+                LOG4CXX_TRACE(logger, "HttpInventory::Start: start request = " << req->RequestUrl().tostring());
                 req->processor = HttpInventory::ResponseDispatcher;
                 req->context = (void*)this;
                 task->GetRequestAsync(req);
@@ -128,19 +128,19 @@ void HttpInventory::ProcessResponse( iResponse *resp )
         htResp = reinterpret_cast<HttpResponse*>(resp);
     }
     catch (...) {
-        LOG4CXX_ERROR(logger, "HttpInventory::ProcessResponse: The response from " << resp->BaseUrl().ToString() << " isn't the HttpResponse!");
+        LOG4CXX_ERROR(logger, "HttpInventory::ProcessResponse: The response from " << resp->BaseUrl().tostring() << " isn't the HttpResponse!");
         return;
     }
     // process response
     LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: process response with code=" << htResp->HttpCode());
-    ScanData* scData = task->GetScanData(htResp->BaseUrl().ToString(), htResp->RealUrl().ToString());
+    ScanData* scData = task->GetScanData(htResp->BaseUrl().tostring(), htResp->RealUrl().tostring());
     if (scData->parentID == "")
     {
         scData->parentID = htResp->ID();
     }
     if (scData->dataID == "")
     {
-        scData->dataID = kernel->Storage()->GenerateID(weObjTypeScan);
+        scData->dataID = kernel->storage()->generate_id(weObjTypeScan);
         scData->respCode = htResp->HttpCode();
         scData->downloadTime = htResp->DownloadTime();
         scData->dataSize = htResp->Data().size();
@@ -151,15 +151,15 @@ void HttpInventory::ProcessResponse( iResponse *resp )
     if (htResp->HttpCode() >= 300 && htResp->HttpCode() < 400) {
         // redirections
         LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: process redirect");
-        string url = htResp->Headers().FindFirst("Location");
+        string url = htResp->Headers().find_first("Location");
         if (!url.empty()) {
             LOG4CXX_DEBUG(iLogger::GetLogger(), "task_executor: redirected to " << url);
             bool to_process = true;
-            URL baseUrl = htResp->BaseUrl();
-            baseUrl.Restore(url);
+            transport_url baseUrl = htResp->BaseUrl();
+            baseUrl.assign_with_referer(url);
             // !!! todo LOG4CXX_TRACE
-            LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: reconstructed url is " << baseUrl.ToString());
-            if (!baseUrl.IsHostEquals(htResp->RealUrl()))
+            LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: reconstructed url is " << baseUrl.tostring());
+            if (!baseUrl.is_host_equal(htResp->RealUrl()))
             {
                 if (task->IsSet("httpInventory/"weoStayInHost))
                 {
@@ -167,7 +167,7 @@ void HttpInventory::ProcessResponse( iResponse *resp )
                 }
                 LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInHost check " << to_process);
             }
-            if (!baseUrl.IsDomainEquals(htResp->RealUrl()))
+            if (!baseUrl.is_domain_equal(htResp->RealUrl()))
             {
                 if (task->IsSet("httpInventory/"weoStayInDomain))
                 {
@@ -178,14 +178,14 @@ void HttpInventory::ProcessResponse( iResponse *resp )
 
             if (to_process)
             {
-                string u_req = baseUrl.ToString();
+                string u_req = baseUrl.tostring();
                 if (task->IsSet("httpInventory/"weoIgnoreUrlParam)) {
-                    u_req = baseUrl.ToStringNoParam();
+                    u_req = baseUrl.tostring_noparam();
                 }
                 LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoIgnoreUrlParam check << " << u_req);
                 if (tasklist.find(u_req) == tasklist.end())
                 {
-                    HttpRequest* new_url = new HttpRequest(baseUrl.ToString());
+                    HttpRequest* new_url = new HttpRequest(baseUrl.tostring());
                     new_url->ID(scData->dataID);
                     tasklist[u_req] = true;
                     new_url->processor = HttpInventory::ResponseDispatcher;
@@ -267,37 +267,37 @@ void HttpInventory::ProcessResponse( iResponse *resp )
                     to_process = true;
                     href = (*iEnt)->Attr("href");
                     if (href != "") {
-                        URL link;
-                        link.Restore(href, &(htResp->RealUrl()));
-                        LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: <a href...> tag. url=" << link.ToString());
-                        if (!link.IsHostEquals(htResp->RealUrl()))
+                        transport_url link;
+                        link.assign_with_referer(href, &(htResp->RealUrl()));
+                        LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: <a href...> tag. url=" << link.tostring());
+                        if (!link.is_host_equal(htResp->RealUrl()))
                         {
                             if (task->IsSet("httpInventory/"weoStayInHost))
                             {
                                 to_process = false;
                             }
-                            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInHost check " << to_process << " (" << link.ToString() << ")");
+                            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInHost check " << to_process << " (" << link.tostring() << ")");
                         }
-                        if (!link.IsDomainEquals(htResp->RealUrl()))
+                        if (!link.is_domain_equal(htResp->RealUrl()))
                         {
                             if (task->IsSet("httpInventory/"weoStayInDomain))
                             {
                                 to_process = false;
                             }
-                            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInDomain check << " << to_process << " (" << link.ToString() << ")");
+                            LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoStayInDomain check << " << to_process << " (" << link.tostring() << ")");
                         }
 
                         if (to_process)
                         {
-                            string u_req = link.ToString();
+                            string u_req = link.tostring();
                             if (task->IsSet("httpInventory/"weoIgnoreUrlParam)) {
-                                u_req = link.ToStringNoParam();
+                                u_req = link.tostring_noparam();
                             }
                             LOG4CXX_TRACE(logger, "HttpInventory::ProcessResponse: weoIgnoreUrlParam check << " << u_req);
                             if (tasklist.find(u_req) == tasklist.end())
                             {
-                                LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: add link to task list. url=" << link.ToString());
-                                HttpRequest* new_url = new HttpRequest(link.ToString());
+                                LOG4CXX_DEBUG(logger, "HttpInventory::ProcessResponse: add link to task list. url=" << link.tostring());
+                                HttpRequest* new_url = new HttpRequest(link.tostring());
                                 new_url->ID(scData->dataID);
                                 tasklist[u_req] = true;
                                 new_url->processor = HttpInventory::ResponseDispatcher;

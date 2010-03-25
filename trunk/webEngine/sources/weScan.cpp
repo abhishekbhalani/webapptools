@@ -40,11 +40,11 @@ ScanInfo::~ScanInfo()
     // nothing special at this moment
 }
 
-RecordSet* ScanInfo::ToRS( const string& parentID/* = ""*/ )
+db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
 {
-    RecordSet* res = new RecordSet;
-    RecordSet* rsData;
-    Record* rec = new Record;
+    db_recordset* res = new db_recordset;
+    db_recordset* rsData;
+    db_record* rec = new db_record;
 
     rec->objectID = weObjTypeScan;
     rec->Option(weoID, scanID);
@@ -69,9 +69,9 @@ RecordSet* ScanInfo::ToRS( const string& parentID/* = ""*/ )
     return res;
 }
 
-void ScanInfo::FromRS( RecordSet* rs )
+void ScanInfo::FromRS( db_recordset* rs )
 {
-    Record rec;
+    db_record rec;
     size_t r;
     wOptionVal optVal;
     wOption opt;
@@ -179,10 +179,10 @@ void ScanInfo::SetScanData( ScanData* scData )
     }
 }
 
-RecordSet* ScanData::ToRS( const string& parentID/* = ""*/ )
+db_recordset* ScanData::ToRS( const string& parentID/* = ""*/ )
 {
-    RecordSet* res = new RecordSet;
-    Record* rec = new Record;
+    db_recordset* res = new db_recordset;
+    db_record* rec = new db_record;
 
     rec->objectID = weObjTypeScanData;
     rec->Option(weoID, dataID);
@@ -199,9 +199,9 @@ RecordSet* ScanData::ToRS( const string& parentID/* = ""*/ )
     return res;
 }
 
-void ScanData::FromRS( RecordSet* rs )
+void ScanData::FromRS( db_recordset* rs )
 {
-    Record rec;
+    db_record rec;
     size_t r;
     wOptionVal optVal;
     wOption opt;

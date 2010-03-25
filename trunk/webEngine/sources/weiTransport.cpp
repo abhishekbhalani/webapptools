@@ -27,14 +27,14 @@ using namespace webEngine;
 //////////////////////////////////////////////////////////////////////////
 //             i w e T r a n s p o r t    c l a s s
 //////////////////////////////////////////////////////////////////////////
-iTransport::iTransport(Dispatch* krnl, void* handle /*= NULL*/ ) :
-    iPlugin(krnl, handle)
+iTransport::iTransport(engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
+    i_plugin(krnl, handle)
 {
     parent = NULL;
     relocCount = 0;
     siteDepth = 0;
     responces.clear();
-    // iPlugin structure
+    // i_plugin structure
     pluginInfo.IfaceName = "iTransport";
     pluginInfo.IfaceList.push_back("iTransport");
     pluginInfo.PluginDesc = "Abstract transport interface";
@@ -112,7 +112,7 @@ void* iTransport::GetInterface( const string& ifName )
         usageCount++;
         return (void*)((iTransport*)this);
     }
-    return iPlugin::GetInterface(ifName);
+    return i_plugin::get_interface(ifName);
 }
 
 //////////////////////////////////////////////////////////////////////////

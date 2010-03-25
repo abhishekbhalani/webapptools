@@ -58,7 +58,7 @@ void TaskProcessor(Task* tsk)
             {
                 curr_url = tsk->taskList[0];
                 // search for transport or recreate request to all transports
-                if (curr_url->RequestUrl().IsValid()) {
+                if (curr_url->RequestUrl().is_valid()) {
                     // search for transport
                     for(i = 0; i < tsk->transports.size(); i++)
                     {
@@ -68,14 +68,14 @@ void TaskProcessor(Task* tsk)
                             resp->processor = curr_url->processor;
                             resp->context = curr_url->context;
                             tsk->taskQueue.push_back(resp);
-                            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().ToString());
+                            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
                             break;
                         }
                     }
                 }
                 else {
                     // try to send request though appropriate transports
-                    LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().ToString());
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
                     for(i = 0; i < tsk->transports.size(); i++)
                     {
                         resp = tsk->transports[i]->Request(curr_url);
@@ -86,7 +86,7 @@ void TaskProcessor(Task* tsk)
                     }
                 }
 
-                string u_req = curr_url->RequestUrl().ToString();
+                string u_req = curr_url->RequestUrl().tostring();
                 tsk->taskList.erase(tsk->taskList.begin());
                 delete curr_url;
             }
@@ -114,7 +114,7 @@ void TaskProcessor(Task* tsk)
                         // send to all inventories
                         for (size_t i = 0; i < tsk->inventories.size(); i++)
                         {
-                            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << tsk->inventories[i]->GetDesc());
+                            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << tsk->inventories[i]->get_description());
                             tsk->inventories[i]->ProcessResponse(*rIt);
                         }
                     }
@@ -204,7 +204,7 @@ void Task::AddPlgTransport( iTransport* plugin )
     LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgTransport");
     for (size_t i = 0; i < transports.size(); i++)
     {
-        if (transports[i]->GetID() == plugin->GetID())
+        if (transports[i]->get_id() == plugin->get_id())
         {
             // transport already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgTransport - transport already in list");
@@ -212,24 +212,24 @@ void Task::AddPlgTransport( iTransport* plugin )
         }
     }
     transports.push_back(plugin);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgTransport: added " << plugin->GetDesc());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgTransport: added " << plugin->get_description());
 }
 
 void Task::AddPlgInventory( iInventory* plugin )
 {
-    int plgPrio = plugin->GetPriority();
+    int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgInventory");
     for (size_t i = 0; i < inventories.size(); i++)
     {
-        if (inventories[i]->GetID() == plugin->GetID())
+        if (inventories[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgInventory - inventory already in list");
             return;
         }
-        if (inventories[i]->GetPriority() > plgPrio) {
+        if (inventories[i]->get_priority() > plgPrio) {
             inPlace = i;
         }
     }
@@ -239,24 +239,24 @@ void Task::AddPlgInventory( iInventory* plugin )
     else {
         inventories.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgInventory: added " << plugin->GetDesc());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgInventory: added " << plugin->get_description());
 }
 
 void Task::AddPlgAuditor( iAudit* plugin )
 {
-    int plgPrio = plugin->GetPriority();
+    int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgAuditor");
     for (size_t i = 0; i < auditors.size(); i++)
     {
-        if (auditors[i]->GetID() == plugin->GetID())
+        if (auditors[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgAuditor - auditor already in list");
             return;
         }
-        if (auditors[i]->GetPriority() > plgPrio) {
+        if (auditors[i]->get_priority() > plgPrio) {
             inPlace = i;
         }
     }
@@ -266,24 +266,24 @@ void Task::AddPlgAuditor( iAudit* plugin )
     else {
         auditors.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgAuditor: added " << plugin->GetDesc());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgAuditor: added " << plugin->get_description());
 }
 
 void Task::AddPlgVulner( iVulner* plugin )
 {
-    int plgPrio = plugin->GetPriority();
+    int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgVulner");
     for (size_t i = 0; i < vulners.size(); i++)
     {
-        if (vulners[i]->GetID() == plugin->GetID())
+        if (vulners[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgVulner - vulner already in list");
             return;
         }
-        if (vulners[i]->GetPriority() > plgPrio) {
+        if (vulners[i]->get_priority() > plgPrio) {
             inPlace = i;
         }
     }
@@ -293,44 +293,44 @@ void Task::AddPlgVulner( iVulner* plugin )
     else {
         vulners.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgVulner: added " << plugin->GetDesc());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgVulner: added " << plugin->get_description());
 }
 
-void Task::StorePlugins(vector<iPlugin*>& plugins)
+void Task::StorePlugins(vector<i_plugin*>& plugins)
 {
-    StringList::iterator trsp;
-    StringList ifaces;
+    string_list::iterator trsp;
+    string_list ifaces;
 
     for (size_t i = 0; i < plugins.size(); i++)
     {
-        ifaces = plugins[i]->InterfaceList();
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - plugin: " << plugins[i]->GetDesc() << " ifaces: " << ifaces.size());
+        ifaces = plugins[i]->interface_list();
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - plugin: " << plugins[i]->get_description() << " ifaces: " << ifaces.size());
 
         trsp = find(ifaces.begin(), ifaces.end(), "iTransport");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found transport: " << plugins[i]->GetDesc());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found transport: " << plugins[i]->get_description());
             AddPlgTransport((iTransport*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "iInventory");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found inventory: " << plugins[i]->GetDesc());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found inventory: " << plugins[i]->get_description());
             AddPlgInventory((iInventory*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "iAudit");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found auditor: " << plugins[i]->GetDesc());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found auditor: " << plugins[i]->get_description());
             AddPlgAuditor((iAudit*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "iVulner");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found vulner: " << plugins[i]->GetDesc());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found vulner: " << plugins[i]->get_description());
             AddPlgVulner((iVulner*)plugins[i]);
         }
     }
@@ -345,7 +345,7 @@ void Task::Run(void)
 
     for (size_t i = 0; i < inventories.size(); i++)
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Run: " << inventories[i]->GetDesc());
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Run: " << inventories[i]->get_description());
         inventories[i]->Start(this);
     }
 }
@@ -416,10 +416,10 @@ void Task::SetScanData( ScanData* scData )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn RecordSet* Task::ToRS( const string& prefix = "" )
+/// @fn db_recordset* Task::ToRS( const string& prefix = "" )
 ///
-/// @brief	Converts this object to an RecordSet. This function realizes alternate serialization
-/// 		mechanism. It generates RecordSet with all necessary data. This
+/// @brief	Converts this object to an db_recordset. This function realizes alternate serialization
+/// 		mechanism. It generates db_recordset with all necessary data. This
 /// 		representation is used for internal data exchange (for example to store data through
 /// 		iweStorage interface). 
 ///
@@ -427,11 +427,11 @@ void Task::SetScanData( ScanData* scData )
 ///
 /// @retval	This object as a std::string. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-RecordSet* Task::ToRS( const string& parentID/* = ""*/ )
+db_recordset* Task::ToRS( const string& parentID/* = ""*/ )
 {
-    RecordSet* res = new RecordSet;
-    Record* rec;
-    Record* trec;
+    db_recordset* res = new db_recordset;
+    db_record* rec;
+    db_record* trec;
     wOption optVal;
     string strData;
     string tskId;
@@ -440,7 +440,7 @@ RecordSet* Task::ToRS( const string& parentID/* = ""*/ )
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "Task::ToRS");
 
-    trec = new Record;
+    trec = new db_record;
     trec->objectID = weObjTypeTask;
     optVal = Option(weoID);
     SAFE_GET_OPTION_VAL(optVal, tskId, "");
@@ -480,7 +480,7 @@ RecordSet* Task::ToRS( const string& parentID/* = ""*/ )
 
         strData = it->first;
         optVal = *(it->second);
-        rec = new Record;
+        rec = new db_record;
         rec->objectID = weObjTypeSysOption;
         rec->Option(weoName, strData);
         rec->Option(weoParentID, tskId);
@@ -503,15 +503,15 @@ RecordSet* Task::ToRS( const string& parentID/* = ""*/ )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void Task::FromRS( RecordSet *rs )
+/// @fn void Task::FromRS( db_recordset *rs )
 ///
-/// @brief  Initializes this object from the given from RecordSet.
+/// @brief  Initializes this object from the given from db_recordset.
 /// 		
-/// @param  rs	 - RecordSet. 
+/// @param  rs	 - db_recordset. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Task::FromRS( RecordSet *rs  )
+void Task::FromRS( db_recordset *rs  )
 {
-    Record rec;
+    db_record rec;
     size_t r;
     wOptionVal optVal;
     wOption opt;

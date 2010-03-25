@@ -21,8 +21,8 @@
 
 namespace webEngine {
 
-iVulner::iVulner(Dispatch* krnl, void* handle /*= NULL*/) :
-    iPlugin(krnl, handle)
+iVulner::iVulner(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+    i_plugin(krnl, handle)
 {
 }
 

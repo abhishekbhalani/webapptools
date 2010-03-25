@@ -24,8 +24,8 @@
 
 namespace webEngine {
 
-iInventory::iInventory(Dispatch* krnl, void* handle /*= NULL*/) :
-    iPlugin(krnl, handle)
+iInventory::iInventory(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+    i_plugin(krnl, handle)
 {
     pluginInfo.IfaceName = "iInventory";
     pluginInfo.IfaceList.push_back("iInventory");
@@ -40,14 +40,14 @@ iInventory::~iInventory(void)
 
 void* iInventory::GetInterface( const string& ifName )
 {
-    LOG4CXX_TRACE(logger, "iInventory::GetInterface " << ifName);
+    LOG4CXX_TRACE(logger, "iInventory::get_interface " << ifName);
     if (iequals(ifName, "iInventory"))
     {
-        LOG4CXX_DEBUG(logger, "iInventory::GetInterface found!");
+        LOG4CXX_DEBUG(logger, "iInventory::get_interface found!");
         usageCount++;
         return (void*)(this);
     }
-    return iPlugin::GetInterface(ifName);
+    return i_plugin::get_interface(ifName);
 }
 
 void iInventory::ResponseDispatcher( iResponse *resp, void* context )

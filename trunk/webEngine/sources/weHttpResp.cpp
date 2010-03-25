@@ -58,8 +58,8 @@ HttpResponse::~HttpResponse()
     if (curlHandle != NULL) {
         curl_easy_cleanup(curlHandle);
     }
-    headers.Clear();
-    cookies.Clear();
+    headers.clear();
+    cookies.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ void HttpResponse::CurlSetOpts(HttpRequest* req /*= NULL*/)
 {
     if (req != NULL) {
         /// @todo Sets the request options
-        curl_easy_setopt(curlHandle, CURLOPT_URL, req->RequestUrl().ToString().c_str());
+        curl_easy_setopt(curlHandle, CURLOPT_URL, req->RequestUrl().tostring().c_str());
         if (req->Method() == HttpRequest::wemGet) {
             curl_easy_setopt(curlHandle, CURLOPT_HTTPGET, 1);
         }
@@ -111,9 +111,9 @@ void HttpResponse::CurlSetOpts(HttpRequest* req /*= NULL*/)
             curl_easy_setopt(curlHandle, CURLOPT_INFILESIZE, req->Data().size());
         }
         WeProxy* prx = req->Proxy();
-        if (prx && prx->proxyAddr.IsValid()) {
+        if (prx && prx->proxyAddr.is_valid()) {
             curl_easy_setopt(curlHandle, CURLOPT_PROXYTYPE, prx->type);
-            curl_easy_setopt(curlHandle, CURLOPT_PROXY, prx->proxyAddr.ToString().c_str());
+            curl_easy_setopt(curlHandle, CURLOPT_PROXY, prx->proxyAddr.tostring().c_str());
         }
     }
 }
@@ -147,7 +147,7 @@ void HttpResponse::Process(iTransport* proc)
         if (httpCode >= 300 && httpCode < 400 && proc->IsSet(weoFollowLinks) && relocCount < proc->RelocationCount()) {
             // redirections
             relocCount++;
-            string url = headers.FindFirst("Location");
+            string url = headers.find_first("Location");
             if (!url.empty()) {
                 /// @todo process options: weoStayInDomain, weoStayInHost, weoStayInDir and request blocking
                 headData.clear();

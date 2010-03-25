@@ -53,7 +53,7 @@ typedef HtmlEntity* (*fnEntityFactory)(iEntity* prnt);
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class HtmlFactory : public LinkedList<string, fnEntityFactory>
+class HtmlFactory : public linked_list<string, fnEntityFactory>
 {
 public:
     HtmlFactory();
