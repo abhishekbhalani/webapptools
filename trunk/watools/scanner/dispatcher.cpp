@@ -63,7 +63,7 @@ extern string db1_instance_name;
 void signal_halt(int sig)
 {
     inLoop = false;
-    //! todo: stop all tasks
+    //! todo: pause all tasks
     if (sig == 0) {
         LOG4CXX_INFO(scan_logger, "Received software request to exit");
     }
@@ -210,8 +210,16 @@ void dispatcher_routine(int inst, po::variables_map& vm)
                     // need to exit and save other commands in the queue
                     break;
                 }
-                else if (cmd == "")
-                cmd = db1_client->rpop(queue_key);
+                else if (cmd == "RESTART") {
+                    // need to exit this copy and run new instance
+                    signal_halt(0);
+                    LOG4CXX_INFO(scan_logger, "Restart request recieved");
+                    break;
+                }
+                else if (cmd == "") {
+                    // other cmd's
+                }
+                cmd = db1_client->lpop(queue_key);
             }
         } catch(redis::redis_error& re) {
             LOG4CXX_FATAL(scan_logger, "Can't get commands queue " << (string)re);
