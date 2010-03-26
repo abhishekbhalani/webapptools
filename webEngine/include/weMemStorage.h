@@ -26,23 +26,23 @@
 namespace webEngine {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  MemStorage :
+/// @class  mem_storage :
 ///
-/// @brief  Memory storage class. Provides i_storage interface with keeping data in memory
+/// @brief  Memory storage_db class. Provides i_storage interface with keeping data in memory
 ///         and abilities to save/load state into the file(s)
 ///
 /// @author A. Abramov
 /// @date   14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class MemStorage :
+class mem_storage :
     public i_storage
 {
 public:
-    MemStorage(engine_dispatcher* krnl, void* handle = NULL);
-    ~MemStorage(void);
+    mem_storage(engine_dispatcher* krnl, void* handle = NULL);
+    ~mem_storage(void);
 
     // iwePlugin functions
-    virtual void* GetInterface(const string& ifName);
+    virtual void* get_interface(const string& ifName);
 
     // i_storage functions
     virtual bool init_storage(const string& params);
@@ -52,10 +52,10 @@ public:
     virtual int set(db_recordset& data);
     virtual int del(db_record& filter);
 
-    // MemStorage functions
+    // mem_storage functions
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn string_list* Search(const string& objType,
+    /// @fn string_list* search_db(const string& objType,
     /// 	db_record& filters)
     ///
     /// @brief  Searches database for objects. 
@@ -64,17 +64,17 @@ public:
     ///
     /// @retval List of object ID's 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    string_list* Search(db_record& filter);
-    string_list* GetNamespaceIdxs(const string& objType);
-    void SetNamespaceIdxs(const string& objType, string_list* lst);
-    void FixNamespaceStruct(db_record& filter);
-    string_list* GetNamespaceStruct(db_record& filter);
-    void Save(const string& fileName);
-    void Load(const string& fileName);
+    string_list* search_db(db_record& filter);
+    string_list* get_namespace_idxs(const string& objType);
+    void set_namespace_idxs(const string& objType, string_list* lst);
+    void fix_namespace_struct(db_record& filter);
+    string_list* get_namespace_struct(db_record& filter);
+    void save_db(const string& fname);
+    void load_db(const string& fname);
 
 protected:
-    string fileName;
-    StringMap storage;
+    string file_name;
+    StringMap storage_db;
 };
 
 } // namespace webEngine

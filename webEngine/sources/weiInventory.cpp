@@ -27,11 +27,11 @@ namespace webEngine {
 iInventory::iInventory(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     i_plugin(krnl, handle)
 {
-    pluginInfo.IfaceName = "iInventory";
-    pluginInfo.IfaceList.push_back("iInventory");
-    pluginInfo.PluginDesc = "Abstract inventory interface";
-    pluginInfo.PluginId = "5C20963DFD87"; //{51038E5D-5948-47ab-9A2A-5C20963DFD87}
-    pluginInfo.PluginIcon = WeXpmToStringList(iweInventory_xpm, sizeof(iweInventory_xpm) / sizeof(char*) );
+    pluginInfo.interface_name = "iInventory";
+    pluginInfo.interface_list.push_back("iInventory");
+    pluginInfo.plugin_desc = "Abstract inventory interface";
+    pluginInfo.plugin_id = "5C20963DFD87"; //{51038E5D-5948-47ab-9A2A-5C20963DFD87}
+    pluginInfo.plugin_icon = WeXpmToStringList(iweInventory_xpm, sizeof(iweInventory_xpm) / sizeof(char*) );
 }
 
 iInventory::~iInventory(void)

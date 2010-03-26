@@ -32,11 +32,11 @@ int i_storage::last_id = 0;
 i_storage::i_storage(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     i_plugin(krnl, handle)
 {
-    pluginInfo.IfaceName = "i_storage";
-    pluginInfo.IfaceList.push_back("i_storage");
-    pluginInfo.PluginDesc = "Base plugin interface";
-    pluginInfo.PluginId = "C7F595160595";
-    pluginInfo.PluginIcon = WeXpmToStringList(iweStorage_xpm, sizeof(iweStorage_xpm) / sizeof(char*) );
+    pluginInfo.interface_name = "i_storage";
+    pluginInfo.interface_list.push_back("i_storage");
+    pluginInfo.plugin_desc = "Base plugin interface";
+    pluginInfo.plugin_id = "C7F595160595";
+    pluginInfo.plugin_icon = WeXpmToStringList(iweStorage_xpm, sizeof(iweStorage_xpm) / sizeof(char*) );
     last_id = rand();
 }
 

@@ -129,10 +129,10 @@ HttpTransport::HttpTransport(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     }
     responces.clear();
     // iwePlugin structure
-    pluginInfo.IfaceName = "HttpTransport";
-    pluginInfo.IfaceList.push_back("HttpTransport");
-    pluginInfo.PluginDesc = "HTTP transport interface";
-    pluginInfo.PluginId = "A44A9A1E7C25";
+    pluginInfo.interface_name = "HttpTransport";
+    pluginInfo.interface_list.push_back("HttpTransport");
+    pluginInfo.plugin_desc = "HTTP transport interface";
+    pluginInfo.plugin_id = "A44A9A1E7C25";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

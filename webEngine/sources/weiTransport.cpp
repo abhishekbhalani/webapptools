@@ -35,11 +35,11 @@ iTransport::iTransport(engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     siteDepth = 0;
     responces.clear();
     // i_plugin structure
-    pluginInfo.IfaceName = "iTransport";
-    pluginInfo.IfaceList.push_back("iTransport");
-    pluginInfo.PluginDesc = "Abstract transport interface";
-    pluginInfo.PluginId = "14826EDC8653";
-    pluginInfo.PluginIcon = WeXpmToStringList(iweTransport_xpm, sizeof(iweTransport_xpm) / sizeof(char*) );
+    pluginInfo.interface_name = "iTransport";
+    pluginInfo.interface_list.push_back("iTransport");
+    pluginInfo.plugin_desc = "Abstract transport interface";
+    pluginInfo.plugin_id = "14826EDC8653";
+    pluginInfo.plugin_icon = WeXpmToStringList(iweTransport_xpm, sizeof(iweTransport_xpm) / sizeof(char*) );
 }
 
 wOption& iTransport::Option(const  string& name )
