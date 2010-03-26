@@ -31,13 +31,13 @@ namespace webEngine {
 
 struct plugin_info
 {
-    string  PluginId;
-    string  PluginDesc;
-    string  IfaceName;
-    string_list IfaceList;
-    string_list PluginIcon;
-    int     PluginStatus;
-    string  PluginPath;
+    string  plugin_id;
+    string  plugin_desc;
+    string  interface_name;
+    string_list interface_list;
+    string_list plugin_icon;
+    int     plugin_status;
+    string  plugin_path;
 };
 
 // forward declaration

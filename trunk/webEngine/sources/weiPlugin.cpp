@@ -28,13 +28,13 @@ i_plugin::i_plugin( engine_dispatcher* krnl, void* handle /*= NULL*/ )
     kernel = krnl;
     usageCount = 0;
     libHandle = handle;
-    pluginInfo.IfaceName = "i_plugin";
-    pluginInfo.IfaceList.clear();
-    pluginInfo.IfaceList.push_back("i_plugin");
-    pluginInfo.PluginDesc = "Base plugin interface";
-    pluginInfo.PluginId = "C665E995E5B4";
-    pluginInfo.PluginIcon.clear();
-    pluginInfo.PluginPath = "";
+    pluginInfo.interface_name = "i_plugin";
+    pluginInfo.interface_list.clear();
+    pluginInfo.interface_list.push_back("i_plugin");
+    pluginInfo.plugin_desc = "Base plugin interface";
+    pluginInfo.plugin_id = "C665E995E5B4";
+    pluginInfo.plugin_icon.clear();
+    pluginInfo.plugin_path = "";
     priority = 50;
     if (krnl != NULL) {
         logger = krnl->get_logger();
@@ -46,12 +46,12 @@ i_plugin::i_plugin( engine_dispatcher* krnl, void* handle /*= NULL*/ )
 
 const string i_plugin::interface_name()
 {
-    return pluginInfo.IfaceName;
+    return pluginInfo.interface_name;
 }
 
 string_list i_plugin::interface_list()
 {
-    return pluginInfo.IfaceList;
+    return pluginInfo.interface_list;
 }
 
 void* i_plugin::get_interface( const string& ifName )
@@ -65,17 +65,17 @@ void* i_plugin::get_interface( const string& ifName )
 
 const string i_plugin::get_description()
 {
-    return pluginInfo.PluginDesc;
+    return pluginInfo.plugin_desc;
 }
 
 const string i_plugin::get_id()
 {
-    return pluginInfo.PluginId;
+    return pluginInfo.plugin_id;
 }
 
 string_list i_plugin::get_icon()
 {
-    return pluginInfo.PluginIcon;
+    return pluginInfo.plugin_icon;
 }
 
 void i_plugin::release()
@@ -84,7 +84,7 @@ void i_plugin::release()
     {
         if (libHandle != NULL)
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "i_plugin::release: (" << pluginInfo.PluginId << ") free the shared library");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "i_plugin::release: (" << pluginInfo.plugin_id << ") free the shared library");
             delete ((dyn::shared_object*)libHandle);
         }
         delete this;

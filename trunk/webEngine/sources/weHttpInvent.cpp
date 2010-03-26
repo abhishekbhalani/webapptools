@@ -45,10 +45,10 @@ namespace webEngine {
 HttpInventory::HttpInventory(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     iInventory(krnl, handle)
 {
-    pluginInfo.IfaceName = "httpInventory";
-    pluginInfo.IfaceList.push_back("httpInventory");
-    pluginInfo.PluginDesc = "Inventory through HTTP protocol";
-    pluginInfo.PluginId = "AB7ED6E5A7B3"; //{7318EAB5-4253-4a31-8284-AB7ED6E5A7B3}
+    pluginInfo.interface_name = "httpInventory";
+    pluginInfo.interface_list.push_back("httpInventory");
+    pluginInfo.plugin_desc = "Inventory through HTTP protocol";
+    pluginInfo.plugin_id = "AB7ED6E5A7B3"; //{7318EAB5-4253-4a31-8284-AB7ED6E5A7B3}
 }
 
 HttpInventory::~HttpInventory(void)
