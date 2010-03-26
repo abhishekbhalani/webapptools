@@ -6,8 +6,8 @@
 [{if $ScanNum > 0}]
         <table width="100%" id='userstable'>
             <tr class="ui-widget-header">
-                <th style="width: auto;">Instalation</th>
                 <th style="width: auto;">Instance</th>
+                <th style="width: auto;">Version</th>
                 <th style="width: auto;">Address</th>
                 <th style="width: auto;">Name</th>
                 <th style="width: auto;">Tasks</th>
@@ -22,14 +22,14 @@
                 <td style="width: auto; text-align: center;">[{$ScanModules[scanner][4]}]</td>
                 <td style="width: auto; text-align: center;">[{$ScanModules[scanner][5]}]</td>
                 <td style="white-space: nowrap">
-                    <a href="#" onclick="return showInfo('scanner', '[{$ScanModules[scanner][0]}]', '[{$ScanModules[scanner][1]}]');">
+                    <a href="#" onclick="return showInfo('scanner', '[{$ScanModules[scanner][0]}]');">
                         <span class="ui-icon ui-icon-info ui-icon-btn" title="Module Information"></span></a>
 [{if $ScanACL == 1}]
-                    <a href="#" onclick="return stopModule('scanner', '[{$ScanModules[scanner][0]}]', '[{$ScanModules[scanner][1]}]');">
+                    <a href="#" onclick="return stopModule('scanner', '[{$ScanModules[scanner][0]}]');">
                         <span class="ui-icon ui-icon-cancel ui-icon-btn" title="Stop Module"></span></a>
-                    <a href="#" onclick="return restartModule('scanner', '[{$ScanModules[scanner][0]}]', '[{$ScanModules[scanner][1]}]');">
+                    <a href="#" onclick="return restartModule('scanner', '[{$ScanModules[scanner][0]}]');">
                         <span class="ui-icon ui-icon-refresh ui-icon-btn" title="Restart Module"></span></a>
-                    <a href="#" onclick="return cmdQueueEdit('scanner', '[{$ScanModules[scanner][0]}]', '[{$ScanModules[scanner][1]}]');">
+                    <a href="#" onclick="return cmdQueueEdit('scanner', '[{$ScanModules[scanner][0]}]');">
                         <span class="ui-icon ui-icon-wrench ui-icon-btn" title="Edit command queue"></span></a>
 [{/if}]
                 </td>
@@ -59,6 +59,6 @@
 <div title="Confirmation" id="moduleConfirm" style="display: none;">
     <table><tr>
         <td><!-- img src="/[{$theme}]/img/warning.png" --> </td><td>Are you shure to <span id="confirmAction"></span> <span id="confirmClass"></span>
-        <span id="confirmUuid"></span>, instance #<span id="confirmInst"></span>?</td>
+        <span id="confirmUuid"></span>?</td>
     </tr></table>
 </div>
