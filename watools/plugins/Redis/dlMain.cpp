@@ -22,6 +22,6 @@
 extern "C"
 void* WePluginFactory(void* krnl)
 {
-    Dispatch* kernel = (Dispatch*)krnl;
-    return (void*)(new RedisStorage(kernel));
+    engine_dispatcher* kernel = (engine_dispatcher*)krnl;
+    return (void*)(new redis_storage(kernel));
 }

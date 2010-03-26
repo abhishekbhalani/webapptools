@@ -24,16 +24,16 @@
 
 using namespace webEngine;
 
-class RedisStorage :
-    public iStorage
+class redis_storage :
+    public i_storage
 {
 public:
-    RedisStorage(Dispatch* krnl, void* handle = NULL);
-    virtual ~RedisStorage(void);
+    redis_storage(engine_dispatcher* krnl, void* handle = NULL);
+    virtual ~redis_storage(void);
 
     // iwePlugin functions
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void* GetInterface(const string& ifName)
+    /// @fn virtual void* get_interface(const string& ifName)
     ///
     /// @brief  Gets an interface.
     ///
@@ -44,70 +44,70 @@ public:
     ///
     /// @retval	null if it fails, else the interface.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void* GetInterface(const string& ifName);
+    virtual void* get_interface(const string& ifName);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual const string GetSetupUI( void )
+    /// @fn virtual const string get_setup_ui( void )
     ///
     /// @brief  Gets the user interface for the setup dialog.
     ///
     /// @retval The user interface in the XRC format (wxWidgets) or empty string if no setup dialog.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string GetSetupUI( void );
+    virtual const string get_setup_ui( void );
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void ApplySettings( const string& xmlData )
+    /// @fn virtual void apply_settings( const string& xmlData )
     ///
     /// @brief  Applies the settings described by xmlData.
     ///
     /// @param  xmlData	 - Plugin settings described by the XML.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void ApplySettings( const string& xmlData );
+    virtual void apply_settings( const string& xmlData );
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual bool InitStorage( const string& params )
+    /// @fn virtual bool init_storage( const string& params )
     ///
     /// @brief  Initializes internal storage structures.
     ///
     /// @param  params   - Settings (database directory).
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual bool InitStorage(const string& params);
+    virtual bool init_storage(const string& params);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void Flush( const string& params )
+    /// @fn virtual void flush( const string& params )
     ///
     /// @brief  Flushes unsaved data to disk.
     ///
     /// @param  params   - Settings (database directory).
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void Flush(const string& params = "");
+    virtual void flush(const string& params = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual string GenerateID( const string& objType )
+    /// @fn virtual string generate_id( const string& objType )
     ///
     /// @brief  Generates unique ID for the given type of the object.
     ///
     /// @param  objType  - Object type for ID generation.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual string GenerateID(const string& objType = "");
+    virtual string generate_id(const string& objType = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Get( Record& filters, Record& respFilter, RecordSet& results)
+    /// @fn int get( Record& filters, Record& respFilter, RecordSet& results)
     ///
     /// @brief  Gets the RecordSet from given namespace (objType). The response filtered to
     ///         equality of the selected field to the given values. The response will contains only
     ///         the fields included into the given @b respFilter structure.
     ///
     /// @param  filter          - the Record to filter the request 
-    /// @param  respFilter      - Set of field to be placed into result. If empty - all data will be retrieved
+    /// @param  respFilter      - set of field to be placed into result. If empty - all data will be retrieved
     /// @param  [out] results   - the RecordSet to fill it with results 
     ///
     /// @retval number of records in the response. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Get(Record& filter, Record& respFilter, RecordSet& results);
+    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Set(Record& filters, Record& data)
+    /// @fn int set(Record& filters, Record& data)
     ///
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object), and non-empty @b filters may be used to
@@ -118,10 +118,10 @@ public:
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Set(Record& filter, Record& data);
+    virtual int set(db_record& filter, db_record& data);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Set(RecordSet& data)
+    /// @fn int set(RecordSet& data)
     ///
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object).
@@ -130,10 +130,10 @@ public:
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Set(RecordSet& data);
+    virtual int set(db_recordset& data);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Delete(Record& filters)
+    /// @fn int del(Record& filters)
     ///
     /// @brief	Deletes the filtered object(s). 
     ///
@@ -141,14 +141,15 @@ public:
     ///
     /// @retval	Number of deleted records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Delete(Record& filter);
+    virtual int del(db_record& filter);
 
 protected:
-    StringList* Search(Record& filter, bool all = false);
-    StringList* GetStruct(const string& nspace);
-    void FixStruct(Record& strt);
-    StringList* GetNamespaceIdxs(const string& objType);
+    string_list* search_db(db_record& filter, bool all = false);
+    string_list* get_struct(const string& nspace);
+    void fix_struct(db_record& strt);
+    string_list* get_namespace_idxs(const string& objType);
 
+    string plugin_version;
     string db_host;
     int db_port;
     string db_auth;
