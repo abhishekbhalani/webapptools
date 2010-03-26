@@ -17,7 +17,8 @@ function PrintMessage($message) {
 
 // todo check ACL for access
 if (!CheckACL('usermanagament')) {
-    PrintError('Access denied');
+    PrintNoAccess();
+    exit(0);
 }
 
 $r = GetRedisConnection();
@@ -27,8 +28,17 @@ if (is_null($r)) {
 
 $action = $_POST['action'];
 $module = $_POST['uuid'];
-$inst   = $_POST['instance'];
+$inst   = "";
 $class  = $_POST['class'];
+
+$pos = strpos($module, ":");
+if ($pos === false) {
+    $inst = "1";
+}
+else {
+    $inst = substr($module, $pos+1);
+    $module = substr($module, 0, $pos);
+}
 
 if ($action == "info") {
     if ($class == 'scanner') {
@@ -38,8 +48,8 @@ if ($action == "info") {
             $scanACL = 1;
         }
 
-        if ($r->exists("ScanModule:$module:$inst")) {
-            $instInfo = $r->lrange("ScanModule:$module:$inst", 0, -1);
+        if ($r->exists("ScanModule:Instance:$module:$inst")) {
+            $instInfo = $r->lrange("ScanModule:Instance:$module:$inst", 0, -1);
             $sysInfo = array();
             $cmdQueue = array();
             if ($r->exists("ScanModule:SysInfo:$module")) {
@@ -57,6 +67,7 @@ if ($action == "info") {
             $smarty->assign('identity', htmlentities("$module:$inst", ENT_QUOTES));
             $smarty->assign('address', htmlentities($instInfo[0], ENT_QUOTES));
             $smarty->assign('scanname', htmlentities($instInfo[1], ENT_QUOTES));
+            $smarty->assign('scanvers', htmlentities($instInfo[5], ENT_QUOTES));
             $smarty->assign('currtasks', htmlentities($instInfo[3], ENT_QUOTES));
             $smarty->assign('osname', htmlentities($sysInfo[0], ENT_QUOTES));
             $smarty->assign('memory', htmlentities($sysInfo[1], ENT_QUOTES));

@@ -10,7 +10,7 @@ if (!CheckACL('settings/modules')) {
 }
 
 $r = GetRedisConnection();
-$scanners = $r->keys("ScanModule:*");
+$scanners = $r->keys("ScanModule:Instance:*");
 
 $acl = GetACL('settings/modules/scanners');
 $scModules = array();
@@ -20,12 +20,11 @@ if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $
 }
 $dbg = "";
 foreach($scanners as $scan) {
-    $instance = array();
-    if (substr_compare($scan, "ScanModule:Queue:", 0, 17) != 0 &&
-        substr_compare($scan, "ScanModule:SysInfo:", 0, 19) != 0) {
+    if (strlen($scan) > 20) {
+        $instance = array();
         $dbg .= $scan . "\n";
         // real scanner record, not the SysInfo or commands queue
-        $system = substr($scan, 11);
+        $system = substr($scan, 20);
         $dbg .= $system . "\n";
         $inst = "";
         $pos = strpos($system, ":");
@@ -39,8 +38,8 @@ foreach($scanners as $scan) {
         $dbg .= $inst . "\n";
         $dbg .= $system . "\n";
         $info = $r->lrange($scan, 0, -1);
-        $instance[] = $system;
-        $instance[] = $inst;
+        $instance[] = $system . ":" . $inst;
+        $instance[] = $info[5];
         $instance[] = $info[0];
         $instance[] = $info[1];
         $instance[] = $info[3];
