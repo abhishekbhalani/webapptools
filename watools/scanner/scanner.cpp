@@ -50,13 +50,15 @@ wstring default_layout = L"%d{dd MMM yyyy HH:mm:ss,SSS} [%-5p] - %m%n";
 // global variables
 LoggerPtr scan_logger = Logger::getLogger("watScanner");
 string scaner_uuid = "";
+string scaner_version = "";
+int scaner_instance = 0;
 redis::client* db1_client;
 boost::mutex db1_lock;
 bool daemonize = false;
 string db1_instance_name = "";
 
 // dispatcher prototype
-extern void dispatcher_routine(int inst, po::variables_map& vm);
+extern void dispatcher_routine(po::variables_map& vm);
 
 bool get_bool_option(const string& value, bool noLogging = false)
 {
@@ -175,7 +177,7 @@ int main(int argc, char* argv[])
     string db1_stage;
 
     vector<string> redis_out;
-    int inst_num, max_inst;
+    int max_inst;
 
     cfg_file.add_options()
         ("identity", po::value<string>(), "instalation identificator")
@@ -190,6 +192,9 @@ int main(int argc, char* argv[])
         ("log_file",  po::value<string>(), "file to store log information")
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
         ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
+        ("plugin_dir",  po::value<string>()->default_value(string("./")), "directory, where plug-ins are placed")
+        ("db2_interface",  po::value<string>()->default_value(string("sqlite")), "plug-in identifier to connect to Storage DB")
+        ("db2_parameters",  po::value<string>(), "plug-in configuration to connect to Storage DB")
 		("daemonize",  po::value<string>(), "run program as daemon (yes|no or true|false)")
     ;
 
@@ -209,7 +214,6 @@ int main(int argc, char* argv[])
     store(parse_command_line(argc, argv, cmd_line), vm);
     notify(vm);
 
-	string version;
 	{
 		stringstream ost;
 		ost << VERSION_MAJOR << "." << VERSION_MINOR << "." <<
@@ -224,7 +228,7 @@ int main(int argc, char* argv[])
 			" (Linux)" <<
 #endif
 			" ";
-		version = ost.str();
+		scaner_version = ost.str();
 	}
 
     if (vm.count("help")) {
@@ -233,7 +237,7 @@ int main(int argc, char* argv[])
     }
 	// create config file
 	if (vm.count("generate")) {
-		cout << "WAT scanner " << version << endl;
+		cout << "WAT scanner " << scaner_version << endl;
 		cout << "write config file " << vm["generate"].as<string>() << endl;
         basic_random_generator<boost::mt19937> gen;
         uuid tag = gen();
@@ -354,7 +358,8 @@ int main(int argc, char* argv[])
         };
         traceLevel = true;
 	}
-	LOG4CXX_INFO(scan_logger, "WAT Scanner started. Version: " << version);
+    LOG4CXX_INFO(scan_logger, "\n\n");
+	LOG4CXX_INFO(scan_logger, "WAT Scanner started. Version: " << scaner_version);
 	LOG4CXX_INFO(scan_logger, "Loaded configuration from " << vm["config"].as<string>());
 
 	// init webEngine library
@@ -466,38 +471,34 @@ int main(int argc, char* argv[])
         db1_client->select(db_index);
     }
     catch (redis::redis_error& re) {
-    	LOG4CXX_FATAL(scan_logger, "Redis DB connection error (" << db1_stage << "): " << (string)re);
+    	LOG4CXX_FATAL(scan_logger, "Command DB connection error (" << db1_stage << "): " << (string)re);
         if (db1_client != NULL) {
             delete db1_client;
         }
         db1_client = NULL;
     }
     if (db1_client == NULL) {
-        LOG4CXX_TRACE(scan_logger, "Redis DB connection error - exit");
+        LOG4CXX_TRACE(scan_logger, "Command DB connection error - exit");
         goto finish;
     }
-    LOG4CXX_INFO(scan_logger, "Redis connection established");
+    LOG4CXX_INFO(scan_logger, "Command DB connection established");
 
     // verify instance id
-    inst_num = db1_client->keys("ScanModule:" + scaner_uuid + "*", redis_out);
-    LOG4CXX_TRACE(scan_logger, "DB1 returns " << inst_num << " as number of instances");
-    inst_num++;
+    scaner_instance = db1_client->keys("ScanModule:Instance:" + scaner_uuid + "*", redis_out);
+    LOG4CXX_TRACE(scan_logger, "DB1 returns " << scaner_instance << " as number of instances");
+    scaner_instance++;
     max_inst = vm["instances"].as<int>();
-    if (inst_num > max_inst) {
-        LOG4CXX_FATAL(scan_logger, "Can't run instance " << inst_num << " 'cause the limit is " << max_inst);
+    if (scaner_instance > max_inst) {
+        LOG4CXX_FATAL(scan_logger, "Can't run instance " << scaner_instance << " 'cause the limit is " << max_inst);
         goto finish;
     }
-    LOG4CXX_DEBUG(scan_logger, "Register instance #" << inst_num);
-    db1_instance_name = "ScanModule:" + scaner_uuid + ":" + boost::lexical_cast<string>(inst_num);
+    LOG4CXX_DEBUG(scan_logger, "Register instance #" << scaner_instance);
+    db1_instance_name = "ScanModule:Instance:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
     db1_client->set(db1_instance_name, "0");
     db1_client->expire(db1_instance_name, 10);
 
-    // init plugin factory
-
-    // init dispatcher
-
     // run dispatcher
-    dispatcher_routine(inst_num, vm);
+    dispatcher_routine(vm);
     
 
 finish:
@@ -507,6 +508,6 @@ finish:
     }
     webEngine::LibClose();
 
-    LOG4CXX_INFO(scan_logger, "WAT Scanner stopped\n\n");
+    LOG4CXX_INFO(scan_logger, "WAT Scanner stopped");
     return 0;
 }
