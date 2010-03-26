@@ -142,7 +142,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib curllib_static.lib ws2_32.lib ssleay32.lib libeay32.lib openldap.lib libboost_regex-vc90-mt-1_38.lib"
+				AdditionalDependencies="Psapi.lib log4cxx.lib webEngine.lib curllib_static.lib ws2_32.lib ssleay32.lib libeay32.lib openldap.lib libboost_regex-vc90-mt-1_38.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\webEngine\libs\release"
 				GenerateDebugInformation="true"
