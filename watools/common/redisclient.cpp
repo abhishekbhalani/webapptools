@@ -38,6 +38,7 @@ extern "C" {
 #ifndef NDEBUG
 #include <algorithm>
 #include <weLogger.h>
+extern log4cxx::LoggerPtr scan_logger;
 #endif
 
 #include <cstring>
@@ -52,8 +53,6 @@ extern "C" {
 #endif
 
 using namespace std;
-
-extern log4cxx::LoggerPtr scan_logger;
 
 namespace 
 {
@@ -90,7 +89,6 @@ namespace
   }
 
 #ifndef NDEBUG
-
     void output_proto_debug(const string & data, bool is_received = true)
     {
         string escaped_data(data);
