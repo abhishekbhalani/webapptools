@@ -34,8 +34,8 @@ namespace webEngine {
 
     // forward declarations
     class iTransport;
-    class iInventory;
-    class iAudit;
+    class i_inventory;
+    class i_audit;
     class iVulner;
     class iRequest;
     class ScanData;
@@ -71,23 +71,23 @@ namespace webEngine {
         void AddPlgTransport(iTransport* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgInventory(iInventory* plugin)
+        /// @fn void AddPlgInventory(i_inventory* plugin)
         ///
         /// @brief  Adds a inventory plugin to the Task object.
-        /// @param  plugin   - Plugin with iInventory interface. 
+        /// @param  plugin   - Plugin with i_inventory interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgInventory(iInventory* plugin);
+        void AddPlgInventory(i_inventory* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgAuditor(iInventory* plugin)
+        /// @fn void AddPlgAuditor(i_inventory* plugin)
         ///
         /// @brief  Adds a auditor plugin to the Task object.
-        /// @param  plugin   - Plugin with iAudit interface. 
+        /// @param  plugin   - Plugin with i_audit interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgAuditor(iAudit* plugin);
+        void AddPlgAuditor(i_audit* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgVulner(iInventory* plugin)
+        /// @fn void AddPlgVulner(i_inventory* plugin)
         ///
         /// @brief  Adds a vulnerability search plugin to the Task object.
         /// @param  plugin   - Plugin with iVulner interface. 
@@ -148,8 +148,8 @@ namespace webEngine {
     protected:
         typedef map<string, iRequest*> WeRequestMap;
         vector<iTransport*> transports;
-        vector<iInventory*> inventories;
-        vector<iAudit*> auditors;
+        vector<i_inventory*> inventories;
+        vector<i_audit*> auditors;
         vector<iVulner*> vulners;
         bool processThread;
         bool isRunning;

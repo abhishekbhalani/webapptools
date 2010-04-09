@@ -41,8 +41,8 @@ void TaskProcessor(Task* tsk)
     iResponse* resp;
     iRequest* curr_url;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor started for task " << ((void*)&tsk));
     tsk->isRunning = true;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor started for task " << ((void*)&tsk));
     while (tsk->IsReady())
     {
         tsk->WaitForData();
@@ -86,7 +86,7 @@ void TaskProcessor(Task* tsk)
                     }
                 }
 
-                string u_req = curr_url->RequestUrl().tostring();
+                //string u_req = curr_url->RequestUrl().tostring();
                 tsk->taskList.erase(tsk->taskList.begin());
                 delete curr_url;
             }
@@ -115,7 +115,7 @@ void TaskProcessor(Task* tsk)
                         for (size_t i = 0; i < tsk->inventories.size(); i++)
                         {
                             LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << tsk->inventories[i]->get_description());
-                            tsk->inventories[i]->ProcessResponse(*rIt);
+                            tsk->inventories[i]->process_response(*rIt);
                         }
                     }
                     tsk->taskQueue.erase(rIt);
@@ -126,6 +126,7 @@ void TaskProcessor(Task* tsk)
                 }
             }
         }
+        tsk->CalcStatus();
     };
     tsk->isRunning = false;
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor finished for task " << ((void*)&tsk));
@@ -215,7 +216,7 @@ void Task::AddPlgTransport( iTransport* plugin )
     LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgTransport: added " << plugin->get_description());
 }
 
-void Task::AddPlgInventory( iInventory* plugin )
+void Task::AddPlgInventory( i_inventory* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
@@ -242,7 +243,7 @@ void Task::AddPlgInventory( iInventory* plugin )
     LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgInventory: added " << plugin->get_description());
 }
 
-void Task::AddPlgAuditor( iAudit* plugin )
+void Task::AddPlgAuditor( i_audit* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
@@ -313,18 +314,18 @@ void Task::StorePlugins(vector<i_plugin*>& plugins)
             AddPlgTransport((iTransport*)plugins[i]);
         }
 
-        trsp = find(ifaces.begin(), ifaces.end(), "iInventory");
+        trsp = find(ifaces.begin(), ifaces.end(), "i_inventory");
         if (trsp != ifaces.end())
         {
             LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found inventory: " << plugins[i]->get_description());
-            AddPlgInventory((iInventory*)plugins[i]);
+            AddPlgInventory((i_inventory*)plugins[i]);
         }
 
-        trsp = find(ifaces.begin(), ifaces.end(), "iAudit");
+        trsp = find(ifaces.begin(), ifaces.end(), "i_audit");
         if (trsp != ifaces.end())
         {
             LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found auditor: " << plugins[i]->get_description());
-            AddPlgAuditor((iAudit*)plugins[i]);
+            AddPlgAuditor((i_audit*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "iVulner");
@@ -339,14 +340,16 @@ void Task::StorePlugins(vector<i_plugin*>& plugins)
 
 void Task::Run(void)
 {
-    processThread = true;
     LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::Run: create WeTaskProcessor");
     boost::thread process(TaskProcessor, this);
+    // switch context to initialize TaskProcessor
+    boost::this_thread::sleep(boost::posix_time::millisec(10));
 
+    processThread = true;
     for (size_t i = 0; i < inventories.size(); i++)
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Run: " << inventories[i]->get_description());
-        inventories[i]->Start(this);
+        inventories[i]->start(this);
     }
 }
 
@@ -393,6 +396,7 @@ void Task::CalcStatus()
     if (taskList.size() == 0 && taskQueue.size() == 0) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: finish!");
         processThread = false;
+        scanInfo->finishTime = btm::second_clock::local_time();
         Option(weoTaskStatus, WI_TSK_IDLE);
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
@@ -413,6 +417,19 @@ ScanData* Task::GetScanData( const string& baseUrl, const string& realUrl )
 void Task::SetScanData( ScanData* scData )
 {
     scanInfo->SetScanData(scData);
+    // send to all auditors
+    for (size_t i = 0; i < auditors.size(); i++)
+    {
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << auditors[i]->get_description());
+        auditors[i]->start(this, scData);
+    }
+    /// @todo: !!! REMOVE THIS!!! It's only debug
+    /// need to implement clever clean-up scheme
+    if (scData->parsedData != NULL) {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data");
+        delete scData->parsedData;
+        scData->parsedData = NULL;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -609,7 +626,7 @@ void Task::WaitForData()
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         boost::unique_lock<boost::mutex> lock(*mt);
-        while((taskList.size() == 0 && taskQueue.size() == 0) || idata == WI_TSK_PAUSED) {
+        while((taskList.size() == 0 && taskQueue.size() == 0) || idata == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
             LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::WaitForData: go to sleep");
             cond->wait(lock);
 

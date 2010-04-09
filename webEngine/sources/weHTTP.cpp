@@ -105,6 +105,7 @@ void HttpRequest::RequestUrl( const transport_url &ReqUrl, iOperation* resp /*= 
     reqUrl = ReqUrl;
     if (resp != NULL) {
         /// @todo Make referers and other options for linked request
+        depth_level = resp->depth() + 1;
     }
 }
 
@@ -229,6 +230,7 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
             return NULL;
         }
     }
+    retval->depth(req->depth());
 
     try {
         HttpRequest* r = dynamic_cast<HttpRequest*>(req);

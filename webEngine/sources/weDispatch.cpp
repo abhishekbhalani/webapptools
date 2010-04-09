@@ -249,6 +249,15 @@ void engine_dispatcher::storage( const i_storage* store )
     iOptionsProvider::FromRS(&res);
 }
 
+
+void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFactory func )
+{
+    i_plugin* plg = (i_plugin*)func(this, NULL);
+    plg_list.push_back(*(plugin_info*)plg->info());
+    plg_factory.add_plugin_class(name, func);
+    delete plg;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn void engine_dispatcher::flush()
 ///

@@ -22,24 +22,29 @@
 
 namespace webEngine {
 
-iAudit::iAudit(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+i_audit::i_audit(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     i_plugin(krnl, handle)
 {
+    pluginInfo.interface_name = "i_audit";
+    pluginInfo.interface_list.push_back("i_audit");
+    pluginInfo.plugin_desc = "Abstract audit interface";
+    pluginInfo.plugin_id = "182FE628B8EA"; //{F9ECB03C-5A5C-4571-B6A0-182FE628B8EA}
+    //pluginInfo.plugin_icon = WeXpmToStringList(iweInventory_xpm, sizeof(iweInventory_xpm) / sizeof(char*) );
 }
 
-iAudit::~iAudit(void)
+i_audit::~i_audit(void)
 {
 }
 
-void iAudit::ResponseDispatcher( iResponse *resp, void* context )
+void i_audit::response_dispatcher( iResponse *resp, void* context )
 {
-    iAudit* object = (iAudit*)context;
-    //     if (object->ProcessResponse) {
-    object->ProcessResponse(resp);
+    i_audit* object = (i_audit*)context;
+    //     if (object->process_response) {
+    object->process_response(resp);
     //     }
     //     else
     //     {
-    //         LOG4CXX_ERROR(object->logger, "iAudit::ResponseDispatcher: invalid context, or abstract class - ProcessResponse == NULL");
+    //         LOG4CXX_ERROR(object->logger, "i_audit::response_dispatcher: invalid context, or abstract class - process_response == NULL");
     //     }
 }
 

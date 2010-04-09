@@ -299,70 +299,69 @@ parseRestart:
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
                 chldList.push_back(txt);
-//-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
                 txt = NULL;
             }
             if (lString == "form") {
                 /// @todo Add forms processing
                 // right now all form's attributes will be placed to parent entity
-//-DBG: printf("FORM CLOSE\n");
+                LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: FORM CLOSE");
                 break;
             }
             if (entityName != lString) {
                 // incomplete structure - close this tag
                 // and restart parsing on previous level
-//-DBG: printf("TAG END: %s (force)\n", entityName.c_str());
+                LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: force TAG END(wstTagEnd): " << entityName);
                 if (!IsParentTag(lString)) {
                     // if tag is not in paren tree - just skip it
                     break;
                 }
             }
             else {
-//-DBG: printf("TAG END: %s\n", scanner.GetTagName());
+                LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: TAG END: " << scanner.GetTagName());
             }
             endPos = (int)scanner.GetPos();
             return state;
         case wstTagStart:
             lString = scanner.GetTagName();
             to_lower(lString);
+            LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: TAG START: " << lString);
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
                 chldList.push_back(txt);
-//-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
+                //LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: save previous TEXT: " << txtAttr);
                 txtAttr.clear();
                 txt = NULL;
-            }
-            if (lString == "form") {
-                /// @todo Add forms processing
-//-DBG: printf("NEW FORM BEGIN\n");
             }
             if (WeParseNeedToBreakTag(entityName, lString)) {
                 // incomplete structure - close this tag
                 // and restart parsing on previous level
-//-DBG: printf("TAG END: %s (force)\n", entityName.c_str());
+                LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: force TAG END(wstTagStart): " << entityName);
                 return state;
             }
             if (lString == "form") {
                 /// @todo Add forms processing
                 // right now all form's attributes will be placed to parent entity
+                LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: NEW FORM BEGIN");
                 break;
             }
-//-DBG: printf("TAG START: %s\n", scanner.GetTagName());
             chld = weHtmlFactory.CreateEntity(lString, this);
             if (chld != NULL) {
                 ScannerToken chldState;
                 chldList.push_back(chld);
                 chldState = chld->Parse(lString, scanner, processor);
+                LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: from child, state=" << chldState <<
+                    " current=" << entityName << ", child=" << chld->Name() << ", active=" << lString);
                 if (iequals(string("form"), lString)) {
                     /// @todo Add forms processing
                     // form finished?
                     // right now all form's attributes will be placed to parent entity
                     break;
                 }
-                if (chld->Name() != lString) {
+                if (chldState != wstTagEnd && state != wstEof && state != wstError) {
                     // previous tag was closed incorrectly
                     // restart parsing
+                    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: restarting from child");
                     state = chldState;
                     goto parseRestart;
                 }
@@ -667,6 +666,7 @@ weCmpState WeInnerText::Compare(iEntity& cmp, weCmpMode mode)
 HtmlDocument::HtmlDocument(iEntity* prnt /*= NULL*/) //:
 //    HtmlEntity(prnt), HttpResponse()
 {
+    response = NULL;
     entityName = "#document";
 //     baseUrl = "";
 //     realUrl = "";
@@ -683,6 +683,7 @@ HtmlDocument::HtmlDocument(iEntity* prnt /*= NULL*/) //:
 HtmlDocument::HtmlDocument(HtmlDocument& entity) //:
 //    HtmlEntity(), HttpResponse()
 {
+    response = NULL;
     entityName = "#document";
     response = NULL;
 }
@@ -694,6 +695,9 @@ HtmlDocument::HtmlDocument(HtmlDocument& entity) //:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 HtmlDocument::~HtmlDocument(void)
 {
+    if (response != NULL) {
+        delete response;
+    }
     // nothing special for this class, just base classes
 }
 
@@ -783,6 +787,12 @@ weCmpState HtmlDocument::Compare( iEntity& cmp, weCmpMode mode )
     /// @todo Implement this!
     return weCmpNonComparable;
 }
+
+ScannerToken HtmlDocument::Parse( string tagName, TagScanner& scanner, iTransport* processor /*= NULL*/ )
+{
+    return HtmlEntity::Parse(tagName, scanner, processor);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	WeRefrenceObject::WeRefrenceObject(iEntity* prnt)
 ///
@@ -817,6 +827,11 @@ WeRefrenceObject::~WeRefrenceObject()
     /// @todo Implement this!
 }
 
+ScannerToken WeRefrenceObject::Parse( string tagName, TagScanner& scanner, iTransport* processor /*= NULL*/ )
+{
+    return HtmlEntity::Parse(tagName, scanner, processor);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	WeScript::WeScript( iEntity* prnt )
 ///
@@ -827,6 +842,7 @@ WeRefrenceObject::~WeRefrenceObject()
 WeScript::WeScript( iEntity* prnt /*= NULL*/ ) :
     WeRefrenceObject(prnt)
 {
+    entityName = "script";
     /// @todo Implement this!
 }
 
@@ -865,7 +881,7 @@ WeScript::~WeScript()
 /// @param  processor - HttpTransport object with processing options and network connection
 /// @retval	ScannerToken that represents current scanner's state.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, HttpTransport* processor /*= NULL*/ )
+ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, iTransport* processor /*= NULL*/ )
 {
     ScannerToken  state;
     string          txtAttr;
@@ -953,7 +969,7 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, HttpTransport
         }
     //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: get content from " << stPos << " to " << enPos);
     if (stPos > -1 && enPos > stPos) {
-        //txtAttr = scanner.GetFrom(stPos);
+        txtAttr = scanner.GetFrom(stPos);
         enPos -= stPos;
         txtAttr = txtAttr.substr(0, enPos);
         Attr("#code", txtAttr);

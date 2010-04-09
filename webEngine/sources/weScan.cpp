@@ -28,9 +28,9 @@ namespace webEngine {
 
 ScanInfo::ScanInfo()
 {
-    startTime = posix_time::second_clock::local_time();
-    finishTime = posix_time::not_a_date_time;
-    pingTime = posix_time::not_a_date_time;
+    startTime = btm::second_clock::local_time();
+    finishTime = btm::not_a_date_time;
+    pingTime = btm::not_a_date_time;
     status = weScanIdle;
     scanID = "";
 }
@@ -50,9 +50,9 @@ db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
     rec->Option(weoID, scanID);
     rec->Option(weoParentID, objectID);
     rec->Option(weoProfileID, profileID);
-    rec->Option("starttime", posix_time::to_simple_string(startTime));
-    rec->Option("finishtime", posix_time::to_simple_string(finishTime));
-    rec->Option("pingtime", posix_time::to_simple_string(pingTime));
+    rec->Option("starttime", btm::to_simple_string(startTime));
+    rec->Option("finishtime", btm::to_simple_string(finishTime));
+    rec->Option("pingtime", btm::to_simple_string(pingTime));
     rec->Option(weoTaskStatus, status);
     rec->Option("scansize", boost::lexical_cast<string>(scan_data.size()));
 
@@ -98,25 +98,25 @@ void ScanInfo::FromRS( db_recordset* rs )
             opt = rec.Option("starttime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
             try {
-                startTime = posix_time::time_from_string(strData);
+                startTime = btm::time_from_string(strData);
             } catch (std::exception&) {
-                startTime = posix_time::not_a_date_time;
+                startTime = btm::not_a_date_time;
             }
 
             opt = rec.Option("finishtime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
             try {
-                finishTime = posix_time::time_from_string(strData);
+                finishTime = btm::time_from_string(strData);
             } catch (std::exception&) {
-                finishTime = posix_time::not_a_date_time;
+                finishTime = btm::not_a_date_time;
             }
 
             opt = rec.Option("pingtime");
             SAFE_GET_OPTION_VAL(opt, strData, "");
             try {
-                pingTime = posix_time::time_from_string(strData);
+                pingTime = btm::time_from_string(strData);
             } catch (std::exception&) {
-                pingTime = posix_time::not_a_date_time;
+                pingTime = btm::not_a_date_time;
             }
 
             opt = rec.Option(weoTaskStatus);
@@ -179,6 +179,19 @@ void ScanInfo::SetScanData( ScanData* scData )
     }
 }
 
+ScanData::ScanData()
+{
+    parsedData = NULL;
+    scan_depth = 0;
+}
+
+ScanData::~ScanData()
+{
+    if (parsedData != NULL) {
+        delete parsedData;
+    }
+}
+
 db_recordset* ScanData::ToRS( const string& parentID/* = ""*/ )
 {
     db_recordset* res = new db_recordset;
@@ -193,6 +206,7 @@ db_recordset* ScanData::ToRS( const string& parentID/* = ""*/ )
     rec->Option("response", boost::lexical_cast<string>(respCode));
     rec->Option("data_size", boost::lexical_cast<string>(dataSize));
     rec->Option("download_time", boost::lexical_cast<string>(downloadTime));
+    rec->Option("scanning_depth", boost::lexical_cast<string>(scan_depth));
 
     res->push_back(*rec);
 
@@ -244,6 +258,10 @@ void ScanData::FromRS( db_recordset* rs )
             opt = rec.Option("download_time");
             SAFE_GET_OPTION_VAL(opt, strData, "");
             downloadTime = boost::lexical_cast<int>(strData);
+
+            opt = rec.Option("scanning_depth");
+            SAFE_GET_OPTION_VAL(opt, strData, "");
+            scan_depth = boost::lexical_cast<int>(strData);
 
             break;
         }

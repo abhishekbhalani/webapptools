@@ -20,14 +20,16 @@ along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __WESCAN_H__
 #define __WESCAN_H__
 #include <weTagScanner.h>
+#include <weBlob.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-using namespace boost;
+namespace btm = boost::posix_time;
 
 namespace webEngine {
 
     class db_recordset;
     class ScanData;
+    class HtmlDocument;
 
     class ScanInfo
     {
@@ -48,9 +50,9 @@ namespace webEngine {
         string            scanID;
         string            objectID;
         string            profileID;
-        posix_time::ptime startTime;
-        posix_time::ptime finishTime;
-        posix_time::ptime pingTime;
+        btm::ptime startTime;
+        btm::ptime finishTime;
+        btm::ptime pingTime;
         weScanStatus      status;  
 
         void push_back(ScanData* elem) { scan_data.push_back(elem);}
@@ -68,6 +70,9 @@ namespace webEngine {
     class ScanData
     {
     public:
+        ScanData();
+        ~ScanData();
+
         string  dataID;
         string  parentID;
         string  scanID;
@@ -76,6 +81,9 @@ namespace webEngine {
         int     respCode;
         int     dataSize;
         int     downloadTime;
+        int     scan_depth;
+        string  content_type; 
+        HtmlDocument* parsedData;
 
         db_recordset* ToRS( const string& parentID = "" );
         void FromRS( db_recordset *rs );
