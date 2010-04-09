@@ -63,6 +63,7 @@ namespace webEngine {
         virtual char GetChar() = 0;
         virtual void PushBack(char c) = 0;
         virtual size_t GetPos() = 0;
+        virtual char* GetFrom(int form) = 0;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,6 +86,7 @@ namespace webEngine {
         virtual char GetChar() { return p < end? *p++: 0; }
         virtual void PushBack(char c) {if(p > start) {p--;}}
         virtual size_t GetPos() { return p - start; };
+        virtual char* GetFrom(int form) { return (char*)(start + form); };
     };
 
     enum ScannerToken {
@@ -150,7 +152,9 @@ namespace webEngine {
           ////////////////////////////////////////////////////////////////////////////////////////////////////
           virtual char   ResolveEntity(const char* buf, int buf_size) { return 0; }
           virtual size_t GetPos() { return input.GetPos(); };
-          void           PushBack(char c);
+          virtual void   PushBack(char c);
+          virtual char*  GetFrom(int from) {return input.GetFrom(from);};
+          virtual void   ResetToBody() {c_scan = &TagScanner::ScanBody;};
 
     private:
         /* types */

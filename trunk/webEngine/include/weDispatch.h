@@ -101,6 +101,7 @@ public:
     log4cxx::LoggerPtr get_logger() { return iLogger::GetLogger(); };
 
     i_plugin* load_plugin(string id);
+    void add_plugin_class(string name, fnWePluginFactory func);
 
 #ifndef __DOXYGEN__
 protected:

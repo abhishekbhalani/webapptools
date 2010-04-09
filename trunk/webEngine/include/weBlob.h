@@ -84,6 +84,7 @@ public:
     virtual char GetChar() { return p < end? *p++: 0; }
     virtual void PushBack(char c) {if(p > start) {p--;}}
     virtual size_t GetPos() { return p - start; };
+    virtual char* GetFrom(int form) { return (char*)(start + form); };
 };
 
 } // namespace webEngine

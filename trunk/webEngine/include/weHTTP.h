@@ -188,9 +188,9 @@ namespace webEngine {
 #ifndef __DOXYGEN__
     protected:
         weHttpMethod    method;
-        transport_url           reqUrl;
-        Blob          data;
-        StringLinks    postData;
+        transport_url   reqUrl;
+        Blob            data;
+        StringLinks     postData;
         WeProxy         *proxy;
 #endif //__DOXYGEN__
     };

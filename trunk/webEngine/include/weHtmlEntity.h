@@ -168,6 +168,7 @@ namespace webEngine {
         virtual Blob& Data(void);
 
         virtual bool ParseData(iResponse* resp, iTransport* processor = NULL);
+        virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL);
 
 #ifndef __DOXYGEN__
     protected:
@@ -214,6 +215,8 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         bool const IsLocal(void) const  { return m_localLink.empty(); };
 
+        virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL);
+
     protected:
 #ifndef __DOXYGEN__
         string  m_localLink;
@@ -237,7 +240,7 @@ namespace webEngine {
         WeScript(WeScript& entity);
         ~WeScript();
 
-        virtual ScannerToken Parse(string tagName, TagScanner& scanner, HttpTransport* processor = NULL);
+        virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL);
 
         bool SetEngine(void *engine = NULL);
         void* Execute();

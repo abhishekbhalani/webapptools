@@ -53,7 +53,7 @@ namespace webEngine {
     class iOperation
     {
     public:
-        iOperation() { usageCount = 0; context = NULL; processor = NULL; };
+        iOperation() { usageCount = 0; context = NULL; processor = NULL; depth_level = 0; };
         virtual ~iOperation();
 
         virtual iweOperationPtr& GetRef() { return (* new iweOperationPtr(this)); };
@@ -80,6 +80,11 @@ namespace webEngine {
         void* context;
         fnProcessResponse* processor;
 
+        //@{
+        /// @brief  Access the depth_level property.
+        virtual int depth(void) { return depth_level; };
+        virtual void depth(int lvl) { depth_level = lvl; };
+        //@}
 
 #ifndef __DOXYGEN__
     protected:
@@ -88,6 +93,7 @@ namespace webEngine {
         iOperation* previous;
         vector<iweOperationPtr*> children;
         string identifier;
+        int depth_level;
     private:
         iOperation(iOperation&) {};               ///< Avoid object coping
         iOperation& operator=(iOperation&) { return *this; };    ///< Avoid object coping

@@ -139,6 +139,18 @@ void transport_url::assign(const string& url )
     to_lower(protocol);
     temp = temp.substr(pos+1);
 
+    // fix for mailto: proto
+    if (protocol == "mailto") {
+        host = temp;
+        request = "";
+        params = "";
+        port = 25;
+        password = "";
+        username = ""; // todo: extract username
+        valid = true;
+        return;
+    }
+
     if ((temp[0] != '/') || (temp[1] != '/')) {
         valid = false;
         return;
@@ -216,6 +228,20 @@ void transport_url::assign_with_referer( const string& url_, transport_url* base
     if (base == NULL) {
         base = this;
     }
+
+    // fix for mailto: proto
+    if (istarts_with(url_, "mailto:")) {
+        protocol = "mailto";
+        host = url_.substr(7);
+        request = "";
+        params = "";
+        port = 25;
+        password = "";
+        username = ""; // todo: extract username
+        valid = true;
+        return;
+    }
+
     // Find protocol end
     pos = url.find("://");
     if (pos == string::npos) {

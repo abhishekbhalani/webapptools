@@ -241,7 +241,7 @@ void HtmlFactory::Init()
 //     Add("img",          weCreateRefObj);
 //     Add("frame",        weCreateRefObj);
 //     Add("iframe",       weCreateRefObj);
-//     Add("script",       weCreateScript);
+    Add("script",       weCreateScript);
 //     Add("a",            weCreateRefObj);
 }
 #endif //__DOXYGEN__

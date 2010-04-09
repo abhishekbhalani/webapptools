@@ -31,40 +31,41 @@ class ScanData;
 class iResponse;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iAudit
+/// @interface  i_audit
 ///
 /// @brief  Interface for the audit plugins. 
 ///
 /// @author A. Abramov
 /// @date   19.08.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iAudit :
+class i_audit :
     public i_plugin
 {
 public:
-    iAudit(engine_dispatcher* krnl, void* handle = NULL);
-    virtual ~iAudit(void);
+    i_audit(engine_dispatcher* krnl, void* handle = NULL);
+    virtual ~i_audit(void);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void Start(Task* tsk)
+    /// @fn void start(Task* tsk, ScanData* scData)
     ///
     /// @brief  Starts the audit process for given ScanData object. 
     ///
-    /// @param  tsk	 - If non-null, the pointer to task what handles the process. 
+    /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
+    /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void Start(Task* tsk, ScanData* scData) = 0;
+    virtual void start(Task* tsk, ScanData* scData) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void ProcessResponse(iResponse *resp)
+    /// @fn void process_response(iResponse *resp)
     ///
     /// @brief  Process the transport response described by resp.
     /// 		
     /// @param  resp - If non-null, the resp. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void ProcessResponse(iResponse *resp) = 0;
+    virtual void process_response(iResponse *resp) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn static void ResponseDispatcher(iResponse *resp, void* context)
+    /// @fn static void response_dispatcher(iResponse *resp, void* context)
     ///
     /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
     ///         by the context
@@ -72,7 +73,7 @@ public:
     /// @param  resp	 - If non-null, the resp. 
     /// @param  context	 - If non-null, the context. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    static void ResponseDispatcher(iResponse *resp, void* context);
+    static void response_dispatcher(iResponse *resp, void* context);
 
 protected:
     Task* task;
