@@ -60,6 +60,7 @@ public:
     void Init();
     void Add(string name, fnEntityFactory func);
     HtmlEntity* CreateEntity(string tagName, HtmlEntity* prnt);
+    void Clean();
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

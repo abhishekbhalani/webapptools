@@ -112,6 +112,7 @@ void LibClose(void)
         return;
     }
     curl_global_cleanup();
+    weHtmlFactory.Clean();
 
     isLibInited = false;
 }
@@ -266,4 +267,18 @@ HtmlEntity* HtmlFactory::CreateEntity( string tagName, HtmlEntity* prnt )
     return func(prnt);
 }
 
+void HtmlFactory::Clean()
+{
+    linked_list_elem<string, fnEntityFactory> *obj, *nxt;
+
+    obj = data;
+    nxt = obj->next();
+    while (nxt != NULL) {
+        delete obj;
+        obj = nxt;
+        nxt = obj->next();
+    }
+    delete obj;
+    data = NULL;
+}
 } // namespace webEngine

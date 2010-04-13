@@ -129,7 +129,7 @@ class iOptionsProvider
 {
 public:
     iOptionsProvider() {};
-    virtual ~iOptionsProvider() {};
+    virtual ~iOptionsProvider();
 
     virtual wOption& Option(const string& name);
     virtual bool IsSet(const string& name);

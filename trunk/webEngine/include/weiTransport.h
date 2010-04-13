@@ -53,10 +53,8 @@ namespace webEngine {
     class iOperation
     {
     public:
-        iOperation() { usageCount = 0; context = NULL; processor = NULL; depth_level = 0; };
+        iOperation() { usage_count = 0; context = NULL; processor = NULL; depth_level = 0; };
         virtual ~iOperation();
-
-        virtual iweOperationPtr& GetRef() { return (* new iweOperationPtr(this)); };
 
         virtual void AddChild(iweOperationPtr* chld);
         virtual void RemoveChild(iweOperationPtr* chld);
@@ -86,9 +84,12 @@ namespace webEngine {
         virtual void depth(int lvl) { depth_level = lvl; };
         //@}
 
+        iOperation* add_ref() {usage_count++; return this; };
+        void release() { if (usage_count == 0) {delete this;} else {usage_count --;};};
+
 #ifndef __DOXYGEN__
     protected:
-        int usageCount;
+        int usage_count;
         transport_url baseUrl;
         iOperation* previous;
         vector<iweOperationPtr*> children;
@@ -257,10 +258,10 @@ namespace webEngine {
 
 #ifndef __DOXYGEN__
     protected:
-        transport_url           baseUrl;
-        unsigned int    relocCount;
-        unsigned int    siteDepth;
-        ResponseList  responces;
+        transport_url baseUrl;
+        unsigned int relocCount;
+        unsigned int siteDepth;
+        ResponseList responces;
         iOptionsProvider* parent;
 
     private:

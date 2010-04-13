@@ -240,6 +240,7 @@ void HttpInventory::process_response( iResponse *resp )
                         add_url(link, htResp, scData);
                     } // end href attribute
                 } // end <a ...> loop
+                ClearEntityList(lst);
             } // end <a ...> tags processing
             // todo: process other kind of links
             // CSS
@@ -262,6 +263,7 @@ void HttpInventory::process_response( iResponse *resp )
                         add_url(link, htResp, scData);
                     } // end src attribute
                 } // end <iframe ...> loop
+                ClearEntityList(lst);
             } // end <iframe ...> tags processing
             // iframes
             lst = parser->FindTags("iframe");
@@ -279,6 +281,7 @@ void HttpInventory::process_response( iResponse *resp )
                         add_url(link, htResp, scData);
                     } // end src attribute
                 } // end <iframe ...> loop
+                ClearEntityList(lst);
             } // end <iframe ...> tags processing
             // forms
             // meta
@@ -306,12 +309,18 @@ void HttpInventory::process_response( iResponse *resp )
                         }
                     } // end http-equiv attribute
                 } // end <meta ...> loop
+                ClearEntityList(lst);
             } // end <meta ...> tags processing
             // etc ???
 
             // cleanup
             if (!saveParser) {
-                delete parser;
+                if (parser != NULL) {
+                    parser->release();
+                }
+                else {
+                    htResp->release();
+                }
             }
         }
         else {
@@ -368,11 +377,10 @@ void add_http_url(log4cxx::LoggerPtr logger, transport_url link, transport_url b
         if (task->IsSet("httpInventory/"weoIgnoreUrlParam)) {
             u_req = link.tostring_noparam();
         }
-        LOG4CXX_TRACE(logger, "HttpInventory::add_url: weoIgnoreUrlParam check << " << u_req);
+        LOG4CXX_TRACE(logger, "HttpInventory::add_http_url: weoIgnoreUrlParam check << " << u_req);
         if (tasklist->find(u_req) == tasklist->end())
         {
-            LOG4CXX_DEBUG(logger, "HttpInventory::add_url: add link to task list. url=" << link.tostring());
-            HttpRequest* new_url = new HttpRequest(link.tostring());
+            HttpRequest* new_url = new HttpRequest(u_req);
             new_url->depth(scan_depth + 1);
             new_url->ID(scData->dataID);
             (*tasklist)[u_req] = true;

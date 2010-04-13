@@ -49,7 +49,7 @@ const string iEntity::Attr(string name)
     {
         return attributes.val(it);
     }
-    return(*(new string("")));
+    return string("");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,7 +112,7 @@ iEntity* iEntity::Child(int idx)
 void iEntity::GenerateId(void)
 {
     // Entity format (like GUID): {B46FF8A5-F2E9-4297-9F73-2894AABBB740}
-    unsigned int first;
+/*    unsigned int first;
     unsigned int second;
     unsigned int third;
     char buff[40];
@@ -138,7 +138,7 @@ void iEntity::GenerateId(void)
 
     m_entityId += buff;
     m_entityId += "}";
-    srand(third);
+    srand(third);*/
 }
 #pragma warning(pop)
 
@@ -179,22 +179,22 @@ iEntity* iEntity::FindID(string id)
 /// @param  tag - The tag name to search.
 /// @retval	empty list if it no objects found, list of the objects else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-EntityList& iEntity::FindTags(string tag)
+EntityList iEntity::FindTags(string tag)
 {
-    EntityList* retval = new EntityList;
+    EntityList retval;
     EntityList::iterator  chld;
 
     if (iequals(tag, entityName)) {
-        retval->push_back(this);
+        retval.push_back(this->add_ref());
     }
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
-        EntityList& chlds = (*chld)->FindTags(tag);
-        while (chlds.size() > 0) {
-            retval->push_back(chlds.back());
-            chlds.pop_back();
+        EntityList chlds = (*chld)->FindTags(tag);
+        for (int i = 0; i < chlds.size(); i++) {
+            retval.push_back(chlds[i]);
         }
+        chlds.clear();
     }
-    return (*retval);
+    return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,8 +209,8 @@ void iEntity::ClearChildren( void )
 {
     EntityList::iterator  chld;
 
-    for (chld = chldList.begin(); chld != chldList.end(); chld++) {
-        delete (*chld); 
+    for (int i = 0; i < chldList.size(); i++) {
+        chldList[i]->release(); 
     }
     chldList.clear();
 }
@@ -249,6 +249,17 @@ bool iEntity::IsParentTag( string tag )
         return false;
     }
     return parent->IsParentTag(tag);
+}
+
+void ClearEntityList( EntityList &lst )
+{
+    EntityList::iterator  chld;
+
+    int i;
+    for (i = 0; i < lst.size(); i++) {
+        lst[i]->release();
+    }
+    lst.clear();    
 }
 
 } // namespace webEngine

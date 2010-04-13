@@ -88,7 +88,7 @@ void TaskProcessor(Task* tsk)
 
                 //string u_req = curr_url->RequestUrl().tostring();
                 tsk->taskList.erase(tsk->taskList.begin());
-                delete curr_url;
+                curr_url->release();
             }
             else {
                 break; // no URLs in the waiting list
@@ -102,6 +102,7 @@ void TaskProcessor(Task* tsk)
             {
                 tsk->transports[i]->ProcessRequests();
             }
+            // just switch context to wake up other tasks
             boost::this_thread::sleep(boost::posix_time::millisec(500));
             for(rIt = tsk->taskQueue.begin(); rIt != tsk->taskQueue.end();) {
                 if ((*rIt)->Processed()) {
@@ -118,6 +119,8 @@ void TaskProcessor(Task* tsk)
                             tsk->inventories[i]->process_response(*rIt);
                         }
                     }
+                    iResponse* resp = *rIt;
+                    resp->release();
                     tsk->taskQueue.erase(rIt);
                     rIt = tsk->taskQueue.begin();
                 }
@@ -162,6 +165,31 @@ Task::Task( Task& cpy )
 Task::~Task()
 {
     /// @todo Cleanup
+    Stop();
+    if (scanInfo != NULL) {
+        delete scanInfo;
+    }
+    if (event_ptr != NULL) {
+        boost::mutex *mt = (boost::mutex*)mutex_ptr;
+        delete mt;
+    }
+    if (mutex_ptr != NULL) {
+        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
+        delete cond;
+    }
+    int i;
+    for (i = 0; i < transports.size(); i++) {
+        transports[i]->release();
+    }
+    for (i = 0; i < inventories.size(); i++) {
+        inventories[i]->release();
+    }
+    for (i = 0; i < auditors.size(); i++) {
+        auditors[i]->release();
+    }
+    for (i = 0; i < vulners.size(); i++) {
+        vulners[i]->release();
+    }
 }
 
 iResponse* Task::GetRequest( iRequest* req )
@@ -379,6 +407,14 @@ void Task::Pause(const bool& state /*= true*/)
 void Task::Stop()
 {
     processThread = false;
+    if (event_ptr != NULL && mutex_ptr != NULL) {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Stop notify all about TaskStatus change");
+        boost::mutex *mt = (boost::mutex*)mutex_ptr;
+        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
+        cond->notify_all();
+    }
+    // switch context to finalize TaskProcessor
+    boost::this_thread::sleep(boost::posix_time::millisec(10));
     taskList.clear();
     taskQueue.clear();
     CalcStatus();
@@ -427,8 +463,9 @@ void Task::SetScanData( ScanData* scData )
     /// need to implement clever clean-up scheme
     if (scData->parsedData != NULL) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data");
-        delete scData->parsedData;
-        scData->parsedData = NULL;
+        if (scData->parsedData->release()) {
+            scData->parsedData = NULL;
+        }
     }
 }
 

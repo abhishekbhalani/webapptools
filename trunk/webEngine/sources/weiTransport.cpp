@@ -24,6 +24,8 @@
 
 using namespace webEngine;
 
+static wOption empty_option;
+
 //////////////////////////////////////////////////////////////////////////
 //             i w e T r a n s p o r t    c l a s s
 //////////////////////////////////////////////////////////////////////////
@@ -55,7 +57,7 @@ wOption& iTransport::Option(const  string& name )
         return parent->Option(name);
     }
 
-    return *(new wOption);
+    return empty_option;
 }
 
 bool iTransport::IsSet(const  string& name )

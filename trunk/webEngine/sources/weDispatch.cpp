@@ -118,7 +118,7 @@ engine_dispatcher::~engine_dispatcher(void)
     if (plg_storage != NULL)
     {
         flush();
-        delete plg_storage;
+        plg_storage->release();
     }
 }
 
@@ -252,8 +252,15 @@ void engine_dispatcher::storage( const i_storage* store )
 
 void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFactory func )
 {
+    int i;
     i_plugin* plg = (i_plugin*)func(this, NULL);
-    plg_list.push_back(*(plugin_info*)plg->info());
+    for (i = 0; i < plg_list.size(); i++) {
+        if (plg_list[i].plugin_id == plg->info()->plugin_id)
+            break;
+    }
+    if (i == plg_list.size()) {
+        plg_list.push_back(*(plugin_info*)plg->info());
+    }
     plg_factory.add_plugin_class(name, func);
     delete plg;
 }
@@ -272,7 +279,10 @@ void engine_dispatcher::flush()
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::flush ");
         db_recordset* rs = iOptionsProvider::ToRS();
-        plg_storage->set(*rs);
+        if (rs != NULL) {
+            plg_storage->set(*rs);
+            delete rs;
+        }
     }
 }
 
@@ -322,6 +332,11 @@ plugin_factory::plugin_factory() :
     add_plugin_class("http_transport", create_http_transport);  // copy for interface name
     add_plugin_class("AB7ED6E5A7B3", create_http_inventory);
     add_plugin_class("http_inventory", create_http_inventory);  // copy for interface name
+}
+
+plugin_factory::~plugin_factory()
+{
+    // nothing special - just clear the list;
 }
 
 void plugin_factory::add_plugin_class( string name, fnWePluginFactory func )

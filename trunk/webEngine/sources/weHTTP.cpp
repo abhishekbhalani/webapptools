@@ -18,6 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
 #include <algorithm>
 #include "weHelper.h"
 #include "weHTTP.h"
@@ -241,9 +242,18 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
 
     responces.push_back(retval);
 
-    if (transferHandle != NULL) {
-        curl_multi_add_handle(transferHandle, retval->CURLHandle());
-        ProcessRequests();
+    if (transferHandle != NULL && retval->CURLHandle() != NULL) {
+        try {
+            curl_multi_add_handle(transferHandle, retval->CURLHandle());
+            ProcessRequests();
+        }
+        catch (std::exception &e) {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "HttpTransport::Request - curl_multi_add_handle failed: " << e.what());
+        }
+    }
+    else {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "HttpTransport::Request curl_transfer_handle: " << (int)transferHandle <<
+            "; curl_request_handle: " << (int)retval->CURLHandle());
     }
     return (iResponse*)retval;
 }
@@ -308,13 +318,23 @@ const int HttpTransport::ProcessRequests( void )
     HttpResponse* resp;
 
     if (transferHandle != NULL) {
+#ifdef _DEBUG
+        LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_perform");
+#endif
         lastError = curl_multi_perform(transferHandle, &running_handles);
 
         /// @todo Implements accurate busy-loop
         while (lastError == CURLM_CALL_MULTI_PERFORM) {
+#ifdef _DEBUG
+            LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_perform in the loop");
+#endif
+            boost::this_thread::sleep(boost::posix_time::millisec(10));
             lastError = curl_multi_perform(transferHandle, &running_handles);
         }
 
+#ifdef _DEBUG
+        LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_info_read");
+#endif
         cmsg = curl_multi_info_read(transferHandle, &msgs_in_queue);
         while (cmsg != NULL)
         {
@@ -326,16 +346,24 @@ const int HttpTransport::ProcessRequests( void )
                         if ( resp->CURLHandle() == cmsg->easy_handle) {
                             responces.erase(hnd);
                             hnd = responces.begin();
+#ifdef _DEBUG
+                            LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_remove_handle");
+#endif
                             curl_multi_remove_handle(transferHandle, resp->CURLHandle());
                             resp->Process(this);
                             break;
                         }
                     }
-                    catch (...) {}; // just skip
+                    catch (std::exception &e) {
+                        LOG4CXX_ERROR(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl exception: " << e.what());
+                    }; // just skip
                     hnd++;
                 }
             }
             // delete cmsg;
+#ifdef _DEBUG
+            LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_info_read, extract msg");
+#endif
             cmsg = curl_multi_info_read(transferHandle, &msgs_in_queue);
         }
     }

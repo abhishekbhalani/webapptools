@@ -44,6 +44,12 @@ i_plugin::i_plugin( engine_dispatcher* krnl, void* handle /*= NULL*/ )
     }
 }
 
+i_plugin::~i_plugin()
+{
+    pluginInfo.interface_list.clear();
+    pluginInfo.plugin_icon.clear();
+}
+
 const string i_plugin::interface_name()
 {
     return pluginInfo.interface_name;

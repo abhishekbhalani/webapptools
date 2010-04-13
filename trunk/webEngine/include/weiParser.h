@@ -51,7 +51,8 @@ typedef vector<iEntity*> EntityList;
 class iEntity
 {
 public:
-    virtual ~iEntity() { ClearChildren(); };
+    iEntity() {usage_count = 0;};
+    virtual ~iEntity() { ClearChildren(); ClearAttr(); };
 
     virtual const string Attr(string);
     virtual void Attr(string, string);
@@ -62,11 +63,11 @@ public:
     virtual EntityList& Children() { return chldList; };  ///< Direct access to the children collection
     void ClearChildren(void);
 
-    virtual const string &InnerText(void) = 0;
-    virtual const string &OuterText(void) = 0;
+    virtual const string InnerText(void) = 0;
+    virtual const string OuterText(void) = 0;
 
     iEntity* FindID(string id);
-    EntityList& FindTags(string tag);
+    EntityList FindTags(string tag);
 
     virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL) { return wstError; };
 
@@ -75,6 +76,9 @@ public:
     virtual bool operator==(iEntity& cmp) { return (Compare(cmp) == weCmpEqual); };
 
     iDocument* GetRootDocument(void);
+
+    iEntity* add_ref() {usage_count++; return this; };
+    bool release() { if (usage_count == 0) {delete this; return true;} else {usage_count --;}; return false;};
 
     //@{
     /// @brief Access the Parent
@@ -114,13 +118,14 @@ protected:
 
 #ifndef __DOXYGEN__
 protected:
-    iEntity*      parent;
-    AttrMap       attributes;
-    EntityList    chldList;
-    string          entityName;
-    string          m_entityId;
+    iEntity* parent;
+    AttrMap attributes;
+    EntityList chldList;
+    string entityName;
+    string m_entityId;
     static weCmpMode compareMode;
-    int             startPos, endPos;
+    int startPos, endPos;
+    int usage_count;
 #endif //__DOXYGEN__
 };
 
@@ -137,6 +142,8 @@ class iDocument : virtual public iEntity
     virtual bool ParseData(iResponse* resp, iTransport* processor = NULL) = 0;
     virtual Blob& Data(void) = 0;
 };
+
+void ClearEntityList(EntityList &lst);
 
 } // namespace webEngine
 
