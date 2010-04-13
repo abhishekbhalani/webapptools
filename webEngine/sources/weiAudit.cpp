@@ -39,6 +39,7 @@ i_audit::~i_audit(void)
 void i_audit::response_dispatcher( iResponse *resp, void* context )
 {
     i_audit* object = (i_audit*)context;
+    LOG4CXX_TRACE(object->logger, "i_audit::response_dispatcher");
     //     if (object->process_response) {
     object->process_response(resp);
     //     }

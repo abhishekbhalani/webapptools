@@ -30,7 +30,15 @@ namespace webEngine {
 static const wOption empty_option("_empty_");
 #endif //__DOXYGEN__
 
+iOptionsProvider::~iOptionsProvider()
+{
+    wOptions::iterator optit;
 
+    for (optit = options.begin(); optit != options.end(); optit++) {
+        delete optit->second;
+    }
+    options.clear();
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn std::string WeTask::ToXml( void )
 ///

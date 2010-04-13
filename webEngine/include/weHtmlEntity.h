@@ -51,8 +51,8 @@ namespace webEngine {
         HtmlEntity(HtmlEntity& entity);
         ~HtmlEntity();
 
-        virtual const string &InnerText(void);
-        virtual const string &OuterText(void);
+        virtual const string InnerText(void);
+        virtual const string OuterText(void);
 
         virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
         virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
@@ -81,8 +81,8 @@ namespace webEngine {
         virtual const string Attr(string);
         virtual void Attr(string, string);
 
-        virtual const string &InnerText(void);
-        virtual const string &OuterText(void);
+        virtual const string InnerText(void);
+        virtual const string OuterText(void);
 
         virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
         virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
@@ -155,8 +155,8 @@ namespace webEngine {
         HtmlDocument(HtmlDocument& entity);
         ~HtmlDocument();
 
-        virtual const string &InnerText(void);
-        virtual const string &OuterText(void);
+        virtual const string InnerText(void);
+        virtual const string OuterText(void);
 
         virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
         virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);

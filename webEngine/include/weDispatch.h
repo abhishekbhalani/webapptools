@@ -67,6 +67,7 @@ class plugin_factory : public linked_list<string, fnWePluginFactory>
 {
 public:
     plugin_factory();
+    ~plugin_factory();
     void add_plugin_class(string name, fnWePluginFactory func);
     void* create_plugin(string pluginID, engine_dispatcher* krnl);
 };

@@ -120,40 +120,43 @@ int mem_storage::get(db_record& filter, db_record& respFilter, db_recordset& res
     else {
         objIdxs = get_namespace_idxs(filter.objectID);
     }
-    if (objIdxs->size() > 0) {
-        // prepare filter list
-        reportNames = respFilter.OptionsList();
-        if (reportNames.size() == 0)
-        {
-            string_list* strct;
-            strct = get_namespace_struct(filter);
-            if (strct != NULL)
+    if (objIdxs != NULL) {
+        if (objIdxs->size() > 0) {
+            // prepare filter list
+            reportNames = respFilter.OptionsList();
+            if (reportNames.size() == 0)
             {
-                reportNames = *strct;
-                delete strct;
-            }
-        }
-        opt = filter.Option(weoID);
-        SAFE_GET_OPTION_VAL(opt, fID, "");
-
-        for (i = 0; i < objIdxs->size(); i++) {
-            db_record* objRes = new db_record;
-            objRes->objectID = filter.objectID;
-            for (j = 0; j < reportNames.size(); j++)
-            {
-                key = (*objIdxs)[i] + "_" + reportNames[j];
-                obj = storage_db.find(key);
-                if (obj != storage_db.end())
+                string_list* strct;
+                strct = get_namespace_struct(filter);
+                if (strct != NULL)
                 {
-                    objRes->Option(reportNames[j], obj->second);
-                } 
-                else {
-                    objRes->Option(reportNames[j], string(""));
+                    reportNames = *strct;
+                    delete strct;
                 }
-            } // and of attribute filters
-            results.push_back(*objRes);
-        } // end of objects search
-    } // has objects
+            }
+            opt = filter.Option(weoID);
+            SAFE_GET_OPTION_VAL(opt, fID, "");
+
+            for (i = 0; i < objIdxs->size(); i++) {
+                db_record* objRes = new db_record;
+                objRes->objectID = filter.objectID;
+                for (j = 0; j < reportNames.size(); j++)
+                {
+                    key = (*objIdxs)[i] + "_" + reportNames[j];
+                    obj = storage_db.find(key);
+                    if (obj != storage_db.end())
+                    {
+                        objRes->Option(reportNames[j], obj->second);
+                    } 
+                    else {
+                        objRes->Option(reportNames[j], string(""));
+                    }
+                } // and of attribute filters
+                results.push_back(*objRes);
+            } // end of objects search
+        } // has objects
+        delete objIdxs;
+    } // received indexes
 
     return results.size();
 }

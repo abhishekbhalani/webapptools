@@ -101,26 +101,26 @@ transport_url& transport_url::operator=( const transport_url& url )
 
 string transport_url::tostring(bool noDefPort /*= true*/)
 {
-    string *retval = new string;
+    string retval; // = new string;
 
-    *retval = protocol + "://";
+    retval = protocol + "://";
     if (!username.empty() || !password.empty()) {
-        *retval += username + ':' + password +'@';
+        retval += username + ':' + password +'@';
     }
-    *retval += host;
+    retval += host;
     if (noDefPort && ((protocol == "http" && port == 80) || (protocol == "https" && port == 443))) {
         // oops, in this case we don't need print anything :)
     }
     else if (port > 0 && port < 65536) {
-        *retval += ':';
-        *retval += boost::lexical_cast<std::string>(port);
+        retval += ':';
+        retval += boost::lexical_cast<std::string>(port);
     }
-    *retval += request;
+    retval += request;
     if (!params.empty()) {
-        *retval += "?";
-        *retval += params;
+        retval += "?";
+        retval += params;
     }
-    return *retval;
+    return retval;
 }
 
 void transport_url::assign(const string& url )

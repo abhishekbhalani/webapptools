@@ -35,6 +35,8 @@ using namespace webEngine;
 //WeCompareMode HtmlEntity::compareMode = WeCompatreStrict;
 #endif //__DOXYGEN__
 
+static string empty_string = "";
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	static bool WeParseNeedToBreakTag(const string& tagName,
 /// 	const string& nextTag)
@@ -147,19 +149,19 @@ HtmlEntity::~HtmlEntity(void)
 ///
 /// @retval	null if something wrong, inner text string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& HtmlEntity::InnerText(void)
+const string HtmlEntity::InnerText(void)
 {
-    string *retval = new string;
+    string retval; // = new string;
     EntityList::iterator  chld;
 
-    *retval = "";
+    retval = "";
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
         if (iequals((*chld)->Name(), string("#text"))) {
-            *retval += (*chld)->Attr("");
+            retval += (*chld)->Attr("");
         }
     }
 
-	return(*retval);
+	return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -172,19 +174,19 @@ const string& HtmlEntity::InnerText(void)
 ///         string that represents the HTML-encoded entity, includes own tags and all child
 ///         entities otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& HtmlEntity::OuterText(void)
+const string HtmlEntity::OuterText(void)
 {
-    string *retval = new string;
+    string retval; // = new string;
     EntityList::iterator chld;
     AttrMap::iterator attr;
     char quote = '"';
 
-    *retval = "<";
-    *retval += entityName;
+    retval = "<";
+    retval += entityName;
     for (attr = attributes.begin(); attr != attributes.end(); attr++) {
-        *retval += " ";
-        *retval += attributes.key(attr);
-        *retval += "=";
+        retval += " ";
+        retval += attributes.key(attr);
+        retval += "=";
         if (attributes.val(attr) != "") {
             if (attributes.val(attr).find("\\\"") != string::npos) {
                 // quoted " found - use the " mark
@@ -193,22 +195,22 @@ const string& HtmlEntity::OuterText(void)
             else {
                 quote = '\'';
             }
-            *retval += quote;
-            *retval += attributes.val(attr);
-            *retval += quote;
+            retval += quote;
+            retval += attributes.val(attr);
+            retval += quote;
         }
     }
-    *retval += ">";
+    retval += ">";
     if (chldList.size() > 0 || !WeParseNeedToBreakTag(entityName, "")){
         for (chld = chldList.begin(); chld != chldList.end(); chld++) {
-            *retval += (*chld)->OuterText();
+            retval += (*chld)->OuterText();
         }
-        *retval += "</";
-        *retval += entityName;
-        *retval += ">";
+        retval += "</";
+        retval += entityName;
+        retval += ">";
     }
 
-	return(*retval);
+	return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -529,7 +531,7 @@ void WeInnerText::Attr(string name, string value)
 /// @brief	Inner text.
 /// @retval	null if something wrong, inner text string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& WeInnerText::InnerText(void)
+const string WeInnerText::InnerText(void)
 {
     AttrMap::iterator it;
 
@@ -538,7 +540,7 @@ const string& WeInnerText::InnerText(void)
     {
         return attributes.val(it);
     }
-	return(*(new string("")));
+	return empty_string;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -550,7 +552,7 @@ const string& WeInnerText::InnerText(void)
 ///         string that represents the HTML-encoded entity, includes own tags and all child
 ///         entities otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& WeInnerText::OuterText(void)
+const string WeInnerText::OuterText(void)
 {
     AttrMap::iterator it;
 
@@ -559,7 +561,7 @@ const string& WeInnerText::OuterText(void)
     {
         return attributes.val(it);
     }
-    return(*(new string("")));
+    return empty_string;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -683,7 +685,6 @@ HtmlDocument::HtmlDocument(iEntity* prnt /*= NULL*/) //:
 HtmlDocument::HtmlDocument(HtmlDocument& entity) //:
 //    HtmlEntity(), HttpResponse()
 {
-    response = NULL;
     entityName = "#document";
     response = NULL;
 }
@@ -696,7 +697,7 @@ HtmlDocument::HtmlDocument(HtmlDocument& entity) //:
 HtmlDocument::~HtmlDocument(void)
 {
     if (response != NULL) {
-        delete response;
+        response->release();
     }
     // nothing special for this class, just base classes
 }
@@ -707,7 +708,7 @@ HtmlDocument::~HtmlDocument(void)
 /// @brief	Inner text.
 /// @retval	null if something wrong, inner text string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& HtmlDocument::InnerText(void)
+const string HtmlDocument::InnerText(void)
 {
     return OuterText();
 }
@@ -721,17 +722,17 @@ const string& HtmlDocument::InnerText(void)
 ///         string that represents the HTML-encoded entity, includes own tags and all child
 ///         entities otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string& HtmlDocument::OuterText(void)
+const string HtmlDocument::OuterText(void)
 {
-    string *retval = new string;
+    string retval; // = new string;
     EntityList::iterator  chld;
 
-    *retval = "";
+    retval = "";
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
-        *retval += (*chld)->OuterText();
+        retval += (*chld)->OuterText();
     }
 
-    return(*retval);
+    return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -749,11 +750,12 @@ bool HtmlDocument::ParseData(iResponse* resp, iTransport* processor /*= NULL*/)
 
     try
     {
-        response = dynamic_cast<HttpResponse*>(resp);
+        response = dynamic_cast<HttpResponse*>(resp->add_ref());
         InStream* stream = response->Data().stream();
         if (stream) {
             TagScanner scanner(*stream);
             retval = (Parse("", scanner, processor) != wstError);
+            delete stream;
         }
         return retval;
 
@@ -924,7 +926,7 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, iTransport* p
         switch(state)
         {
         case wstTagEnd:
-            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << scanner.GetTagName());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << scanner.GetTagName());
             inOurTag = false;
             /// @todo process unpaired tag \</script\> inside the data
             // if it our tag - finish parsing
@@ -934,10 +936,9 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, iTransport* p
             }
             break;
         case wstTagStart:
-            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagstart " << scanner.GetTagName());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagstart " << scanner.GetTagName());
             // all TAGs inside script are ignored - it's just a text
-            inOurTag = false;
-            inOtherTag = true;
+            scanner.ResetToBody();
             break;
         case wstAttr:
             // attributes processed only for our tag, else it's just a text
@@ -959,14 +960,14 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, iTransport* p
         case wstCDataEnd:
         case wstPiEnd:
         default:
-            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: content " << scanner.GetValue());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: content " << scanner.GetValue());
             if (stPos == -1) {
                 stPos = enPos + 1;
             }
             inOurTag = false;
             break;
-            }
         }
+    }
     //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: get content from " << stPos << " to " << enPos);
     if (stPos > -1 && enPos > stPos) {
         txtAttr = scanner.GetFrom(stPos);

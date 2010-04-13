@@ -189,10 +189,10 @@ namespace webEngine {
                 curr = curr->next();
             }
             if (curr != NULL) {
-                return *(new _Val(curr->value()));
+                return (_Val&)(curr->value());
             }
             curr = elem;
-            return *(new _Val());
+            return empty_val;
         };
 
         virtual _Val& find_next(_Key name)
@@ -209,10 +209,10 @@ namespace webEngine {
                 curr = curr->next();
             }
             if (curr != NULL) {
-                return *(new _Val(curr->value()));
+                return (_Val&)(curr->value());
             }
             curr = elem;
-            return *(new _Val());
+            return empty_val;
         };
 
         void append(_Key name, _Val value)
@@ -297,6 +297,7 @@ namespace webEngine {
 #ifndef __DOXYGEN__
         linked_list_elem<_Key, _Val>* data;
         linked_list_elem<_Key, _Val>* curr;
+        _Val empty_val;
 #endif //__DOXYGEN__
     private:
         DECLARE_SERIAL_BASE;

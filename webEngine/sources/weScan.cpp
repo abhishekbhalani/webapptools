@@ -38,6 +38,10 @@ ScanInfo::ScanInfo()
 ScanInfo::~ScanInfo()
 {
     // nothing special at this moment
+    for (int i = 0; i < scan_data.size(); i++) {
+        delete scan_data[i];
+    }
+    scan_data.clear();
 }
 
 db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
