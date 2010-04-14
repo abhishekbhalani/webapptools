@@ -86,13 +86,54 @@ void HttpInventory::start( Task* tsk )
             SAFE_GET_OPTION_VAL(opt, host, "");
             if (host != "")
             {
-                wOption opt;
                 string path;
                 int iData;
                 opt = tsk->Option("httpInventory/"weoParallelReq);
                 SAFE_GET_OPTION_VAL(opt, iData, 1);
                 /// @todo Verify existing option and correctly update it
                 tsk->Option(weoParallelReq, iData);
+
+                // create list of the blocked extension
+                opt = tsk->Option("httpInventory/"weoDeniedFileTypes);
+                SAFE_GET_OPTION_VAL(opt, path, 1);
+                if (path != "")
+                {
+                    int pos = path.find(';');
+                    ext_deny.clear();
+                    while(pos != string::npos) {
+                        string ext = path.substr(0, pos);
+                        ext_deny.push_back(ext);
+                        if (pos < path.length())
+                        {
+                            path = path.substr(pos+1);
+                        }
+                        else {
+                            path = "";
+                        }
+                        pos = path.find(';');
+                    }
+                }
+
+                // create list of allowed sub-domains
+                opt = tsk->Option("httpInventory/"weoDomainsAllow);
+                SAFE_GET_OPTION_VAL(opt, path, 1);
+                if (path != "")
+                {
+                    int pos = path.find(';');
+                    domain_allow.clear();
+                    while(pos != string::npos) {
+                        string ext = path.substr(0, pos);
+                        domain_allow.push_back(ext);
+                        if (pos < path.length())
+                        {
+                            path = path.substr(pos+1);
+                        }
+                        else {
+                            path = "";
+                        }
+                        pos = path.find(';');
+                    }
+                }
 
                 opt = tsk->Option("httpInventory/BaseURL");
                 SAFE_GET_OPTION_VAL(opt, path, "");
@@ -335,11 +376,27 @@ void HttpInventory::process_response( iResponse *resp )
 
 void HttpInventory::add_url( transport_url link, HttpResponse *htResp, ScanData *scData )
 {
-    add_http_url(logger, link, htResp->RealUrl(), task, scData, &tasklist, htResp->depth(), (void*)this, HttpInventory::response_dispatcher);
+    bool allowed = true;
+    // verify blocked file types
+    string path = link.request;
+    int pos = path.find_last_of('.');
+    if (pos != string::npos && ext_deny.size() > 0)
+    {
+        path = path.substr(pos+1);
+        LOG4CXX_TRACE(logger, "HttpInventory::add_url: Found extension: " << path << "; Deny list size is " << ext_deny.size());
+        for (int i = 0; i < ext_deny.size(); i++) {
+            if (path == ext_deny[i]) {
+                allowed = false;
+                break;
+            }
+        }
+    }
+    add_http_url(logger, link, htResp->RealUrl(), task, scData, &tasklist, htResp->depth(), (void*)this, HttpInventory::response_dispatcher, allowed);
 }
 
 void add_http_url(log4cxx::LoggerPtr logger, transport_url link, transport_url baseUrl, Task* task,
-                  ScanData *scData, map<string, bool> *tasklist, int scan_depth, void* context, fnProcessResponse* processor )
+                  ScanData *scData, map<string, bool> *tasklist, int scan_depth, void* context, fnProcessResponse* processor,
+                  bool download /*= true*/)
 {
     bool to_process = true;
     int max_depth = 0;
@@ -380,13 +437,31 @@ void add_http_url(log4cxx::LoggerPtr logger, transport_url link, transport_url b
         LOG4CXX_TRACE(logger, "HttpInventory::add_http_url: weoIgnoreUrlParam check << " << u_req);
         if (tasklist->find(u_req) == tasklist->end())
         {
-            HttpRequest* new_url = new HttpRequest(u_req);
-            new_url->depth(scan_depth + 1);
-            new_url->ID(scData->dataID);
-            (*tasklist)[u_req] = true;
-            new_url->processor = processor;
-            new_url->context = context;
-            task->GetRequestAsync(new_url);
+            if (download) {
+                HttpRequest* new_url = new HttpRequest(u_req);
+                new_url->depth(scan_depth + 1);
+                new_url->ID(scData->dataID);
+                (*tasklist)[u_req] = true;
+                new_url->processor = processor;
+                new_url->context = context;
+                task->GetRequestAsync(new_url);
+            }
+            else {
+                LOG4CXX_DEBUG(logger, "HttpInventory::add_http_url: not need to download " << u_req);
+                // make the pseudo-responce
+                ScanData* scData = task->GetScanData(u_req, u_req);
+                if (scData->dataID == "")
+                {
+                    //scData->dataID = ;
+                    scData->respCode = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
+                    scData->downloadTime = 0;
+                    scData->dataSize = 0;
+                    scData->scan_depth = scan_depth + 1;
+                    scData->content_type = "application/octet-stream";
+                    scData->parsedData = NULL;
+                    task->SetScanData(scData);
+                }
+            }
         }
         else
         {

@@ -48,6 +48,7 @@ public:
 
     string tostring(bool noDefPort = true);
     string tostring_noparam(bool noDefPort = true);
+    string tostring_nohash(bool noDefPort = true);
 
     void assign(const string& url);
     void assign_with_referer(const string& url, transport_url* base = NULL);
@@ -70,6 +71,7 @@ public:
     string  params;         ///< request parameters
     string  username;       ///< username
     string  password;       ///< password
+    string  hashlink;       ///< part after # sign
 
 #ifndef __DOXYGEN__
 protected:
@@ -85,6 +87,7 @@ private:
         ar & BOOST_SERIALIZATION_NVP(params);
         ar & BOOST_SERIALIZATION_NVP(username);
         ar & BOOST_SERIALIZATION_NVP(password);
+        ar & BOOST_SERIALIZATION_NVP(hashlink);
     };
 };
 
