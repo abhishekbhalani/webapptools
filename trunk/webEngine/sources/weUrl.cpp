@@ -99,30 +99,6 @@ transport_url& transport_url::operator=( const transport_url& url )
     return *this;
 }
 
-string transport_url::tostring(bool noDefPort /*= true*/)
-{
-    string retval; // = new string;
-
-    retval = protocol + "://";
-    if (!username.empty() || !password.empty()) {
-        retval += username + ':' + password +'@';
-    }
-    retval += host;
-    if (noDefPort && ((protocol == "http" && port == 80) || (protocol == "https" && port == 443))) {
-        // oops, in this case we don't need print anything :)
-    }
-    else if (port > 0 && port < 65536) {
-        retval += ':';
-        retval += boost::lexical_cast<std::string>(port);
-    }
-    retval += request;
-    if (!params.empty()) {
-        retval += "?";
-        retval += params;
-    }
-    return retval;
-}
-
 void transport_url::assign(const string& url )
 {
     string temp = url;
@@ -216,6 +192,25 @@ void transport_url::assign(const string& url )
     else {
         params.clear();
     }
+
+    // extract hashlink
+    // added 14.04.2010
+    pos = request.find('#');
+    if (pos != string::npos) {
+        hashlink = request.substr(pos + 1);
+        request = request.substr(0, pos);
+    }
+    else {
+        hashlink.clear();
+    }
+    pos = params.find('#');
+    if (pos != string::npos) {
+        hashlink = params.substr(pos + 1);
+        params = params.substr(0, pos);
+    }
+    else {
+        hashlink.clear();
+    }
     valid = true;
 }
 
@@ -300,6 +295,25 @@ void transport_url::assign_with_referer( const string& url_, transport_url* base
             else {
                 params.clear();
             }
+        }
+
+        // extract hashlink
+        // added 14.04.2010
+        pos = request.find('#');
+        if (pos != string::npos) {
+            hashlink = request.substr(pos + 1);
+            request = request.substr(0, pos);
+        }
+        else {
+            hashlink.clear();
+        }
+        pos = params.find('#');
+        if (pos != string::npos) {
+            hashlink = params.substr(pos + 1);
+            params = params.substr(0, pos);
+        }
+        else {
+            hashlink.clear();
         }
         valid = true;
     }
@@ -428,24 +442,48 @@ const bool transport_url::is_domain_equal( const transport_url& url )
     return retval;
 }
 
+string transport_url::tostring(bool noDefPort /*= true*/)
+{
+    string retval; // = new string;
+
+    retval = tostring_nohash(noDefPort);
+    if (!hashlink.empty()) {
+        retval += "#";
+        retval += hashlink;
+    }
+    return retval;
+}
+
 string transport_url::tostring_noparam( bool noDefPort /*= true*/ )
 {
-    string *retval = new string;
+    string retval; // = new string;
 
-    *retval = protocol + "://";
+    retval = protocol + "://";
     if (!username.empty() || !password.empty()) {
-        *retval += username + ':' + password +'@';
+        retval += username + ':' + password +'@';
     }
-    *retval += host;
+    retval += host;
     if (noDefPort && ((protocol == "http" && port == 80) || (protocol == "https" && port == 443))) {
         // oops, in this case we don't need print anything :)
     }
     else if (port > 0 && port < 65536) {
-        *retval += ':';
-        *retval += boost::lexical_cast<std::string>(port);
+        retval += ':';
+        retval += boost::lexical_cast<std::string>(port);
     }
-    *retval += request;
-    return *retval;
+    retval += request;
+    return retval;
+}
+
+string transport_url::tostring_nohash( bool noDefPort /*= true*/ )
+{
+    string retval; // = new string;
+
+    retval = tostring_noparam(noDefPort);
+    if (!params.empty()) {
+        retval += "?";
+        retval += params;
+    }
+    return retval;
 }
 
 } // namespace webEngine

@@ -218,6 +218,10 @@ BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
 #define weoLogLevel          "LogLevel"
 /// number of parallel requests to transport (integer)
 #define weoParallelReq       "ParallelReq"
+/// semicolon separated list of the denied file types (by extensions)
+#define weoDeniedFileTypes   "DeniedFileTypes"
+/// semicolon separated list of the allowed sub-domains
+#define weoDomainsAllow      "DomainsAllow"
 /// ignore URL parameters (bool)
 #define weoIgnoreUrlParam    "noParamUrl"
 /// identifiers of the parent object (string)

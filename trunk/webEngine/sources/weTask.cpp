@@ -140,6 +140,7 @@ Task::Task()
     // set the default options
     processThread = false;
     isRunning = false;
+    scandata_mutex = (void*)(new boost::mutex);
     mutex_ptr = (void*)(new boost::mutex);
     event_ptr = (void*)(new boost::condition_variable);
     taskList.clear();
@@ -176,6 +177,10 @@ Task::~Task()
     if (mutex_ptr != NULL) {
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         delete cond;
+    }
+    if (scandata_mutex != NULL) {
+        boost::mutex *mt = (boost::mutex*)scandata_mutex;
+        delete mt;
     }
     int i;
     for (i = 0; i < transports.size(); i++) {
@@ -369,15 +374,28 @@ void Task::StorePlugins(vector<i_plugin*>& plugins)
 void Task::Run(void)
 {
     LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::Run: create WeTaskProcessor");
+    Option(weoTaskStatus, WI_TSK_PAUSED);
     boost::thread process(TaskProcessor, this);
     // switch context to initialize TaskProcessor
     boost::this_thread::sleep(boost::posix_time::millisec(10));
 
     processThread = true;
+    for (size_t i = 0; i < auditors.size(); i++)
+    {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Run: initialize " << auditors[i]->get_description());
+        auditors[i]->init(this);
+    }
     for (size_t i = 0; i < inventories.size(); i++)
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Run: " << inventories[i]->get_description());
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Run: start " << inventories[i]->get_description());
         inventories[i]->start(this);
+    }
+    Option(weoTaskStatus, WI_TSK_RUN);
+    if (event_ptr != NULL && mutex_ptr != NULL) {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Pause notify all about TaskStatus change");
+        boost::mutex *mt = (boost::mutex*)mutex_ptr;
+        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
+        cond->notify_all();
     }
 }
 
@@ -461,10 +479,19 @@ void Task::SetScanData( ScanData* scData )
     }
     /// @todo: !!! REMOVE THIS!!! It's only debug
     /// need to implement clever clean-up scheme
-    if (scData->parsedData != NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data");
-        if (scData->parsedData->release()) {
-            scData->parsedData = NULL;
+    FreeScanData(scData);
+}
+
+void Task::FreeScanData(ScanData* scData)
+{
+    if (scandata_mutex != NULL) {
+        boost::mutex *mt = (boost::mutex*)scandata_mutex;
+        boost::unique_lock<boost::mutex> lock(*mt);
+        if (scData->parsedData != NULL) {
+            LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data");
+            if (scData->parsedData->release()) {
+                scData->parsedData = NULL;
+            }
         }
     }
 }

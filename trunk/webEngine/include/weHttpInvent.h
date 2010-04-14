@@ -44,13 +44,15 @@ namespace webEngine {
 
         void add_url(transport_url link, HttpResponse *htResp, ScanData *scData);
         map<string, bool> tasklist;
+        string_list ext_deny;
+        string_list domain_allow;
     };
 
     void add_http_url(log4cxx::LoggerPtr logger, transport_url link,
         transport_url baseUrl, Task* task,
         ScanData *scData,  map<string, bool> *tasklist,
         int scan_depth, void* context,
-        fnProcessResponse* processor);
+        fnProcessResponse* processor, bool download = true);
 } // namespace webEngine
 
 #endif //__WEHTTPINVENTORY_H__

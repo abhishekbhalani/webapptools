@@ -121,6 +121,7 @@ namespace webEngine {
         virtual ScanInfo* GetScan() { return scanInfo; };
         virtual ScanData* GetScanData(const string& baseUrl, const string& realUrl);
         virtual void SetScanData(ScanData* scData);
+        virtual void FreeScanData(ScanData* scData);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn virtual void AddVulner(const string& vId,
@@ -155,6 +156,7 @@ namespace webEngine {
         bool isRunning;
         void* mutex_ptr;
         void* event_ptr;
+        void* scandata_mutex;
         size_t taskQueueSize;
         size_t taskListSize;
         vector<iRequest*> taskList;
