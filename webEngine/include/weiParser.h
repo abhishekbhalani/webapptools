@@ -32,6 +32,9 @@
 using namespace std;
 
 namespace webEngine {
+// defined in weHelper.h
+extern int LockedIncrement(int *val);
+extern int LockedDecrement(int *val);
 
 class iTransport;
 class iResponse;
@@ -77,8 +80,8 @@ public:
 
     iDocument* GetRootDocument(void);
 
-    iEntity* add_ref() {usage_count++; return this; };
-    bool release() { if (usage_count == 0) {delete this; return true;} else {usage_count --;}; return false;};
+    iEntity* add_ref() {LockedIncrement(&usage_count); return this; };
+    bool release() { if (usage_count == 0) {delete this; return true;} else {LockedDecrement(&usage_count);}; return false;};
 
     //@{
     /// @brief Access the Parent

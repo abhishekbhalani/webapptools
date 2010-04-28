@@ -42,7 +42,7 @@ public:
     ~mem_storage(void);
 
     // iwePlugin functions
-    virtual void* get_interface(const string& ifName);
+    virtual i_plugin* get_interface(const string& ifName);
 
     // i_storage functions
     virtual bool init_storage(const string& params);

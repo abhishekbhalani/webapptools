@@ -97,6 +97,9 @@ void LibInit(log4cxx::AppenderPtr appender, log4cxx::LevelPtr level);
 void LibClose(void);
 string ScreenXML(const string& xml);
 string UnscreenXML(const string& xml);
+int LockedIncrement(int *val);
+int LockedDecrement(int *val);
+int LockedGetValue(int *val);
 
 } // namespace webEngine
 

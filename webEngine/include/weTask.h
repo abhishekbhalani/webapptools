@@ -145,6 +145,9 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         virtual void AddVulner(const string& vId, const string& params, const string& parentId, int vLevel = -1);
 
+        virtual int add_thread();
+        virtual int remove_thread();
+
 #ifndef __DOXYGEN__
     protected:
         typedef map<string, iRequest*> WeRequestMap;
@@ -162,6 +165,7 @@ namespace webEngine {
         vector<iRequest*> taskList;
         vector<iResponse*> taskQueue;
         ScanInfo* scanInfo;
+        int thread_count;
 #endif //__DOXYGEN__
 
     private:

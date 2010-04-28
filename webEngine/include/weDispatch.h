@@ -44,7 +44,7 @@ public:
     ~null_storage(void);
 
     // i_plugin functions
-    virtual void* get_interface(const string& ifName);
+    virtual i_plugin* get_interface(const string& ifName);
 
     // i_storage functions
     virtual bool init_storage(const string& params) { return true; };
@@ -102,6 +102,7 @@ public:
     log4cxx::LoggerPtr get_logger() { return iLogger::GetLogger(); };
 
     i_plugin* load_plugin(string id);
+    i_plugin* get_interface(string iface);
     void add_plugin_class(string name, fnWePluginFactory func);
 
 #ifndef __DOXYGEN__

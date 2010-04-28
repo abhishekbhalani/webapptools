@@ -34,7 +34,7 @@ namespace webEngine {
         virtual ~HttpInventory(void);
 
         // iwePlugin functions
-        virtual void* get_interface(const string& ifName);
+        virtual i_plugin* get_interface(const string& ifName);
         virtual const string get_setup_ui( void );
 
         // i_inventory functions

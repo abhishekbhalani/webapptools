@@ -30,6 +30,9 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 //using namespace boost;
 
 namespace webEngine {
+    // defined in weHelper.h
+    extern int LockedIncrement(int *val);
+    extern int LockedDecrement(int *val);
 
     class iTransport;
 
@@ -84,8 +87,8 @@ namespace webEngine {
         virtual void depth(int lvl) { depth_level = lvl; };
         //@}
 
-        iOperation* add_ref() {usage_count++; return this; };
-        void release() { if (usage_count == 0) {delete this;} else {usage_count --;};};
+        iOperation* add_ref() {LockedIncrement(&usage_count); return this; };
+        void release() { if (usage_count == 0) {delete this;} else {LockedDecrement(&usage_count);};};
 
 #ifndef __DOXYGEN__
     protected:

@@ -22,6 +22,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/thread.hpp>
 #include <curl/curl.h>
 #include "weHelper.h"
 #include <log4cxx/basicconfigurator.h>
@@ -36,6 +37,7 @@ namespace webEngine {
 
 HtmlFactory  weHtmlFactory;
 static bool isLibInited = false;
+static boost::mutex ref_count_locker;
 
 static void LibInitCommon()
 {
@@ -280,5 +282,36 @@ void HtmlFactory::Clean()
     }
     delete obj;
     data = NULL;
+}
+
+int LockedIncrement( int *val )
+{
+    boost::unique_lock<boost::mutex> lock(ref_count_locker);
+#ifdef _DEBUG
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedIncrement for &" << val << " = " <<  *val);
+#endif // _DEBUG
+    (*val)++;
+    return *val;
+}
+
+int LockedDecrement( int *val )
+{
+    boost::unique_lock<boost::mutex> lock(ref_count_locker);
+#ifdef _DEBUG
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedDecrement for &" << val << " = " << *val);
+#endif // _DEBUG
+    (*val)--;
+    return *val;
+}
+
+int LockedGetValue( int *val )
+{
+    boost::unique_lock<boost::mutex> lock(ref_count_locker);
+#ifdef _DEBUG
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedGetValue for &" << val << " = " << *val);
+#endif // _DEBUG
+    int res = (*val);
+    return res;
+
 }
 } // namespace webEngine
