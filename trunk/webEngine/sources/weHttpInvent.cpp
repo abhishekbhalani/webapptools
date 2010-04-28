@@ -55,14 +55,14 @@ HttpInventory::~HttpInventory(void)
 {
 }
 
-void* HttpInventory::get_interface( const string& ifName )
+i_plugin* HttpInventory::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "HttpInventory::get_interface " << ifName);
     if (iequals(ifName, "httpInventory"))
     {
         LOG4CXX_DEBUG(logger, "HttpInventory::get_interface found!");
         usageCount++;
-        return (void*)(this);
+        return (this);
     }
     return i_inventory::get_interface(ifName);
 }
@@ -188,7 +188,6 @@ void HttpInventory::process_response( iResponse *resp )
         scData->scan_depth = htResp->depth();
         scData->content_type = htResp->ContentType();
     }
-    //task->AddScanData();
 
     /// @todo process options
     if (htResp->HttpCode() >= 300 && htResp->HttpCode() < 400) {
@@ -205,7 +204,7 @@ void HttpInventory::process_response( iResponse *resp )
         }
     }
     /// @todo select appropriate parser
-    if ((htResp->HttpCode() >= 200 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
+    if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
     {
         string cType = htResp->ContentType();
         wOption opt = task->Option("httpInventory/AllowedCType");
@@ -263,6 +262,10 @@ void HttpInventory::process_response( iResponse *resp )
             {
                 scData->parsedData = parser;
             }
+            else {
+                // prevent destruction on update
+                scData->parsedData->add_ref();
+            }
             boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
             boost::posix_time::time_period duration(pretm, postm);
             LOG4CXX_DEBUG(logger, "HttpInventory::process_response " << htResp->Data().size() << "bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
@@ -288,6 +291,23 @@ void HttpInventory::process_response( iResponse *resp )
             // scripts
             // objects
             // images
+            lst = parser->FindTags("img");
+            if (lst.size() > 0)
+            {
+                webEngine::iEntity* ent = NULL;
+                webEngine::EntityList::iterator iEnt;
+                string href;
+                for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
+                    href = (*iEnt)->Attr("src");
+                    if (href != "") {
+                        transport_url link;
+                        link.assign_with_referer(href, &(htResp->RealUrl()));
+                        LOG4CXX_DEBUG(logger, "HttpInventory::process_response: IMG url = " << link.tostring());
+                        add_url(link, htResp, scData);
+                    } // end src attribute
+                } // end <img ...> loop
+                ClearEntityList(lst);
+            } // end <img ...> tags processing
             // frames
             lst = parser->FindTags("frame");
             if (lst.size() > 0)

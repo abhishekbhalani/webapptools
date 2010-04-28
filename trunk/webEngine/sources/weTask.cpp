@@ -146,6 +146,7 @@ Task::Task()
     taskList.clear();
     taskQueue.clear();
     taskListSize = 0;
+    thread_count = 0;
 
     transports.clear();
     inventories.clear();
@@ -169,18 +170,22 @@ Task::~Task()
     Stop();
     if (scanInfo != NULL) {
         delete scanInfo;
+        scanInfo = NULL;
     }
     if (event_ptr != NULL) {
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         delete mt;
+        event_ptr = NULL;
     }
     if (mutex_ptr != NULL) {
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         delete cond;
+        mutex_ptr = NULL;
     }
     if (scandata_mutex != NULL) {
         boost::mutex *mt = (boost::mutex*)scandata_mutex;
         delete mt;
+        scandata_mutex = NULL;
     }
     int i;
     for (i = 0; i < transports.size(); i++) {
@@ -424,6 +429,12 @@ void Task::Pause(const bool& state /*= true*/)
 
 void Task::Stop()
 {
+    int active_threads = LockedGetValue(&thread_count);
+    while (active_threads > 0) {
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::Stop: " << active_threads << " threads still active, waiting...");
+        boost::this_thread::sleep(boost::posix_time::millisec(10));
+        active_threads = LockedGetValue(&thread_count);
+    }
     processThread = false;
     if (event_ptr != NULL && mutex_ptr != NULL) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Stop notify all about TaskStatus change");
@@ -471,11 +482,16 @@ ScanData* Task::GetScanData( const string& baseUrl, const string& realUrl )
 void Task::SetScanData( ScanData* scData )
 {
     scanInfo->SetScanData(scData);
-    // send to all auditors
-    for (size_t i = 0; i < auditors.size(); i++)
-    {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << auditors[i]->get_description());
-        auditors[i]->start(this, scData);
+    if (scData->parsedData != NULL) {
+        scData->parsedData->add_ref();
+        // send to all auditors
+        for (size_t i = 0; i < auditors.size(); i++)
+        {
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << auditors[i]->get_description());
+            auditors[i]->start(this, scData);
+        }
+        // to restore ref-counter from previous add_ref
+        FreeScanData(scData);
     }
     /// @todo: !!! REMOVE THIS!!! It's only debug
     /// need to implement clever clean-up scheme
@@ -488,7 +504,7 @@ void Task::FreeScanData(ScanData* scData)
         boost::mutex *mt = (boost::mutex*)scandata_mutex;
         boost::unique_lock<boost::mutex> lock(*mt);
         if (scData->parsedData != NULL) {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data " << scData->parsedData);
             if (scData->parsedData->release()) {
                 scData->parsedData = NULL;
             }
@@ -706,4 +722,17 @@ void Task::AddVulner( const string& vId, const string& params, const string& par
     LOG4CXX_INFO(iLogger::GetLogger(), "Task::AddVulner data: " << params);
 }
 
+int Task::add_thread()
+{
+    int nt = LockedIncrement(&thread_count);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::add_thread " << nt << " threads active");
+    return nt; 
+}
+
+int Task::remove_thread()
+{
+    int nt = LockedDecrement(&thread_count);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::remove_thread " << nt << " threads active");
+    return nt; 
+}
 } // namespace webEngine

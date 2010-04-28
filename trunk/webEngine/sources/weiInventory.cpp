@@ -38,14 +38,14 @@ i_inventory::~i_inventory(void)
 {
 }
 
-void* i_inventory::get_interface( const string& ifName )
+i_plugin* i_inventory::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "i_inventory::get_interface " << ifName);
     if (iequals(ifName, "i_inventory"))
     {
         LOG4CXX_DEBUG(logger, "i_inventory::get_interface found!");
         usageCount++;
-        return (void*)(this);
+        return (this);
     }
     return i_plugin::get_interface(ifName);
 }

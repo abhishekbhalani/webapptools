@@ -44,12 +44,12 @@ i_storage::~i_storage(void)
 {
 }
 
-void* i_storage::get_interface( const string& ifName )
+i_plugin* i_storage::get_interface( const string& ifName )
 {
     if (iequals(ifName, "i_storage"))
     {
         usageCount++;
-        return (void*)((i_storage*)this);
+        return ((i_storage*)this);
     }
     return i_plugin::get_interface(ifName);
 }

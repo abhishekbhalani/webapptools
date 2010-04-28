@@ -252,8 +252,8 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
         }
     }
     else {
-        LOG4CXX_ERROR(iLogger::GetLogger(), "HttpTransport::Request curl_transfer_handle: " << (int)transferHandle <<
-            "; curl_request_handle: " << (int)retval->CURLHandle());
+        LOG4CXX_ERROR(iLogger::GetLogger(), "HttpTransport::Request curl_transfer_handle: " << transferHandle <<
+            "; curl_request_handle: " << retval->CURLHandle());
     }
     return (iResponse*)retval;
 }

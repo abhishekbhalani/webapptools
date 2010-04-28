@@ -162,6 +162,7 @@ ScanData* ScanInfo::GetScanData( const string& baseUrl, const string& realUrl )
         retval->dataSize = -1;
         retval->requestedURL = baseUrl;
         retval->realURL = realUrl;
+        retval->parsedData = NULL;
     }
     return retval;
 }

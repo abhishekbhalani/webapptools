@@ -69,17 +69,17 @@ null_storage::~null_storage()
 {
 }
 
-void* null_storage::get_interface( const string& ifName )
+i_plugin* null_storage::get_interface( const string& ifName )
 {
     if (iequals(ifName, "i_storage"))
     {
         usageCount++;
-        return (void*)((i_storage*)this);
+        return ((i_storage*)this);
     }
     if (iequals(ifName, "null_storage"))
     {
         usageCount++;
-        return (void*)((null_storage*)this);
+        return ((null_storage*)this);
     }
     return i_storage::get_interface(ifName);
 }
@@ -265,6 +265,22 @@ void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFact
     delete plg;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn void engine_dispatcher::get_interface( string iface )
+///
+/// @brief  Search in loaded plugins for specified interface.
+///
+/// @param  iface   - The interface identifier.
+///
+/// @retval null if no such interface loaded, else the requested interface casted to i_plugin.
+///
+/// @author A. Abramov
+/// @date   28.04.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
+i_plugin* webEngine::engine_dispatcher::get_interface( string iface )
+{
+    return NULL;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn void engine_dispatcher::flush()
 ///

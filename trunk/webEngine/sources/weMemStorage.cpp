@@ -82,17 +82,17 @@ mem_storage::~mem_storage(void)
     flush(file_name);
 }
 
-void* mem_storage::get_interface( const string& ifName )
+i_plugin* mem_storage::get_interface( const string& ifName )
 {
     if (iequals(ifName, "i_storage"))
     {
         usageCount++;
-        return (void*)((i_storage*)this);
+        return ((i_storage*)this);
     }
     if (iequals(ifName, "mem_storage"))
     {
         usageCount++;
-        return (void*)((mem_storage*)this);
+        return ((mem_storage*)this);
     }
     return i_storage::get_interface(ifName);
 }

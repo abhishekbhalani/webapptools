@@ -72,7 +72,7 @@ public:
     virtual ~i_storage(void);
 
     // i_plugin functions
-    virtual void* get_interface(const string& ifName);
+    virtual i_plugin* get_interface(const string& ifName);
 
     // i_storage functions
     typedef enum { mask = 0xff} Operation;

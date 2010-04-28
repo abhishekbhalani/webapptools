@@ -187,8 +187,8 @@ EntityList iEntity::FindTags(string tag)
     if (iequals(tag, entityName)) {
         retval.push_back(this->add_ref());
     }
-    for (chld = chldList.begin(); chld != chldList.end(); chld++) {
-        EntityList chlds = (*chld)->FindTags(tag);
+    for (int i = 0; i < chldList.size(); i++) {
+        EntityList chlds = chldList[i]->FindTags(tag);
         for (int i = 0; i < chlds.size(); i++) {
             retval.push_back(chlds[i]);
         }

@@ -60,7 +60,7 @@ string_list i_plugin::interface_list()
     return pluginInfo.interface_list;
 }
 
-void* i_plugin::get_interface( const string& ifName )
+i_plugin* i_plugin::get_interface( const string& ifName )
 {
     if (ifName == "i_plugin") {
         usageCount++;
