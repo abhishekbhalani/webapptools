@@ -81,7 +81,7 @@ public:
 /// @date   16.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class engine_dispatcher :
-    public iOptionsProvider
+    public i_options_provider
 {
 public:
     engine_dispatcher(void);
@@ -104,6 +104,16 @@ public:
     i_plugin* load_plugin(string id);
     i_plugin* get_interface(string iface);
     void add_plugin_class(string name, fnWePluginFactory func);
+
+    // 
+    virtual wOption Option(const string& name);
+    virtual void Option(const string& name, wOptionVal val);
+    virtual bool IsSet(const string& name);
+    virtual void Erase(const string& name);
+    virtual void Clear();
+    virtual string_list OptionsList();
+    virtual size_t OptionSize();
+
 
 #ifndef __DOXYGEN__
 protected:

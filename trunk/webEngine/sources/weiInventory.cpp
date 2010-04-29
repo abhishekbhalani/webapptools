@@ -50,7 +50,7 @@ i_plugin* i_inventory::get_interface( const string& ifName )
     return i_plugin::get_interface(ifName);
 }
 
-void i_inventory::response_dispatcher( iResponse *resp, void* context )
+void i_inventory::response_dispatcher( i_response *resp, void* context )
 {
     i_inventory* object = (i_inventory*)context;
 //     if (object->process_response) {

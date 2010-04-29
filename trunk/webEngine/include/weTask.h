@@ -33,13 +33,14 @@ using namespace std;
 namespace webEngine {
 
     // forward declarations
-    class iTransport;
+    class i_transport;
     class i_inventory;
     class i_audit;
     class iVulner;
-    class iRequest;
+    class i_request;
     class ScanData;
     class ScanInfo;
+    class engine_dispatcher;
 
 #define WE_TASK_SIGNAL_NO       0
 #define WE_TASK_SIGNAL_RUN      1
@@ -48,48 +49,58 @@ namespace webEngine {
 #define WE_TASK_SIGNAL_SUSSPEND 4
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  Task
+    /// @class  task
     ///
     /// @brief  Entry point to execute any actions with webEngine
     ///
     /// @author A. Abramov
     /// @date   09.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class Task : public iOptionsProvider
+    class task : public i_options_provider
     {
     public:
-        Task();
-        Task(Task& cpy);
-        ~Task();
+        task(engine_dispatcher *krnl = NULL);
+        task(task& cpy);
+        ~task();
+
+        // i_options_provider functions
+        virtual wOption Option(const string& name);
+        virtual void Option(const string& name, wOptionVal val);
+        virtual bool IsSet(const string& name);
+        virtual void Erase(const string& name);
+        virtual void Clear();
+        void CopyOptions(i_options_provider* cpy);
+        string_list OptionsList();
+        size_t OptionSize();
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgTransport(iTransport* plugin)
+        /// @fn void AddPlgTransport(i_transport* plugin)
         ///
-        /// @brief  Adds a transport plugin to the Task object.
-        /// @param  plugin   - Plugin with iTransport interface. 
+        /// @brief  Adds a transport plugin to the task object.
+        /// @param  plugin   - Plugin with i_transport interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgTransport(iTransport* plugin);
+        void AddPlgTransport(i_transport* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn void AddPlgInventory(i_inventory* plugin)
         ///
-        /// @brief  Adds a inventory plugin to the Task object.
+        /// @brief  Adds a inventory plugin to the task object.
         /// @param  plugin   - Plugin with i_inventory interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         void AddPlgInventory(i_inventory* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgAuditor(i_inventory* plugin)
+        /// @fn void AddPlgAuditor(i_audit* plugin)
         ///
-        /// @brief  Adds a auditor plugin to the Task object.
+        /// @brief  Adds a auditor plugin to the task object.
         /// @param  plugin   - Plugin with i_audit interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         void AddPlgAuditor(i_audit* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgVulner(i_inventory* plugin)
+        /// @fn void AddPlgVulner(iVulner* plugin)
         ///
-        /// @brief  Adds a vulnerability search plugin to the Task object.
+        /// @brief  Adds a vulnerability search plugin to the task object.
         /// @param  plugin   - Plugin with iVulner interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         void AddPlgVulner(iVulner* plugin);
@@ -97,7 +108,7 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn	void StorePlugins(vector<i_plugin*>& plugins)
         ///
-        /// @brief	Adds plugins to the Task object. Plugins wil br separeted to categories and sorted by
+        /// @brief	Adds plugins to the task object. Plugins will be separated to categories and sorted by
         ///         priority.
         ///
         /// @param [in,out]	plugins	 - if non-null, the plugins. 
@@ -109,8 +120,8 @@ namespace webEngine {
         void Stop();
 
         bool IsReady();
-        virtual iResponse* GetRequest(iRequest* req);
-        virtual void GetRequestAsync(iRequest* req);
+        virtual i_response* GetRequest(i_request* req);
+        virtual void GetRequestAsync(i_request* req);
 
         db_recordset* ToRS( const string& parentID = "" );
         void FromRS( db_recordset *rs );
@@ -150,8 +161,8 @@ namespace webEngine {
 
 #ifndef __DOXYGEN__
     protected:
-        typedef map<string, iRequest*> WeRequestMap;
-        vector<iTransport*> transports;
+        typedef map<string, i_request*> WeRequestMap;
+        vector<i_transport*> transports;
         vector<i_inventory*> inventories;
         vector<i_audit*> auditors;
         vector<iVulner*> vulners;
@@ -162,10 +173,11 @@ namespace webEngine {
         void* scandata_mutex;
         size_t taskQueueSize;
         size_t taskListSize;
-        vector<iRequest*> taskList;
-        vector<iResponse*> taskQueue;
+        vector<i_request*> taskList;
+        vector<i_response*> taskQueue;
         ScanInfo* scanInfo;
         int thread_count;
+        engine_dispatcher *kernel;
 #endif //__DOXYGEN__
 
     private:
@@ -173,11 +185,11 @@ namespace webEngine {
         {
             ar & BOOST_SERIALIZATION_NVP(options);
         };
-        friend void TaskProcessor(Task* tsk);
+        friend void TaskProcessor(task* tsk);
     };
 
 } // namespace webEngine
 
-BOOST_CLASS_TRACKING(webEngine::Task, boost::serialization::track_never)
+BOOST_CLASS_TRACKING(webEngine::task, boost::serialization::track_never)
 
 #endif //__WETASK_H__

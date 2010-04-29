@@ -55,14 +55,14 @@ namespace webEngine {
     class wOption
     {
     public:
-        wOption() { empty = true; };
-        wOption(string nm) { name = nm; empty = true; };
+        wOption() { val = 0; empty = true; };
+        wOption(string nm) { oname = nm; empty = true; };
         ~wOption() {};
 
         //@{
-        /// @brief  Access the Name property
-        const string &Name(void) const      { return(name); };
-        void Name(const string &nm)         { name = nm;    };
+        /// @brief  Access the name property
+        const string &name(void) const      { return(oname); };
+        void name(const string &nm)         { oname = nm;    };
         //@}
 
         //@{
@@ -87,20 +87,20 @@ namespace webEngine {
 
         /// @brief Assignment operator
         wOption& operator=(wOption& cpy)
-        {   name = cpy.name;
+        {   oname = cpy.oname;
         val = cpy.val;
         empty = cpy.empty;
         return *this; };
 
         bool operator==(wOption& cpy)
-        {   name = cpy.name;
+        {   oname = cpy.oname;
         val = cpy.val;
         empty = cpy.empty;
-        return (name == cpy.name && val == cpy.val); };
+        return (oname == cpy.oname && val == cpy.val); };
 
 #ifndef __DOXYGEN__
     protected:
-        string      name;
+        string      oname;
         wOptionVal  val;
         bool        empty;
 #endif //__DOXYGEN__
@@ -108,30 +108,57 @@ namespace webEngine {
     private:
         DECLARE_SERIALIZATOR
         {
-            ar & BOOST_SERIALIZATION_NVP(name);
+            ar & BOOST_SERIALIZATION_NVP(oname);
             ar & BOOST_SERIALIZATION_NVP(val);
             empty = false;
         };
     };
 
-    typedef map<string, wOption*> wOptions;
+    typedef map<string, wOption> wOptions;
 
 #define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (...) { (var) = (def); };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iOptionsProvider
+/// @interface  i_options_provider
 ///
 /// @brief  options storage.
 ///
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iOptionsProvider
+class i_options_provider
 {
 public:
-    iOptionsProvider() {};
-    virtual ~iOptionsProvider();
+    i_options_provider() {};
+    virtual ~i_options_provider() {};
 
-    virtual wOption& Option(const string& name);
+    virtual wOption Option(const string& name) = 0;
+    virtual bool IsSet(const string& name) = 0;
+    virtual void Option(const string& name, wOptionVal val) = 0;
+    virtual void Erase(const string& name) = 0;
+    virtual void Clear() = 0;
+
+    virtual void CopyOptions(i_options_provider* cpy);
+    virtual string_list OptionsList() = 0;
+    virtual size_t OptionSize() = 0;
+
+    static wOption empty_option;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  options_provider
+///
+/// @brief  In-memory options storage.
+///
+/// @author A. Abramov
+/// @date   29.04.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class options_provider : public i_options_provider
+{
+public:
+    options_provider() {};
+    virtual ~options_provider();
+
+    virtual wOption Option(const string& name);
     virtual bool IsSet(const string& name);
     virtual void Option(const string& name, wOptionVal val);
     virtual void Erase(const string& name)
@@ -143,10 +170,8 @@ public:
         }
     };
     virtual void Clear() { options.clear(); };
-
-    void CopyOptions(iOptionsProvider* cpy);
-    string_list OptionsList();
-    size_t OptionSize() { return options.size(); };
+    virtual string_list OptionsList();
+    virtual size_t OptionSize() { return options.size(); };
 
     db_recordset* ToRS( const string& parentID = "" );
     void FromRS( db_recordset *rs );
@@ -154,7 +179,7 @@ public:
     // simplified serialization
     string ToXml( void );
     void FromXml( string input );
-    void FromXml( TagScanner& sc, int token = -1 );
+    void FromXml( tag_scanner& sc, int token = -1 );
 
 #ifndef __DOXYGEN__
 protected:

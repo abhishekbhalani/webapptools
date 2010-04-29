@@ -43,7 +43,7 @@ namespace webEngine {
 typedef HtmlEntity* (*fnEntityFactory)(iEntity* prnt);
 
 // typedef WeLinkedListElem<string, EntityFactory> WeHtmlFuncList;
-// typedef WeLinkedListElem<string, TransportFactory> WeTranspFuncList;
+// typedef WeLinkedListElem<string, transport_factory> WeTranspFuncList;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  HtmlFactory
@@ -90,7 +90,7 @@ public:
 };
 
 extern HtmlFactory  weHtmlFactory;
-extern TransportFactory weTransportFactory;
+extern transport_factory weTransportFactory;
 
 void LibInit(const string& config = "");
 void LibInit(log4cxx::AppenderPtr appender, log4cxx::LevelPtr level);

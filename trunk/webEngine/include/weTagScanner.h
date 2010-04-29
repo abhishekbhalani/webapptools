@@ -34,7 +34,6 @@ The copy of the code was obtained from CodeProject.com
 
 @author A. Abramov
 @date 26.05.2009.
-@example tagscanner.cpp
 */
 
 #include <string>
@@ -47,49 +46,49 @@ using namespace std;
 namespace webEngine {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class	InStream
+    /// @class	tag_stream
     ///
-    /// @brief  TagScanner's input stream.
+    /// @brief  tag_scanner's input stream.
     ///
-    /// This is the base class for input data into the TagScanner. This class is abstract and can't
-    /// be used directly. Inherit this class and override the GetChar function to implement your own
+    /// This is the base class for input data into the tag_scanner. This class is abstract and can't
+    /// be used directly. Inherit this class and override the get_char function to implement your own
     /// input stream.
     ///
     /// @author	A. Abramov
     /// @date	26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class InStream {
+    class tag_stream {
     public:
-        virtual char GetChar() = 0;
-        virtual void PushBack(char c) = 0;
-        virtual size_t GetPos() = 0;
-        virtual char* GetFrom(int form) = 0;
+        virtual char get_char() = 0;
+        virtual void push_back(char c) = 0;
+        virtual size_t get_pos() = 0;
+        virtual char* get_from(int form) = 0;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class	StrStream
+    /// @class	str_tag_stream
     ///
-    /// @brief	TagScanner's input string.
+    /// @brief	tag_scanner's input string.
     ///
     /// This class implements input stream based on string.
     ///
     /// @author	A. Abramov
     /// @date	26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class StrStream : public InStream
+    class str_tag_stream : public tag_stream
     {
         char* p;
         const char* start;
         const char* end;
     public:
-        StrStream(const char* src): p((char*)src), start(src), end(src + strlen(src)) {}
-        virtual char GetChar() { return p < end? *p++: 0; }
-        virtual void PushBack(char c) {if(p > start) {p--;}}
-        virtual size_t GetPos() { return p - start; };
-        virtual char* GetFrom(int form) { return (char*)(start + form); };
+        str_tag_stream(const char* src): p((char*)src), start(src), end(src + strlen(src)) {}
+        virtual char get_char() { return p < end? *p++: 0; }
+        virtual void push_back(char c) {if(p > start) {p--;}}
+        virtual size_t get_pos() { return p - start; };
+        virtual char* get_from(int form) { return (char*)(start + form); };
     };
 
-    enum ScannerToken {
+    enum scanner_token {
         wstError = -1,
         wstEof = 0,
         wstTagStart,
@@ -105,7 +104,7 @@ namespace webEngine {
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class	TagScanner
+    /// @class	tag_scanner
     ///
     /// @brief	TAG scanner for parsing markup languages (XML or HTML).
     ///
@@ -113,36 +112,36 @@ namespace webEngine {
     /// @author	Aabramov
     /// @date	26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class TagScanner {
+    class tag_scanner {
     public:
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn	TagScanner(InStream& is)
+        /// @fn	tag_scanner(tag_stream& is)
         /// @brief  Constructor.
         /// @param  is - the input stream to parse.
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        TagScanner(InStream& is):
+        tag_scanner(tag_stream& is):
           input(is),
               input_char(0),
               //            value_length(0),
               //            tag_name_length(0),
               //            attr_name_length(0),
-              got_tail(false) { c_scan = &TagScanner::ScanBody; }
-          virtual ~TagScanner(){};
+              got_tail(false) { c_scan = &tag_scanner::ScanBody; }
+          virtual ~tag_scanner(){};
 
           ////////////////////////////////////////////////////////////////////////////////////////////////////
-          /// @fn	ScannerToken GetToken()
+          /// @fn	scanner_token get_token()
           ///
           /// @brief	Gets the next token from stream.
           /// @return	The token.
           ////////////////////////////////////////////////////////////////////////////////////////////////////
-          ScannerToken    GetToken() { return (this->*c_scan)(); }
-          const char*       GetValue();
-          const char*       GetAttrName();
-          const char*       GetTagName();
+          scanner_token get_token() { return (this->*c_scan)(); }
+          const char*   get_value();
+          const char*   get_attr_name();
+          const char*   get_tag_name();
 
           ////////////////////////////////////////////////////////////////////////////////////////////////////
-          /// @fn	virtual wchar_t ResolveEntity(const char* buf, int buf_size)
+          /// @fn	virtual wchar_t resolve_entity(const char* buf, int buf_size)
           ///
           /// @brief    Resolve entity.
           /// @param    buf       - If non-null, the buffer.
@@ -150,11 +149,11 @@ namespace webEngine {
           ///
           /// @return   resulting char.
           ////////////////////////////////////////////////////////////////////////////////////////////////////
-          virtual char   ResolveEntity(const char* buf, int buf_size) { return 0; }
-          virtual size_t GetPos() { return input.GetPos(); };
-          virtual void   PushBack(char c);
-          virtual char*  GetFrom(int from) {return input.GetFrom(from);};
-          virtual void   ResetToBody() {c_scan = &TagScanner::ScanBody;};
+          virtual char   resolve_entity(const char* buf, int buf_size) { return 0; }
+          virtual size_t get_pos() { return input.get_pos(); };
+          virtual void   push_back(char c);
+          virtual char*  get_from(int from) {return input.get_from(from);};
+          virtual void   reset_to_body() {c_scan = &tag_scanner::ScanBody;};
 
     private:
         /* types */
@@ -162,7 +161,7 @@ namespace webEngine {
         static const int MAX_NAME_SIZE = 128;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @typedef ScannerToken (TagScanner::*fnScan)()
+        /// @typedef scanner_token (tag_scanner::*fnScan)()
         ///
         ///
         /// @brief	WebEngine scanner token parser function.
@@ -170,18 +169,18 @@ namespace webEngine {
         /// This type defines pointer to the scanner function. Used to switch scanner function to parse
         /// different regions of the source file.
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        typedef ScannerToken (TagScanner::*fnScan)();
+        typedef scanner_token (tag_scanner::*fnScan)();
         fnScan        c_scan; // current 'reader'
 
         /* methods */
         // content 'readers'
-        ScannerToken  ScanBody();
-        ScannerToken  ScanHead();
-        ScannerToken  ScanComment();
-        ScannerToken  ScanCdata();
-        ScannerToken  ScanPi();
-        ScannerToken  ScanTag();
-        ScannerToken  ScanEntityDecl();
+        scanner_token   ScanBody();
+        scanner_token   ScanHead();
+        scanner_token   ScanComment();
+        scanner_token   ScanCdata();
+        scanner_token   ScanPi();
+        scanner_token   ScanTag();
+        scanner_token   ScanEntityDecl();
 
         char            SkipWhitespace();
         char            GetChar();
@@ -195,7 +194,7 @@ namespace webEngine {
 
         /* data */
 #ifndef __DOXYGEN__
-        ScannerToken  token;
+        scanner_token  token;
 
         vector<char>    value;
         //int             value_length;
@@ -206,7 +205,7 @@ namespace webEngine {
         vector<char>    attr_name;
         //int             attr_name_length;
 
-        InStream&     input;              ///< input stream for scanning
+        tag_stream&     input;              ///< input stream for scanning
         char            input_char;         ///< current input char
 
         bool            got_tail;           ///< aux flag used in scan_comment, etc.

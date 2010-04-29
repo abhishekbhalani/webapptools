@@ -34,7 +34,7 @@ namespace webEngine {
 /// @author A. Abramov
 /// @date	03.09.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class db_record : public iOptionsProvider
+class db_record : public options_provider
 {
 public:
     /// namespace of the object
@@ -86,7 +86,7 @@ public:
     virtual string generate_id(const string& objType = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int get( db_record& filters, db_record& respFilter, db_recordset& results)
+    /// @fn int get( db_record& filter, db_record& respFilter, db_recordset& results)
     ///
     /// @brief  Gets the db_recordset from given namespace (objType). The response filtered to
     ///         equality of the selected field to the given values. The response will contains only
@@ -101,7 +101,7 @@ public:
     virtual int get(db_record& filter, db_record& respFilter, db_recordset& results) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int set(db_record& filters, db_record& data)
+    /// @fn int set(db_record& filter, db_record& data)
     ///
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object), and non-empty @b filters may be used to
@@ -127,7 +127,7 @@ public:
     virtual int set(db_recordset& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int delete(db_record& filters)
+    /// @fn int del(db_record& filter)
     ///
     /// @brief	Deletes the filtered object(s). 
     ///

@@ -31,7 +31,6 @@ using namespace std;
 
 /// @file   weDiffLib.h
 /// @brief  Difference building operations and structures
-/// @example difflib.cpp
 
 namespace webEngine {
 

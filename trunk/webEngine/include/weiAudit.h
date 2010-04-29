@@ -26,9 +26,9 @@
 namespace webEngine {
 
 // forward declarations
-class Task;
+class task;
 class ScanData;
-class iResponse;
+class i_response;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  i_audit
@@ -46,35 +46,35 @@ public:
     virtual ~i_audit(void);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void init(Task* tsk)
+    /// @fn void init(task* tsk)
     ///
     /// @brief  Initialize plugin for given task. 
     ///
     /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void init(Task* tsk) = 0;
+    virtual void init(task* tsk) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void start(Task* tsk, ScanData* scData)
+    /// @fn void start(task* tsk, ScanData* scData)
     ///
     /// @brief  Starts the audit process for given ScanData object. 
     ///
     /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
     /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void start(Task* tsk, ScanData* scData) = 0;
+    virtual void start(task* tsk, ScanData* scData) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void process_response(iResponse *resp)
+    /// @fn void process_response(i_response *resp)
     ///
     /// @brief  Process the transport response described by resp.
     /// 		
     /// @param  resp - If non-null, the resp. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void process_response(iResponse *resp) = 0;
+    virtual void process_response(i_response *resp) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn static void response_dispatcher(iResponse *resp, void* context)
+    /// @fn static void response_dispatcher(i_response *resp, void* context)
     ///
     /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
     ///         by the context
@@ -82,10 +82,10 @@ public:
     /// @param  resp	 - If non-null, the resp. 
     /// @param  context	 - If non-null, the context. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    static void response_dispatcher(iResponse *resp, void* context);
+    static void response_dispatcher(i_response *resp, void* context);
 
 protected:
-    Task* task;
+    task* parent_task;
 };
 
 } // namespace webEngine

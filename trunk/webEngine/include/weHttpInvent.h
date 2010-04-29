@@ -38,8 +38,8 @@ namespace webEngine {
         virtual const string get_setup_ui( void );
 
         // i_inventory functions
-        void start(Task* tsk);
-        void process_response(iResponse *resp);
+        void start(task* tsk);
+        void process_response(i_response *resp);
     protected:
 
         void add_url(transport_url link, HttpResponse *htResp, ScanData *scData);
@@ -49,7 +49,7 @@ namespace webEngine {
     };
 
     void add_http_url(log4cxx::LoggerPtr logger, transport_url link,
-        transport_url baseUrl, Task* task,
+        transport_url baseUrl, task* task,
         ScanData *scData,  map<string, bool> *tasklist,
         int scan_depth, void* context,
         fnProcessResponse* processor, bool download = true);

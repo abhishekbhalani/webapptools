@@ -187,10 +187,10 @@ EntityList iEntity::FindTags(string tag)
     if (iequals(tag, entityName)) {
         retval.push_back(this->add_ref());
     }
-    for (int i = 0; i < chldList.size(); i++) {
+    for (size_t i = 0; i < chldList.size(); i++) {
         EntityList chlds = chldList[i]->FindTags(tag);
-        for (int i = 0; i < chlds.size(); i++) {
-            retval.push_back(chlds[i]);
+        for (size_t j = 0; j < chlds.size(); j++) {
+            retval.push_back(chlds[j]);
         }
         chlds.clear();
     }
@@ -209,7 +209,7 @@ void iEntity::ClearChildren( void )
 {
     EntityList::iterator  chld;
 
-    for (int i = 0; i < chldList.size(); i++) {
+    for (size_t i = 0; i < chldList.size(); i++) {
         chldList[i]->release(); 
     }
     chldList.clear();
@@ -255,8 +255,7 @@ void ClearEntityList( EntityList &lst )
 {
     EntityList::iterator  chld;
 
-    int i;
-    for (i = 0; i < lst.size(); i++) {
+    for (size_t i = 0; i < lst.size(); i++) {
         lst[i]->release();
     }
     lst.clear();    

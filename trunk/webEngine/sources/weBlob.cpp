@@ -23,7 +23,7 @@
 using namespace webEngine;
 
 // Read BLOB data from a stream.
-bool Blob::read(istream& file)
+bool blob::read(istream& file)
 {
     if (file.bad())
     {
@@ -42,7 +42,7 @@ bool Blob::read(istream& file)
 }
 
 // Write BLOB data to the stream.
-bool Blob::write(ostream& file)
+bool blob::write(ostream& file)
 {
     size_t cb = size();
     file.write((const char*)&cb, 4);
@@ -55,12 +55,12 @@ bool Blob::write(ostream& file)
 }
 
 template<class Archive>
-void Blob::serialize(Archive &ar, const unsigned int version)
+void blob::serialize(Archive &ar, const unsigned int version)
 {
 //    ar & (std::vector*)this;
 }
 
-InStream* Blob::stream()
+tag_stream* blob::stream()
 {
-    return new BlobStream(*this);
+    return new blob_stream(*this);
 }

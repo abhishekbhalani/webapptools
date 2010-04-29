@@ -56,7 +56,7 @@ static void LibInitCommon()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void LibInit(void)
+/// @fn	void LibInit(const string& config = "")
 ///
 /// @brief  WebEngine library initialize.
 /// @throw  WeError if cURL library doesn't initialized
