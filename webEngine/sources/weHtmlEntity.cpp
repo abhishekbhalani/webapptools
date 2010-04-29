@@ -235,22 +235,22 @@ weCmpState HtmlEntity::Compare(iEntity& entity, weCmpMode mode)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken HtmlEntity::Parse( string tagName,
-/// 	TagScanner& scanner, iTransport* processor )
+/// @fn	scanner_token HtmlEntity::Parse( string tagName,
+/// 	tag_scanner& scanner, i_transport* processor )
 ///
 /// @brief  Parses the given stream.
 ///
-/// This function goes through the input stream by the TagScanner and creates HTML entity.
+/// This function goes through the input stream by the tag_scanner and creates HTML entity.
 /// All child entities are created recursively.
 ///
 /// @param  tagName - name of the tag.
 /// @param  scanner - the scanner.
 /// @param  processor - HttpTransport object with processing options and network connection
-/// @retval	ScannerToken that represents current scanner's state.
+/// @retval	scanner_token that represents current scanner's state.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken HtmlEntity::Parse( string tagName, TagScanner& scanner, iTransport* processor /*= NULL*/ )
+scanner_token HtmlEntity::Parse( string tagName, tag_scanner& scanner, i_transport* processor /*= NULL*/ )
 {
-    ScannerToken  state;
+    scanner_token  state;
     HtmlEntity    *chld;
     WeInnerText     *txt;
     string           txtAttr;
@@ -269,7 +269,7 @@ ScannerToken HtmlEntity::Parse( string tagName, TagScanner& scanner, iTransport*
         // if no HttpTransport given - use default options? but no follow the links
         //opts = HttpTransport::weoDefault & (~HttpTransport::weoFollowLinks);
     }
-    startPos = (int)(scanner.GetPos() - tagName.length());
+    startPos = (int)(scanner.get_pos() - tagName.length());
     if (tagName.length() > 0) {
         startPos--; // if tagName present - skip the "<" symbol
     }
@@ -281,7 +281,7 @@ ScannerToken HtmlEntity::Parse( string tagName, TagScanner& scanner, iTransport*
 
     while (true)
     {
-        state = scanner.GetToken();
+        state = scanner.get_token();
 parseRestart:
         if (state == wstEof || state == wstError) {
             if (txt != NULL) {
@@ -296,7 +296,7 @@ parseRestart:
         switch(state)
         {
         case wstTagEnd:
-            lString = scanner.GetTagName();
+            lString = scanner.get_tag_name();
             to_lower(lString);
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
@@ -320,12 +320,12 @@ parseRestart:
                 }
             }
             else {
-                LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: TAG END: " << scanner.GetTagName());
+                LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: TAG END: " << scanner.get_tag_name());
             }
-            endPos = (int)scanner.GetPos();
+            endPos = (int)scanner.get_pos();
             return state;
         case wstTagStart:
-            lString = scanner.GetTagName();
+            lString = scanner.get_tag_name();
             to_lower(lString);
             LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: TAG START: " << lString);
             if (txt != NULL) {
@@ -349,7 +349,7 @@ parseRestart:
             }
             chld = weHtmlFactory.CreateEntity(lString, this);
             if (chld != NULL) {
-                ScannerToken chldState;
+                scanner_token chldState;
                 chldList.push_back(chld);
                 chldState = chld->Parse(lString, scanner, processor);
                 LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: from child, state=" << chldState <<
@@ -378,10 +378,10 @@ parseRestart:
                 txtAttr.clear();
                 txt = NULL;
             }
-//-DBG: printf("\tATTR: %s=%s\n", scanner.GetAttrName(), scanner.GetValue());
-            lString = scanner.GetAttrName();
+//-DBG: printf("\tATTR: %s=%s\n", scanner.get_attr_name(), scanner.get_value());
+            lString = scanner.get_attr_name();
             to_lower(lString);
-            attributes[lString] = scanner.GetValue();
+            attributes[lString] = scanner.get_value();
         	break;
         case wstWord:
         case wstSpace:
@@ -389,11 +389,12 @@ parseRestart:
                 txt = new WeInnerText(this);
                 txtAttr = "";
             }
-            if (state == wstSpace && processor != NULL && processor->IsSet(weoCollapseSpaces)) { //HttpTransport::weoCollapseSpaces)) {
+            /// @todo: implement option receiver for parser
+            if (state == wstSpace && processor != NULL && processor->is_set(weoCollapseSpaces)) { //HttpTransport::weoCollapseSpaces)) {
                 txtAttr += " ";
             }
             else {
-                txtAttr += scanner.GetValue();
+                txtAttr += scanner.get_value();
             }
             break;
         case wstCommentStart:
@@ -428,8 +429,8 @@ parseRestart:
             break;
         case wstData:
             // force points the '#text' property to avoid other children types break
-//-DBG: printf("%s - DATA: %s\n", chld->entityName.c_str(), scanner.GetValue());
-            chld->Attr("#text", scanner.GetValue());
+//-DBG: printf("%s - DATA: %s\n", chld->entityName.c_str(), scanner.get_value());
+            chld->Attr("#text", scanner.get_value());
             break;
         case wstCommentEnd:
         case wstCDataEnd:
@@ -444,7 +445,7 @@ parseRestart:
         }
     }
 
-    endPos = (int)scanner.GetPos();
+    endPos = (int)scanner.get_pos();
     return state;
 }
 
@@ -736,24 +737,24 @@ const string HtmlDocument::OuterText(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn bool HtmlDocument::ParseData(iResponse* resp, iTransport* processor = NULL )
+/// @fn bool HtmlDocument::ParseData(i_response* resp, i_transport* processor = NULL )
 ///
 /// @brief  Parse data stored inside WeHttpResponce.
 ///
-/// @param  processor - iTransport object with processing options and network connection
-/// @param  resp - iResponse object with received data to parse
+/// @param  processor - i_transport object with processing options and network connection
+/// @param  resp - i_response object with received data to parse
 /// @retval	true if it succeeds, false if it fails.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool HtmlDocument::ParseData(iResponse* resp, iTransport* processor /*= NULL*/)
+bool HtmlDocument::ParseData(i_response* resp, i_transport* processor /*= NULL*/)
 {
     bool retval = false;
 
     try
     {
         response = dynamic_cast<HttpResponse*>(resp->add_ref());
-        InStream* stream = response->Data().stream();
+        tag_stream* stream = response->Data().stream();
         if (stream) {
-            TagScanner scanner(*stream);
+            tag_scanner scanner(*stream);
             retval = (Parse("", scanner, processor) != wstError);
             delete stream;
         }
@@ -765,12 +766,12 @@ bool HtmlDocument::ParseData(iResponse* resp, iTransport* processor /*= NULL*/)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	Blob & HtmlDocument::Data( void )
+/// @fn	blob & HtmlDocument::Data( void )
 ///
 /// @brief	Grants access to the linked response data. 
-/// @throw  WeError if no iResponse assigned
+/// @throw  WeError if no i_response assigned
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-Blob& HtmlDocument::Data( void )
+blob& HtmlDocument::Data( void )
 {
     if (response != NULL) {
         return response->Data();
@@ -790,7 +791,7 @@ weCmpState HtmlDocument::Compare( iEntity& cmp, weCmpMode mode )
     return weCmpNonComparable;
 }
 
-ScannerToken HtmlDocument::Parse( string tagName, TagScanner& scanner, iTransport* processor /*= NULL*/ )
+scanner_token HtmlDocument::Parse( string tagName, tag_scanner& scanner, i_transport* processor /*= NULL*/ )
 {
     return HtmlEntity::Parse(tagName, scanner, processor);
 }
@@ -829,7 +830,7 @@ WeRefrenceObject::~WeRefrenceObject()
     /// @todo Implement this!
 }
 
-ScannerToken WeRefrenceObject::Parse( string tagName, TagScanner& scanner, iTransport* processor /*= NULL*/ )
+scanner_token WeRefrenceObject::Parse( string tagName, tag_scanner& scanner, i_transport* processor /*= NULL*/ )
 {
     return HtmlEntity::Parse(tagName, scanner, processor);
 }
@@ -871,8 +872,8 @@ WeScript::~WeScript()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken WeScript::Parse( string tagName,
-/// 	TagScanner& scanner, HttpTransport* processor )
+/// @fn	scanner_token WeScript::Parse( string tagName,
+/// 	tag_scanner& scanner, i_transport* processor = NULL )
 ///
 /// @brief  Parses the given stream.
 ///
@@ -881,14 +882,13 @@ WeScript::~WeScript()
 /// @param  tagName - name of the tag.
 /// @param  scanner - the scanner.
 /// @param  processor - HttpTransport object with processing options and network connection
-/// @retval	ScannerToken that represents current scanner's state.
+/// @retval	scanner_token that represents current scanner's state.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, iTransport* processor /*= NULL*/ )
+scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport* processor /*= NULL*/ )
 {
-    ScannerToken  state;
+    scanner_token  state;
     string          txtAttr;
     bool            inOurTag;
-    bool            inOtherTag;
     bool            inProcess;
     int             enPos, stPos;
 
@@ -915,36 +915,36 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, iTransport* p
 
     while (inProcess)
     {
-        enPos = (int)scanner.GetPos();
-        state = scanner.GetToken();
+        enPos = (int)scanner.get_pos();
+        state = scanner.get_token();
         // skip errors
         if (state == wstEof ) { //|| state == wstError
-            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: wstEof " << scanner.GetTagName() << "; val " << scanner.GetValue());
+            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: wstEof " << scanner.get_tag_name() << "; val " << scanner.get_value());
             inProcess = false;
             break;
         }
         switch(state)
         {
         case wstTagEnd:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << scanner.GetTagName());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << scanner.get_tag_name());
             inOurTag = false;
             /// @todo process unpaired tag \</script\> inside the data
             // if it our tag - finish parsing
-            if (iequals(scanner.GetTagName(), "script")) {
+            if (iequals(scanner.get_tag_name(), "script")) {
                 // It's the finish
                 inProcess = false;
             }
             break;
         case wstTagStart:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagstart " << scanner.GetTagName());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagstart " << scanner.get_tag_name());
             // all TAGs inside script are ignored - it's just a text
-            scanner.ResetToBody();
+            scanner.reset_to_body();
             break;
         case wstAttr:
             // attributes processed only for our tag, else it's just a text
             if (inOurTag) {
-                attributes[scanner.GetAttrName()] = scanner.GetValue();
-                //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: " << scanner.GetAttrName() << " = " << scanner.GetValue());
+                attributes[scanner.get_attr_name()] = scanner.get_value();
+                //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: " << scanner.get_attr_name() << " = " << scanner.get_value());
             }
             // reset state to parse content
             break;
@@ -960,7 +960,7 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, iTransport* p
         case wstCDataEnd:
         case wstPiEnd:
         default:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: content " << scanner.GetValue());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: content " << scanner.get_value());
             if (stPos == -1) {
                 stPos = enPos + 1;
             }
@@ -970,12 +970,12 @@ ScannerToken WeScript::Parse( string tagName, TagScanner& scanner, iTransport* p
     }
     //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: get content from " << stPos << " to " << enPos);
     if (stPos > -1 && enPos > stPos) {
-        txtAttr = scanner.GetFrom(stPos);
+        txtAttr = scanner.get_from(stPos);
         enPos -= stPos;
         txtAttr = txtAttr.substr(0, enPos);
         Attr("#code", txtAttr);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: exit for: " << scanner.GetTagName());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: exit for: " << scanner.get_tag_name());
 
     /// @todo Implement post-process - download and others
     return state;

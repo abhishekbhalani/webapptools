@@ -72,13 +72,13 @@ const string HttpInventory::get_setup_ui( void )
     return xrc;
 }
 
-void HttpInventory::start( Task* tsk )
+void HttpInventory::start( task* tsk )
 {
     transport_url   start_url;
 
     if (tsk)
     {
-        task = tsk;
+        parent_task = tsk;
         if (kernel)
         {
             string host;
@@ -98,7 +98,7 @@ void HttpInventory::start( Task* tsk )
                 SAFE_GET_OPTION_VAL(opt, path, 1);
                 if (path != "")
                 {
-                    int pos = path.find(';');
+                    size_t pos = path.find(';');
                     ext_deny.clear();
                     while(pos != string::npos) {
                         string ext = path.substr(0, pos);
@@ -119,7 +119,7 @@ void HttpInventory::start( Task* tsk )
                 SAFE_GET_OPTION_VAL(opt, path, 1);
                 if (path != "")
                 {
-                    int pos = path.find(';');
+                    size_t pos = path.find(';');
                     domain_allow.clear();
                     while(pos != string::npos) {
                         string ext = path.substr(0, pos);
@@ -146,7 +146,7 @@ void HttpInventory::start( Task* tsk )
                 LOG4CXX_TRACE(logger, "HttpInventory::start: start request = " << req->RequestUrl().tostring());
                 req->processor = HttpInventory::response_dispatcher;
                 req->context = (void*)this;
-                task->GetRequestAsync(req);
+                parent_task->GetRequestAsync(req);
             }
             else {
                 LOG4CXX_WARN(logger, "HttpInventory::start: Can't find hostname. Finishing.");
@@ -161,7 +161,7 @@ void HttpInventory::start( Task* tsk )
     }
 }
 
-void HttpInventory::process_response( iResponse *resp )
+void HttpInventory::process_response( i_response *resp )
 {
     HttpResponse* htResp;
 
@@ -174,7 +174,7 @@ void HttpInventory::process_response( iResponse *resp )
     }
     // process response
     LOG4CXX_TRACE(logger, "HttpInventory::process_response: process response with code=" << htResp->HttpCode());
-    ScanData* scData = task->GetScanData(htResp->BaseUrl().tostring(), htResp->RealUrl().tostring());
+    ScanData* scData = parent_task->GetScanData(htResp->BaseUrl().tostring(), htResp->RealUrl().tostring());
     if (scData->parentID == "")
     {
         scData->parentID = htResp->ID();
@@ -207,7 +207,7 @@ void HttpInventory::process_response( iResponse *resp )
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
     {
         string cType = htResp->ContentType();
-        wOption opt = task->Option("httpInventory/AllowedCType");
+        wOption opt = parent_task->Option("httpInventory/AllowedCType");
         int cTypeMethod;
         SAFE_GET_OPTION_VAL(opt, cTypeMethod, 0); // default - any type
         LOG4CXX_TRACE(logger, "HttpInventory::process_response: content-type analyze method = " << cTypeMethod);
@@ -390,7 +390,7 @@ void HttpInventory::process_response( iResponse *resp )
     }
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 400) || htResp->HttpCode() >= 500)
     {
-        task->SetScanData(scData);
+        parent_task->SetScanData(scData);
     }
 }
 
@@ -404,17 +404,17 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, ScanData 
     {
         path = path.substr(pos+1);
         LOG4CXX_TRACE(logger, "HttpInventory::add_url: Found extension: " << path << "; Deny list size is " << ext_deny.size());
-        for (int i = 0; i < ext_deny.size(); i++) {
+        for (size_t i = 0; i < ext_deny.size(); i++) {
             if (path == ext_deny[i]) {
                 allowed = false;
                 break;
             }
         }
     }
-    add_http_url(logger, link, htResp->RealUrl(), task, scData, &tasklist, htResp->depth(), (void*)this, HttpInventory::response_dispatcher, allowed);
+    add_http_url(logger, link, htResp->RealUrl(), parent_task, scData, &tasklist, htResp->depth(), (void*)this, HttpInventory::response_dispatcher, allowed);
 }
 
-void add_http_url(log4cxx::LoggerPtr logger, transport_url link, transport_url baseUrl, Task* task,
+void add_http_url(log4cxx::LoggerPtr logger, transport_url link, transport_url baseUrl, task* task,
                   ScanData *scData, map<string, bool> *tasklist, int scan_depth, void* context, fnProcessResponse* processor,
                   bool download /*= true*/)
 {

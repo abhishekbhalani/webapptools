@@ -55,12 +55,11 @@ public:
     // mem_storage functions
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn string_list* search_db(const string& objType,
-    /// 	db_record& filters)
+    /// @fn string_list* search_db(db_record& filter)
     ///
     /// @brief  Searches database for objects. 
     ///
-    /// @param  filters - the db_record to filter the request 
+    /// @param  filter - the db_record to filter the request 
     ///
     /// @retval List of object ID's 
     ////////////////////////////////////////////////////////////////////////////////////////////////////

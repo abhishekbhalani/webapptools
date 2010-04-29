@@ -22,8 +22,8 @@
 
 namespace webEngine {
 
-class Task;
-class iResponse;
+class task;
+class i_response;
 
 class i_inventory :
     public i_plugin
@@ -48,25 +48,25 @@ public:
     virtual i_plugin* get_interface(const string& ifName);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void start(Task* tsk)
+    /// @fn void start(task* tsk)
     ///
     /// @brief  Starts the inventory process. 
     ///
     /// @param  tsk	 - If non-null, the pointer to task what handles the process. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void start(Task* tsk) = 0;
+    virtual void start(task* tsk) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void process_response(iResponse *resp)
+    /// @fn void process_response(i_response *resp)
     ///
     /// @brief  Process the transport response described by resp.
     /// 		
     /// @param  resp - If non-null, the resp. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void process_response(iResponse *resp) = 0;
+    virtual void process_response(i_response *resp) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn static void response_dispatcher(iResponse *resp, void* context)
+    /// @fn static void response_dispatcher(i_response *resp, void* context)
     ///
     /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
     ///         by the context
@@ -74,10 +74,10 @@ public:
     /// @param  resp	 - If non-null, the resp. 
     /// @param  context	 - If non-null, the context. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    static void response_dispatcher(iResponse *resp, void* context);
+    static void response_dispatcher(i_response *resp, void* context);
 
 protected:
-    Task* task;
+    task* parent_task;
 };
 
 } // namespace webEngine

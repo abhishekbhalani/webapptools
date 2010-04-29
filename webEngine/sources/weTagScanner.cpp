@@ -43,48 +43,48 @@ static inline bool equal(const char* s, const char* s1, size_t length)
 
 namespace webEngine {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	char* TagScanner::GetValue(void)
+/// @fn	char* tag_scanner::get_value(void)
 ///
 /// @brief  Gets the value. 
 /// @retval	null if it fails, else the value. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const char* TagScanner::GetValue(void)
+const char* tag_scanner::get_value(void)
 {
     value.push_back(0); //[value_length] = 0;
     return &value[0];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	char* TagScanner::GetAttrName(void)
+/// @fn	char* tag_scanner::get_attr_name(void)
 ///
 /// @brief  Gets the attribute name. 
 /// @retval	null if it fails, else the attribute name. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const char* TagScanner::GetAttrName(void)
+const char* tag_scanner::get_attr_name(void)
 {
     attr_name.push_back(0); //[attr_name_length] = 0;
     return &attr_name[0];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	char* TagScanner::GetTagName(void)
+/// @fn	char* tag_scanner::get_tag_name(void)
 ///
 /// @brief  Gets the tag name. 
 /// @retval	null if it fails, else the tag name. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const char* TagScanner::GetTagName(void)
+const char* tag_scanner::get_tag_name(void)
 {
     tag_name.push_back(0); //[tag_name_length] = 0;
     return &tag_name[0];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::ScanBody(void)
+/// @fn	scanner_token tag_scanner::ScanBody(void)
 ///
 /// @brief  Scans the body. 
 /// @return	current token. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken TagScanner::ScanBody(void)
+scanner_token tag_scanner::ScanBody(void)
 {
     char c = GetChar();
 
@@ -102,14 +102,14 @@ ScannerToken TagScanner::ScanBody(void)
     while(true) 
     {
         AppendValue(c);
-        c = input.GetChar();
-        if(c == 0)  { /*PushBack(c);*/ break; }
-        if(c == '<') { PushBack(c); break; }
-        if(c == '&') { PushBack(c); break; }
+        c = input.get_char();
+        if(c == 0)  { /*push_back(c);*/ break; }
+        if(c == '<') { push_back(c); break; }
+        if(c == '&') { push_back(c); break; }
 
         if(IsWhitespace(c) != ws) 
         {
-            PushBack(c);
+            push_back(c);
             break;
         }
 
@@ -118,21 +118,21 @@ ScannerToken TagScanner::ScanBody(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::ScanHead(void)
+/// @fn	scanner_token tag_scanner::ScanHead(void)
 ///
 /// @brief	Scans the head. 
 /// @return	current token. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken TagScanner::ScanHead(void)
+scanner_token tag_scanner::ScanHead(void)
 {
     char c = SkipWhitespace();
 
-    if(c == '>') { c_scan = &TagScanner::ScanBody; return ScanBody(); }
+    if(c == '>') { c_scan = &tag_scanner::ScanBody; return ScanBody(); }
     if(c == '/')
     {
         char t = GetChar();
-        if(t == '>')   { c_scan = &TagScanner::ScanBody; return wstTagEnd; }
-        else { PushBack(t); return wstError; } // erroneous situation - standalone '/'
+        if(t == '>')   { c_scan = &tag_scanner::ScanBody; return wstTagEnd; }
+        else { push_back(t); return wstError; } // erroneous situation - standalone '/'
     }
 
     attr_name.clear();
@@ -142,11 +142,11 @@ ScannerToken TagScanner::ScanHead(void)
     while(c != '=') 
     {
         if( c == 0) return wstEof;
-        if( c == '>' ) { PushBack(c); return wstAttr; } // attribute without value (HTML style)
+        if( c == '>' ) { push_back(c); return wstAttr; } // attribute without value (HTML style)
         if( IsWhitespace(c) )
         {
             c = SkipWhitespace();
-            if(c != '=') { PushBack(c); return wstAttr; } // attribute without value (HTML style)
+            if(c != '=') { push_back(c); return wstAttr; } // attribute without value (HTML style)
             else break;
         }
         if( c == '<') return wstError;
@@ -178,7 +178,7 @@ ScannerToken TagScanner::ScanHead(void)
             /* these two removed in favour of better html support:
             if( c == '/' || c == '>' ) { push_back(c); return wstAttr; }
             if( c == '&' ) c = scan_entity();*/
-            if( c == '>' ) { PushBack(c); return wstAttr; }
+            if( c == '>' ) { push_back(c); return wstAttr; }
             AppendValue(c);
         } while(c = GetChar());
 
@@ -186,16 +186,16 @@ ScannerToken TagScanner::ScanHead(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::ScanComment(void)
+/// @fn	scanner_token tag_scanner::ScanComment(void)
 ///
 /// @brief  Scans the comment. 
 /// @return	current token. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken TagScanner::ScanComment(void)
+scanner_token tag_scanner::ScanComment(void)
 {
     if(got_tail)
     {
-        c_scan = &TagScanner::ScanBody;
+        c_scan = &tag_scanner::ScanBody;
         got_tail = false;
         return wstCommentEnd;
     }
@@ -222,16 +222,16 @@ ScannerToken TagScanner::ScanComment(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::ScanCdata()
+/// @fn	scanner_token tag_scanner::ScanCdata()
 ///
 /// @brief  Scans the cdata. 
 /// @return	current token. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken TagScanner::ScanCdata()
+scanner_token tag_scanner::ScanCdata()
 {
     if(got_tail)
     {
-        c_scan = &TagScanner::ScanBody;
+        c_scan = &tag_scanner::ScanBody;
         got_tail = false;
         return wstCDataEnd;
     }
@@ -259,16 +259,16 @@ ScannerToken TagScanner::ScanCdata()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::ScanPi()
+/// @fn	scanner_token tag_scanner::ScanPi()
 ///
 /// @brief  Scans the PHP includes. 
 /// @return	current token. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken TagScanner::ScanPi()
+scanner_token tag_scanner::ScanPi()
 {
     if(got_tail)
     {
-        c_scan = &TagScanner::ScanBody;
+        c_scan = &tag_scanner::ScanBody;
         got_tail = false;
         return wstPiEnd;
     }
@@ -294,12 +294,12 @@ ScannerToken TagScanner::ScanPi()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::ScanTag()
+/// @fn	scanner_token tag_scanner::ScanTag()
 ///
 /// @brief  Scans the tag. 
 /// @return	current token. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken TagScanner::ScanTag()
+scanner_token tag_scanner::ScanTag()
 {
     tag_name.clear();
 
@@ -317,16 +317,16 @@ ScannerToken TagScanner::ScanTag()
         switch(tag_name.size())
         {
         case 3: 
-            if(equal(&tag_name[0],"!--",3))  { c_scan = &TagScanner::ScanComment; return wstCommentStart; }
+            if(equal(&tag_name[0],"!--",3))  { c_scan = &tag_scanner::ScanComment; return wstCommentStart; }
             break;
         case 8:
-            if( equal(&tag_name[0],"![CDATA[",8) ) { c_scan = &TagScanner::ScanCdata; return wstCDataStart; }
+            if( equal(&tag_name[0],"![CDATA[",8) ) { c_scan = &tag_scanner::ScanCdata; return wstCDataStart; }
             break;
         case 7:
-            if( equal(&tag_name[0],"!ENTITY",8) ) { c_scan = &TagScanner::ScanEntityDecl; return wstEntityStart; }
+            if( equal(&tag_name[0],"!ENTITY",8) ) { c_scan = &tag_scanner::ScanEntityDecl; return wstEntityStart; }
             break;
         default:
-            if ( tag_name[0] == '?' ) { c_scan = &TagScanner::ScanPi; return wstPiStart; }
+            if ( tag_name[0] == '?' ) { c_scan = &tag_scanner::ScanPi; return wstPiStart; }
             break;
         }
 
@@ -341,19 +341,19 @@ ScannerToken TagScanner::ScanTag()
         return wstError;
     }
     else 
-        PushBack(c);
+        push_back(c);
 
-    c_scan = &TagScanner::ScanHead;
+    c_scan = &tag_scanner::ScanHead;
     return wstTagStart;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::ScanEntity()
+/// @fn	scanner_token tag_scanner::ScanEntity()
 ///
 /// @brief  Scans the entity (\&-based encoding). 
 /// @return	resulting character. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-char TagScanner::ScanEntity()
+char tag_scanner::ScanEntity()
 {
     char buf[32];
     int i = 0;
@@ -365,7 +365,7 @@ char TagScanner::ScanEntity()
         if(t == 0) return wstEof;
         if( !isalnum(t) )
         {
-            PushBack(t);
+            push_back(t);
             break; // appears a erroneous entity token.
             // but we try to use it.
         }
@@ -397,7 +397,7 @@ char TagScanner::ScanEntity()
             return ret;
         }
     }
-    t = ResolveEntity(buf,i);
+    t = resolve_entity(buf,i);
     if(t) {
         GetChar(); // take finalizing ';'
         return t;
@@ -410,16 +410,16 @@ char TagScanner::ScanEntity()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::ScanEntityDecl()
+/// @fn	scanner_token tag_scanner::ScanEntityDecl()
 ///
 /// @brief  Scans the cdata. 
 /// @retval	current token. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-ScannerToken TagScanner::ScanEntityDecl()
+scanner_token tag_scanner::ScanEntityDecl()
 {
     if(got_tail)
     {
-        c_scan = &TagScanner::ScanBody;
+        c_scan = &tag_scanner::ScanBody;
         got_tail = false;
         return wstEntityEnd;
     }
@@ -441,12 +441,12 @@ ScannerToken TagScanner::ScanEntityDecl()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	ScannerToken TagScanner::SkipWhitespace()
+/// @fn	scanner_token tag_scanner::SkipWhitespace()
 ///
 /// @brief  Skip whitespaces.
 /// @return first non-whitespace char 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-char TagScanner::SkipWhitespace()
+char tag_scanner::SkipWhitespace()
 {
     while(char c = GetChar()) 
     {
@@ -456,47 +456,47 @@ char TagScanner::SkipWhitespace()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void TagScanner::PushBack(char c)
+/// @fn	void tag_scanner::push_back(char c)
 ///
 /// @brief	Pushes the given character back to the stream. 
 /// @param  c - The character to be returned to the stream. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void TagScanner::PushBack(char c)
+void tag_scanner::push_back(char c)
 {
-    input.PushBack(c);
+    input.push_back(c);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	char TagScanner::GetChar()
+/// @fn	char tag_scanner::GetChar()
 ///
 /// @brief  Gets the char from the input stream. 
 /// @return The next input char. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-char TagScanner::GetChar()
+char tag_scanner::GetChar()
 {
-    return input.GetChar();
+    return input.get_char();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	bool TagScanner::IsWhitespace(char c)
+/// @fn	bool tag_scanner::IsWhitespace(char c)
 ///
 /// @brief  Query if 'c' is whitespace. 
 /// @param	c - The input character. 
 /// @retval	true if whitespace, @e false if not. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool TagScanner::IsWhitespace(char c)
+bool tag_scanner::IsWhitespace(char c)
 {
     return c <= ' ' 
         && (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f');
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void TagScanner::AppendValue(char c)
+/// @fn	void tag_scanner::AppendValue(char c)
 ///
 /// @brief	Appends a value. 
 /// @param	c - The char to append to the value. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void TagScanner::AppendValue(char c)
+void tag_scanner::AppendValue(char c)
 {
     value.push_back(c);
 //     if(value_length < (MAX_TOKEN_SIZE - 1)) 
@@ -504,23 +504,23 @@ void TagScanner::AppendValue(char c)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void TagScanner::AppendAttrName(char c)
+/// @fn	void tag_scanner::AppendAttrName(char c)
 ///
 /// @brief  Appends an attribute name. 
 /// @param	c - The char to append to the attribute name. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void TagScanner::AppendAttrName(char c)
+void tag_scanner::AppendAttrName(char c)
 {
     attr_name.push_back((char)c);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void TagScanner::AppendTagName(char c)
+/// @fn	void tag_scanner::AppendTagName(char c)
 ///
 /// @brief  Appends a tag name. 
 /// @param	c - The char to append to the tag name. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void TagScanner::AppendTagName(char c)
+void tag_scanner::AppendTagName(char c)
 {
     tag_name.push_back((char)c);
 }

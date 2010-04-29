@@ -49,17 +49,13 @@ static string xrc = "<plugin><category label='Basic settings' name='generic'>\
 
 namespace webEngine {
 
-#ifndef __DOXYGEN__
-string HttpTransport::protoName = "http";
-#endif // __DOXYGEN__
-
 //////////////////////////////////////////////////////////////////////////
 // Transport creation functions
 //////////////////////////////////////////////////////////////////////////
-static iTransport* weCreateHttp(engine_dispatcher* krnl)
+static i_transport* weCreateHttp(engine_dispatcher* krnl)
 {
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "TransportFactory: create HttpTransport");
-    return new HttpTransport(krnl); //new HttpTransport();
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "TransportFactory: create http_transport");
+    return new http_transport(krnl); //new http_transport();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +89,7 @@ HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*
     //LOG4CXX_WARN(iLogger::GetLogger(), "HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented");
 }
 
-void HttpRequest::RequestUrl( const string &ReqUrl, iOperation* resp /*= NULL*/ )
+void HttpRequest::RequestUrl( const string &ReqUrl, i_operation* resp /*= NULL*/ )
 {
     transport_url   weurl;
 
@@ -101,7 +97,7 @@ void HttpRequest::RequestUrl( const string &ReqUrl, iOperation* resp /*= NULL*/ 
     return RequestUrl(weurl, resp);
 }
 
-void HttpRequest::RequestUrl( const transport_url &ReqUrl, iOperation* resp /*= NULL*/ )
+void HttpRequest::RequestUrl( const transport_url &ReqUrl, i_operation* resp /*= NULL*/ )
 {
     reqUrl = ReqUrl;
     if (resp != NULL) {
@@ -117,13 +113,13 @@ void HttpRequest::ComposePost( int method /*= composeOverwrite*/ )
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	HttpTransport::HttpTransport()
+/// @fn	http_transport::http_transport(engine_dispatcher* krnl, void* handle = NULL)
 ///
 /// @brief  Default constructor.
 /// @throw  WeError if the curl initialization failed
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-HttpTransport::HttpTransport(engine_dispatcher* krnl, void* handle /*= NULL*/) :
-    iTransport(krnl, handle)
+http_transport::http_transport(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+    i_transport(krnl, handle)
 {
     transferHandle = curl_multi_init();
     if (transferHandle == NULL) {
@@ -131,20 +127,24 @@ HttpTransport::HttpTransport(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     }
     responces.clear();
     // iwePlugin structure
-    pluginInfo.interface_name = "HttpTransport";
-    pluginInfo.interface_list.push_back("HttpTransport");
+    pluginInfo.interface_name = "http_transport";
+    pluginInfo.interface_list.push_back("http_transport");
     pluginInfo.plugin_desc = "HTTP transport interface";
     pluginInfo.plugin_id = "A44A9A1E7C25";
+
+    default_port = 80;
+    proto_name = "http";
+    options.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	HttpTransport::~HttpTransport()
+/// @fn	http_transport::~http_transport()
 ///
 /// @brief  Destructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-HttpTransport::~HttpTransport()
+http_transport::~http_transport()
 {
-    ResponseList::iterator hnd;
+    response_list::iterator hnd;
     HttpResponse* point;
 
     if (transferHandle != NULL) {
@@ -160,24 +160,24 @@ HttpTransport::~HttpTransport()
     }
 }
 
-void* HttpTransport::GetInterface( const string& ifName )
+i_plugin* http_transport::get_interface( const string& ifName )
 {
-    if (iequals(ifName, "HttpTransport"))
+    if (iequals(ifName, "http_transport"))
     {
         usageCount++;
-        return (void*)(this);
+        return this;
     }
-    if (iequals(ifName, "iTransport"))
+    if (iequals(ifName, "i_transport"))
     {
         usageCount++;
-        return (void*)((iTransport*)this);
+        return this;
     }
-    return iTransport::GetInterface(ifName);
+    return i_transport::get_interface(ifName);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn iResponse* HttpTransport::Request( iRequest* req,
-///     iResponse* resp )
+/// @fn i_response* http_transport::request( i_request* req,
+///     i_response* resp )
 ///
 /// @brief  Requests.
 ///
@@ -186,11 +186,10 @@ void* HttpTransport::GetInterface( const string& ifName )
 ///                will be creaded.
 /// @retval	null if it fails, pointer to the HttpResponse else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
+i_response* http_transport::request( i_request* req, i_response* resp /*= NULL*/ )
 {
     HttpResponse* retval;
     wOption opt;
-    int portNum;
 
     if (!req->RequestUrl().is_valid()) {
         if (resp != NULL) {
@@ -201,15 +200,13 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
 
     if (!req->RequestUrl().is_valid()) {
         if (req->RequestUrl().protocol == "") {
-            req->RequestUrl().protocol = protoName;
+            req->RequestUrl().protocol = proto_name;
         }
         if (req->RequestUrl().port < 1 || req->RequestUrl().port > 65535) {
-            opt = Option("httpTransport/Port");
-            SAFE_GET_OPTION_VAL(opt, portNum, 0);
-            req->RequestUrl().port = portNum;
+            req->RequestUrl().port = default_port;
         }
     }
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "HttpTransport::Request: url=" << req->RequestUrl().tostring());
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "http_transport::request: url=" << req->RequestUrl().tostring());
 
     if (!req->RequestUrl().is_valid()) {
         // bad luck! still not valid request... :(
@@ -245,22 +242,22 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
     if (transferHandle != NULL && retval->CURLHandle() != NULL) {
         try {
             curl_multi_add_handle(transferHandle, retval->CURLHandle());
-            ProcessRequests();
+            process_requests();
         }
         catch (std::exception &e) {
-            LOG4CXX_ERROR(iLogger::GetLogger(), "HttpTransport::Request - curl_multi_add_handle failed: " << e.what());
+            LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request - curl_multi_add_handle failed: " << e.what());
         }
     }
     else {
-        LOG4CXX_ERROR(iLogger::GetLogger(), "HttpTransport::Request curl_transfer_handle: " << transferHandle <<
+        LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request curl_transfer_handle: " << transferHandle <<
             "; curl_request_handle: " << retval->CURLHandle());
     }
-    return (iResponse*)retval;
+    return (i_response*)retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn iResponse* HttpTransport::Request( string url,
-///     iResponse* resp )
+/// @fn i_response* http_transport::request( string url,
+///     i_response* resp )
 ///
 /// @brief  Requests.
 /// @param	url	 - The url.
@@ -268,7 +265,7 @@ iResponse* HttpTransport::Request( iRequest* req, iResponse* resp /*= NULL*/ )
 /// @retval	null if it fails, pointer to the HttpResponse else.
 /// @throw  WeError if given transport_url is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iResponse* HttpTransport::Request( string url, iResponse* resp /*= NULL*/ )
+i_response* http_transport::request( string url, i_response* resp /*= NULL*/ )
 {
     HttpRequest* req = new HttpRequest;
 
@@ -283,12 +280,12 @@ iResponse* HttpTransport::Request( string url, iResponse* resp /*= NULL*/ )
         }
     }
     req->Method(HttpRequest::wemGet);
-    return Request(req, resp);
+    return request(req, resp);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn iResponse* HttpTransport::Request( transport_url& url,
-///     iResponse* resp )
+/// @fn i_response* http_transport::request( transport_url& url,
+///     i_response* resp )
 ///
 /// @brief  Requests.
 /// @param	url	 - The url.
@@ -296,7 +293,7 @@ iResponse* HttpTransport::Request( string url, iResponse* resp /*= NULL*/ )
 /// @retval	null if it fails, pointer to the HttpResponse else.
 /// @throw  WeError if given transport_url is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iResponse* HttpTransport::Request( transport_url& url, iResponse* resp /*= NULL*/ )
+i_response* http_transport::request( transport_url& url, i_response* resp /*= NULL*/ )
 {
     HttpRequest* req = new HttpRequest;
 
@@ -306,34 +303,34 @@ iResponse* HttpTransport::Request( transport_url& url, iResponse* resp /*= NULL*
     }
     req->RequestUrl(url, resp);
     req->Method(HttpRequest::wemGet);
-    return Request(req, resp);
+    return request(req, resp);
 }
 
-const int HttpTransport::ProcessRequests( void )
+const int http_transport::process_requests( void )
 {
     int running_handles;
     int msgs_in_queue;
     CURLMsg *cmsg;
-    ResponseList::iterator hnd;
+    response_list::iterator hnd;
     HttpResponse* resp;
 
     if (transferHandle != NULL) {
 #ifdef _DEBUG
-        LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_perform");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_perform");
 #endif
         lastError = curl_multi_perform(transferHandle, &running_handles);
 
         /// @todo Implements accurate busy-loop
         while (lastError == CURLM_CALL_MULTI_PERFORM) {
 #ifdef _DEBUG
-            LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_perform in the loop");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_perform in the loop");
 #endif
             boost::this_thread::sleep(boost::posix_time::millisec(10));
             lastError = curl_multi_perform(transferHandle, &running_handles);
         }
 
 #ifdef _DEBUG
-        LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_info_read");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_info_read");
 #endif
         cmsg = curl_multi_info_read(transferHandle, &msgs_in_queue);
         while (cmsg != NULL)
@@ -347,7 +344,7 @@ const int HttpTransport::ProcessRequests( void )
                             responces.erase(hnd);
                             hnd = responces.begin();
 #ifdef _DEBUG
-                            LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_remove_handle");
+                            LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_remove_handle");
 #endif
                             curl_multi_remove_handle(transferHandle, resp->CURLHandle());
                             resp->Process(this);
@@ -355,14 +352,14 @@ const int HttpTransport::ProcessRequests( void )
                         }
                     }
                     catch (std::exception &e) {
-                        LOG4CXX_ERROR(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl exception: " << e.what());
+                        LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::process_requests - curl exception: " << e.what());
                     }; // just skip
                     hnd++;
                 }
             }
             // delete cmsg;
 #ifdef _DEBUG
-            LOG4CXX_TRACE(iLogger::GetLogger(), "HttpTransport::ProcessRequests - curl_multi_info_read, extract msg");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_info_read, extract msg");
 #endif
             cmsg = curl_multi_info_read(transferHandle, &msgs_in_queue);
         }
@@ -373,9 +370,46 @@ const int HttpTransport::ProcessRequests( void )
     return lastError;
 }
 
-const string HttpTransport::GetSetupUI( void )
+const string http_transport::get_setup_ui( void )
 {
     return xrc;
+}
+
+void http_transport::load_settings( i_options_provider *data_provider, string key /*= ""*/ )
+{
+    if (key == "") {
+        key = "httpTransport";
+    }
+    wOption opt;
+    bool val;
+
+    opt = data_provider->Option(key + "/port");
+    SAFE_GET_OPTION_VAL(opt, default_port, 80);
+
+    opt = data_provider->Option(key + "/protocol");
+    SAFE_GET_OPTION_VAL(opt, proto_name, "http");
+
+    opt = data_provider->Option(key + weoCollapseSpaces);
+    SAFE_GET_OPTION_VAL(opt, val, false);
+    options[weoCollapseSpaces] = val;
+
+    opt = data_provider->Option(key + weoFollowLinks);
+    SAFE_GET_OPTION_VAL(opt, val, false);
+    options[weoFollowLinks] = val;
+}
+
+bool http_transport::is_set( const string& name )
+{
+    map<string, bool>::iterator it;
+    bool retval = false;
+
+    it = options.find(name);
+    if (it != options.end())
+    {
+        retval = it->second;
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::is_set(" << name << ") value=" << retval);
+    return retval;
 }
 
 } // namespace webEngine

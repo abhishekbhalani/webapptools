@@ -34,16 +34,16 @@ namespace webEngine {
     extern int LockedIncrement(int *val);
     extern int LockedDecrement(int *val);
 
-    class iTransport;
+    class i_transport;
 
-    class iOperation;
-    class iResponse;
-    typedef boost::shared_ptr<iOperation> iweOperationPtr;
-    typedef void (fnProcessResponse)(iResponse *resp, void* context);
+    class i_operation;
+    class i_response;
+    typedef boost::shared_ptr<i_operation> iweOperationPtr;
+    typedef void (fnProcessResponse)(i_response *resp, void* context);
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  iOperation
+    /// @class  i_operation
     ///
     /// @brief  Abstraction for transport operation.
     ///
@@ -53,11 +53,11 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   16.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class iOperation
+    class i_operation
     {
     public:
-        iOperation() { usage_count = 0; context = NULL; processor = NULL; depth_level = 0; };
-        virtual ~iOperation();
+        i_operation() { usage_count = 0; context = NULL; processor = NULL; depth_level = 0; };
+        virtual ~i_operation();
 
         virtual void AddChild(iweOperationPtr* chld);
         virtual void RemoveChild(iweOperationPtr* chld);
@@ -87,69 +87,69 @@ namespace webEngine {
         virtual void depth(int lvl) { depth_level = lvl; };
         //@}
 
-        iOperation* add_ref() {LockedIncrement(&usage_count); return this; };
+        i_operation* add_ref() {LockedIncrement(&usage_count); return this; };
         void release() { if (usage_count == 0) {delete this;} else {LockedDecrement(&usage_count);};};
 
 #ifndef __DOXYGEN__
     protected:
         int usage_count;
         transport_url baseUrl;
-        iOperation* previous;
+        i_operation* previous;
         vector<iweOperationPtr*> children;
         string identifier;
         int depth_level;
     private:
-        iOperation(iOperation&) {};               ///< Avoid object coping
-        iOperation& operator=(iOperation&) { return *this; };    ///< Avoid object coping
+        i_operation(i_operation&) {};               ///< Avoid object coping
+        i_operation& operator=(i_operation&) { return *this; };    ///< Avoid object coping
 #endif //__DOXYGEN__
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @interface  iRequest
+    /// @interface  i_request
     ///
-    /// @brief  Request to iTransport to receive data.
+    /// @brief  request to i_transport to receive data.
     ///
     /// @author A. Abramov
     /// @date   10.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class iRequest : virtual public iOperation
+    class i_request : virtual public i_operation
     {
     public:
-        iRequest() {};
-        iRequest(string url) {};
-        virtual ~iRequest() {};
+        i_request() {};
+        i_request(string url) {};
+        virtual ~i_request() {};
 
         //@{
         /// @brief  Access the ReqUrl property.
         ///
         /// @throw  WeError if given transport_url is malformed and can't be reconstructed from the WeHttpResponse
         virtual transport_url  &RequestUrl(void)  { return(baseUrl);   };
-        virtual void RequestUrl(const string &ReqUrl, iOperation* resp = NULL) = 0;
-        virtual void RequestUrl(const transport_url &ReqUrl, iOperation* resp = NULL) = 0;
+        virtual void RequestUrl(const string &ReqUrl, i_operation* resp = NULL) = 0;
+        virtual void RequestUrl(const transport_url &ReqUrl, i_operation* resp = NULL) = 0;
         //@}
     };
 
-    typedef vector<iRequest*> WeRequestList;
+    typedef vector<i_request*> request_list;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  iResponse
+    /// @class  i_response
     ///
-    /// @brief  Response from the iTransport.
+    /// @brief  Response from the i_transport.
     ///
     /// @author A. Abramov
     /// @date   10.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class iResponse : virtual public iOperation
+    class i_response : virtual public i_operation
     {
     public:
-        iResponse() {};
-        virtual ~iResponse() {};
+        i_response() {};
+        virtual ~i_response() {};
 
         //@{
         /// @brief  Access the RealUrl property
         ///
         /// This property represents the transport_url of the document, from which the resulting
-        /// data was downloaded. It may differs from the BaseUrl, if relocations
+        /// data was downloaded. It may differs from the base_url, if relocations
         /// presents.
         transport_url &RealUrl(void)            { return(realUrl);	};
         void RealUrl(const string &url) { realUrl = url;    };
@@ -159,7 +159,7 @@ namespace webEngine {
         //@{
         /// @brief  Access the RelocCount property
         ///
-        /// This property represents the number of relocations to reach RealUrl from BaseUrl
+        /// This property represents the number of relocations to reach RealUrl from base_url
         int RelocCount(void)        { return(relocCount);   };
         void RelocCount(int count)  { relocCount = count;   };
         //@}
@@ -175,66 +175,65 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief Unstructured data for the request
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        Blob& Data()  { return data;  };
+        blob& Data()  { return data;  };
 
         int DownloadTime(void)        { return(downTime);   };
 
-        virtual void Process(iTransport* proc) = 0;
+        virtual void Process(i_transport* proc) = 0;
 
 #ifndef __DOXYGEN__
     protected:
         transport_url realUrl;
         unsigned int relocCount;
-        Blob data;
+        blob data;
         int downTime;
         bool processed;
 #endif //__DOXYGEN__
     };
 
-    typedef vector<iResponse*> ResponseList;
+    typedef vector<i_response*> response_list;
 
     // forward declaration
-    class TransportFactory;
+    class transport_factory;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @interface  iTransport
+    /// @interface  i_transport
     ///
     /// @brief  Transport for data receiving.
     ///
     /// @author A. Abramov
     /// @date   10.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class iTransport : virtual public iOptionsProvider,
-        public i_plugin
+    class i_transport : public i_plugin
     {
     public:
-        iTransport(engine_dispatcher* krnl, void* handle = NULL );
-        virtual ~iTransport() {};
+        i_transport(engine_dispatcher* krnl, void* handle = NULL );
+        virtual ~i_transport() {};
 
-        virtual iResponse* Request(string url, iResponse *resp = NULL) = 0;
-        virtual iResponse* Request(iRequest* req, iResponse *resp = NULL) = 0;
+        virtual i_response* request(string url, i_response *resp = NULL) = 0;
+        virtual i_response* request(i_request* req, i_response *resp = NULL) = 0;
 
         /// @brief  Process pending requests
-        virtual const int ProcessRequests(void) = 0;
+        virtual const int process_requests(void) = 0;
 
-        virtual wOption& Option(const string& name);
-        virtual bool IsSet(const string& name);
-        virtual void Option(const string& name, wOptionVal val);
+        // @brief Initialize default values
+        virtual void load_settings(i_options_provider *data_provider, string key = "") = 0;
+        virtual bool is_set(const string& name) = 0;
 
         // i_plugin functions
-        virtual void* GetInterface(const string& ifName);
+        virtual i_plugin* get_interface(const string& ifName);
 
         //@{
-        /// @brief  Access the BaseUrl property
+        /// @brief  Access the base_url property
         ///
         /// This property represents the base transport_url for the analyzing and may be used for
         /// domain control and transport_url reconstructing. Will be overwrite by the request transport_url
         /// if not valid.
         /// @param bUrl - transport_url to set as base
         /// @throw  WeError if given transport_url is malformed
-        const transport_url &BaseUrl(void) const    { return(baseUrl);  };
-        void BaseUrl(const transport_url &bUrl);
-        void BaseUrl(const string &bUrl);
+        const transport_url &base_url(void) const    { return(baseUrl);  };
+        void base_url(const transport_url &bUrl);
+        void base_url(const string &bUrl);
         //@}
 
         //@{
@@ -242,8 +241,8 @@ namespace webEngine {
         ///
         /// This property represents the number of continuous relocations which causes
         /// relocation processing stop.
-        const unsigned int &RelocationCount(void) const     { return(relocCount);       };
-        void RelocationCount(const unsigned int& relCount)  { relocCount = relCount;    };
+        const unsigned int &relocation_count(void) const     { return(relocCount);       };
+        void relocation_count(const unsigned int& relCount)  { relocCount = relCount;    };
         //@}
 
         //@{
@@ -251,21 +250,20 @@ namespace webEngine {
         ///
         /// This property represents the number of continuous links which causes
         /// links processing stop.
-        const unsigned int& SiteDepth(void) const   { return(siteDepth);    };
-        void SiteDepth(const unsigned int& sDepth)  { siteDepth = sDepth;   };
+        const unsigned int& site_depth(void) const   { return(siteDepth);    };
+        void site_depth(const unsigned int& sDepth)  { siteDepth = sDepth;   };
         //@}
 
-        void SetOptionProvider(iOptionsProvider* prov)    { parent = prov; };
-        virtual string& GetName() = 0;
-        virtual bool IsOwnProtocol(string& proto) = 0;
+        virtual string& get_name() = 0;
+        virtual bool is_own_protocol(string& proto) = 0;
 
 #ifndef __DOXYGEN__
     protected:
         transport_url baseUrl;
         unsigned int relocCount;
         unsigned int siteDepth;
-        ResponseList responces;
-        iOptionsProvider* parent;
+        response_list responces;
+        i_options_provider* parent;
 
     private:
 #endif //__DOXYGEN__
@@ -273,6 +271,6 @@ namespace webEngine {
 
 } // namespace webEngine
 
-webEngine::iTransport* WeCreateNamedTransport(string name, webEngine::engine_dispatcher* krnl);
+webEngine::i_transport* create_named_transport(string name, webEngine::engine_dispatcher* krnl);
 
 #endif // __WEITRANSPORT_H__

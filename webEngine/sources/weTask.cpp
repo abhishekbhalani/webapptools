@@ -25,6 +25,7 @@
 #include <weiVulner.h>
 #include <weScan.h>
 #include <weiStorage.h>
+#include <weDispatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread.hpp>
@@ -32,14 +33,18 @@
 
 namespace webEngine {
 
-void TaskProcessor(Task* tsk)
+#ifndef __DOXYGEN__
+static const wOption empty_option("_empty_");
+#endif //__DOXYGEN__
+
+void TaskProcessor(task* tsk)
 {
     wOption opt;
     size_t i;
     int iData;
-    ResponseList::iterator rIt;
-    iResponse* resp;
-    iRequest* curr_url;
+    response_list::iterator rIt;
+    i_response* resp;
+    i_request* curr_url;
 
     tsk->isRunning = true;
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor started for task " << ((void*)&tsk));
@@ -62,8 +67,8 @@ void TaskProcessor(Task* tsk)
                     // search for transport
                     for(i = 0; i < tsk->transports.size(); i++)
                     {
-                        if (tsk->transports[i]->IsOwnProtocol(curr_url->RequestUrl().protocol)) {
-                            resp = tsk->transports[i]->Request(curr_url);
+                        if (tsk->transports[i]->is_own_protocol(curr_url->RequestUrl().protocol)) {
+                            resp = tsk->transports[i]->request(curr_url);
                             resp->ID(curr_url->ID());
                             resp->processor = curr_url->processor;
                             resp->context = curr_url->context;
@@ -78,7 +83,7 @@ void TaskProcessor(Task* tsk)
                     LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
                     for(i = 0; i < tsk->transports.size(); i++)
                     {
-                        resp = tsk->transports[i]->Request(curr_url);
+                        resp = tsk->transports[i]->request(curr_url);
                         resp->ID(curr_url->ID());
                         resp->processor = curr_url->processor;
                         resp->context = curr_url->context;
@@ -97,10 +102,10 @@ void TaskProcessor(Task* tsk)
 
         // if any requests pending process transport operations
         if (tsk->taskQueue.size() > 0) {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor: transport->ProcessRequests()");
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor: transport->process_requests()");
             for(i = 0; i < tsk->transports.size(); i++)
             {
-                tsk->transports[i]->ProcessRequests();
+                tsk->transports[i]->process_requests();
             }
             // just switch context to wake up other tasks
             boost::this_thread::sleep(boost::posix_time::millisec(500));
@@ -119,7 +124,7 @@ void TaskProcessor(Task* tsk)
                             tsk->inventories[i]->process_response(*rIt);
                         }
                     }
-                    iResponse* resp = *rIt;
+                    i_response* resp = *rIt;
                     resp->release();
                     tsk->taskQueue.erase(rIt);
                     rIt = tsk->taskQueue.begin();
@@ -135,9 +140,10 @@ void TaskProcessor(Task* tsk)
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor finished for task " << ((void*)&tsk));
 }
 
-Task::Task()
+task::task(engine_dispatcher *krnl /*= NULL*/)
 {
     // set the default options
+    kernel = krnl;
     processThread = false;
     isRunning = false;
     scandata_mutex = (void*)(new boost::mutex);
@@ -155,16 +161,16 @@ Task::Task()
 
     scanInfo = new ScanInfo;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task created");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task created");
 }
 
-Task::Task( Task& cpy )
+task::task( task& cpy )
 {
-    options = cpy.options;
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task assigned");
+    kernel = cpy.kernel;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task assigned");
 }
 
-Task::~Task()
+task::~task()
 {
     /// @todo Cleanup
     Stop();
@@ -187,7 +193,7 @@ Task::~Task()
         delete mt;
         scandata_mutex = NULL;
     }
-    int i;
+    size_t i;
     for (i = 0; i < transports.size(); i++) {
         transports[i]->release();
     }
@@ -202,21 +208,21 @@ Task::~Task()
     }
 }
 
-iResponse* Task::GetRequest( iRequest* req )
+i_response* task::GetRequest( i_request* req )
 {
     /// @todo Implement this!
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::GetRequest (WeURL)");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::GetRequest (WeURL)");
     LOG4CXX_ERROR(iLogger::GetLogger(), " *** Not implemented yet! ***");
     return NULL;
 }
 
-void Task::GetRequestAsync( iRequest* req )
+void task::GetRequestAsync( i_request* req )
 {
     /// @todo Implement this!
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::GetRequestAsync");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::GetRequestAsync");
     processThread = true;
     if (!isRunning) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::GetRequestAsync: create WeTaskProcessor");
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::GetRequestAsync: create WeTaskProcessor");
         boost::thread process(TaskProcessor, this);
     }
     // wake-up task_processor
@@ -226,46 +232,46 @@ void Task::GetRequestAsync( iRequest* req )
         boost::unique_lock<boost::mutex> lock(*mt);
         taskList.push_back(req);
         taskListSize++;
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::GetRequestAsync: new task size=" << taskList.size());
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::GetRequestAsync: new task size=" << taskList.size());
         cond->notify_all();
     }
     return;
 }
 
-bool Task::IsReady()
+bool task::IsReady()
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::IsReady - " << processThread);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsReady - " << processThread);
     return (processThread);
 }
 
-void Task::AddPlgTransport( iTransport* plugin )
+void task::AddPlgTransport( i_transport* plugin )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgTransport");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgTransport");
     for (size_t i = 0; i < transports.size(); i++)
     {
         if (transports[i]->get_id() == plugin->get_id())
         {
             // transport already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgTransport - transport already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgTransport - transport already in list");
             return;
         }
     }
     transports.push_back(plugin);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgTransport: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgTransport: added " << plugin->get_description());
 }
 
-void Task::AddPlgInventory( i_inventory* plugin )
+void task::AddPlgInventory( i_inventory* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgInventory");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgInventory");
     for (size_t i = 0; i < inventories.size(); i++)
     {
         if (inventories[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgInventory - inventory already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgInventory - inventory already in list");
             return;
         }
         if (inventories[i]->get_priority() > plgPrio) {
@@ -278,21 +284,21 @@ void Task::AddPlgInventory( i_inventory* plugin )
     else {
         inventories.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgInventory: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgInventory: added " << plugin->get_description());
 }
 
-void Task::AddPlgAuditor( i_audit* plugin )
+void task::AddPlgAuditor( i_audit* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgAuditor");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgAuditor");
     for (size_t i = 0; i < auditors.size(); i++)
     {
         if (auditors[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgAuditor - auditor already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgAuditor - auditor already in list");
             return;
         }
         if (auditors[i]->get_priority() > plgPrio) {
@@ -305,21 +311,21 @@ void Task::AddPlgAuditor( i_audit* plugin )
     else {
         auditors.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgAuditor: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgAuditor: added " << plugin->get_description());
 }
 
-void Task::AddPlgVulner( iVulner* plugin )
+void task::AddPlgVulner( iVulner* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgVulner");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgVulner");
     for (size_t i = 0; i < vulners.size(); i++)
     {
         if (vulners[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::AddPlgVulner - vulner already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgVulner - vulner already in list");
             return;
         }
         if (vulners[i]->get_priority() > plgPrio) {
@@ -332,10 +338,10 @@ void Task::AddPlgVulner( iVulner* plugin )
     else {
         vulners.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::AddPlgVulner: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgVulner: added " << plugin->get_description());
 }
 
-void Task::StorePlugins(vector<i_plugin*>& plugins)
+void task::StorePlugins(vector<i_plugin*>& plugins)
 {
     string_list::iterator trsp;
     string_list ifaces;
@@ -343,42 +349,42 @@ void Task::StorePlugins(vector<i_plugin*>& plugins)
     for (size_t i = 0; i < plugins.size(); i++)
     {
         ifaces = plugins[i]->interface_list();
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - plugin: " << plugins[i]->get_description() << " ifaces: " << ifaces.size());
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - plugin: " << plugins[i]->get_description() << " ifaces: " << ifaces.size());
 
-        trsp = find(ifaces.begin(), ifaces.end(), "iTransport");
+        trsp = find(ifaces.begin(), ifaces.end(), "i_transport");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found transport: " << plugins[i]->get_description());
-            AddPlgTransport((iTransport*)plugins[i]);
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found transport: " << plugins[i]->get_description());
+            AddPlgTransport((i_transport*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_inventory");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found inventory: " << plugins[i]->get_description());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found inventory: " << plugins[i]->get_description());
             AddPlgInventory((i_inventory*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_audit");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found auditor: " << plugins[i]->get_description());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found auditor: " << plugins[i]->get_description());
             AddPlgAuditor((i_audit*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "iVulner");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Task::StorePlugins - found vulner: " << plugins[i]->get_description());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found vulner: " << plugins[i]->get_description());
             AddPlgVulner((iVulner*)plugins[i]);
         }
     }
 
 }
 
-void Task::Run(void)
+void task::Run(void)
 {
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::Run: create WeTaskProcessor");
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Run: create WeTaskProcessor");
     Option(weoTaskStatus, WI_TSK_PAUSED);
     boost::thread process(TaskProcessor, this);
     // switch context to initialize TaskProcessor
@@ -387,24 +393,24 @@ void Task::Run(void)
     processThread = true;
     for (size_t i = 0; i < auditors.size(); i++)
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Run: initialize " << auditors[i]->get_description());
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << auditors[i]->get_description());
         auditors[i]->init(this);
     }
     for (size_t i = 0; i < inventories.size(); i++)
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Run: start " << inventories[i]->get_description());
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: start " << inventories[i]->get_description());
         inventories[i]->start(this);
     }
     Option(weoTaskStatus, WI_TSK_RUN);
     if (event_ptr != NULL && mutex_ptr != NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Pause notify all about TaskStatus change");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         cond->notify_all();
     }
 }
 
-void Task::Pause(const bool& state /*= true*/)
+void task::Pause(const bool& state /*= true*/)
 {
     int idata;
 //    wOption opt;
@@ -420,24 +426,24 @@ void Task::Pause(const bool& state /*= true*/)
     }
     Option(weoTaskStatus, idata);
     if (event_ptr != NULL && mutex_ptr != NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Pause notify all about TaskStatus change");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         cond->notify_all();
     }
 }
 
-void Task::Stop()
+void task::Stop()
 {
     int active_threads = LockedGetValue(&thread_count);
     while (active_threads > 0) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::Stop: " << active_threads << " threads still active, waiting...");
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Stop: " << active_threads << " threads still active, waiting...");
         boost::this_thread::sleep(boost::posix_time::millisec(10));
         active_threads = LockedGetValue(&thread_count);
     }
     processThread = false;
     if (event_ptr != NULL && mutex_ptr != NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::Stop notify all about TaskStatus change");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop notify all about TaskStatus change");
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         cond->notify_all();
@@ -449,17 +455,17 @@ void Task::Stop()
     CalcStatus();
 }
 
-void Task::CalcStatus()
+void task::CalcStatus()
 {
 
     size_t count = taskList.size();
     int idata = (taskListSize - count) * 100 / taskListSize;
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: rest " << count << " queries  from " <<
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "task::CalcStatus: rest " << count << " queries  from " <<
         taskListSize << " (" << (taskListSize - count) << ": " << idata << "%)");
     Option(weoTaskCompletion, idata);
     // set task status
     if (taskList.size() == 0 && taskQueue.size() == 0) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::CalcStatus: finish!");
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::CalcStatus: finish!");
         processThread = false;
         scanInfo->finishTime = btm::second_clock::local_time();
         Option(weoTaskStatus, WI_TSK_IDLE);
@@ -469,7 +475,7 @@ void Task::CalcStatus()
     }
 }
 
-ScanData* Task::GetScanData( const string& baseUrl, const string& realUrl )
+ScanData* task::GetScanData( const string& baseUrl, const string& realUrl )
 {
     ScanData* retval = scanInfo->GetScanData( baseUrl, realUrl );
     if (retval->scanID == "")
@@ -479,7 +485,7 @@ ScanData* Task::GetScanData( const string& baseUrl, const string& realUrl )
     return retval;
 }
 
-void Task::SetScanData( ScanData* scData )
+void task::SetScanData( ScanData* scData )
 {
     scanInfo->SetScanData(scData);
     if (scData->parsedData != NULL) {
@@ -498,7 +504,7 @@ void Task::SetScanData( ScanData* scData )
     FreeScanData(scData);
 }
 
-void Task::FreeScanData(ScanData* scData)
+void task::FreeScanData(ScanData* scData)
 {
     if (scandata_mutex != NULL) {
         boost::mutex *mt = (boost::mutex*)scandata_mutex;
@@ -513,7 +519,7 @@ void Task::FreeScanData(ScanData* scData)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn db_recordset* Task::ToRS( const string& prefix = "" )
+/// @fn db_recordset* task::ToRS( const string& prefix = "" )
 ///
 /// @brief	Converts this object to an db_recordset. This function realizes alternate serialization
 /// 		mechanism. It generates db_recordset with all necessary data. This
@@ -524,9 +530,9 @@ void Task::FreeScanData(ScanData* scData)
 ///
 /// @retval	This object as a std::string. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-db_recordset* Task::ToRS( const string& parentID/* = ""*/ )
+db_recordset* task::ToRS( const string& parentID/* = ""*/ )
 {
-    db_recordset* res = new db_recordset;
+    db_recordset* res = NULL; /* new db_recordset;
     db_record* rec;
     db_record* trec;
     wOption optVal;
@@ -535,7 +541,7 @@ db_recordset* Task::ToRS( const string& parentID/* = ""*/ )
     int optCount;
     wOptions::iterator it;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::ToRS");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::ToRS");
 
     trec = new db_record;
     trec->objectID = weObjTypeTask;
@@ -594,21 +600,21 @@ db_recordset* Task::ToRS( const string& parentID/* = ""*/ )
         res->push_back(*rec);
         optCount++;
     }
-    trec->Option("options", optCount);
+    trec->Option("options", optCount);*/
 
     return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void Task::FromRS( db_recordset *rs )
+/// @fn void task::FromRS( db_recordset *rs )
 ///
 /// @brief  Initializes this object from the given from db_recordset.
 /// 		
 /// @param  rs	 - db_recordset. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void Task::FromRS( db_recordset *rs  )
+void task::FromRS( db_recordset *rs  )
 {
-    db_record rec;
+/*    db_record rec;
     size_t r;
     wOptionVal optVal;
     wOption opt;
@@ -623,7 +629,7 @@ void Task::FromRS( db_recordset *rs  )
     bool b;
     double d;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::FromRS");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::FromRS");
 
     for (r = 0; r < rs->size(); r++)
     {
@@ -691,10 +697,10 @@ void Task::FromRS( db_recordset *rs  )
                 break;
             }
         }
-    }
+    }*/
 }
 
-void Task::WaitForData()
+void task::WaitForData()
 {
     int idata;
     wOption opt;
@@ -702,12 +708,12 @@ void Task::WaitForData()
     SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
 
     if (event_ptr != NULL && mutex_ptr != NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Task::WaitForData synch object ready");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::WaitForData synch object ready");
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         boost::unique_lock<boost::mutex> lock(*mt);
         while((taskList.size() == 0 && taskQueue.size() == 0) || idata == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "Task::WaitForData: go to sleep");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::WaitForData: go to sleep");
             cond->wait(lock);
 
             opt = Option(weoTaskStatus);
@@ -716,23 +722,98 @@ void Task::WaitForData()
     }
 }
 
-void Task::AddVulner( const string& vId, const string& params, const string& parentId, int vLevel/* = -1*/ )
+void task::AddVulner( const string& vId, const string& params, const string& parentId, int vLevel/* = -1*/ )
 {
-    LOG4CXX_INFO(iLogger::GetLogger(), "Task::AddVulner add vulner ID=" << vId << "; ParentID=" << parentId);
-    LOG4CXX_INFO(iLogger::GetLogger(), "Task::AddVulner data: " << params);
+    LOG4CXX_INFO(iLogger::GetLogger(), "task::AddVulner add vulner ID=" << vId << "; ParentID=" << parentId);
+    LOG4CXX_INFO(iLogger::GetLogger(), "task::AddVulner data: " << params);
 }
 
-int Task::add_thread()
+int task::add_thread()
 {
     int nt = LockedIncrement(&thread_count);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::add_thread " << nt << " threads active");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_thread " << nt << " threads active");
     return nt; 
 }
 
-int Task::remove_thread()
+int task::remove_thread()
 {
     int nt = LockedDecrement(&thread_count);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "Task::remove_thread " << nt << " threads active");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::remove_thread " << nt << " threads active");
     return nt; 
+}
+
+wOption task::Option( const string& name )
+{
+    wOptions::iterator it;
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::Option(" << name << ")");
+    if (kernel != NULL) {
+        return kernel->Option(name);
+    }
+
+    // worst case... :(
+    return i_options_provider::empty_option;
+
+}
+
+void task::Option( const string& name, wOptionVal val )
+{
+    if (kernel != NULL) {
+        kernel->Option(name, val);
+    }
+}
+
+bool task::IsSet( const string& name )
+{
+    bool res = false;
+
+    if (kernel != NULL) {
+        res = kernel->IsSet(name);
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsSet(" << name << ") value=" << res);
+    return res;
+}
+
+void task::Erase( const string& name )
+{
+    if (kernel != NULL) {
+        kernel->Erase(name);
+    }
+}
+
+void task::Clear()
+{
+    if (kernel != NULL) {
+        kernel->Clear();
+    }
+}
+
+void task::CopyOptions( i_options_provider* cpy )
+{
+    if (kernel != NULL) {
+        kernel->CopyOptions(cpy);
+    }
+}
+
+string_list task::OptionsList()
+{
+    string_list lst;
+
+    if (kernel != NULL) {
+        lst = kernel->OptionsList();
+    }
+
+    return lst;
+}
+
+size_t task::OptionSize()
+{
+    size_t res = 0;
+
+    if (kernel != NULL) {
+        res = kernel->OptionSize();
+    }
+
+    return res;
 }
 } // namespace webEngine

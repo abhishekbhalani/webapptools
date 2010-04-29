@@ -105,6 +105,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/wd4251 /wd4275"
 				AdditionalIncludeDirectories=".\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;BOOST_REGEX_NO_LIB;CURL_STATICLIB"
 				RuntimeLibrary="2"

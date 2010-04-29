@@ -29,7 +29,7 @@ static wOption empty_option;
 //////////////////////////////////////////////////////////////////////////
 //             i w e T r a n s p o r t    c l a s s
 //////////////////////////////////////////////////////////////////////////
-iTransport::iTransport(engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
+i_transport::i_transport(engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     i_plugin(krnl, handle)
 {
     parent = NULL;
@@ -37,82 +37,19 @@ iTransport::iTransport(engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     siteDepth = 0;
     responces.clear();
     // i_plugin structure
-    pluginInfo.interface_name = "iTransport";
-    pluginInfo.interface_list.push_back("iTransport");
+    pluginInfo.interface_name = "i_transport";
+    pluginInfo.interface_list.push_back("i_transport");
     pluginInfo.plugin_desc = "Abstract transport interface";
     pluginInfo.plugin_id = "14826EDC8653";
     pluginInfo.plugin_icon = WeXpmToStringList(iweTransport_xpm, sizeof(iweTransport_xpm) / sizeof(char*) );
 }
 
-wOption& iTransport::Option(const  string& name )
+i_plugin* i_transport::get_interface( const string& ifName )
 {
-    wOptions::iterator it;
-
-    it = options.find(name);
-    if (it != options.end()) {
-        return *(it->second);
-    }
-
-    if (parent != NULL) {
-        return parent->Option(name);
-    }
-
-    return empty_option;
-}
-
-bool iTransport::IsSet(const  string& name )
-{
-    bool retval = false;
-    wOptions::iterator it;
-    wOption* opt;
-
-    try
-    {
-        it = options.find(name);
-        if (it != options.end())
-        {
-            opt = it->second;
-            opt->GetValue(retval);
-        }
-        else if (parent != NULL) {
-            retval = parent->IsSet(name);
-        }
-    }
-    catch (...)
-    {
-        if (parent != NULL) {
-            retval = parent->IsSet(name);
-        }
-    }
-
-    return retval;
-}
-
-void iTransport::Option(const  string& name, wOptionVal val )
-{
-    wOptions::iterator it;
-    wOption* opt;
-
-    it = options.find(name);
-    if (it != options.end())
-    {
-        opt = it->second;
-        opt->SetValue(val);
-    }
-    else {
-        opt = new wOption();
-        opt->Name(name);
-        opt->SetValue(val);
-        options[name] = opt;
-    }
-}
-
-void* iTransport::GetInterface( const string& ifName )
-{
-    if (iequals(ifName, "iTransport"))
+    if (iequals(ifName, "i_transport"))
     {
         usageCount++;
-        return (void*)((iTransport*)this);
+        return this;
     }
     return i_plugin::get_interface(ifName);
 }
@@ -120,7 +57,7 @@ void* iTransport::GetInterface( const string& ifName )
 //////////////////////////////////////////////////////////////////////////
 //              i w e O p e r a t i o n    c l a s s
 //////////////////////////////////////////////////////////////////////////
-iOperation::~iOperation()
+i_operation::~i_operation()
 {
     vector<iweOperationPtr*>::iterator it;
 
@@ -130,7 +67,7 @@ iOperation::~iOperation()
     children.clear();
 }
 
-void iOperation::AddChild( iweOperationPtr* chld )
+void i_operation::AddChild( iweOperationPtr* chld )
 {
     vector<iweOperationPtr*>::iterator it;
 
@@ -141,7 +78,7 @@ void iOperation::AddChild( iweOperationPtr* chld )
     (*chld)->previous = this;
 }
 
-void iOperation::RemoveChild( iweOperationPtr* chld )
+void i_operation::RemoveChild( iweOperationPtr* chld )
 {
     vector<iweOperationPtr*>::iterator it;
 

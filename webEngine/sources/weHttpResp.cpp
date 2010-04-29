@@ -118,7 +118,7 @@ void HttpResponse::CurlSetOpts(HttpRequest* req /*= NULL*/)
     }
 }
 
-void HttpResponse::Process(iTransport* proc)
+void HttpResponse::Process(i_transport* proc)
 {
     char *st;
     double tminf;
@@ -144,7 +144,7 @@ void HttpResponse::Process(iTransport* proc)
     headers.Parse((char*)&headData[0]);
     if (proc != NULL) {
         /// @todo Process options
-        if (httpCode >= 300 && httpCode < 400 && proc->IsSet(weoFollowLinks) && relocCount < proc->RelocationCount()) {
+        if (httpCode >= 300 && httpCode < 400 && proc->is_set(weoFollowLinks) && relocCount < proc->relocation_count()) {
             // redirections
             relocCount++;
             string url = headers.find_first("Location");
@@ -152,7 +152,7 @@ void HttpResponse::Process(iTransport* proc)
                 /// @todo process options: weoStayInDomain, weoStayInHost, weoStayInDir and request blocking
                 headData.clear();
                 data.clear();
-                proc->Request(url, this);
+                proc->request(url, this);
             }
         }
     }

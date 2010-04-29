@@ -138,21 +138,22 @@ int mem_storage::get(db_record& filter, db_record& respFilter, db_recordset& res
             SAFE_GET_OPTION_VAL(opt, fID, "");
 
             for (i = 0; i < objIdxs->size(); i++) {
-                db_record* objRes = new db_record;
-                objRes->objectID = filter.objectID;
+                //db_record* objRes = new db_record;
+                db_record objRes;
+                objRes.objectID = filter.objectID;
                 for (j = 0; j < reportNames.size(); j++)
                 {
                     key = (*objIdxs)[i] + "_" + reportNames[j];
                     obj = storage_db.find(key);
                     if (obj != storage_db.end())
                     {
-                        objRes->Option(reportNames[j], obj->second);
+                        objRes.Option(reportNames[j], obj->second);
                     } 
                     else {
-                        objRes->Option(reportNames[j], string(""));
+                        objRes.Option(reportNames[j], string(""));
                     }
                 } // and of attribute filters
-                results.push_back(*objRes);
+                results.push_back(objRes);
             } // end of objects search
         } // has objects
         delete objIdxs;
@@ -179,7 +180,9 @@ int mem_storage::set(db_record& filter, db_record& data)
     {   // try to update
         lst = search_db(filter);
     }
-    else
+
+
+    if (filter.OptionSize() == 0 || lst->size() == 0)
     {   // insert data
         lst = new string_list;
         opt = data.Option(weoID);

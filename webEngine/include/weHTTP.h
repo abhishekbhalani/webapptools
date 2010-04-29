@@ -31,7 +31,7 @@ using namespace boost::algorithm;
 
 namespace webEngine {
 
-    class HttpTransport;
+    class http_transport;
     class HttpRequest;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   29.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class HttpResponse : public iResponse
+    class HttpResponse : public i_response
     {
     public:
         HttpResponse();
@@ -116,7 +116,7 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         const string ContentType(void) { return(contentType);    };
 
-        void Process(iTransport* proc);
+        void Process(i_transport* proc);
 
     protected:
         static size_t Receiver(void *ptr, size_t size, size_t nmemb, void *ourpointer);
@@ -127,7 +127,7 @@ namespace webEngine {
         StringLinks headers;
         StringLinks cookies;
         int httpCode;
-        Blob headData;
+        blob headData;
         string contentType;
         CURL* curlHandle;
         CURLcode lastError;
@@ -147,7 +147,7 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   29.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class HttpRequest : public iRequest
+    class HttpRequest : public i_request
     {
     public:
         /* types and constants */
@@ -158,15 +158,15 @@ namespace webEngine {
         HttpRequest(string url, weHttpMethod meth = wemGet, HttpResponse* resp = NULL);
 
         virtual transport_url  &RequestUrl(void)  { return(reqUrl);   };
-        virtual void RequestUrl(const string &ReqUrl, iOperation* resp = NULL);
-        virtual void RequestUrl(const transport_url &ReqUrl, iOperation* resp = NULL);
+        virtual void RequestUrl(const string &ReqUrl, i_operation* resp = NULL);
+        virtual void RequestUrl(const transport_url &ReqUrl, i_operation* resp = NULL);
 
         void ComposePost(int method = composeOverwrite);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief Unstructured data for the request
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        Blob& Data()  { return data;  };
+        blob& Data()  { return data;  };
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief POST method structured data
@@ -189,49 +189,54 @@ namespace webEngine {
     protected:
         weHttpMethod    method;
         transport_url   reqUrl;
-        Blob            data;
+        blob            data;
         StringLinks     postData;
         WeProxy         *proxy;
 #endif //__DOXYGEN__
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  HttpTransport
+    /// @class  http_transport
     ///
     /// @brief  The HTTP processor.
     ///
     /// @author A. Abramov
     /// @date   29.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class HttpTransport : public iTransport
+    class http_transport : public i_transport
     {
     public:
-        HttpTransport(engine_dispatcher* krnl, void* handle = NULL);
-        ~HttpTransport();
+        http_transport(engine_dispatcher* krnl, void* handle = NULL);
+        ~http_transport();
 
-        virtual void* GetInterface( const string& ifName );
-        virtual const string GetSetupUI( void );
+        virtual i_plugin* get_interface( const string& ifName );
+        virtual const string get_setup_ui( void );
 
-        virtual iResponse* Request(iRequest* req, iResponse* resp = NULL);
-        virtual iResponse* Request(string url, iResponse* resp = NULL);
-        virtual iResponse* Request(transport_url& url, iResponse* resp = NULL);
+        // @brief Initialize default values
+        virtual void load_settings(i_options_provider *data_provider, string key = "");
+        virtual bool is_set(const string& name);
+
+
+        virtual i_response* request(i_request* req, i_response* resp = NULL);
+        virtual i_response* request(string url, i_response* resp = NULL);
+        virtual i_response* request(transport_url& url, i_response* resp = NULL);
 
         /// @brief  Gets the CURLMcode - the last cURL operation status.
-        const CURLMcode &GetLastError(void) const   { return(lastError);    };
+        const CURLMcode &get_last_error(void) const   { return(lastError);    };
 
         /// @brief  Process pending requests
-        virtual const int ProcessRequests(void);
+        virtual const int process_requests(void);
 
-        virtual string& GetName()                   { return protoName; };
-        virtual bool IsOwnProtocol(string& proto)   {return iequals(proto, protoName); };
+        virtual string& get_name()                   { return proto_name; };
+        virtual bool is_own_protocol(string& proto)  { return iequals(proto, proto_name); };
 
 #ifndef __DOXYGEN__
     protected:
         CURLM*          transferHandle;
         CURLMcode       lastError;
-
-    private:
-        static string   protoName;
+        int             default_port;
+        string          proto_name;
+        map<string, bool> options;
 #endif //__DOXYGEN__
     };
 

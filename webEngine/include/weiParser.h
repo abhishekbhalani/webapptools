@@ -36,8 +36,8 @@ namespace webEngine {
 extern int LockedIncrement(int *val);
 extern int LockedDecrement(int *val);
 
-class iTransport;
-class iResponse;
+class i_transport;
+class i_response;
 
 class iEntity;
 class iDocument;
@@ -72,7 +72,7 @@ public:
     iEntity* FindID(string id);
     EntityList FindTags(string tag);
 
-    virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL) { return wstError; };
+    virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL) { return wstError; };
 
     virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode = weCmpDefault) = 0;
     virtual weCmpState Compare(iEntity& cmp, weCmpMode mode = weCmpDefault) = 0;
@@ -142,8 +142,8 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class iDocument : virtual public iEntity
 {
-    virtual bool ParseData(iResponse* resp, iTransport* processor = NULL) = 0;
-    virtual Blob& Data(void) = 0;
+    virtual bool ParseData(i_response* resp, i_transport* processor = NULL) = 0;
+    virtual blob& Data(void) = 0;
 };
 
 void ClearEntityList(EntityList &lst);

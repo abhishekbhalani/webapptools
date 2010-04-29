@@ -22,6 +22,7 @@
 #include "weHTTP.h"
 #include "weHttpInvent.h"
 #include "weDispatch.h"
+#include <boost/functional/hash.hpp>
 
 using namespace boost::filesystem;
 using namespace webEngine;
@@ -123,7 +124,7 @@ engine_dispatcher::~engine_dispatcher(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void engine_dispatcher::refresh_plugin_list( void )
+/// @fn void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
 ///
 /// @brief  Refresh plugin list. Rebuilds list of the available plugins even embedded or external
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +137,7 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
 
     mem_storage memStore(this);
     plg_list.push_back(*(plugin_info*)memStore.info());
-    HttpTransport httpTrans(this);
+    http_transport httpTrans(this);
     plg_list.push_back(*(plugin_info*)httpTrans.info());
     HttpInventory httpInvent(this);
     plg_list.push_back(*(plugin_info*)httpInvent.info());
@@ -246,13 +247,13 @@ void engine_dispatcher::storage( const i_storage* store )
     filter.objectID = weObjTypeSysOption;
     filter.Option(weoParentID, string("0"));
     plg_storage->get(filter, filter, res);
-    iOptionsProvider::FromRS(&res);
+    /*i_options_provider::FromRS(&res);*/
 }
 
 
 void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFactory func )
 {
-    int i;
+    size_t i;
     i_plugin* plg = (i_plugin*)func(this, NULL);
     for (i = 0; i < plg_list.size(); i++) {
         if (plg_list[i].plugin_id == plg->info()->plugin_id)
@@ -265,6 +266,172 @@ void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFact
     delete plg;
 }
 
+wOption engine_dispatcher::Option( const string& name )
+{
+    db_recordset res;
+    db_record filter;
+    db_record rec;
+    wOption retval;
+    wOption opt;
+    string parentID = "0";
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ")");
+
+    retval = i_options_provider::empty_option;
+
+    if (plg_storage != NULL) {
+        filter.Clear();
+        filter.objectID = weObjTypeSysOption;
+        filter.Option(weoParentID, parentID);
+        filter.Option(weoName, name);
+        rec.Clear();
+        plg_storage->get(filter, rec, res);
+
+        if (res.size() > 0) {
+            if (res[0].objectID == weObjTypeSysOption) {
+                opt = res[0].Option(weoValue);
+                retval = opt;
+                retval.name(name);
+            }
+        }
+    }
+
+    return retval;
+}
+
+void engine_dispatcher::Option( const string& name, wOptionVal val )
+{
+    string strData;
+    db_record rec;
+    db_record flt;
+    string parentID = "0";
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") set value=" << val);
+    if (plg_storage != NULL) {
+        rec.objectID = weObjTypeSysOption;
+        rec.Option(weoName, name);
+        flt.Option(weoName, name);
+        rec.Option(weoParentID, parentID);
+        flt.Option(weoParentID, parentID);
+        rec.Option(weoTypeID, val.which());
+        rec.Option(weoValue, val);
+        strData = name;
+        strData += parentID;
+        strData += boost::lexical_cast<string>(val.which());
+        boost::hash<string> strHash;
+        size_t hs = strHash(strData);
+        strData = boost::lexical_cast<string>(hs);
+        rec.Option(weoID, strData);
+        flt.Option(weoID, strData);
+        plg_storage->set(flt, rec);
+    }
+}
+
+bool webEngine::engine_dispatcher::IsSet( const string& name )
+{
+    bool retval;
+    db_recordset res;
+    db_record filter;
+    db_record rec;
+    wOption opt;
+    string parentID = "0";
+
+    retval = false;
+    if (plg_storage != NULL) {
+        filter.Clear();
+        filter.objectID = weObjTypeSysOption;
+        filter.Option(weoParentID, parentID);
+        filter.Option(weoName, name);
+        rec.Clear();
+        plg_storage->get(filter, rec, res);
+
+        if (res.size() > 0) {
+            if (res[0].objectID == weObjTypeSysOption) {
+                opt = res[0].Option(weoValue);
+                try
+                {
+                    opt.GetValue(retval);
+                }
+                catch (...)
+                {
+                    retval = false;
+                }
+            }
+        }
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") value=" << retval);
+    return retval;
+}
+
+void webEngine::engine_dispatcher::Erase( const string& name )
+{
+    db_record filter;
+    string parentID = "0";
+
+    if (plg_storage != NULL) {
+        filter.Clear();
+        filter.objectID = weObjTypeSysOption;
+        filter.Option(weoParentID, parentID);
+        filter.Option(weoName, name);
+        plg_storage->del(filter);
+    }
+}
+
+void webEngine::engine_dispatcher::Clear()
+{
+    string_list opt_names;
+
+    opt_names = OptionsList();
+
+    for (size_t i = 0; i < opt_names.size(); i++) {
+        Erase(opt_names[i]);
+    }
+}
+
+webEngine::string_list webEngine::engine_dispatcher::OptionsList()
+{
+    string_list retval;
+    db_recordset res;
+    db_record filter;
+    db_record rec;
+    wOption opt;
+    string name;
+    string parentID = "0";
+
+    if (plg_storage != NULL) {
+        filter.Clear();
+        filter.objectID = weObjTypeSysOption;
+        filter.Option(weoParentID, parentID);
+        plg_storage->get(filter, filter, res);
+        for(size_t i = 0; i < res.size(); i++) {
+            rec = res[i];
+            opt = rec.Option(weoName);
+            SAFE_GET_OPTION_VAL(opt, name, "");
+            if (name != "") {
+                retval.push_back(name);
+            } // if name present
+        } // result loop
+    } // if plg_storage != NULL
+
+    return retval;
+}
+
+size_t webEngine::engine_dispatcher::OptionSize()
+{
+    int retval = 0;
+    db_recordset res;
+    db_record filter;
+    string parentID = "0";
+
+    if (plg_storage != NULL) {
+        filter.Clear();
+        filter.objectID = weObjTypeSysOption;
+        filter.Option(weoParentID, parentID);
+        plg_storage->get(filter, filter, res);
+        retval = res.size();
+    }
+    return 0;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn void engine_dispatcher::get_interface( string iface )
 ///
@@ -277,10 +444,11 @@ void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFact
 /// @author A. Abramov
 /// @date   28.04.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-i_plugin* webEngine::engine_dispatcher::get_interface( string iface )
+i_plugin* engine_dispatcher::get_interface( string iface )
 {
     return NULL;
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn void engine_dispatcher::flush()
 ///
@@ -294,7 +462,7 @@ void engine_dispatcher::flush()
     if (plg_storage != NULL)
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::flush ");
-        db_recordset* rs = iOptionsProvider::ToRS();
+        db_recordset* rs = NULL; /*i_options_provider::ToRS();*/
         if (rs != NULL) {
             plg_storage->set(*rs);
             delete rs;
@@ -316,7 +484,7 @@ static void* create_mem_storage(void* krnl, void* handle = NULL)
 
 static void* create_http_transport(void* krnl, void* handle = NULL)
 {
-    return (void*) (new HttpTransport((engine_dispatcher*)krnl, handle));
+    return (void*) (new http_transport((engine_dispatcher*)krnl, handle));
 }
 
 static void* create_http_inventory(void* krnl, void* handle = NULL)

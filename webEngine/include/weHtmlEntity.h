@@ -32,8 +32,6 @@ namespace webEngine {
 
     /// @file   weHtmlEntity.h
     /// @brief  HTML processing classes declarations
-    /// @example httpget.cpp
-    /// @example document.cpp
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @brief	HTML entity.
@@ -57,7 +55,7 @@ namespace webEngine {
         virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
         virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
 
-        virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL);
+        virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL);
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,10 +163,10 @@ namespace webEngine {
         ///
         /// Data property represents downloaded data of the linked object.
         /// Images, script sources and other data may be stored here. @n
-        virtual Blob& Data(void);
+        virtual blob& Data(void);
 
-        virtual bool ParseData(iResponse* resp, iTransport* processor = NULL);
-        virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL);
+        virtual bool ParseData(i_response* resp, i_transport* processor = NULL);
+        virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL);
 
 #ifndef __DOXYGEN__
     protected:
@@ -215,7 +213,7 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         bool const IsLocal(void) const  { return m_localLink.empty(); };
 
-        virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL);
+        virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL);
 
     protected:
 #ifndef __DOXYGEN__
@@ -240,7 +238,7 @@ namespace webEngine {
         WeScript(WeScript& entity);
         ~WeScript();
 
-        virtual ScannerToken Parse(string tagName, TagScanner& scanner, iTransport* processor = NULL);
+        virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL);
 
         bool SetEngine(void *engine = NULL);
         void* Execute();
