@@ -264,7 +264,9 @@ void HttpInventory::process_response( i_response *resp )
             }
             else {
                 // prevent destruction on update
-                scData->parsedData->add_ref();
+                if (scData->parsedData != NULL) {
+                    scData->parsedData->add_ref();
+                }
             }
             boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
             boost::posix_time::time_period duration(pretm, postm);
