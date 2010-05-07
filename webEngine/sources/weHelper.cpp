@@ -167,46 +167,46 @@ string UnscreenXML(const string& xml)
 //////////////////////////////////////////////////////////////////////////
 // HTML elements creation functions
 //////////////////////////////////////////////////////////////////////////
-static HtmlEntity* weCreateRefObj(iEntity* prnt)
+static iEntityPtr weCreateRefObj(iEntityPtr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeRefrenceObject");
-    return new WeRefrenceObject(prnt);
+    return iEntityPtr(new WeRefrenceObject(prnt));
 }
 
-static HtmlEntity* weCreateText(iEntity* prnt)
+static iEntityPtr weCreateText(iEntityPtr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeInnerText");
-    return new WeInnerText(prnt);
+    return iEntityPtr(new WeInnerText(prnt));
 }
 
-static HtmlEntity* weCreateComment(iEntity* prnt)
+static iEntityPtr weCreateComment(iEntityPtr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeHtmlComment");
-    return new WeHtmlComment(prnt);
+    return iEntityPtr(new WeHtmlComment(prnt));
 }
 
-static HtmlEntity* weCreateCData(iEntity* prnt)
+static iEntityPtr weCreateCData(iEntityPtr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeCData");
-    return new WeCData(prnt);
+    return iEntityPtr(new WeCData(prnt));
 }
 
-static HtmlEntity* weCreatePhpInc(iEntity* prnt)
+static iEntityPtr weCreatePhpInc(iEntityPtr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WePhpInclude");
-    return new WePhpInclude(prnt);
+    return iEntityPtr(new WePhpInclude(prnt));
 }
 
-static HtmlEntity* weCreateDocument(iEntity* prnt)
+static iEntityPtr weCreateDocument(iEntityPtr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeHtmlDocument");
-    return NULL; //new WeDocument(prnt);
+    return iEntityPtr((iEntity*)NULL); //new WeDocument(prnt);
 }
 
-static HtmlEntity* weCreateScript(iEntity* prnt)
+static iEntityPtr weCreateScript(iEntityPtr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeScript");
-    return new WeScript(prnt);
+    return iEntityPtr(new WeScript(prnt));
 }
 
 HtmlFactory::HtmlFactory() :
@@ -257,14 +257,14 @@ void HtmlFactory::Init()
 /// @param  prnt    - Parent of the newly created object
 /// @retval	null if it fails, pointer to HtmlEntity ot it's successor else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-HtmlEntity* HtmlFactory::CreateEntity( string tagName, HtmlEntity* prnt )
+iEntityPtr HtmlFactory::CreateEntity( string tagName, iEntityPtr prnt )
 {
     fnEntityFactory func;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory::CreateEntity => " << tagName);
     func = find_first(tagName);
     if (func == NULL) {
-        return new HtmlEntity(prnt);
+        return iEntityPtr(new HtmlEntity(prnt));
     }
     return func(prnt);
 }

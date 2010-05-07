@@ -21,7 +21,10 @@
 #ifndef __WEIAUDIT_H__
 #define __WEIAUDIT_H__
 
+#include <boost/shared_ptr.hpp>
 #include <weiPlugin.h>
+
+//using namespace boost;
 
 namespace webEngine {
 
@@ -62,7 +65,7 @@ public:
     /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
     /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void start(task* tsk, ScanData* scData) = 0;
+    virtual void start(task* tsk, boost::shared_ptr<ScanData> scData) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void process_response(i_response *resp)

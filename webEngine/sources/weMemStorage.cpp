@@ -166,8 +166,8 @@ int mem_storage::set(db_record& filter, db_record& data)
 {
     wOption opt;
     string idx;
-    string_list* lst;
-    string_list* objIdxs;
+    string_list* lst = NULL;
+    string_list* objIdxs = NULL;
     string_list objProps;
     size_t i, j;
     string stData, stValue;
@@ -180,9 +180,13 @@ int mem_storage::set(db_record& filter, db_record& data)
     {   // try to update
         lst = search_db(filter);
     }
+    if (lst->size() == 0) {
+        delete lst;
+        lst = NULL;
+    }
 
 
-    if (filter.OptionSize() == 0 || lst->size() == 0)
+    if (filter.OptionSize() == 0 || lst == NULL)
     {   // insert data
         lst = new string_list;
         opt = data.Option(weoID);

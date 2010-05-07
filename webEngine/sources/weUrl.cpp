@@ -118,6 +118,7 @@ void transport_url::assign(const string& url )
     // fix for mailto: proto
     if (protocol == "mailto") {
         host = temp;
+        to_lower(host);
         request = "";
         params = "";
         port = 25;
@@ -168,9 +169,11 @@ void transport_url::assign(const string& url )
     if( pos != string::npos ) {
         port = atoi(temp.substr(pos+1).c_str());
         host = temp.substr(0,pos);
+        to_lower(host);
     }
     else {
         host = temp;
+        to_lower(host);
         if( protocol == "http" )
             port = 80;
         else if( protocol == "https" )
@@ -228,6 +231,7 @@ void transport_url::assign_with_referer( const string& url_, transport_url* base
     if (istarts_with(url_, "mailto:")) {
         protocol = "mailto";
         host = url_.substr(7);
+        to_lower(host);
         request = "";
         params = "";
         port = 25;

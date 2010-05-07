@@ -24,6 +24,8 @@
 /// @brief  Processing subsystem declaration
 
 #include <stdexcept>
+#include <boost/weak_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include "weStrings.h"
 #include "weTagScanner.h"
 #include "weBlob.h"
@@ -32,16 +34,16 @@
 using namespace std;
 
 namespace webEngine {
-// defined in weHelper.h
-extern int LockedIncrement(int *val);
-extern int LockedDecrement(int *val);
 
 class i_transport;
 class i_response;
 
 class iEntity;
 class iDocument;
-typedef vector<iEntity*> EntityList;
+
+typedef boost::shared_ptr<iEntity> iEntityPtr;
+typedef boost::weak_ptr<iEntity> iEntityWPtr;
+typedef vector<iEntityPtr> EntityList;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  iEntity
@@ -51,25 +53,25 @@ typedef vector<iEntity*> EntityList;
 /// @author A. Abramov
 /// @date   08.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iEntity
+class iEntity : public boost::enable_shared_from_this<iEntity>
 {
 public:
-    iEntity() {usage_count = 0;};
-    virtual ~iEntity() { ClearChildren(); ClearAttr(); };
+    iEntity() {};
+    virtual ~iEntity() { ClearChildren(); };
 
     virtual const string Attr(string);
     virtual void Attr(string, string);
     void ClearAttr(void)    { attributes.clear(); };        ///< Clears all attributes
 
-    virtual iEntity* Child(string type);
-    virtual iEntity* Child(int idx);
-    virtual EntityList& Children() { return chldList; };  ///< Direct access to the children collection
+    virtual iEntityPtr Child(string type);
+    virtual iEntityPtr Child(int idx);
+    virtual EntityList Children() { return chldList; };  ///< Direct access to the children collection
     void ClearChildren(void);
 
     virtual const string InnerText(void) = 0;
     virtual const string OuterText(void) = 0;
 
-    iEntity* FindID(string id);
+    iEntityPtr FindID(string id);
     EntityList FindTags(string tag);
 
     virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL) { return wstError; };
@@ -80,13 +82,10 @@ public:
 
     iDocument* GetRootDocument(void);
 
-    iEntity* add_ref() {LockedIncrement(&usage_count); return this; };
-    bool release() { if (usage_count == 0) {delete this; return true;} else {LockedDecrement(&usage_count);}; return false;};
-
     //@{
     /// @brief Access the Parent
-    const iEntity* Parent(void) const	{ return(parent);   };
-    void Parent(iEntity* prnt)  { parent = prnt;    };
+    const iEntityWPtr Parent(void) const	{ return(parent);   };
+    void Parent(iEntityWPtr prnt)  { parent = prnt;    };
     //}
 
     //@{
@@ -121,14 +120,13 @@ protected:
 
 #ifndef __DOXYGEN__
 protected:
-    iEntity* parent;
+    iEntityWPtr parent;
     AttrMap attributes;
     EntityList chldList;
     string entityName;
     string m_entityId;
     static weCmpMode compareMode;
     int startPos, endPos;
-    int usage_count;
 #endif //__DOXYGEN__
 };
 
@@ -142,6 +140,7 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class iDocument : virtual public iEntity
 {
+public:
     virtual bool ParseData(i_response* resp, i_transport* processor = NULL) = 0;
     virtual blob& Data(void) = 0;
 };

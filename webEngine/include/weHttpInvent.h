@@ -42,17 +42,18 @@ namespace webEngine {
         void process_response(i_response *resp);
     protected:
 
-        void add_url(transport_url link, HttpResponse *htResp, ScanData *scData);
-        map<string, bool> tasklist;
+        void add_url(transport_url link, HttpResponse *htResp, boost::shared_ptr<ScanData> scData);
         string_list ext_deny;
         string_list domain_allow;
-    };
 
-    void add_http_url(log4cxx::LoggerPtr logger, transport_url link,
-        transport_url baseUrl, task* task,
-        ScanData *scData,  map<string, bool> *tasklist,
-        int scan_depth, void* context,
-        fnProcessResponse* processor, bool download = true);
+        // processing options
+        bool opt_in_host;
+        bool opt_in_domain;
+        bool opt_ignore_param;
+        int  opt_max_depth;
+        int  opt_ctype_method;
+
+    };
 } // namespace webEngine
 
 #endif //__WEHTTPINVENTORY_H__

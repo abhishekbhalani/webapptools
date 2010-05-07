@@ -22,6 +22,8 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <map>
+#include <boost/shared_ptr.hpp>
+#include <boost/unordered_map.hpp>
 //#include <boost/any.hpp>
 #include "weiBase.h"
 #include "weOptions.h"
@@ -130,9 +132,9 @@ namespace webEngine {
         void CalcStatus();
 
         virtual ScanInfo* GetScan() { return scanInfo; };
-        virtual ScanData* GetScanData(const string& baseUrl, const string& realUrl);
-        virtual void SetScanData(ScanData* scData);
-        virtual void FreeScanData(ScanData* scData);
+        virtual boost::shared_ptr<ScanData> GetScanData(const string& baseUrl);
+        virtual void SetScanData(const string& baseUrl, boost::shared_ptr<ScanData> scData);
+        virtual void FreeScanData(boost::shared_ptr<ScanData> scData);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn virtual void AddVulner(const string& vId,
@@ -159,6 +161,9 @@ namespace webEngine {
         virtual int add_thread();
         virtual int remove_thread();
 
+        virtual bool is_url_processed(string url);
+        virtual void register_url(string url);
+
 #ifndef __DOXYGEN__
     protected:
         typedef map<string, i_request*> WeRequestMap;
@@ -178,6 +183,7 @@ namespace webEngine {
         ScanInfo* scanInfo;
         int thread_count;
         engine_dispatcher *kernel;
+        boost::unordered_map<string, int > processed_urls;
 #endif //__DOXYGEN__
 
     private:
