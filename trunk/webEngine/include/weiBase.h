@@ -347,7 +347,10 @@ namespace webEngine {
             return (keys.erase(_Keyval));
         }
 
-        void clear() { values.clear(); keys.clear(); };
+        void clear() { 
+            values.clear();
+            keys.clear();
+        };
 
         iterator begin() {return values.begin(); };
         iterator end() {return values.end(); };

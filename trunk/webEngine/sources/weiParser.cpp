@@ -72,9 +72,9 @@ void iEntity::Attr(string name, string value)
 /// @param  type - name of the child in the collection
 /// @retval null if it no children of such type, the pointer to the WeHtmlEntity else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iEntity* iEntity::Child(string type)
+iEntityPtr iEntity::Child(string type)
 {
-    iEntity* retval = NULL;
+    iEntityPtr retval;
     EntityList::iterator  it;
 
     for(it = chldList.begin(); it != chldList.end(); it++) {
@@ -93,10 +93,10 @@ iEntity* iEntity::Child(string type)
 /// @param  idx - index of the child in the collection
 /// @retval null if it fails, the pointer to the WeHtmlEntity else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iEntity* iEntity::Child(int idx)
+iEntityPtr iEntity::Child(int idx)
 {
     if (idx < 0 || idx >= (int)chldList.size()) {
-        return(NULL);
+        return iEntityPtr((iEntity*)NULL);
     }
     return chldList[idx];
 }
@@ -152,13 +152,13 @@ void iEntity::GenerateId(void)
 /// @param  id - The entity identifier.
 /// @retval	null if it no objects found, pointer to the object else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iEntity* iEntity::FindID(string id)
+iEntityPtr iEntity::FindID(string id)
 {
     EntityList::iterator  chld;
-    iEntity* retval;
+    iEntityPtr retval;
 
     if (id == m_entityId) {
-        return this;
+        return shared_from_this();
     }
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
         retval = (*chld)->FindID(id);
@@ -166,7 +166,7 @@ iEntity* iEntity::FindID(string id)
             return retval;
         }
     }
-    return (NULL);
+    return iEntityPtr((iEntity*)NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,7 +185,7 @@ EntityList iEntity::FindTags(string tag)
     EntityList::iterator  chld;
 
     if (iequals(tag, entityName)) {
-        retval.push_back(this->add_ref());
+        retval.push_back(shared_from_this());
     }
     for (size_t i = 0; i < chldList.size(); i++) {
         EntityList chlds = chldList[i]->FindTags(tag);
@@ -207,11 +207,9 @@ EntityList iEntity::FindTags(string tag)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void iEntity::ClearChildren( void )
 {
-    EntityList::iterator  chld;
-
-    for (size_t i = 0; i < chldList.size(); i++) {
-        chldList[i]->release(); 
-    }
+//     for (size_t i = 0; i < chldList.size(); i++) {
+//         chldList[i].reset(); 
+//     }
     chldList.clear();
 }
 
@@ -226,10 +224,12 @@ iDocument* iEntity::GetRootDocument( void )
     if (entityName == "#document") {
         return dynamic_cast<iDocument*>(this);
     }
-    if (parent == NULL) {
+    if (parent.expired()) {
         return (iDocument*)NULL;
     }
-    return parent->GetRootDocument();
+    iEntityPtr pl = parent.lock();
+    iDocument* res = pl->GetRootDocument();
+    return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,19 +245,20 @@ bool iEntity::IsParentTag( string tag )
     if (iequals(tag, entityName)) {
         return true;
     }
-    if (parent == NULL) {
+    if (parent.expired()) {
         return false;
     }
-    return parent->IsParentTag(tag);
+    iEntityPtr pl = parent.lock();
+    bool res = pl->IsParentTag(tag);
+    return res;
 }
 
 void ClearEntityList( EntityList &lst )
 {
-    EntityList::iterator  chld;
-
-    for (size_t i = 0; i < lst.size(); i++) {
-        lst[i]->release();
-    }
+//     for (size_t i = 0; i < lst.size(); i++) {
+//         iEntityPtr pt = lst[i];
+//         lst[i].reset();
+//     }
     lst.clear();    
 }
 

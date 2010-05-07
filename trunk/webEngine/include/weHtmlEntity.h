@@ -45,7 +45,7 @@ namespace webEngine {
     class HtmlEntity: virtual public iEntity
     {
     public:
-        HtmlEntity(iEntity* prnt = NULL);
+        HtmlEntity(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
         HtmlEntity(HtmlEntity& entity);
         ~HtmlEntity();
 
@@ -72,7 +72,7 @@ namespace webEngine {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class WeInnerText : public HtmlEntity {
     public:
-        WeInnerText(iEntity* prnt = NULL);
+        WeInnerText(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
         WeInnerText(WeInnerText& entity);
         ~WeInnerText();
 
@@ -85,13 +85,13 @@ namespace webEngine {
         virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
         virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
 
-        virtual HtmlEntity* Child(int idx) {return (NULL);}       ///< Placeholder to avoid children manipulations
-        virtual HtmlEntity* Child(string type) {return (NULL);}   ///< Placeholder to avoid children manipulations
+        virtual boost::shared_ptr<iEntity> Child(int idx) {return boost::shared_ptr<iEntity>((iEntity*)NULL);}       ///< Placeholder to avoid children manipulations
+        virtual boost::shared_ptr<iEntity> Child(string type) {return boost::shared_ptr<iEntity>((iEntity*)NULL);}   ///< Placeholder to avoid children manipulations
         /// @brief Placeholder to avoid children manipulations
         /// @throw runtime_error with description
-        virtual EntityList& Children() {
+        virtual EntityList Children() {
             throw runtime_error("WeInnerText: Children property is not accessible");
-            return *((EntityList*)NULL);
+            return chldList;
         }
     };
 
@@ -105,7 +105,7 @@ namespace webEngine {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class WeHtmlComment : public WeInnerText {
     public:
-        WeHtmlComment(iEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#comment"; };
+        WeHtmlComment(iEntityPtr prnt = iEntityPtr((iEntity*)NULL)) : WeInnerText(prnt) { entityName = "#comment"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +118,7 @@ namespace webEngine {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class WeCData : public WeInnerText {
     public:
-        WeCData(iEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#cdata"; };
+        WeCData(iEntityPtr prnt = iEntityPtr((iEntity*)NULL)) : WeInnerText(prnt) { entityName = "#cdata"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ namespace webEngine {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class WePhpInclude : public WeInnerText {
     public:
-        WePhpInclude(iEntity* prnt = NULL) : WeInnerText(prnt) { entityName = "#php"; };
+        WePhpInclude(iEntityPtr prnt = iEntityPtr((iEntity*)NULL)) : WeInnerText(prnt) { entityName = "#php"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,7 @@ namespace webEngine {
     class HtmlDocument : public iDocument, public HtmlEntity
     {
     public:
-        HtmlDocument(iEntity* prnt = NULL);
+        HtmlDocument(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
         HtmlDocument(HtmlDocument& entity);
         ~HtmlDocument();
 
@@ -188,7 +188,7 @@ namespace webEngine {
     class WeRefrenceObject : public HtmlDocument
     {
     public:
-        WeRefrenceObject(iEntity* prnt = NULL);
+        WeRefrenceObject(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
         WeRefrenceObject(WeRefrenceObject& entity);
         ~WeRefrenceObject();
 
@@ -234,7 +234,7 @@ namespace webEngine {
     class WeScript : public WeRefrenceObject
     {
     public:
-        WeScript(iEntity* prnt = NULL);
+        WeScript(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
         WeScript(WeScript& entity);
         ~WeScript();
 

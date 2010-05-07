@@ -40,7 +40,7 @@ also presented in this module.
 
 namespace webEngine {
 
-typedef HtmlEntity* (*fnEntityFactory)(iEntity* prnt);
+typedef iEntityPtr (*fnEntityFactory)(iEntityPtr prnt);
 
 // typedef WeLinkedListElem<string, EntityFactory> WeHtmlFuncList;
 // typedef WeLinkedListElem<string, transport_factory> WeTranspFuncList;
@@ -59,7 +59,7 @@ public:
     HtmlFactory();
     void Init();
     void Add(string name, fnEntityFactory func);
-    HtmlEntity* CreateEntity(string tagName, HtmlEntity* prnt);
+    iEntityPtr CreateEntity(string tagName, iEntityPtr prnt);
     void Clean();
 };
 

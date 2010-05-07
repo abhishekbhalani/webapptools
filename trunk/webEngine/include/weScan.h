@@ -21,15 +21,39 @@ along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
 #define __WESCAN_H__
 #include <weTagScanner.h>
 #include <weBlob.h>
+#include <boost/unordered_map.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
+//using namespace boost;
 namespace btm = boost::posix_time;
 
 namespace webEngine {
 
     class db_recordset;
-    class ScanData;
     class HtmlDocument;
+
+    class ScanData
+    {
+    public:
+        ScanData();
+        ~ScanData();
+
+        string  data_id;
+        string  parent_id;
+        string  scan_id;
+        string  object_url;
+        int     resp_code;
+        int     data_size;
+        int     download_time;
+        int     scan_depth;
+        string  content_type; 
+        boost::shared_ptr<HtmlDocument> parsed_data;
+
+        db_recordset* ToRS( const string& parentID = "" );
+        void FromRS( db_recordset *rs );
+    };
 
     class ScanInfo
     {
@@ -47,46 +71,24 @@ namespace webEngine {
         static const weScanStatus weScanFinished = (weScanStatus)0x0004;
         static const weScanStatus weScanError    = (weScanStatus)0x0005;
 
-        string            scanID;
-        string            objectID;
-        string            profileID;
-        btm::ptime startTime;
-        btm::ptime finishTime;
-        btm::ptime pingTime;
-        weScanStatus      status;  
+        string       scanID;
+        string       objectID;
+        string       profileID;
+        btm::ptime   startTime;
+        btm::ptime   finishTime;
+        btm::ptime   pingTime;
+        weScanStatus status;  
 
-        void push_back(ScanData* elem) { scan_data.push_back(elem);}
+        //void push_back(ScanData* elem) { scan_data.push_back(elem);}
 
         db_recordset* ToRS( const string& parentID = "" );
         void FromRS( db_recordset *rs );
 
-        ScanData* GetScanData(const string& baseUrl, const string& realUrl);
-        void SetScanData(ScanData* scData);
+        boost::shared_ptr<ScanData> GetScanData( const string& object_url );
+        void SetScanData(const string& object_url, boost::shared_ptr<ScanData> scData);
 
     protected:
-        vector<ScanData*> scan_data;
-    };
-
-    class ScanData
-    {
-    public:
-        ScanData();
-        ~ScanData();
-
-        string  dataID;
-        string  parentID;
-        string  scanID;
-        string  requestedURL;
-        string  realURL;  
-        int     respCode;
-        int     dataSize;
-        int     downloadTime;
-        int     scan_depth;
-        string  content_type; 
-        HtmlDocument* parsedData;
-
-        db_recordset* ToRS( const string& parentID = "" );
-        void FromRS( db_recordset *rs );
+        boost::unordered_map<string, boost::shared_ptr<ScanData> > scan_data;
     };
 
 } // namespace webEngine

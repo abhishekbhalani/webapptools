@@ -24,6 +24,8 @@
 #include "weScan.h"
 #include <weiStorage.h>
 
+using namespace boost;
+
 namespace webEngine {
 
 ScanInfo::ScanInfo()
@@ -37,17 +39,18 @@ ScanInfo::ScanInfo()
 
 ScanInfo::~ScanInfo()
 {
+    //unordered_map<string, weak_ptr<ScanData>>::iterator mit = 
     // nothing special at this moment
-    for (size_t i = 0; i < scan_data.size(); i++) {
-        delete scan_data[i];
-    }
+//     for (size_t i = 0; i < scan_data.size(); i++) {
+//         delete scan_data[i];
+//     }
     scan_data.clear();
 }
 
 db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
 {
     db_recordset* res = new db_recordset;
-    db_recordset* rsData;
+    //db_recordset* rsData;
     db_record* rec = new db_record;
 
     rec->objectID = weObjTypeScan;
@@ -62,14 +65,14 @@ db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
 
     res->push_back(*rec);
 
-    for (size_t i = 0; i < scan_data.size(); i++) {
+/*    for (size_t i = 0; i < scan_data.size(); i++) {
         rsData = scan_data[i]->ToRS(scanID);
         for (size_t j = 0; j < rsData->size(); j++)
         {
             res->push_back((*rsData)[j]);
         }
         delete rsData;
-    }
+    }*/
     return res;
 }
 
@@ -133,68 +136,49 @@ void ScanInfo::FromRS( db_recordset* rs )
 
 //             opt = rec.Option("scansize");
 //             SAFE_GET_OPTION_VAL(opt, strData, "");
-//             scanID = strData;
+//             scan_id = strData;
 
             break;
         }
     }
 }
 
-ScanData* ScanInfo::GetScanData( const string& baseUrl, const string& realUrl )
+shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )
 {
-    ScanData* retval = NULL;
+    shared_ptr<ScanData> retval;
+    unordered_map<string, shared_ptr<ScanData> >::iterator mit = scan_data.find(object_url);
 
-    for (size_t i = 0; i < scan_data.size(); i++) {
-        if (scan_data[i]->requestedURL == baseUrl &&
-            scan_data[i]->realURL == realUrl)
-        {
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::GetScanData - found existing ScanData");
-            retval = scan_data[i];
-            break;
-        }
+    if (mit != scan_data.end()) {
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::GetScanData - found existing ScanData");
+        retval = mit->second;
     }
-    if (retval == NULL)
-    {
+    else {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::GetScanData new ScanData");
-        retval = new ScanData;
-        retval->respCode = 0;
-        retval->downloadTime = -1;
-        retval->dataSize = -1;
-        retval->requestedURL = baseUrl;
-        retval->realURL = realUrl;
-        retval->parsedData = NULL;
+        retval.reset(new ScanData);
+        retval->resp_code = 0;
+        retval->download_time = -1;
+        retval->data_size = -1;
+        retval->object_url = object_url;
+        retval->parsed_data.reset();        
+        scan_data[object_url] = retval;
     }
     return retval;
 }
 
-void ScanInfo::SetScanData( ScanData* scData )
+void ScanInfo::SetScanData( const string& object_url, shared_ptr<ScanData> scData )
 {
-    size_t i;
-
-    for (i = 0; i < scan_data.size(); i++) {
-        if (scan_data[i] == scData)
-        {
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::SetScanData - found existing ScanData");
-            break;
-        }
-    }
-    if (i == scan_data.size()) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::SetScanData add ScanData to list");
-        scan_data.push_back(scData);
-    }
+    scan_data[object_url] = scData;
 }
 
 ScanData::ScanData()
 {
-    parsedData = NULL;
+    parsed_data.reset();
     scan_depth = 0;
 }
 
 ScanData::~ScanData()
 {
-    if (parsedData != NULL) {
-        delete parsedData;
-    }
+    parsed_data.reset();
 }
 
 db_recordset* ScanData::ToRS( const string& parentID/* = ""*/ )
@@ -203,14 +187,13 @@ db_recordset* ScanData::ToRS( const string& parentID/* = ""*/ )
     db_record* rec = new db_record;
 
     rec->objectID = weObjTypeScanData;
-    rec->Option(weoID, dataID);
-    rec->Option(weoParentID, scanID);
+    rec->Option(weoID, data_id);
+    rec->Option(weoParentID, scan_id);
     rec->Option("updata", parentID);
-    rec->Option("req_url", requestedURL);
-    rec->Option("final_url", realURL);
-    rec->Option("response", boost::lexical_cast<string>(respCode));
-    rec->Option("data_size", boost::lexical_cast<string>(dataSize));
-    rec->Option("download_time", boost::lexical_cast<string>(downloadTime));
+    rec->Option("req_url", object_url);
+    rec->Option("response", boost::lexical_cast<string>(resp_code));
+    rec->Option("data_size", boost::lexical_cast<string>(data_size));
+    rec->Option("download_time", boost::lexical_cast<string>(download_time));
     rec->Option("scanning_depth", boost::lexical_cast<string>(scan_depth));
 
     res->push_back(*rec);
@@ -234,35 +217,35 @@ void ScanData::FromRS( db_recordset* rs )
         if (rec.objectID == weObjTypeTask) {
             opt = rec.Option(weoID);
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            dataID = strData;
+            data_id = strData;
 
             opt = rec.Option(weoParentID);
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
+            scan_id = strData;
 
             opt = rec.Option("updata");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            parentID = strData;
+            parent_id = strData;
 
             opt = rec.Option("req_url");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            requestedURL = strData;
+            object_url = strData;
 
-            opt = rec.Option("final_url");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            realURL = strData;
+//             opt = rec.Option("final_url");
+//             SAFE_GET_OPTION_VAL(opt, strData, "");
+//             realURL = strData;
 
             opt = rec.Option("response");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            respCode = boost::lexical_cast<int>(strData);
+            resp_code = boost::lexical_cast<int>(strData);
 
             opt = rec.Option("data_size");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            dataSize = boost::lexical_cast<int>(strData);
+            data_size = boost::lexical_cast<int>(strData);
 
             opt = rec.Option("download_time");
             SAFE_GET_OPTION_VAL(opt, strData, "");
-            downloadTime = boost::lexical_cast<int>(strData);
+            download_time = boost::lexical_cast<int>(strData);
 
             opt = rec.Option("scanning_depth");
             SAFE_GET_OPTION_VAL(opt, strData, "");

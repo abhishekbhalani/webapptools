@@ -40,6 +40,8 @@ static string xrc = "<plugin><category label='Basic settings' name='generic'>\
  <option name='httpInventory/Subdomains' label='Allowed subdomains list' type='8' control='string' mode='window'></option>\
 </category></plugin>";
 
+using namespace boost;
+
 namespace webEngine {
 
 HttpInventory::HttpInventory(engine_dispatcher* krnl, void* handle /*= NULL*/) :
@@ -135,6 +137,16 @@ void HttpInventory::start( task* tsk )
                     }
                 }
 
+                // processing options
+                opt_in_host = parent_task->IsSet("httpInventory/"weoStayInHost);
+                opt_in_domain = parent_task->IsSet("httpInventory/"weoStayInDomain);
+                opt_ignore_param = parent_task->IsSet("httpInventory/"weoIgnoreUrlParam);
+                opt = parent_task->Option("httpInventory/"weoScanDepth);
+                SAFE_GET_OPTION_VAL(opt, opt_max_depth, 0);
+                opt = parent_task->Option("httpInventory/AllowedCType");
+                SAFE_GET_OPTION_VAL(opt, opt_ctype_method, 0); // default - any type
+
+
                 opt = tsk->Option("httpInventory/BaseURL");
                 SAFE_GET_OPTION_VAL(opt, path, "");
                 start_url.host = host;
@@ -146,6 +158,7 @@ void HttpInventory::start( task* tsk )
                 LOG4CXX_TRACE(logger, "HttpInventory::start: start request = " << req->RequestUrl().tostring());
                 req->processor = HttpInventory::response_dispatcher;
                 req->context = (void*)this;
+                parent_task->register_url(start_url.tostring());
                 parent_task->GetRequestAsync(req);
             }
             else {
@@ -174,17 +187,17 @@ void HttpInventory::process_response( i_response *resp )
     }
     // process response
     LOG4CXX_TRACE(logger, "HttpInventory::process_response: process response with code=" << htResp->HttpCode());
-    ScanData* scData = parent_task->GetScanData(htResp->BaseUrl().tostring(), htResp->RealUrl().tostring());
-    if (scData->parentID == "")
+    shared_ptr<ScanData> scData = parent_task->GetScanData(htResp->BaseUrl().tostring());
+    if (scData->parent_id == "")
     {
-        scData->parentID = htResp->ID();
+        scData->parent_id = htResp->ID();
     }
-    if (scData->dataID == "")
+    if (scData->data_id == "")
     {
-        scData->dataID = kernel->storage()->generate_id(weObjTypeScan);
-        scData->respCode = htResp->HttpCode();
-        scData->downloadTime = htResp->DownloadTime();
-        scData->dataSize = htResp->Data().size();
+        scData->data_id = kernel->storage()->generate_id(weObjTypeScan);
+        scData->resp_code = htResp->HttpCode();
+        scData->download_time = htResp->DownloadTime();
+        scData->data_size = htResp->Data().size();
         scData->scan_depth = htResp->depth();
         scData->content_type = htResp->ContentType();
     }
@@ -207,12 +220,14 @@ void HttpInventory::process_response( i_response *resp )
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
     {
         string cType = htResp->ContentType();
-        wOption opt = parent_task->Option("httpInventory/AllowedCType");
-        int cTypeMethod;
-        SAFE_GET_OPTION_VAL(opt, cTypeMethod, 0); // default - any type
-        LOG4CXX_TRACE(logger, "HttpInventory::process_response: content-type analyze method = " << cTypeMethod);
+        if (cType == "") {
+            // set "text/html" by default
+            /// @todo: move it to the options!!!
+            cType == "text/html";
+        }
+        LOG4CXX_TRACE(logger, "HttpInventory::process_response: content-type analyze method = " << opt_ctype_method);
         bool cTypeProcess = false;
-        switch(cTypeMethod)
+        switch(opt_ctype_method)
         {
         case 0: // any content-type
             cTypeProcess = true;
@@ -243,30 +258,24 @@ void HttpInventory::process_response( i_response *resp )
             break;
         default:
             cTypeProcess = false;
-            LOG4CXX_WARN(logger, "HttpInventory::process_response: unknown content-type analyze method = " << cTypeMethod);
+            LOG4CXX_WARN(logger, "HttpInventory::process_response: unknown content-type analyze method = " << opt_ctype_method);
             break;
         }
         if (cTypeProcess)
         {
             LOG4CXX_TRACE(logger, "HttpInventory::process_response: parse document");
-            HtmlDocument *parser = new HtmlDocument;
+            shared_ptr<HtmlDocument> parser(new HtmlDocument);
             bool saveParser;
             EntityList lst;
 
             boost::posix_time::ptime pretm = boost::posix_time::microsec_clock::local_time();
             saveParser = parser->ParseData(resp);
-            if (scData->parsedData != NULL) {
+            if (scData->parsed_data != NULL) {
                 saveParser = false;
             }
             if (saveParser)
             {
-                scData->parsedData = parser;
-            }
-            else {
-                // prevent destruction on update
-                if (scData->parsedData != NULL) {
-                    scData->parsedData->add_ref();
-                }
+                scData->parsed_data = parser;
             }
             boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
             boost::posix_time::time_period duration(pretm, postm);
@@ -375,16 +384,6 @@ void HttpInventory::process_response( i_response *resp )
                 ClearEntityList(lst);
             } // end <meta ...> tags processing
             // etc ???
-
-            // cleanup
-            if (!saveParser) {
-                if (parser != NULL) {
-                    parser->release();
-                }
-                else {
-                    htResp->release();
-                }
-            }
         }
         else {
             LOG4CXX_WARN(logger, "HttpInventory::process_response: inconsistent content-type: " << cType);
@@ -392,11 +391,11 @@ void HttpInventory::process_response( i_response *resp )
     }
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 400) || htResp->HttpCode() >= 500)
     {
-        parent_task->SetScanData(scData);
+        parent_task->SetScanData(scData->object_url, scData);
     }
 }
 
-void HttpInventory::add_url( transport_url link, HttpResponse *htResp, ScanData *scData )
+void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_ptr<ScanData> scData )
 {
     bool allowed = true;
     // verify blocked file types
@@ -409,86 +408,65 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, ScanData 
         for (size_t i = 0; i < ext_deny.size(); i++) {
             if (path == ext_deny[i]) {
                 allowed = false;
+                LOG4CXX_DEBUG(logger, "HttpInventory::add_http_url: not need to download " << link.tostring());
+                // make the pseudo-response
+                shared_ptr<ScanData> scn = parent_task->GetScanData(link.tostring());
+                if (scn->data_id == "")
+                {
+                    //scData->data_id = ;
+                    scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
+                    scn->download_time = 0;
+                    scn->data_size = 0;
+                    scn->scan_depth = htResp->depth() + 1;
+                    scn->content_type = "application/octet-stream";
+                    scn->parsed_data.reset();
+                    parent_task->SetScanData(scn->object_url, scn);
+                }
                 break;
             }
         }
     }
-    add_http_url(logger, link, htResp->RealUrl(), parent_task, scData, &tasklist, htResp->depth(), (void*)this, HttpInventory::response_dispatcher, allowed);
-}
-
-void add_http_url(log4cxx::LoggerPtr logger, transport_url link, transport_url baseUrl, task* task,
-                  ScanData *scData, map<string, bool> *tasklist, int scan_depth, void* context, fnProcessResponse* processor,
-                  bool download /*= true*/)
-{
-    bool to_process = true;
-    int max_depth = 0;
-    wOption opt;
-
-    LOG4CXX_DEBUG(logger, "add_http_url: check for the url=" << link.tostring());
-    if (!link.is_host_equal(baseUrl))
+    if (!link.is_host_equal(htResp->RealUrl()))
     {
-        if (task->IsSet("httpInventory/"weoStayInHost))
+        if (opt_in_host)
         {
-            to_process = false;
+            allowed = false;
         }
-        LOG4CXX_TRACE(logger, "HttpInventory::add_url: weoStayInHost check " << to_process << " (" << link.tostring() << ")");
+        LOG4CXX_TRACE(logger, "HttpInventory::add_url: weoStayInHost check " << allowed << " (" << link.tostring() << ")");
     }
-    if (!link.is_domain_equal(baseUrl))
+    if (!link.is_domain_equal(htResp->RealUrl()))
     {
-        if (task->IsSet("httpInventory/"weoStayInDomain))
+        if (opt_in_domain)
         {
-            to_process = false;
+            allowed = false;
         }
-        LOG4CXX_TRACE(logger, "HttpInventory::add_url: weoStayInDomain check << " << to_process << " (" << link.tostring() << ")");
+        LOG4CXX_TRACE(logger, "HttpInventory::add_url: weoStayInDomain check << " << allowed << " (" << link.tostring() << ")");
     }
-
-    opt = task->Option("httpInventory/"weoScanDepth);
-    SAFE_GET_OPTION_VAL(opt, max_depth, 0);
-
-    if ( max_depth > 0 && scan_depth >= max_depth) {
-        LOG4CXX_DEBUG(logger, "HttpInventory::add_url: maximum scanning depth reached! (" << max_depth << ")");
-        to_process = false;
+    if ( opt_max_depth > 0 && htResp->depth() >= opt_max_depth) {
+        LOG4CXX_DEBUG(logger, "HttpInventory::add_url: maximum scanning depth reached! (" << opt_max_depth << ")");
+        allowed = false;
     }
-
-    if (to_process)
+    if (allowed)
     {
         string u_req = link.tostring();
-        if (task->IsSet("httpInventory/"weoIgnoreUrlParam)) {
+        if (opt_ignore_param) {
             u_req = link.tostring_noparam();
         }
         LOG4CXX_TRACE(logger, "HttpInventory::add_http_url: weoIgnoreUrlParam check << " << u_req);
-        if (tasklist->find(u_req) == tasklist->end())
+        if (!parent_task->is_url_processed(u_req))
         {
-            if (download) {
-                HttpRequest* new_url = new HttpRequest(u_req);
-                new_url->depth(scan_depth + 1);
-                new_url->ID(scData->dataID);
-                (*tasklist)[u_req] = true;
-                new_url->processor = processor;
-                new_url->context = context;
-                task->GetRequestAsync(new_url);
-            }
-            else {
-                LOG4CXX_DEBUG(logger, "HttpInventory::add_http_url: not need to download " << u_req);
-                // make the pseudo-responce
-                ScanData* scData = task->GetScanData(u_req, u_req);
-                if (scData->dataID == "")
-                {
-                    //scData->dataID = ;
-                    scData->respCode = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
-                    scData->downloadTime = 0;
-                    scData->dataSize = 0;
-                    scData->scan_depth = scan_depth + 1;
-                    scData->content_type = "application/octet-stream";
-                    scData->parsedData = NULL;
-                    task->SetScanData(scData);
-                }
-            }
+            HttpRequest* new_url = new HttpRequest(u_req);
+            new_url->depth(htResp->depth() + 1);
+            new_url->ID(scData->data_id);
+            new_url->processor = HttpInventory::response_dispatcher;
+            new_url->context = (void*)this;
+            parent_task->GetRequestAsync(new_url);
         }
         else
         {
             // add parent to existing scan data
         }
+        parent_task->register_url(u_req);
     }
 }
 } // namespace webEngine

@@ -31,6 +31,8 @@
 #include <boost/thread.hpp>
 #include <boost/functional/hash.hpp>
 
+using namespace boost;
+
 namespace webEngine {
 
 #ifndef __DOXYGEN__
@@ -108,7 +110,7 @@ void TaskProcessor(task* tsk)
                 tsk->transports[i]->process_requests();
             }
             // just switch context to wake up other tasks
-            boost::this_thread::sleep(boost::posix_time::millisec(500));
+            boost::this_thread::sleep(boost::posix_time::millisec(100));
             for(rIt = tsk->taskQueue.begin(); rIt != tsk->taskQueue.end();) {
                 if ((*rIt)->Processed()) {
                     if ((*rIt)->processor) {
@@ -179,13 +181,13 @@ task::~task()
         scanInfo = NULL;
     }
     if (event_ptr != NULL) {
-        boost::mutex *mt = (boost::mutex*)mutex_ptr;
-        delete mt;
+        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
+        delete cond;
         event_ptr = NULL;
     }
     if (mutex_ptr != NULL) {
-        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
-        delete cond;
+        boost::mutex *mt = (boost::mutex*)mutex_ptr;
+        delete mt;
         mutex_ptr = NULL;
     }
     if (scandata_mutex != NULL) {
@@ -475,46 +477,39 @@ void task::CalcStatus()
     }
 }
 
-ScanData* task::GetScanData( const string& baseUrl, const string& realUrl )
+shared_ptr<ScanData> task::GetScanData( const string& baseUrl )
 {
-    ScanData* retval = scanInfo->GetScanData( baseUrl, realUrl );
-    if (retval->scanID == "")
+    shared_ptr<ScanData> retval = scanInfo->GetScanData( baseUrl );
+    if (retval->scan_id == "")
     {
-        retval->scanID = scanInfo->scanID;
+        retval->scan_id = scanInfo->scanID;
     }
     return retval;
 }
 
-void task::SetScanData( ScanData* scData )
+void task::SetScanData( const string& baseUrl, shared_ptr<ScanData> scData )
 {
-    scanInfo->SetScanData(scData);
-    if (scData->parsedData != NULL) {
-        scData->parsedData->add_ref();
+    scanInfo->SetScanData(baseUrl, scData);
+    if (scData->parsed_data) {
         // send to all auditors
         for (size_t i = 0; i < auditors.size(); i++)
         {
             LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << auditors[i]->get_description());
             auditors[i]->start(this, scData);
         }
-        // to restore ref-counter from previous add_ref
-        FreeScanData(scData);
     }
-    /// @todo: !!! REMOVE THIS!!! It's only debug
+    /// @todo: !!! REMOVE THIS!!! It's only debug!
     /// need to implement clever clean-up scheme
     FreeScanData(scData);
 }
 
-void task::FreeScanData(ScanData* scData)
+void task::FreeScanData(shared_ptr<ScanData> scData)
 {
     if (scandata_mutex != NULL) {
         boost::mutex *mt = (boost::mutex*)scandata_mutex;
         boost::unique_lock<boost::mutex> lock(*mt);
-        if (scData->parsedData != NULL) {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data " << scData->parsedData);
-            if (scData->parsedData->release()) {
-                scData->parsedData = NULL;
-            }
-        }
+        LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data (SC = " << scData.use_count() << "; PD = " << scData->parsed_data << ")");
+        scData->parsed_data.reset();
     }
 }
 
@@ -815,5 +810,23 @@ size_t task::OptionSize()
     }
 
     return res;
+}
+
+bool task::is_url_processed( string url )
+{
+    boost::unordered_map<string, int >::iterator mit = processed_urls.find(url);
+    return (mit != processed_urls.end());
+}
+
+void task::register_url( string url )
+{
+    boost::unordered_map<string, int >::iterator mit = processed_urls.find(url);
+
+    if (mit == processed_urls.end()) {
+        processed_urls[url] = 1;
+    }
+    else {
+        processed_urls[url]++;
+    }
 }
 } // namespace webEngine

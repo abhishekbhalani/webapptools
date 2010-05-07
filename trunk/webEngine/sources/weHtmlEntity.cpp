@@ -100,11 +100,11 @@ static bool WeParseNeedToBreakTag(const string& tagName, const string& nextTag)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	HtmlEntity::HtmlEntity(iEntity* prnt)
+/// @fn	HtmlEntity::HtmlEntity(iEntityPtr prnt)
 ///
 /// @brief	Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-HtmlEntity::HtmlEntity(iEntity* prnt /*= NULL*/) // :
+HtmlEntity::HtmlEntity(iEntityPtr prnt /*= NULL*/) // :
 //    chldList(), attributes()
 {
     chldList.resize(0);
@@ -251,10 +251,10 @@ weCmpState HtmlEntity::Compare(iEntity& entity, weCmpMode mode)
 scanner_token HtmlEntity::Parse( string tagName, tag_scanner& scanner, i_transport* processor /*= NULL*/ )
 {
     scanner_token  state;
-    HtmlEntity    *chld;
-    WeInnerText     *txt;
-    string           txtAttr;
-    string        lString;
+    iEntityPtr     chld;
+    WeInnerText*   txt;
+    string         txtAttr;
+    string         lString;
 
     if (! tagName.empty()) {
         // for WeDocuments this parameter must be empty
@@ -276,7 +276,7 @@ scanner_token HtmlEntity::Parse( string tagName, tag_scanner& scanner, i_transpo
     attributes.clear();
     ClearChildren();
     txt = NULL;
-    chld = NULL;
+    chld.reset();
     txtAttr = "";
 
     while (true)
@@ -286,7 +286,7 @@ parseRestart:
         if (state == wstEof || state == wstError) {
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
-                chldList.push_back(txt);
+                chldList.push_back(iEntityPtr(txt));
 //printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
                 txt = NULL;
@@ -300,7 +300,7 @@ parseRestart:
             to_lower(lString);
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
-                chldList.push_back(txt);
+                chldList.push_back(iEntityPtr(txt));
                 txtAttr.clear();
                 txt = NULL;
             }
@@ -330,7 +330,7 @@ parseRestart:
             LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: TAG START: " << lString);
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
-                chldList.push_back(txt);
+                chldList.push_back(iEntityPtr(txt));
                 //LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: save previous TEXT: " << txtAttr);
                 txtAttr.clear();
                 txt = NULL;
@@ -347,8 +347,8 @@ parseRestart:
                 LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlEntity::Parse: NEW FORM BEGIN");
                 break;
             }
-            chld = weHtmlFactory.CreateEntity(lString, this);
-            if (chld != NULL) {
+            chld = weHtmlFactory.CreateEntity(lString, shared_from_this());
+            if (chld) {
                 scanner_token chldState;
                 chldList.push_back(chld);
                 chldState = chld->Parse(lString, scanner, processor);
@@ -367,13 +367,13 @@ parseRestart:
                     state = chldState;
                     goto parseRestart;
                 }
-                chld = NULL;
+                //chld = NULL;
             }
         	break;
         case wstAttr:
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
-                chldList.push_back(txt);
+                chldList.push_back(iEntityPtr(txt));
 //-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
                 txt = NULL;
@@ -386,7 +386,7 @@ parseRestart:
         case wstWord:
         case wstSpace:
             if (txt == NULL) {
-                txt = new WeInnerText(this);
+                txt = new WeInnerText(shared_from_this());
                 txtAttr = "";
             }
             /// @todo: implement option receiver for parser
@@ -400,32 +400,32 @@ parseRestart:
         case wstCommentStart:
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
-                chldList.push_back(txt);
+                chldList.push_back(iEntityPtr(txt));
 //-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
                 txt = NULL;
             }
-            chld = new WeHtmlComment(this);
+            chld = iEntityPtr(new WeHtmlComment(shared_from_this()));
             break;
         case wstCDataStart:
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
-                chldList.push_back(txt);
+                chldList.push_back(iEntityPtr(txt));
 //-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
                 txt = NULL;
             }
-            chld = new WeCData(this);
+            chld = iEntityPtr(new WeCData(shared_from_this()));
             break;
         case wstPiStart:
             if (txt != NULL) {
                 txt->Attr("", txtAttr);
-                chldList.push_back(txt);
+                chldList.push_back(iEntityPtr(txt));
 //-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
                 txt = NULL;
             }
-            chld = new WePhpInclude(this);
+            chld = iEntityPtr(new WePhpInclude(shared_from_this()));
             break;
         case wstData:
             // force points the '#text' property to avoid other children types break
@@ -437,7 +437,7 @@ parseRestart:
         case wstPiEnd:
             if (chld != NULL) {
                 chldList.push_back(chld);
-                chld = NULL;
+                //chld = NULL;
             }
             break;
         default:
@@ -456,11 +456,11 @@ CmpResults* HtmlEntity::Diff( iEntity& cmp, weCmpMode mode )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeInnerText::WeInnerText(iEntity* prnt)
+/// @fn	WeInnerText::WeInnerText(iEntityPtr prnt)
 ///
 /// @brief  Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeInnerText::WeInnerText(iEntity* prnt /*= NULL*/) :
+WeInnerText::WeInnerText(iEntityPtr prnt /*= NULL*/) :
     HtmlEntity(prnt)
 {
     entityName = "#text";
@@ -662,11 +662,11 @@ weCmpState WeInnerText::Compare(iEntity& cmp, weCmpMode mode)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	HtmlDocument::HtmlDocument(iEntity* prnt)
+/// @fn	HtmlDocument::HtmlDocument(iEntityPtr prnt)
 ///
 /// @brief	Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-HtmlDocument::HtmlDocument(iEntity* prnt /*= NULL*/) //:
+HtmlDocument::HtmlDocument(iEntityPtr prnt /*= NULL*/) //:
 //    HtmlEntity(prnt), HttpResponse()
 {
     response = NULL;
@@ -797,11 +797,11 @@ scanner_token HtmlDocument::Parse( string tagName, tag_scanner& scanner, i_trans
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeRefrenceObject::WeRefrenceObject(iEntity* prnt)
+/// @fn	WeRefrenceObject::WeRefrenceObject(iEntityPtr prnt)
 ///
 /// @brief  Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeRefrenceObject::WeRefrenceObject(iEntity* prnt /*= NULL*/) :
+WeRefrenceObject::WeRefrenceObject(iEntityPtr prnt /*= NULL*/) :
     HtmlDocument(prnt)
 {
     /// @todo Implement this!
@@ -836,13 +836,13 @@ scanner_token WeRefrenceObject::Parse( string tagName, tag_scanner& scanner, i_t
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeScript::WeScript( iEntity* prnt )
+/// @fn	WeScript::WeScript( iEntityPtr prnt )
 ///
 /// @brief  Default constructor.
 ///
 /// @param  prnt - If non-null, the prnt.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeScript::WeScript( iEntity* prnt /*= NULL*/ ) :
+WeScript::WeScript( iEntityPtr prnt /*= NULL*/ ) :
     WeRefrenceObject(prnt)
 {
     entityName = "script";
