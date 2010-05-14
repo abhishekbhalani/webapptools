@@ -266,6 +266,8 @@ string sys_meminfo()
     string  result = "";
     char    msg[100];
     double  phAll, phUsed, phPerc;
+    /*HANDLE hProcess;
+    PROCESS_MEMORY_COUNTERS pmc;*/
 
     pfInfo.cb = sizeof(pfInfo);
     if (GetPerformanceInfo(&pfInfo, sizeof(pfInfo))) {
@@ -274,6 +276,9 @@ string sys_meminfo()
         sprintf(msg, "%.2fMb / %.2fMb (%02d%%)", phUsed, phAll, (int)((phUsed / phAll) * 100));
         result = msg;
     }
+    /*hProcess = OpenProcess(  PROCESS_QUERY_INFORMATION |
+        PROCESS_VM_READ,
+        FALSE, processID );*/
 
     return result;
 }
