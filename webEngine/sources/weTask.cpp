@@ -440,7 +440,7 @@ void task::Stop()
     int active_threads = LockedGetValue(&thread_count);
     while (active_threads > 0) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Stop: " << active_threads << " threads still active, waiting...");
-        boost::this_thread::sleep(boost::posix_time::millisec(10));
+        boost::this_thread::sleep(boost::posix_time::millisec(100));
         active_threads = LockedGetValue(&thread_count);
     }
     processThread = false;
@@ -462,11 +462,12 @@ void task::CalcStatus()
 
     size_t count = taskList.size();
     int idata = (taskListSize - count) * 100 / taskListSize;
+    int active_threads = LockedGetValue(&thread_count);
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::CalcStatus: rest " << count << " queries  from " <<
-        taskListSize << " (" << (taskListSize - count) << ": " << idata << "%)");
+        taskListSize << " (" << (taskListSize - count) << ": " << idata << "%); " << active_threads << " active threads");
     Option(weoTaskCompletion, idata);
     // set task status
-    if (taskList.size() == 0 && taskQueue.size() == 0) {
+    if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::CalcStatus: finish!");
         processThread = false;
         scanInfo->finishTime = btm::second_clock::local_time();
@@ -494,7 +495,7 @@ void task::SetScanData( const string& baseUrl, shared_ptr<ScanData> scData )
         // send to all auditors
         for (size_t i = 0; i < auditors.size(); i++)
         {
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << auditors[i]->get_description());
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::SetScanData: send response to " << auditors[i]->get_description());
             auditors[i]->start(this, scData);
         }
     }

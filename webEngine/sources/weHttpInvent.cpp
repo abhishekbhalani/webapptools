@@ -22,6 +22,7 @@
 #include <weTask.h>
 #include <weHttpInvent.h>
 #include <weScan.h>
+#include <boost/algorithm/string/trim.hpp>
 
 static string xrc = "<plugin><category label='Basic settings' name='generic'>\
  <option name='httpInventory/BaseURL' label='start transport_url' type='8' control='string' mode='window'>/</option>\
@@ -220,6 +221,7 @@ void HttpInventory::process_response( i_response *resp )
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
     {
         string cType = htResp->ContentType();
+        boost::trim(cType);
         if (cType == "") {
             // set "text/html" by default
             /// @todo: move it to the options!!!
@@ -398,34 +400,6 @@ void HttpInventory::process_response( i_response *resp )
 void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_ptr<ScanData> scData )
 {
     bool allowed = true;
-    // verify blocked file types
-    string path = link.request;
-    int pos = path.find_last_of('.');
-    if (pos != string::npos && ext_deny.size() > 0)
-    {
-        path = path.substr(pos+1);
-        LOG4CXX_TRACE(logger, "HttpInventory::add_url: Found extension: " << path << "; Deny list size is " << ext_deny.size());
-        for (size_t i = 0; i < ext_deny.size(); i++) {
-            if (path == ext_deny[i]) {
-                allowed = false;
-                LOG4CXX_DEBUG(logger, "HttpInventory::add_http_url: not need to download " << link.tostring());
-                // make the pseudo-response
-                shared_ptr<ScanData> scn = parent_task->GetScanData(link.tostring());
-                if (scn->data_id == "")
-                {
-                    //scData->data_id = ;
-                    scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
-                    scn->download_time = 0;
-                    scn->data_size = 0;
-                    scn->scan_depth = htResp->depth() + 1;
-                    scn->content_type = "application/octet-stream";
-                    scn->parsed_data.reset();
-                    parent_task->SetScanData(scn->object_url, scn);
-                }
-                break;
-            }
-        }
-    }
     if (!link.is_host_equal(htResp->RealUrl()))
     {
         if (opt_in_host)
@@ -446,6 +420,36 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_pt
         LOG4CXX_DEBUG(logger, "HttpInventory::add_url: maximum scanning depth reached! (" << opt_max_depth << ")");
         allowed = false;
     }
+    if (allowed)
+    {    // verify blocked file types
+        string path = link.request;
+        int pos = path.find_last_of('.');
+        if (pos != string::npos && ext_deny.size() > 0)
+        {
+            path = path.substr(pos+1);
+            LOG4CXX_TRACE(logger, "HttpInventory::add_url: Found extension: " << path << "; Deny list size is " << ext_deny.size());
+            for (size_t i = 0; i < ext_deny.size(); i++) {
+                if (path == ext_deny[i]) {
+                    allowed = false;
+                    LOG4CXX_DEBUG(logger, "HttpInventory::add_http_url: not need to download " << link.tostring());
+                    // make the pseudo-response
+                    shared_ptr<ScanData> scn = parent_task->GetScanData(link.tostring());
+                    if (scn->data_id == "")
+                    {
+                        //scData->data_id = ;
+                        scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
+                        scn->download_time = 0;
+                        scn->data_size = 0;
+                        scn->scan_depth = htResp->depth() + 1;
+                        scn->content_type = "application/octet-stream";
+                        scn->parsed_data.reset();
+                        parent_task->SetScanData(scn->object_url, scn);
+                    }
+                    break;
+                } // if path == ext_deny[i]
+            } // for deny list size
+        } // if file extension found
+    } // if allowed
     if (allowed)
     {
         string u_req = link.tostring();

@@ -51,6 +51,8 @@ static void LibInitCommon()
         if (cCode != 0) {
             LOG4CXX_FATAL(iLogger::GetLogger(), "cURL initialization failed : " << cCode);
         }
+        char* cver = curl_version();
+        LOG4CXX_INFO(iLogger::GetLogger(), "cURL library version: " << cver);
     }
     isLibInited = true;
 }
