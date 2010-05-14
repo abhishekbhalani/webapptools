@@ -27,7 +27,7 @@
   * *Дополнительная информация*
     * [http://groups.google.com/group/webapptools Форум разработчиков проекта webEngine.]
     * [http://code.google.com/p/webapptools/issues/list?q=label:Enhancement+OR+label:Task Список задач] и [http://code.google.com/p/webapptools/issues/list?q=label:Type-Defect Багтрекер] проекта.
-
+<wiki:comment>
 == Документация программиста ==
   * Оформление кода
   * Структура проекта
@@ -45,3 +45,4 @@
      * [iAudit iAudit interface]
      * [iVulner iVulner interface]
   * [http://webapptools.googlecode.com/svn/wiki/doxygen/classes.html Документированный исходный код]
+  </wiki:comment>
