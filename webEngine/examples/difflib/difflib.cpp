@@ -24,10 +24,11 @@
 #include "weDiffLib.h"
 
 using namespace std;
+using namespace webEngine;
 
 int main(int argc, char* argv[])
 {
-    WeCmpResults* res;
+    CmpResults* res;
 
     string t1 = "This   file is part of webEngine";
     string t2 = "this file was part Of dtl";
@@ -41,7 +42,7 @@ int main(int argc, char* argv[])
 
     cout << "Compare '" << t1 << "' and '" << t2 << "'" << endl;
     cout << "Case sensitive comparison:" << endl;
-    res = WeTextDiff(t1, t2, weCmpNothing);
+    res = TextDiff(t1, t2, weCmpNothing);
     for (unsigned i = 0; i < res->size(); i++) {
         cout << "Block #" << i << endl;
         switch (res->at(i)->state) {
@@ -62,7 +63,7 @@ int main(int argc, char* argv[])
         cout << "'" << data << "'" <<endl;
     }
     cout << endl << "Case insensitive comparison:" << endl;
-    res = WeTextDiff(t1, t2, weCmpCaseInsens);
+    res = TextDiff(t1, t2, weCmpCaseInsens);
     for (unsigned i = 0; i < res->size(); i++) {
         cout << "Block #" << i << endl;
         switch (res->at(i)->state) {
@@ -83,7 +84,7 @@ int main(int argc, char* argv[])
         cout << "'" << data << "'" <<endl;
     }
     cout << endl << "Case insensitive, collapsed spaces comparison:" << endl;
-    res = WeTextDiff(t1, t2, (weCmpMode)(weCmpCaseInsens | weCmpCollapseSpace));
+    res = TextDiff(t1, t2, (weCmpMode)(weCmpCaseInsens | weCmpCollapseSpace));
     for (unsigned i = 0; i < res->size(); i++) {
         cout << "Block #" << i << endl;
         switch (res->at(i)->state) {

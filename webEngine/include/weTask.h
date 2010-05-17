@@ -187,10 +187,6 @@ namespace webEngine {
 #endif //__DOXYGEN__
 
     private:
-        DECLARE_SERIALIZATOR
-        {
-            ar & BOOST_SERIALIZATION_NVP(options);
-        };
         friend void TaskProcessor(task* tsk);
     };
 

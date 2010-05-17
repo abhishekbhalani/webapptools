@@ -26,6 +26,7 @@
 #include "weTagScanner.h"
 
 using namespace std;
+using namespace webEngine;
 
 const char* html = "<html><body><p align=right dir='rtl'>Begin &amp;    &copy; back</p>"
 "<a href=http://terrainformatica.com/index.php?a=1&b=2>link</a><br/><!-- comment -->"
@@ -34,9 +35,9 @@ const char* html = "<html><body><p align=right dir='rtl'>Begin &amp;    &copy; b
 
 int main(int argc, char* argv[])
 {
-    WeBlob  file;
-    WeInStream *st;
-    WeStrStream *si;
+    blob  file;
+    tag_stream *st;
+    str_tag_stream *si;
 
     if (argc > 1) {
         ifstream ifs(argv[1]);
@@ -44,14 +45,14 @@ int main(int argc, char* argv[])
         st = file.stream();
     }
     else {
-        si = new WeStrStream(html);
+        si = new str_tag_stream(html);
         st = si;
     }
-    WeTagScanner sc(*st);
+    tag_scanner sc(*st);
 
     while(true)
     {
-        int t = sc.GetToken();
+        int t = sc.get_token();
         switch(t)
         {
         case wstError:
@@ -61,13 +62,13 @@ int main(int argc, char* argv[])
             printf("EOF\n");
             goto FINISH;
         case wstTagStart:
-            printf("TAG START:%s\n", sc.GetTagName());
+            printf("TAG START:%s\n", sc.get_tag_name());
             break;
         case wstTagEnd:
-            printf("TAG END:%s\n", sc.GetTagName());
+            printf("TAG END:%s\n", sc.get_tag_name());
             break;
         case wstAttr:
-            printf("\tATTR:%s=%s\n", sc.GetAttrName(), sc.GetValue());
+            printf("\tATTR:%s=%s\n", sc.get_tag_name(), sc.get_value());
             break;
         case wstCommentStart:
             printf("COMMENT START\n");
@@ -76,11 +77,11 @@ int main(int argc, char* argv[])
             printf("COMMENT END\n");
             break;
         case wstData:
-            printf("\tDATA = %s\n", sc.GetValue());
+            printf("\tDATA = %s\n", sc.get_value());
             break;
         case wstWord: 
         case wstSpace:
-            printf("{%s}\n", sc.GetValue());
+            printf("{%s}\n", sc.get_value());
             break;
         }
     }
