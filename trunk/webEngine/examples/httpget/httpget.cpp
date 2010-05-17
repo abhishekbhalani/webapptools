@@ -31,28 +31,29 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    WeDispatch kernel;
-    WeHTTP proc(&kernel);
-    WeHtmlDocument  doc;
-    WeHttpResponse resp;
+    webEngine::LibInit();
 
-    WeLibInit();
+    webEngine::engine_dispatcher kernel;
+    webEngine::http_transport proc(&kernel);
+    webEngine::HtmlDocument  doc;
+    webEngine::HttpResponse resp;
 
-    proc.Option(weoCollapseSpaces, true);
-    proc.Option(weoStayInHost, true);
-    proc.Option(weoFollowLinks, true);
-    proc.RelocationCount(10);
 
-    proc.Request("http://www.ru", &resp);
+    kernel.Option(weoCollapseSpaces, true);
+    kernel.Option(weoStayInHost, true);
+    kernel.Option(weoFollowLinks, true);
+    proc.relocation_count(10);
+
+    proc.request("http://www.ru", &resp);
 
     while (!resp.Processed()) {
-        proc.ProcessRequests();
+        proc.process_requests();
     }
 
     printf("Response: %d\n", resp.HttpCode());
-    printf("Given URL: %s\n", resp.BaseUrl().ToString().c_str());
+    printf("Given URL: %s\n", resp.BaseUrl().tostring().c_str());
     printf("Relocations: %d\n", resp.RelocCount());
-    printf("Resulting URL: %s\n", resp.RealUrl().ToString().c_str());
+    printf("Resulting URL: %s\n", resp.RealUrl().tostring().c_str());
     printf("Data size: %d\n", resp.Data().size());
     if (resp.Data().size() > 0) {
         bool sc = doc.ParseData(&resp, &proc);
@@ -60,7 +61,7 @@ int main(int argc, char* argv[])
         printf("%s\n", &(doc.Data()[0]));
     }
 
-    WeLibClose();
+    webEngine::LibClose();
 
     return 0;
 }

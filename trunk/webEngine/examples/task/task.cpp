@@ -34,24 +34,25 @@
 #include <boost/archive/xml_oarchive.hpp>
 
 using namespace std;
+using namespace webEngine;
 
 int main(int argc, char* argv[])
 {
-    WeOption    opt1, opt2, opt3;
+    wOption     opt1, opt2, opt3;
     string      str("sample");
     string      st2;
     int         iVal;
     char        cVal;
 
-    WeLibInit(); // for initialize logging
+    LibInit(); // for initialize logging
 
-    opt1.Name("testStr");
+    opt1.name("testStr");
     opt1.SetValue(str);
 
-    opt2.Name("testInt");
+    opt2.name("testInt");
     opt2.SetValue(2);
 
-    opt3.Name("testChar");
+    opt3.name("testChar");
     opt3.SetValue(char(2));
 
     cout << "Opt1 type = " << opt1.GetTypeName() << endl;
@@ -61,11 +62,11 @@ int main(int argc, char* argv[])
     try
     {
         opt1.GetValue(st2);
-        cout << opt1.Name() << ": " << st2 << endl;
+        cout << opt1.name() << ": " << st2 << endl;
         opt2.GetValue(st2);
-        cout << opt2.Name() << ": " << st2 << endl;
+        cout << opt2.name() << ": " << st2 << endl;
         opt3.GetValue(st2);
-        cout << opt3.Name() << ": " << st2 << endl;
+        cout << opt3.name() << ": " << st2 << endl;
     }
     catch (...)
     {
@@ -75,11 +76,11 @@ int main(int argc, char* argv[])
     try
     {
         opt2.GetValue(iVal);
-        cout << opt2.Name() << ": " << iVal << endl;
+        cout << opt2.name() << ": " << iVal << endl;
         opt3.GetValue(iVal);
-        cout << opt3.Name() << ": " << iVal << endl;
+        cout << opt3.name() << ": " << iVal << endl;
         opt1.GetValue(iVal);
-        cout << opt1.Name() << ": " << iVal << endl;
+        cout << opt1.name() << ": " << iVal << endl;
     }
     catch (...)
     {
@@ -90,11 +91,11 @@ int main(int argc, char* argv[])
     try
     {
         opt3.GetValue(cVal);
-        cout << opt3.Name() << ": " << cVal << endl;
+        cout << opt3.name() << ": " << cVal << endl;
         opt2.GetValue(cVal);
-        cout << opt2.Name() << ": " << cVal << endl;
+        cout << opt2.name() << ": " << cVal << endl;
         opt1.GetValue(cVal);
-        cout << opt1.Name() << ": " << cVal << endl;
+        cout << opt1.name() << ": " << cVal << endl;
     }
     catch (...)
     {
@@ -113,7 +114,7 @@ int main(int argc, char* argv[])
         // archive and stream closed when destructor are called
     }
 
-    WeTask tsk;
+    task tsk;
 
     try
     {
@@ -121,7 +122,7 @@ int main(int argc, char* argv[])
         {
             boost::archive::xml_iarchive ia(itfs);
             // write class instance to archive
-            ia >> BOOST_SERIALIZATION_NVP(tsk);
+            // ia >> BOOST_SERIALIZATION_NVP(tsk);
             // archive and stream closed when destructor are called
         }
     }
@@ -131,7 +132,7 @@ int main(int argc, char* argv[])
     }
 
     string testOpt("test");
-    cout << "Read \"test\" option: " << tsk.Option(testOpt).Name() << " (" << tsk.Option(testOpt).GetTypeName() << ") -> ";
+    cout << "Read \"test\" option: " << tsk.Option(testOpt).name() << " (" << tsk.Option(testOpt).GetTypeName() << ") -> ";
     if (!tsk.Option(testOpt).IsEmpty()) {
         tsk.Option(testOpt).GetValue(iVal);
         cout << iVal;
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
 
     tsk.Option(testOpt, 3);
 
-    cout << "Read \"test\" option: " << tsk.Option("test").Name() << " (" << tsk.Option("test").GetTypeName() << ") -> ";
+    cout << "Read \"test\" option: " << tsk.Option("test").name() << " (" << tsk.Option("test").GetTypeName() << ") -> ";
     if (!tsk.Option("test").IsEmpty()) {
         tsk.Option("test").GetValue(iVal);
         cout << iVal;
@@ -153,7 +154,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
 
-    cout << "Read \"fakename\" option: " << tsk.Option("fakename").Name() << " (" << tsk.Option("fakename").GetTypeName() << ") -> ";
+    cout << "Read \"fakename\" option: " << tsk.Option("fakename").name() << " (" << tsk.Option("fakename").GetTypeName() << ") -> ";
     if (!tsk.Option("fakename").IsEmpty()) {
         tsk.Option("fakename").GetValue(iVal);
         cout << iVal;
@@ -169,7 +170,7 @@ int main(int argc, char* argv[])
         std::ofstream tfs("task");
         boost::archive::xml_oarchive oa(tfs);
         // write class instance to archive
-        oa << BOOST_SERIALIZATION_NVP(tsk);
+        // oa << BOOST_SERIALIZATION_NVP(tsk);
         // archive and stream closed when destructor are called
     }
 
@@ -178,7 +179,7 @@ int main(int argc, char* argv[])
     tsk.Option(weoID, string("&24'u\"3ou"));
     {
         std::ofstream tfs("task.xml");
-        std::string xml = tsk.ToXml();
+        std::string xml = ""; //tsk.ToXml();
         // write class instance to archive
         tfs << xml;
         // archive and stream closed when destructor are called
@@ -194,7 +195,7 @@ int main(int argc, char* argv[])
             oss << tfs.rdbuf();
             xml = string(oss.str(), oss.rdbuf()->pcount());
         }
-        tsk.FromXml(xml);
+        //tsk.FromXml(xml);
         // archive and stream closed when destructor are called
     }
     // save data to archive
@@ -202,11 +203,11 @@ int main(int argc, char* argv[])
         std::ofstream tfs("task2");
         boost::archive::xml_oarchive oa(tfs);
         // write class instance to archive
-        oa << BOOST_SERIALIZATION_NVP(tsk);
+        // oa << BOOST_SERIALIZATION_NVP(tsk);
         // archive and stream closed when destructor are called
     }
 
-    WeStringLinks lst;
+    StringLinks lst;
 
     try
     {
@@ -223,9 +224,9 @@ int main(int argc, char* argv[])
         cout << "archive reading exception!" << endl;
     }
 
-    lst.Append("key1", "value1");
-    lst.Append("key2", "value2");
-    lst.Append("key3", "value3");
+    lst.append("key1", "value1");
+    lst.append("key2", "value2");
+    lst.append("key3", "value3");
 
     std::ofstream lfs("list");
 
@@ -237,7 +238,7 @@ int main(int argc, char* argv[])
         // archive and stream closed when destructor are called
     }
 
-    WeLibClose();
+    LibClose();
 
     return 0;
 }
