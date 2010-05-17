@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="scan_demo"
+	Name="crawler"
 	ProjectGUID="{76537019-478B-4598-A4E2-FBEA625C778F}"
-	RootNamespace="scanner"
+	RootNamespace="crawler"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -180,84 +180,6 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
-		<Configuration
-			Name="Local debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="0"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-				Description="Increment build number"
-				CommandLine="..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t600"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\..\webEngine\include;."
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;V8PARSER_EXPORTS;_WINDOWS;"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
-				DebugInformationFormat="4"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="Psapi.lib log4cxx.lib ws2_32.lib libboost_regex-vc90-mt-gd-1_38.lib webEngine.lib curllib.lib ssleay32.lib libeay32.lib v8_d.lib winmm.lib"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\webEngine\libs\Debug"
-				EnableUAC="true"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -384,42 +306,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<Filter
-			Name="My Inspector Results"
-			>
-			<File
-				RelativePath=".\My Inspector Results\r004mi1\r004mi1.insp"
-				>
-			</File>
-			<File
-				RelativePath=".\My Inspector Results\r007mi1\r007mi1.insp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="My Amplifier Results"
-			>
-			<File
-				RelativePath=".\My Amplifier Results\r000hs\r000hs.ampl"
-				>
-			</File>
-			<File
-				RelativePath=".\My Amplifier Results\r001hs\r001hs.ampl"
-				>
-			</File>
-			<File
-				RelativePath=".\My Amplifier Results\r004hs\r004hs.ampl"
-				>
-			</File>
-			<File
-				RelativePath=".\My Amplifier Results\r005lw\r005lw.ampl"
-				>
-			</File>
-		</Filter>
-		<File
-			RelativePath=".\ClassDiagram1.cd"
-			>
-		</File>
 		<File
 			RelativePath=".\dom.js"
 			>
