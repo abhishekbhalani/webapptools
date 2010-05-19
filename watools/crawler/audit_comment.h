@@ -59,7 +59,7 @@ public:
     /// 		
     /// @param  resp - If non-null, the resp. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void process_response(webEngine::i_response *resp);
+    virtual void process_response(webEngine::i_response_ptr resp);
 
 protected:
     void add_url( webEngine::transport_url link, webEngine::transport_url *base_url, boost::shared_ptr<webEngine::ScanData> scData );
