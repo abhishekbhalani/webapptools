@@ -99,7 +99,7 @@ void audit_jscript::start( webEngine::task* tsk, boost::shared_ptr<ScanData>scDa
                         req->depth(scData->scan_depth + 1);
                         req->context = this;
                         req->processor = i_audit::response_dispatcher;
-                        parent_task->GetRequestAsync(req);
+                        parent_task->get_request_async(req);
                     }
                 }
             }
@@ -121,7 +121,7 @@ void audit_jscript::start( webEngine::task* tsk, boost::shared_ptr<ScanData>scDa
     LOG4CXX_TRACE(logger, "audit_jscript::start - finished");
 }
 
-void audit_jscript::process_response( webEngine::i_response *resp )
+void audit_jscript::process_response( webEngine::i_response_ptr resp )
 {
     string sc;
     vector<thread_data>* th_args = new vector<thread_data>;
@@ -252,7 +252,7 @@ void audit_jscript::add_url( webEngine::transport_url link, boost::shared_ptr<Sc
             // to send response to the inventories
             new_url->processor = NULL;
             new_url->context = NULL; 
-            parent_task->GetRequestAsync(new_url);
+            parent_task->get_request_async(new_url);
         }
         else
         {

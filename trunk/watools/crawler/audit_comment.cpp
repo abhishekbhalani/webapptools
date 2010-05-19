@@ -114,7 +114,7 @@ void audit_comment::start( task* tsk, shared_ptr<ScanData> scData )
     return;
 }
 
-void audit_comment::process_response( i_response *resp )
+void audit_comment::process_response( i_response_ptr resp )
 {
     LOG4CXX_TRACE(logger, "audit_comment::process_response");
     return;
@@ -190,7 +190,7 @@ void audit_comment::add_url( transport_url link, transport_url *base_url, shared
             // to send response to the inventories
             new_url->processor = NULL;
             new_url->context = NULL; 
-            parent_task->GetRequestAsync(new_url);
+            parent_task->get_request_async(new_url);
         }
         else
         {

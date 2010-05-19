@@ -61,7 +61,7 @@ public:
     /// 		
     /// @param  resp - If non-null, the resp. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void process_response(webEngine::i_response *resp);
+    virtual void process_response(webEngine::i_response_ptr resp);
 
     virtual void parse_scripts(boost::shared_ptr<webEngine::ScanData> sc, boost::shared_ptr<webEngine::HtmlDocument> parser);
     virtual void process_events(webEngine::iEntityPtr entity);
