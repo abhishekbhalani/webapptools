@@ -94,7 +94,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
 	return retval;
 }
 
-std::wstring string_to_string(const std::string& s)
+std::wstring string_to_wstring(const std::string& s)
 {
     std::wstring temp(s.length(),L' ');
     std::copy(s.begin(), s.end(), temp.begin());
@@ -138,6 +138,9 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
                 }
                 else if (is_any<int>(val)) {
                     value = boost::lexical_cast<string>(boost::any_cast<int>(val));
+                }
+                else if (is_any<bool>(val)) {
+                    value = boost::lexical_cast<string>(boost::any_cast<bool>(val));
                 }
 				else {
 					if (noLogging) {
@@ -305,13 +308,13 @@ int main(int argc, char* argv[])
 
     // no trace configuration file - make configuration programmatically
     if (vm.count("log_layout")) {
-        default_layout = string_to_string(vm["log_layout"].as<string>());
+        default_layout = string_to_wstring(vm["log_layout"].as<string>());
     }
 	LayoutPtr layout(new PatternLayout(default_layout));
 	if (!traceFile) {
 		// set log file from config file
         if (vm.count("log_file")) {
-            FileAppenderPtr appender(new FileAppender(layout, string_to_string(vm["log_file"].as<string>()), true));
+            FileAppenderPtr appender(new FileAppender(layout, string_to_wstring(vm["log_file"].as<string>()), true));
             scan_logger->addAppender(appender);
             traceFile = true;
         }

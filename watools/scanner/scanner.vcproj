@@ -26,7 +26,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increment build number"
-				CommandLine="..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s"
+				CommandLine="..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t600"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -105,7 +105,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increment build number"
-				CommandLine="..\..\verbuild.exe version.h *.*.+.* -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s"
+				CommandLine="..\..\verbuild.exe version.h *.*.+.* -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t120"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -142,7 +142,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Psapi.lib log4cxx.lib webEngine.lib curllib_static.lib ws2_32.lib ssleay32.lib libeay32.lib openldap.lib libboost_regex-vc90-mt-1_38.lib"
+				AdditionalDependencies="Psapi.lib log4cxx.lib webEngine.lib curllib.lib ws2_32.lib ssleay32.lib libeay32.lib openldap.lib libboost_regex-vc90-mt-1_38.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\webEngine\libs\release"
 				GenerateDebugInformation="true"
