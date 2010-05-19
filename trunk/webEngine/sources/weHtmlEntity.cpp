@@ -752,11 +752,10 @@ bool HtmlDocument::ParseData(boost::shared_ptr<i_response> resp, i_transport* pr
     try
     {
         response = boost::shared_dynamic_cast<HttpResponse>(resp);
-        tag_stream* stream = response->Data().stream();
-        if (stream) {
+		std::auto_ptr<tag_stream> stream = response->Data().stream();
+        if (stream.get()) {
             tag_scanner scanner(*stream);
             retval = (Parse("", scanner, processor) != wstError);
-            delete stream;
         }
         return retval;
 
