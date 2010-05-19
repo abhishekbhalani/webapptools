@@ -81,7 +81,8 @@ public:
 /// @date   16.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class engine_dispatcher :
-    public i_options_provider
+    public i_options_provider,
+	boost::noncopyable
 {
 public:
     engine_dispatcher(void);
@@ -121,10 +122,6 @@ protected:
     plugin_factory plg_factory;
     plugin_list plg_list;
     i_storage* plg_storage;
-
-private:
-    engine_dispatcher(engine_dispatcher&) {};               ///< Avoid object copying
-    engine_dispatcher& operator=(engine_dispatcher&) { return *this; };    ///< Avoid object copying
 #endif // __DOXYGEN__
 };
 
