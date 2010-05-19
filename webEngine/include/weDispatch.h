@@ -97,6 +97,7 @@ public:
     // Access the plugin_list
     const plugin_list &get_plugin_list(void) const  { return(plg_list); };
     void refresh_plugin_list(boost::filesystem::path& baseDir);
+    void refresh_plugin_list();
 
     // Provide Logger to plugins
     log4cxx::LoggerPtr get_logger() { return iLogger::GetLogger(); };

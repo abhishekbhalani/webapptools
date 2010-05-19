@@ -30,6 +30,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/thread.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/scoped_ptr.hpp>
 
 using namespace boost;
 
@@ -39,13 +40,29 @@ namespace webEngine {
 static const wOption empty_option("_empty_");
 #endif //__DOXYGEN__
 
+typedef struct _sync_req_data {
+    boost::shared_ptr<boost::mutex> req_mutex;
+    boost::shared_ptr<boost::condition_variable> req_event;
+    boost::shared_ptr<i_response> response;
+} sync_req_data;
+
+void task_sync_request(boost::shared_ptr<i_response> resp, void* context)
+{
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "task_sync_request - process response");
+    sync_req_data *req_data = (sync_req_data*)context;
+
+    boost::lock_guard<boost::mutex> lock(*(req_data->req_mutex.get()));
+    req_data->response = resp;
+    req_data->req_event->notify_all();
+}
+
 void TaskProcessor(task* tsk)
 {
     wOption opt;
     size_t i;
     int iData;
     response_list::iterator rIt;
-    i_response* resp;
+    boost::shared_ptr<i_response> resp;
     i_request* curr_url;
 
     tsk->isRunning = true;
@@ -95,7 +112,7 @@ void TaskProcessor(task* tsk)
 
                 //string u_req = curr_url->RequestUrl().tostring();
                 tsk->taskList.erase(tsk->taskList.begin());
-                curr_url->release();
+                delete curr_url;
             }
             else {
                 break; // no URLs in the waiting list
@@ -126,8 +143,7 @@ void TaskProcessor(task* tsk)
                             tsk->inventories[i]->process_response(*rIt);
                         }
                     }
-                    i_response* resp = *rIt;
-                    resp->release();
+                    rIt->reset();
                     tsk->taskQueue.erase(rIt);
                     rIt = tsk->taskQueue.begin();
                 }
@@ -210,21 +226,35 @@ task::~task()
     }
 }
 
-i_response* task::GetRequest( i_request* req )
+boost::shared_ptr<i_response> task::get_request( i_request* req )
 {
-    /// @todo Implement this!
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::GetRequest (WeURL)");
-    LOG4CXX_ERROR(iLogger::GetLogger(), " *** Not implemented yet! ***");
-    return NULL;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request (WeURL)");
+    boost::shared_ptr<i_response> retval;
+    boost::scoped_ptr<sync_req_data> rdata(new sync_req_data);
+    rdata->req_mutex.reset(new boost::mutex);
+    rdata->req_event.reset(new boost::condition_variable);
+    rdata->response.reset();
+
+    req->processor = task_sync_request;
+    req->context   = (void*)(rdata.get());
+    get_request_async(req);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request - waiting for response");
+    boost::unique_lock<boost::mutex> lock(*rdata->req_mutex);
+    while (!rdata->response) {
+        rdata->req_event->wait(lock);
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request - data received");
+    retval = rdata->response;
+    return retval;
 }
 
-void task::GetRequestAsync( i_request* req )
+void task::get_request_async( i_request* req )
 {
     /// @todo Implement this!
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::GetRequestAsync");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async");
     processThread = true;
     if (!isRunning) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::GetRequestAsync: create WeTaskProcessor");
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::get_request_async: create WeTaskProcessor");
         boost::thread process(TaskProcessor, this);
     }
     // wake-up task_processor
@@ -234,7 +264,7 @@ void task::GetRequestAsync( i_request* req )
         boost::unique_lock<boost::mutex> lock(*mt);
         taskList.push_back(req);
         taskListSize++;
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::GetRequestAsync: new task size=" << taskList.size());
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
         cond->notify_all();
     }
     return;
@@ -461,7 +491,10 @@ void task::CalcStatus()
 {
 
     size_t count = taskList.size();
-    int idata = (taskListSize - count) * 100 / taskListSize;
+    int idata = 100;
+    if (taskListSize != 0) {
+        idata = (taskListSize - count) * 100 / taskListSize;
+    }
     int active_threads = LockedGetValue(&thread_count);
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::CalcStatus: rest " << count << " queries  from " <<
         taskListSize << " (" << (taskListSize - count) << ": " << idata << "%); " << active_threads << " active threads");

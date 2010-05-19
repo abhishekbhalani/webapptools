@@ -165,12 +165,12 @@ namespace webEngine {
         /// Images, script sources and other data may be stored here. @n
         virtual blob& Data(void);
 
-        virtual bool ParseData(i_response* resp, i_transport* processor = NULL);
+        virtual bool ParseData(boost::shared_ptr<i_response> resp, i_transport* processor = NULL);
         virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL);
 
 #ifndef __DOXYGEN__
     protected:
-        HttpResponse* response;
+        boost::shared_ptr<HttpResponse> response;
 #endif //__DOXYGEN__
     };
 

@@ -150,7 +150,7 @@ http_transport::~http_transport()
     if (transferHandle != NULL) {
         for (hnd = responces.begin(); hnd != responces.end(); hnd++) {
             try {
-                point = dynamic_cast<HttpResponse*>(*hnd);
+                point = dynamic_cast<HttpResponse*>((*hnd).get());
                 curl_multi_remove_handle(transferHandle, point->CURLHandle());
                 delete point;
             }
@@ -186,9 +186,10 @@ i_plugin* http_transport::get_interface( const string& ifName )
 ///                will be creaded.
 /// @retval	null if it fails, pointer to the HttpResponse else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-i_response* http_transport::request( i_request* req, i_response* resp /*= NULL*/ )
+i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= i_response_ptr(0)*/ )
 {
-    HttpResponse* retval;
+    i_response_ptr retval;
+    HttpResponse* ht_retval;
     wOption opt;
 
     if (!req->RequestUrl().is_valid()) {
@@ -213,35 +214,37 @@ i_response* http_transport::request( i_request* req, i_response* resp /*= NULL*/
         /// @todo Add error processing. Throw exception or return NULL
     }
 
-    if (resp == NULL) {
-        retval = new HttpResponse();
+    if (!resp) {
+        ht_retval = new HttpResponse();
+        retval = i_response_ptr(ht_retval);
         retval->BaseUrl(req->RequestUrl());
         retval->RelocCount(0);
     }
     else {
-        retval = dynamic_cast<HttpResponse*>(resp);
-        if (!retval->BaseUrl().is_valid()) {
-            retval->BaseUrl(req->RequestUrl());
+        retval = resp;
+        ht_retval = dynamic_cast<HttpResponse*>(retval.get());
+        if (!ht_retval->BaseUrl().is_valid()) {
+            ht_retval->BaseUrl(req->RequestUrl());
         }
-        if (!retval->CurlInit()) {
+        if (!ht_retval->CurlInit()) {
             /// @todo may be throw exception&
-            return NULL;
+            return i_response_ptr((i_response*)NULL);
         }
     }
-    retval->depth(req->depth());
+    ht_retval->depth(req->depth());
 
     try {
         HttpRequest* r = dynamic_cast<HttpRequest*>(req);
-        retval->CurlSetOpts(r);
+        ht_retval->CurlSetOpts(r);
     }
     catch (...) {}; // just skip
-    retval->Processed(false);
+    ht_retval->Processed(false);
 
-    responces.push_back(retval);
+    responces.push_back(i_response_ptr(retval));
 
-    if (transferHandle != NULL && retval->CURLHandle() != NULL) {
+    if (transferHandle != NULL && ht_retval->CURLHandle() != NULL) {
         try {
-            curl_multi_add_handle(transferHandle, retval->CURLHandle());
+            curl_multi_add_handle(transferHandle, ht_retval->CURLHandle());
             process_requests();
         }
         catch (std::exception &e) {
@@ -250,9 +253,9 @@ i_response* http_transport::request( i_request* req, i_response* resp /*= NULL*/
     }
     else {
         LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request curl_transfer_handle: " << transferHandle <<
-            "; curl_request_handle: " << retval->CURLHandle());
+            "; curl_request_handle: " << ht_retval->CURLHandle());
     }
-    return (i_response*)retval;
+    return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -265,15 +268,15 @@ i_response* http_transport::request( i_request* req, i_response* resp /*= NULL*/
 /// @retval	null if it fails, pointer to the HttpResponse else.
 /// @throw  WeError if given transport_url is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-i_response* http_transport::request( string url, i_response* resp /*= NULL*/ )
+i_response_ptr http_transport::request( string url, i_response_ptr resp /*= i_response_ptr(0)*/ )
 {
     HttpRequest* req = new HttpRequest;
 
     if (req == NULL) {
         throw WeError(string("Can't create HttpRequest! ") + __FILE__ + boost::lexical_cast<std::string>(__LINE__));
-        return NULL;
+        return boost::shared_ptr<i_response>((i_response*)NULL);
     }
-    req->RequestUrl(url, resp);
+    req->RequestUrl(url, resp.get());
     if (!req->RequestUrl().is_valid()) {
         if (resp != NULL) {
             req->RequestUrl().assign_with_referer(url, &(resp->RealUrl()));
@@ -293,15 +296,15 @@ i_response* http_transport::request( string url, i_response* resp /*= NULL*/ )
 /// @retval	null if it fails, pointer to the HttpResponse else.
 /// @throw  WeError if given transport_url is malformed and can't be reconstructed from the HttpResponse
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-i_response* http_transport::request( transport_url& url, i_response* resp /*= NULL*/ )
+i_response_ptr http_transport::request( transport_url& url, i_response_ptr resp /*= i_response_ptr(0)*/ )
 {
     HttpRequest* req = new HttpRequest;
 
     if (req == NULL) {
         throw WeError(string("Can't create HttpRequest! ") + __FILE__ + boost::lexical_cast<std::string>(__LINE__));
-        return NULL;
+        return boost::shared_ptr<i_response>((i_response*)NULL);
     }
-    req->RequestUrl(url, resp);
+    req->RequestUrl(url, resp.get());
     req->Method(HttpRequest::wemGet);
     return request(req, resp);
 }
@@ -339,15 +342,16 @@ const int http_transport::process_requests( void )
                 // find the response
                 for (hnd = responces.begin(); hnd != responces.end();) {
                     try {
-                        resp = dynamic_cast<HttpResponse*>(*hnd);
+                        resp = dynamic_cast<HttpResponse*>((*hnd).get());
                         if ( resp->CURLHandle() == cmsg->easy_handle) {
-                            responces.erase(hnd);
-                            hnd = responces.begin();
 #ifdef _DEBUG
                             LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_remove_handle");
 #endif
                             curl_multi_remove_handle(transferHandle, resp->CURLHandle());
                             resp->Process(this);
+                            // and remove it from list
+                            responces.erase(hnd);
+                            hnd = responces.begin();
                             break;
                         }
                     }

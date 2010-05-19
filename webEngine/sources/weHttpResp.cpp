@@ -152,7 +152,7 @@ void HttpResponse::Process(i_transport* proc)
                 /// @todo process options: weoStayInDomain, weoStayInHost, weoStayInDir and request blocking
                 headData.clear();
                 data.clear();
-                proc->request(url, this);
+                proc->request(url, boost::shared_dynamic_cast<i_response>(shared_from_this()));
             }
         }
     }

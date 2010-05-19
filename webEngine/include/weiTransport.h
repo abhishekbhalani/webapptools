@@ -26,6 +26,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "weOptions.h"
 #include "weiPlugin.h"
 #include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 
 //using namespace boost;
 
@@ -39,7 +40,7 @@ namespace webEngine {
     class i_operation;
     class i_response;
     typedef boost::shared_ptr<i_operation> iweOperationPtr;
-    typedef void (fnProcessResponse)(i_response *resp, void* context);
+    typedef void (fnProcessResponse)(boost::shared_ptr<i_response> resp, void* context);
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +54,7 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   16.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class i_operation
+    class i_operation : public boost::enable_shared_from_this<i_operation> 
     {
     public:
         i_operation() { usage_count = 0; context = NULL; processor = NULL; depth_level = 0; };
@@ -86,9 +87,6 @@ namespace webEngine {
         virtual int depth(void) { return depth_level; };
         virtual void depth(int lvl) { depth_level = lvl; };
         //@}
-
-        i_operation* add_ref() {LockedIncrement(&usage_count); return this; };
-        void release() { if (usage_count == 0) {delete this;} else {LockedDecrement(&usage_count);};};
 
 #ifndef __DOXYGEN__
     protected:
@@ -129,7 +127,8 @@ namespace webEngine {
         //@}
     };
 
-    typedef vector<i_request*> request_list;
+    typedef boost::shared_ptr<i_request> i_request_ptr;
+    typedef vector<i_request_ptr> request_list;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @class  i_response
@@ -191,7 +190,8 @@ namespace webEngine {
 #endif //__DOXYGEN__
     };
 
-    typedef vector<i_response*> response_list;
+    typedef boost::shared_ptr<i_response> i_response_ptr;
+    typedef vector<i_response_ptr> response_list;
 
     // forward declaration
     class transport_factory;
@@ -210,8 +210,8 @@ namespace webEngine {
         i_transport(engine_dispatcher* krnl, void* handle = NULL );
         virtual ~i_transport() {};
 
-        virtual i_response* request(string url, i_response *resp = NULL) = 0;
-        virtual i_response* request(i_request* req, i_response *resp = NULL) = 0;
+        virtual i_response_ptr request(string url, i_response_ptr resp = i_response_ptr((i_response*)NULL) ) = 0;
+        virtual i_response_ptr request(i_request* req, i_response_ptr resp = i_response_ptr((i_response*)NULL) ) = 0;
 
         /// @brief  Process pending requests
         virtual const int process_requests(void) = 0;
