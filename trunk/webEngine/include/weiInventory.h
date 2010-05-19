@@ -63,7 +63,7 @@ public:
     /// 		
     /// @param  resp - If non-null, the resp. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void process_response(i_response *resp) = 0;
+    virtual void process_response(boost::shared_ptr<i_response> resp) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn static void response_dispatcher(i_response *resp, void* context)
@@ -74,7 +74,7 @@ public:
     /// @param  resp	 - If non-null, the resp. 
     /// @param  context	 - If non-null, the context. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    static void response_dispatcher(i_response *resp, void* context);
+    static void response_dispatcher(boost::shared_ptr<i_response> resp, void* context);
 
 protected:
     task* parent_task;

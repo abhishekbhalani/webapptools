@@ -217,9 +217,9 @@ namespace webEngine {
         virtual bool is_set(const string& name);
 
 
-        virtual i_response* request(i_request* req, i_response* resp = NULL);
-        virtual i_response* request(string url, i_response* resp = NULL);
-        virtual i_response* request(transport_url& url, i_response* resp = NULL);
+        virtual i_response_ptr request(i_request* req, i_response_ptr resp = i_response_ptr((i_response*)NULL) );
+        virtual i_response_ptr request(string url, i_response_ptr resp = i_response_ptr((i_response*)NULL) );
+        virtual i_response_ptr request(transport_url& url, i_response_ptr resp = i_response_ptr((i_response*)NULL) );
 
         /// @brief  Gets the CURLMcode - the last cURL operation status.
         const CURLMcode &get_last_error(void) const   { return(lastError);    };

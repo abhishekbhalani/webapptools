@@ -141,7 +141,7 @@ protected:
 class iDocument : virtual public iEntity
 {
 public:
-    virtual bool ParseData(i_response* resp, i_transport* processor = NULL) = 0;
+    virtual bool ParseData(boost::shared_ptr<i_response> resp, i_transport* processor = NULL) = 0;
     virtual blob& Data(void) = 0;
 };
 

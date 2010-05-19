@@ -669,7 +669,7 @@ weCmpState WeInnerText::Compare(iEntity& cmp, weCmpMode mode)
 HtmlDocument::HtmlDocument(iEntityPtr prnt /*= NULL*/) //:
 //    HtmlEntity(prnt), HttpResponse()
 {
-    response = NULL;
+    response.reset();
     entityName = "#document";
 //     baseUrl = "";
 //     realUrl = "";
@@ -686,8 +686,8 @@ HtmlDocument::HtmlDocument(iEntityPtr prnt /*= NULL*/) //:
 HtmlDocument::HtmlDocument(HtmlDocument& entity) //:
 //    HtmlEntity(), HttpResponse()
 {
+    response.reset();
     entityName = "#document";
-    response = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -697,8 +697,8 @@ HtmlDocument::HtmlDocument(HtmlDocument& entity) //:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 HtmlDocument::~HtmlDocument(void)
 {
-    if (response != NULL) {
-        response->release();
+    if (response) {
+        response.reset();
     }
     // nothing special for this class, just base classes
 }
@@ -745,13 +745,13 @@ const string HtmlDocument::OuterText(void)
 /// @param  resp - i_response object with received data to parse
 /// @retval	true if it succeeds, false if it fails.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool HtmlDocument::ParseData(i_response* resp, i_transport* processor /*= NULL*/)
+bool HtmlDocument::ParseData(boost::shared_ptr<i_response> resp, i_transport* processor /*= NULL*/)
 {
     bool retval = false;
 
     try
     {
-        response = dynamic_cast<HttpResponse*>(resp->add_ref());
+        response = boost::shared_dynamic_cast<HttpResponse>(resp);
         tag_stream* stream = response->Data().stream();
         if (stream) {
             tag_scanner scanner(*stream);

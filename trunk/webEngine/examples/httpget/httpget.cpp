@@ -34,31 +34,48 @@ int main(int argc, char* argv[])
     webEngine::LibInit();
 
     webEngine::engine_dispatcher kernel;
-    webEngine::http_transport proc(&kernel);
-    webEngine::HtmlDocument  doc;
-    webEngine::HttpResponse resp;
+    boost::shared_ptr<webEngine::HtmlDocument> doc(new webEngine::HtmlDocument());
+    boost::shared_ptr< webEngine::i_response > resp;
+    boost::shared_ptr<webEngine::HttpResponse> htresp; 
+    webEngine::HttpRequest  *req = NULL;
+    webEngine::task tsk;
+    webEngine::i_plugin* plg;
+    string url = "http://www.ru";
 
-
-    kernel.Option(weoCollapseSpaces, true);
-    kernel.Option(weoStayInHost, true);
-    kernel.Option(weoFollowLinks, true);
-    proc.relocation_count(10);
-
-    proc.request("http://www.ru", &resp);
-
-    while (!resp.Processed()) {
-        proc.process_requests();
+    kernel.refresh_plugin_list();
+    plg = kernel.load_plugin("http_transport");
+    if (plg != NULL) {
+        tsk.AddPlgTransport((webEngine::i_transport*)plg);
+        if (argc > 1) {
+            url = argv[1];
+        }
+        req = new webEngine::HttpRequest(url);
+        url = req->RequestUrl().tostring();
+        printf("Get data from: %s\n", url.c_str());
+        resp = tsk.get_request(req);
+        htresp = boost::shared_dynamic_cast<webEngine::HttpResponse>(resp);
+        if (htresp != NULL) {
+            printf("Response: %d\n", htresp->HttpCode());
+            printf("Given URL: %s\n", htresp->BaseUrl().tostring().c_str());
+            printf("Relocations: %d\n", htresp->RelocCount());
+            printf("Resulting URL: %s\n", htresp->RealUrl().tostring().c_str());
+            printf("Data size: %d\n", htresp->Data().size());
+            if (htresp->Data().size() > 0) {
+                bool sc = doc->ParseData(resp);
+                printf("Document parsing: %s\n", (sc?"success":"failed"));
+                printf("%s\n", &(doc->Data()[0]));
+            }
+        }
+        else {
+            printf("task::get_request failed!\n");
+        }
+        // finish receiver thread
+        // must be done automatically, by task destructor
+        // but for example we call this function manually
+        tsk.Stop();
     }
-
-    printf("Response: %d\n", resp.HttpCode());
-    printf("Given URL: %s\n", resp.BaseUrl().tostring().c_str());
-    printf("Relocations: %d\n", resp.RelocCount());
-    printf("Resulting URL: %s\n", resp.RealUrl().tostring().c_str());
-    printf("Data size: %d\n", resp.Data().size());
-    if (resp.Data().size() > 0) {
-        bool sc = doc.ParseData(&resp, &proc);
-        printf("Document parsing: %s\n", (sc?"success":"fail"));
-        printf("%s\n", &(doc.Data()[0]));
+    else {
+        printf("Can't find transport!\n");
     }
 
     webEngine::LibClose();

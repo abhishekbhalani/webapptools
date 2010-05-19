@@ -179,6 +179,14 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
 
 }
 
+
+void engine_dispatcher::refresh_plugin_list()
+{
+    boost::filesystem::path baseDir(".");
+    refresh_plugin_list(baseDir);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn i_plugin* engine_dispatcher::load_plugin( string id )
 ///
@@ -442,7 +450,7 @@ size_t webEngine::engine_dispatcher::OptionSize()
 /// @retval null if no such interface loaded, else the requested interface casted to i_plugin.
 ///
 /// @author A. Abramov
-/// @date   28.04.2010
+/// @date   19.05.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 i_plugin* engine_dispatcher::get_interface( string iface )
 {

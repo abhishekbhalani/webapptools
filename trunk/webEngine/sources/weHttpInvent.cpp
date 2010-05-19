@@ -160,7 +160,7 @@ void HttpInventory::start( task* tsk )
                 req->processor = HttpInventory::response_dispatcher;
                 req->context = (void*)this;
                 parent_task->register_url(start_url.tostring());
-                parent_task->GetRequestAsync(req);
+                parent_task->get_request_async(req);
             }
             else {
                 LOG4CXX_WARN(logger, "HttpInventory::start: Can't find hostname. Finishing.");
@@ -175,12 +175,12 @@ void HttpInventory::start( task* tsk )
     }
 }
 
-void HttpInventory::process_response( i_response *resp )
+void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
 {
     HttpResponse* htResp;
 
     try {
-        htResp = reinterpret_cast<HttpResponse*>(resp);
+        htResp = reinterpret_cast<HttpResponse*>(resp.get());
     }
     catch (...) {
         LOG4CXX_ERROR(logger, "HttpInventory::process_response: The response from " << resp->BaseUrl().tostring() << " isn't the HttpResponse!");
@@ -464,7 +464,7 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_pt
             new_url->ID(scData->data_id);
             new_url->processor = HttpInventory::response_dispatcher;
             new_url->context = (void*)this;
-            parent_task->GetRequestAsync(new_url);
+            parent_task->get_request_async(new_url);
         }
         else
         {

@@ -39,7 +39,7 @@ namespace webEngine {
 
         // i_inventory functions
         void start(task* tsk);
-        void process_response(i_response *resp);
+        void process_response(boost::shared_ptr<i_response> resp);
     protected:
 
         void add_url(transport_url link, HttpResponse *htResp, boost::shared_ptr<ScanData> scData);
