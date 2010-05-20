@@ -53,7 +53,7 @@ typedef iEntityPtr (*fnEntityFactory)(iEntityPtr prnt);
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class HtmlFactory : public linked_list<string, fnEntityFactory>
+class HtmlFactory
 {
 public:
     HtmlFactory();
@@ -61,6 +61,8 @@ public:
     void Add(string name, fnEntityFactory func);
     iEntityPtr CreateEntity(string tagName, iEntityPtr prnt);
     void Clean();
+private:
+	std::map<string, fnEntityFactory> factories_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -211,33 +211,19 @@ static iEntityPtr weCreateScript(iEntityPtr prnt)
     return iEntityPtr(new WeScript(prnt));
 }
 
-HtmlFactory::HtmlFactory() :
-    linked_list<string, fnEntityFactory>()
+HtmlFactory::HtmlFactory()
 {
-    data = new linked_list_elem<string, fnEntityFactory>;
-    data->key("");
-    data->value(NULL);
-    data->link(NULL);
 }
 
 void HtmlFactory::Add( string name, fnEntityFactory func )
 {
-    linked_list_elem<string, fnEntityFactory>* obj;
-
     LOG4CXX_TRACE(iLogger::GetLogger(), "new EntityFactory added for " << name);
-    obj = new linked_list_elem<string, fnEntityFactory>();
-    obj->key(name);
-    obj->value(func);
-    data->add(obj);
+	factories_[name] = func;
 }
 
 void HtmlFactory::Init()
 {
-    clear();
-    data = new linked_list_elem<string, fnEntityFactory>;
-    data->key("");
-    data->value(NULL);
-    data->link(NULL);
+    factories_.clear();
     Add("#document",    weCreateDocument);
     Add("#text",        weCreateText);
     Add("#comment",     weCreateComment);
@@ -261,29 +247,16 @@ void HtmlFactory::Init()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 iEntityPtr HtmlFactory::CreateEntity( string tagName, iEntityPtr prnt )
 {
-    fnEntityFactory func;
-
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory::CreateEntity => " << tagName);
-    func = find_first(tagName);
-    if (func == NULL) {
-        return iEntityPtr(new HtmlEntity(prnt));
-    }
-    return func(prnt);
+	std::map<string, fnEntityFactory>::const_iterator it = factories_.find(tagName);
+	if (it == factories_.end())
+		return iEntityPtr(new HtmlEntity(prnt));
+	return it->second(prnt);
 }
 
 void HtmlFactory::Clean()
-{
-    linked_list_elem<string, fnEntityFactory> *obj, *nxt;
-
-    obj = data;
-    nxt = obj->next();
-    while (nxt != NULL) {
-        delete obj;
-        obj = nxt;
-        nxt = obj->next();
-    }
-    delete obj;
-    data = NULL;
+{    
+    factories_.clear();
 }
 
 int LockedIncrement( int *val )

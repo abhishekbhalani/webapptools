@@ -41,7 +41,6 @@ The copy of the code was obtained from CodeProject.com
 #include <cassert>
 #include <stdlib.h> // wchar_t
 #include <string.h> // strcmp, etc.
-#include <boost/numeric/conversion/cast.hpp>
 
 using namespace std;
 
@@ -96,7 +95,7 @@ namespace webEngine {
 
         virtual const char* get_from(int from) const
 		{
-			assert(std::distance(begin_, end_) < boost::numeric_cast<typename iterator_traits<iterator>::difference_type>(from));
+			assert(from >= 0 && std::distance(begin_, end_) < from);
 			iterator it = begin_;
 			std::advance(it, from);
 			return reinterpret_cast<const char*>(&*it);

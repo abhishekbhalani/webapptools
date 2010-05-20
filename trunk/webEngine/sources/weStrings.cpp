@@ -25,30 +25,10 @@ using namespace boost;
 
 namespace webEngine {
 
-StringLinks::StringLinks( string sep /*= "="*/, string delim /*= "\n\r"*/ ) :
-    linked_list<string, string>()
+StringLinks::StringLinks( string sep /*= "="*/, string delim /*= "\n\r"*/ )
 {
     separator = sep;
     delimiter = delim;
-}
-
-StringLinks::StringLinks( StringLinks& lst )
-{
-    LinkedString  *obj;
-
-    data = NULL;
-    curr = NULL;
-    separator = lst.separator;
-    delimiter = lst.delimiter;
-    obj = lst.first();
-    data = new LinkedString(*obj);
-    curr = data;
-    obj = lst++;
-    while (obj != NULL) {
-        curr->add(new LinkedString(*obj));
-        curr = curr->next();
-        obj = lst++;
-    }
 }
 
 void StringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/ )
@@ -83,7 +63,7 @@ void StringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/
             k = head;
             v = head;
         }
-        append(k, v);
+		data_.push_back(std::make_pair(k, v));
     }
     if (!process.empty()) {
         if (regex_match(process, spRes, sp)) {
@@ -93,30 +73,40 @@ void StringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/
         else {
             k = head;
             v = head;
-        }
-        append(k, v);
+        }        
+		data_.push_back(std::make_pair(k, v));
     }
 }
 
-string& StringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
+string StringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
 {
-    LinkedString* elem = data;
-    string *retval = new string("");
-
     if (delim.empty()) {
         delim = delimiter;
     }
     if (sep.empty()) {
         sep = separator;
     }
-    while (elem) {
-        *retval += elem->key() + sep + elem->value();
-        if (elem->next() != NULL) {
-            *retval += delim;
-        }
-        elem = elem->next();
-    }
-    return *retval;
+
+	string retval;
+	data_list::const_iterator it = data_.begin();
+	if (it != data_.end())
+	{
+		retval = it->first + sep + it->second;
+		++it;
+
+		for (; it != data_.end(); ++it)
+			retval += delim + it->first + sep + it->second;
+	}
+    return retval;
+}
+
+std::string StringLinks::find_first(const string& name)
+{
+	for (data_list::const_iterator it = data_.begin(); it != data_.end(); ++it)
+		if (it->first == name)
+			return it->second;
+
+	return std::string();
 }
 
 string SListToString(string_list& lst)

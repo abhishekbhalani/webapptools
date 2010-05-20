@@ -32,8 +32,6 @@ namespace webEngine {
     typedef map<string, string> StringMap;
     typedef orderedmap<string, string> AttrMap;
     typedef vector<string> string_list;
-    typedef linked_list_elem<string, string> LinkedString;
-    typedef linked_list<string, string> LinkedListStr;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @class  StringLinks
@@ -46,14 +44,13 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   27.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class StringLinks : public linked_list<string, string>
+    class StringLinks
     {
     public:
         StringLinks(string sep = "=", string delim = "\n\r");
-        StringLinks(StringLinks& lst);
 
         void Parse(string data, string sep = "", string delim = "");
-        string& Compose(string sep = "", string delim = "");
+        string Compose(string sep = "", string delim = "");
 
         // Access the Separator
         const string &Separator(void) const { return(separator);};
@@ -63,17 +60,21 @@ namespace webEngine {
         const string &Delimiter(void) const { return(delimiter);    };
         void Delimiter(const string &delim) { delimiter = delim;    };
 
+		std::string find_first(const string& name);
+
+		void clear() { data_.clear(); }
+
     protected:
 #ifndef __DOXYGEN__
         string separator;
         string delimiter;
-        LinkedString* data;
-        LinkedString* curr;
+		typedef std::list<std::pair<std::string, std::string> > data_list;
+		data_list data_;
 #endif //__DOXYGEN__
     private:
         DECLARE_SERIALIZATOR
         {
-            ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(LinkedListStr);
+            ar & BOOST_SERIALIZATION_NVP(data_);
             ar & BOOST_SERIALIZATION_NVP(separator);
             ar & BOOST_SERIALIZATION_NVP(delimiter);
         };
@@ -84,7 +85,6 @@ string_list* StringToSList(const string& lst);
 
 } // namespace webEngine
 
-BOOST_CLASS_TRACKING(webEngine::LinkedString, boost::serialization::track_never)
 BOOST_CLASS_TRACKING(webEngine::string_list, boost::serialization::track_never)
 
 #endif //__WESTRINGS_H__
