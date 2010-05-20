@@ -508,13 +508,8 @@ static void* create_http_inventory(void* krnl, void* handle = NULL)
 /// @author A. Abramov
 /// @date   24.08.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-plugin_factory::plugin_factory() :
-    linked_list<string, fnWePluginFactory>()
+plugin_factory::plugin_factory()
 {
-    data = new linked_list_elem<string, fnWePluginFactory>;
-    data->key("");
-    data->value(NULL);
-    data->link(NULL);
     // add "default" plugins
     add_plugin_class("7CB7A5F18348", create_null_storage);
     add_plugin_class("null_storage", create_null_storage);      // copy for interface name
@@ -528,43 +523,23 @@ plugin_factory::plugin_factory() :
 
 plugin_factory::~plugin_factory()
 {
-    // nothing special - just clear the list;
 }
 
 void plugin_factory::add_plugin_class( string name, fnWePluginFactory func )
 {
-    linked_list_elem<string, fnWePluginFactory>* obj;
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "new plugin_factory added for " << name);
-    obj = new linked_list_elem<string, fnWePluginFactory>();
-    obj->key(name);
-    obj->value(func);
-    curr = data;
-    while (curr != NULL) {
-        if (curr->key() == name)
-        {
-            break;
-        }
-        curr = curr->next();
-    }
-    if (curr != NULL)
-    {
-        curr->value(func);
-    }
-    else {
-        data->add(obj);
-    }
+	LOG4CXX_TRACE(iLogger::GetLogger(), "new plugin_factory added for " << name);
+	factories_[name] = func;
 }
 
 void* plugin_factory::create_plugin( string pluginID, engine_dispatcher* krnl )
 {
-    fnWePluginFactory func;
-
-    func = find_first(pluginID);
-    if (func == NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "plugin_factory::create_plugin plugin doesn't register in memory");
+	map<string, fnWePluginFactory>::const_iterator it = factories_.find(pluginID);
+	if (it == factories_.end())
+	{
+		LOG4CXX_TRACE(iLogger::GetLogger(), "plugin_factory::create_plugin plugin doesn't register in memory");
         return NULL;
-    }
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "plugin_factory::create_plugin " << pluginID);
-    return func(krnl, NULL);
+	}
+
+	LOG4CXX_DEBUG(iLogger::GetLogger(), "plugin_factory::create_plugin " << pluginID);
+    return it->second(krnl, NULL);
 }
