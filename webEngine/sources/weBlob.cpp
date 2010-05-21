@@ -60,7 +60,7 @@ void blob::serialize(Archive &ar, const unsigned int version)
 //    ar & (std::vector*)this;
 }
 
-std::auto_ptr<tag_stream> blob::stream()
+tag_stream* blob::stream()
 {
-    return std::auto_ptr<tag_stream>(new blob_stream(*this));
+    return new blob_stream(*this);
 }
