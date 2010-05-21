@@ -63,16 +63,13 @@ public:
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class plugin_factory
+class plugin_factory : public linked_list<string, fnWePluginFactory>
 {
 public:
     plugin_factory();
     ~plugin_factory();
     void add_plugin_class(string name, fnWePluginFactory func);
     void* create_plugin(string pluginID, engine_dispatcher* krnl);
-
-private:
-	std::map<string, fnWePluginFactory> factories_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,8 +81,7 @@ private:
 /// @date   16.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class engine_dispatcher :
-    public i_options_provider,
-	boost::noncopyable
+    public i_options_provider
 {
 public:
     engine_dispatcher(void);
@@ -125,6 +121,10 @@ protected:
     plugin_factory plg_factory;
     plugin_list plg_list;
     i_storage* plg_storage;
+
+private:
+    engine_dispatcher(engine_dispatcher&) {};               ///< Avoid object copying
+    engine_dispatcher& operator=(engine_dispatcher&) { return *this; };    ///< Avoid object copying
 #endif // __DOXYGEN__
 };
 

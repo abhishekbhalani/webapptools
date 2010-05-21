@@ -38,10 +38,14 @@ namespace webEngine {
 class blob : public vector<unsigned char>
 {
 public:
-	blob() {}
-	explicit blob(unsigned int cb) : vector<unsigned char>(cb, 0) {}    
-    explicit blob(char* s) : vector<unsigned char>(s, s + strlen(s) + 1) {}
-	blob(unsigned char* p, unsigned int cb) : vector<unsigned char>(p, p + cb) {}
+    blob()                        { clear(); }
+    ~blob()                       { clear(); }
+
+    blob(unsigned int cb)         { clear(); resize(cb); zero(); }
+    blob(unsigned char* p,
+        unsigned int cb)            { clear(); assign(p, cb); }
+    blob(const blob& b)         { clear(); assign(b); }
+    blob(char* s)                 { clear(); assign(s); }
 
     void zero()                     { vector<unsigned char>::assign(size(), 0); }
     void assign(unsigned char* p,
@@ -50,7 +54,7 @@ public:
     void assign(char* s)            { vector<unsigned char>::assign(s, s + strlen(s)+1); }
     bool read(istream& file);
     bool write(ostream& file);
-	std::auto_ptr<tag_stream> stream();
+    tag_stream* stream();
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version);
 };
@@ -65,10 +69,22 @@ public:
 /// @author	A. Abramov
 /// @date   02.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class blob_stream : public tag_stream_impl<blob::const_iterator>
+class blob_stream : public tag_stream
 {
+    const char* p;
+    const char* start;
+    const char* end; 
 public:
-	blob_stream(const blob& src) : tag_stream_impl<blob::const_iterator>(src.begin(), src.end()) {}
+    blob_stream(const blob& src)
+    {
+        start = (const char*)&src.front();
+        end = (const char*)&src.back();
+        p = (char*)start;
+    };
+    virtual char get_char() { return p < end? *p++: 0; }
+    virtual void push_back(char c) {if(p > start) {p--;}}
+    virtual size_t get_pos() { return p - start; };
+    virtual char* get_from(int form) { return (char*)(start + form); };
 };
 
 } // namespace webEngine

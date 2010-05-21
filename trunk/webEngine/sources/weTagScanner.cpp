@@ -104,12 +104,12 @@ scanner_token tag_scanner::ScanBody(void)
         AppendValue(c);
         c = input.get_char();
         if(c == 0)  { /*push_back(c);*/ break; }
-        if(c == '<') { step_back(); break; }
-        if(c == '&') { step_back(); break; }
+        if(c == '<') { push_back(c); break; }
+        if(c == '&') { push_back(c); break; }
 
         if(IsWhitespace(c) != ws) 
         {
-            step_back();
+            push_back(c);
             break;
         }
 
@@ -132,7 +132,7 @@ scanner_token tag_scanner::ScanHead(void)
     {
         char t = GetChar();
         if(t == '>')   { c_scan = &tag_scanner::ScanBody; return wstTagEnd; }
-        else { step_back(); return wstError; } // erroneous situation - standalone '/'
+        else { push_back(t); return wstError; } // erroneous situation - standalone '/'
     }
 
     attr_name.clear();
@@ -142,11 +142,11 @@ scanner_token tag_scanner::ScanHead(void)
     while(c != '=') 
     {
         if( c == 0) return wstEof;
-        if( c == '>' ) { step_back(); return wstAttr; } // attribute without value (HTML style)
+        if( c == '>' ) { push_back(c); return wstAttr; } // attribute without value (HTML style)
         if( IsWhitespace(c) )
         {
             c = SkipWhitespace();
-            if(c != '=') { step_back(); return wstAttr; } // attribute without value (HTML style)
+            if(c != '=') { push_back(c); return wstAttr; } // attribute without value (HTML style)
             else break;
         }
         if( c == '<') return wstError;
@@ -178,7 +178,7 @@ scanner_token tag_scanner::ScanHead(void)
             /* these two removed in favour of better html support:
             if( c == '/' || c == '>' ) { push_back(c); return wstAttr; }
             if( c == '&' ) c = scan_entity();*/
-            if( c == '>' ) { step_back(); return wstAttr; }
+            if( c == '>' ) { push_back(c); return wstAttr; }
             AppendValue(c);
         } while(c = GetChar());
 
@@ -341,7 +341,7 @@ scanner_token tag_scanner::ScanTag()
         return wstError;
     }
     else 
-        step_back();
+        push_back(c);
 
     c_scan = &tag_scanner::ScanHead;
     return wstTagStart;
@@ -365,7 +365,7 @@ char tag_scanner::ScanEntity()
         if(t == 0) return wstEof;
         if( !isalnum(t) )
         {
-            step_back();
+            push_back(t);
             break; // appears a erroneous entity token.
             // but we try to use it.
         }
@@ -456,13 +456,14 @@ char tag_scanner::SkipWhitespace()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void tag_scanner::step_back()
+/// @fn	void tag_scanner::push_back(char c)
 ///
-/// @brief	Moves one character back in the stream. 
+/// @brief	Pushes the given character back to the stream. 
+/// @param  c - The character to be returned to the stream. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void tag_scanner::step_back()
+void tag_scanner::push_back(char c)
 {
-    input.step_back();
+    input.push_back(c);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

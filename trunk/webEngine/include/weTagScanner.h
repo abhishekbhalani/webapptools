@@ -38,7 +38,6 @@ The copy of the code was obtained from CodeProject.com
 
 #include <string>
 #include <vector>
-#include <cassert>
 #include <stdlib.h> // wchar_t
 #include <string.h> // strcmp, etc.
 
@@ -58,53 +57,12 @@ namespace webEngine {
     /// @author	A. Abramov
     /// @date	26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-	class tag_stream {
-	public:
-		virtual char get_char() = 0;
-        virtual void step_back() = 0;
-        virtual size_t get_pos() const = 0;
-        virtual const char* get_from(int form) const = 0;
-	};
-
-	template <typename iterator>
-	class tag_stream_impl : public tag_stream {
+    class tag_stream {
     public:
-		tag_stream_impl(iterator begin, iterator end) :
-			begin_(begin),
-			end_(end),
-			current_(begin)
-		{
-		}
-
-        virtual char get_char()
-		{
-			return current_ == end_ ? 0 : *current_++;
-		}
-
-        virtual void step_back()
-		{
-			assert(current_ != begin_);
-			if (current_ != begin_)
-				--current_;
-		}
-
-        virtual size_t get_pos() const
-		{
-			return std::distance(begin_, current_);
-		}
-
-        virtual const char* get_from(int from) const
-		{
-			assert(from >= 0 && std::distance(begin_, end_) < from);
-			iterator it = begin_;
-			std::advance(it, from);
-			return reinterpret_cast<const char*>(&*it);
-		}
-
-	private:
-		iterator begin_;
-		iterator end_;
-		iterator current_;
+        virtual char get_char() = 0;
+        virtual void push_back(char c) = 0;
+        virtual size_t get_pos() = 0;
+        virtual char* get_from(int form) = 0;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,10 +75,17 @@ namespace webEngine {
     /// @author	A. Abramov
     /// @date	26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class str_tag_stream : public tag_stream_impl<const char*>
+    class str_tag_stream : public tag_stream
     {
-	public:
-        str_tag_stream(const char* src): tag_stream_impl<const char*>(src, src + strlen(src)) {}
+        char* p;
+        const char* start;
+        const char* end;
+    public:
+        str_tag_stream(const char* src): p((char*)src), start(src), end(src + strlen(src)) {}
+        virtual char get_char() { return p < end? *p++: 0; }
+        virtual void push_back(char c) {if(p > start) {p--;}}
+        virtual size_t get_pos() { return p - start; };
+        virtual char* get_from(int form) { return (char*)(start + form); };
     };
 
     enum scanner_token {
@@ -185,9 +150,9 @@ namespace webEngine {
           /// @return   resulting char.
           ////////////////////////////////////////////////////////////////////////////////////////////////////
           virtual char   resolve_entity(const char* buf, int buf_size) { return 0; }
-          virtual size_t get_pos() const { return input.get_pos(); };
-          virtual void   step_back();
-          virtual const char* get_from(int from) const {return input.get_from(from);};
+          virtual size_t get_pos() { return input.get_pos(); };
+          virtual void   push_back(char c);
+          virtual char*  get_from(int from) {return input.get_from(from);};
           virtual void   reset_to_body() {c_scan = &tag_scanner::ScanBody;};
 
     private:
