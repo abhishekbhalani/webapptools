@@ -262,7 +262,12 @@ void task::get_request_async( i_request* req )
         boost::mutex *mt = (boost::mutex*)mutex_ptr;
         boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
         boost::unique_lock<boost::mutex> lock(*mt);
-        taskList.push_back(req);
+        if (req->processor != NULL) {
+            taskList.insert(taskList.begin(), req);
+        }
+        else {
+            taskList.push_back(req);
+        }
         taskListSize++;
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
         cond->notify_all();

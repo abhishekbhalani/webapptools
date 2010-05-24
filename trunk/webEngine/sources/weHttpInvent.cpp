@@ -289,7 +289,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                 entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
-                    href = (*iEnt)->Attr("href");
+                    href = (*iEnt)->attr("href");
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
@@ -311,7 +311,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                 webEngine::entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
-                    href = (*iEnt)->Attr("src");
+                    href = (*iEnt)->attr("src");
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
@@ -329,7 +329,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                 webEngine::entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
-                    href = (*iEnt)->Attr("src");
+                    href = (*iEnt)->attr("src");
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
@@ -347,7 +347,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                 webEngine::entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
-                    href = (*iEnt)->Attr("src");
+                    href = (*iEnt)->attr("src");
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
@@ -366,9 +366,9 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                 entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
-                    href = (*iEnt)->Attr("http-equiv");
+                    href = (*iEnt)->attr("http-equiv");
                     if (boost::iequals(href, "refresh")) {
-                        href = (*iEnt)->Attr("content");
+                        href = (*iEnt)->attr("content");
                         if (href != "") {
                             transport_url link;
                             string lc = href;

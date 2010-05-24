@@ -157,7 +157,7 @@ const string html_entity::InnerText(void)
     retval = "";
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
         if (iequals((*chld)->Name(), string("#text"))) {
-            retval += (*chld)->Attr("");
+            retval += (*chld)->attr("");
         }
     }
 
@@ -285,7 +285,7 @@ scanner_token html_entity::Parse( string tagName, tag_scanner& scanner, i_transp
 parseRestart:
         if (state == wstEof || state == wstError) {
             if (txt != NULL) {
-                txt->Attr("", txtAttr);
+                txt->attr("", txtAttr);
                 chldList.push_back(base_entity_ptr(txt));
 //printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
@@ -299,7 +299,7 @@ parseRestart:
             lString = scanner.get_tag_name();
             to_lower(lString);
             if (txt != NULL) {
-                txt->Attr("", txtAttr);
+                txt->attr("", txtAttr);
                 chldList.push_back(base_entity_ptr(txt));
                 txtAttr.clear();
                 txt = NULL;
@@ -329,7 +329,7 @@ parseRestart:
             to_lower(lString);
             LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: TAG START: " << lString);
             if (txt != NULL) {
-                txt->Attr("", txtAttr);
+                txt->attr("", txtAttr);
                 chldList.push_back(base_entity_ptr(txt));
                 //LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: save previous TEXT: " << txtAttr);
                 txtAttr.clear();
@@ -372,7 +372,7 @@ parseRestart:
         	break;
         case wstAttr:
             if (txt != NULL) {
-                txt->Attr("", txtAttr);
+                txt->attr("", txtAttr);
                 chldList.push_back(base_entity_ptr(txt));
 //-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
@@ -399,7 +399,7 @@ parseRestart:
             break;
         case wstCommentStart:
             if (txt != NULL) {
-                txt->Attr("", txtAttr);
+                txt->attr("", txtAttr);
                 chldList.push_back(base_entity_ptr(txt));
 //-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
@@ -409,7 +409,7 @@ parseRestart:
             break;
         case wstCDataStart:
             if (txt != NULL) {
-                txt->Attr("", txtAttr);
+                txt->attr("", txtAttr);
                 chldList.push_back(base_entity_ptr(txt));
 //-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
@@ -419,7 +419,7 @@ parseRestart:
             break;
         case wstPiStart:
             if (txt != NULL) {
-                txt->Attr("", txtAttr);
+                txt->attr("", txtAttr);
                 chldList.push_back(base_entity_ptr(txt));
 //-DBG: printf("\tTEXT: {%s}\n", txtAttr.c_str());
                 txtAttr.clear();
@@ -430,7 +430,7 @@ parseRestart:
         case wstData:
             // force points the '#text' property to avoid other children types break
 //-DBG: printf("%s - DATA: %s\n", chld->entityName.c_str(), scanner.get_value());
-            chld->Attr("#text", scanner.get_value());
+            chld->attr("#text", scanner.get_value());
             break;
         case wstCommentEnd:
         case wstCDataEnd:
@@ -492,7 +492,7 @@ WeInnerText::~WeInnerText()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string WeInnerText::Attr(string )
+/// @fn	string WeInnerText::attr(string )
 ///
 /// @brief  Gets the attribute value.
 ///
@@ -501,7 +501,7 @@ WeInnerText::~WeInnerText()
 /// @retval attribute value if the attribute exist,
 ///         empty string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string WeInnerText::Attr(string name)
+const string WeInnerText::attr(string name)
 {
     AttrMap::iterator it;
 
@@ -514,14 +514,14 @@ const string WeInnerText::Attr(string name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void WeInnerText::Attr(string , string )
+/// @fn	void WeInnerText::attr(string , string )
 ///
 /// @brief  Sets the attribute.
 ///
 /// @param  name - The attribute name (skipped).
 /// @param  value - The attribute value.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeInnerText::Attr(string name, string value)
+void WeInnerText::attr(string name, string value)
 {
 	attributes["#text"] = value;
 }
@@ -972,7 +972,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
         txtAttr = scanner.get_from(stPos);
         enPos -= stPos;
         txtAttr = txtAttr.substr(0, enPos);
-        Attr("#code", txtAttr);
+        attr("#code", txtAttr);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: exit for: " << scanner.get_tag_name());
 

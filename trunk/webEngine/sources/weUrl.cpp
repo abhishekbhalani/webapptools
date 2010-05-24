@@ -242,7 +242,7 @@ void transport_url::assign_with_referer( const string& url_, transport_url* base
     }
 
     // Find protocol end
-    pos = url.find("://");
+    pos = url.find(":");
     if (pos == string::npos) {
         // reduced transport_url - only local path
         protocol = base->protocol;

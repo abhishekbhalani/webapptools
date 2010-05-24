@@ -61,6 +61,7 @@ namespace webEngine {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 	class tag_stream {
 	public:
+        virtual ~tag_stream() {}
 		virtual char get_char() = 0;
         virtual void step_back() = 0;
         virtual size_t get_pos() const = 0;
