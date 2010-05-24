@@ -3,6 +3,39 @@
 #include <weUrl.h>
 #include <weScan.h>
 #include <weiParser.h>
+#include <weHtmlEntity.h>
+
+class audit_jscript;
+
+class ajs_to_process :
+    public boost::noncopyable
+{
+public:
+    explicit ajs_to_process(webEngine::scan_data_ptr sc = webEngine::scan_data_ptr(),
+        webEngine::html_document_ptr pd = webEngine::html_document_ptr());
+
+    webEngine::scan_data_ptr sc_data;
+    webEngine::html_document_ptr parsed_data;
+    int pending_requests;
+};
+
+typedef boost::shared_ptr<ajs_to_process> ajs_to_process_ptr;
+typedef vector<ajs_to_process_ptr> ajs_to_process_list;
+typedef pair<webEngine::base_entity_ptr, ajs_to_process_ptr> ajs_download;
+typedef vector<ajs_download>  ajs_download_list;
+
+class ajs_download_task :
+    public boost::noncopyable
+{
+// the URL is the key!
+public:
+    void add(string url, ajs_to_process_ptr tp, webEngine::base_entity_ptr ent);
+    void remove_url(string url);
+    void clean_done();
+
+    map<string, ajs_download_list> task_list;
+    ajs_to_process_list process_list;
+};
 
 class audit_jscript :
     public webEngine::i_audit
@@ -52,7 +85,7 @@ public:
     /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
     /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void start(webEngine::task* tsk, boost::shared_ptr<webEngine::ScanData> scData);
+    virtual void start(webEngine::task* tsk, webEngine::scan_data_ptr scData);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void process_response(i_response *resp)
@@ -63,21 +96,23 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void process_response(webEngine::i_response_ptr resp);
 
-    virtual void parse_scripts(boost::shared_ptr<webEngine::ScanData> sc, boost::shared_ptr<webEngine::HtmlDocument> parser);
-    virtual void process_events(webEngine::iEntityPtr entity);
+    virtual void parse_scripts(webEngine::scan_data_ptr sc, boost::shared_ptr<webEngine::html_document> parser);
+    virtual void process_events(webEngine::base_entity_ptr entity);
 
     static webEngine::jsExecutor* js_exec;
 
 protected:
-    void add_url( webEngine::transport_url link, boost::shared_ptr<webEngine::ScanData> sc );
-    void extract_links(string text, boost::shared_ptr<webEngine::ScanData> sc );
-    friend void parser_thread(void* context);
+    void add_url( webEngine::transport_url link, webEngine::scan_data_ptr sc );
+    void extract_links(string text, webEngine::scan_data_ptr sc );
+    friend void parser_thread(audit_jscript* object);
 
     webEngine::transport_url base_path;
-    // real data type is webEngine::iEntity
-    vector<void*> to_download;
-    map<string, int> scandatas;
     vector<string> ext_deny;
+    ajs_download_task jscript_tasks;
+    boost::mutex data_access;
+    boost::mutex thread_synch;
+    boost::condition_variable thread_event;
+    bool thread_running;
 
     // processing options
     bool opt_in_host;
