@@ -27,8 +27,10 @@ using namespace std;
 
 namespace webEngine {
 
-    class HtmlDocument;
-    class HtmlEntity;
+    class html_document;
+    class html_entity;
+    typedef boost::shared_ptr<html_document> html_document_ptr;
+    typedef boost::shared_ptr<html_entity> html_entity_ptr;
 
     /// @file   weHtmlEntity.h
     /// @brief  HTML processing classes declarations
@@ -42,18 +44,18 @@ namespace webEngine {
     /// @author	A.Abramov
     /// @date 26.05.2009.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class HtmlEntity: virtual public iEntity
+    class html_entity: virtual public base_entity
     {
     public:
-        HtmlEntity(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
-        HtmlEntity(HtmlEntity& entity);
-        ~HtmlEntity();
+        html_entity(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL));
+        html_entity(html_entity& entity);
+        ~html_entity();
 
         virtual const string InnerText(void);
         virtual const string OuterText(void);
 
-        virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
-        virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
+        virtual CmpResults* Diff(base_entity& cmp, weCmpMode mode);
+        virtual weCmpState Compare(base_entity& cmp, weCmpMode mode);
 
         virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL);
     };
@@ -63,16 +65,16 @@ namespace webEngine {
     ///
     /// @brief  HTML entity to store plain text .
     ///
-    /// Special kind of HtmlEntity - plain text inside other entities. It contains only one attribute
+    /// Special kind of html_entity - plain text inside other entities. It contains only one attribute
     /// and no children. The attribute name is ignored in the user calls and stored as '\#text' in the
     /// collection.
     ///
     /// @author A. Abramov
     /// @date   26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class WeInnerText : public HtmlEntity {
+    class WeInnerText : public html_entity {
     public:
-        WeInnerText(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
+        WeInnerText(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL));
         WeInnerText(WeInnerText& entity);
         ~WeInnerText();
 
@@ -82,14 +84,14 @@ namespace webEngine {
         virtual const string InnerText(void);
         virtual const string OuterText(void);
 
-        virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
-        virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
+        virtual CmpResults* Diff(base_entity& cmp, weCmpMode mode);
+        virtual weCmpState Compare(base_entity& cmp, weCmpMode mode);
 
-        virtual boost::shared_ptr<iEntity> Child(int idx) {return boost::shared_ptr<iEntity>((iEntity*)NULL);}       ///< Placeholder to avoid children manipulations
-        virtual boost::shared_ptr<iEntity> Child(string type) {return boost::shared_ptr<iEntity>((iEntity*)NULL);}   ///< Placeholder to avoid children manipulations
+        virtual boost::shared_ptr<base_entity> Child(int idx) {return boost::shared_ptr<base_entity>((base_entity*)NULL);}       ///< Placeholder to avoid children manipulations
+        virtual boost::shared_ptr<base_entity> Child(string type) {return boost::shared_ptr<base_entity>((base_entity*)NULL);}   ///< Placeholder to avoid children manipulations
         /// @brief Placeholder to avoid children manipulations
         /// @throw runtime_error with description
-        virtual EntityList Children() {
+        virtual entity_list Children() {
             throw runtime_error("WeInnerText: Children property is not accessible");
             return chldList;
         }
@@ -105,7 +107,7 @@ namespace webEngine {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class WeHtmlComment : public WeInnerText {
     public:
-        WeHtmlComment(iEntityPtr prnt = iEntityPtr((iEntity*)NULL)) : WeInnerText(prnt) { entityName = "#comment"; };
+        WeHtmlComment(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : WeInnerText(prnt) { entityName = "#comment"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +120,7 @@ namespace webEngine {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class WeCData : public WeInnerText {
     public:
-        WeCData(iEntityPtr prnt = iEntityPtr((iEntity*)NULL)) : WeInnerText(prnt) { entityName = "#cdata"; };
+        WeCData(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : WeInnerText(prnt) { entityName = "#cdata"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,33 +133,33 @@ namespace webEngine {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class WePhpInclude : public WeInnerText {
     public:
-        WePhpInclude(iEntityPtr prnt = iEntityPtr((iEntity*)NULL)) : WeInnerText(prnt) { entityName = "#php"; };
+        WePhpInclude(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : WeInnerText(prnt) { entityName = "#php"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  HtmlDocument
+    /// @class  html_document
     ///
     /// @brief  Web document. Entry point to parsed document.
     ///
-    /// Special kind of HtmlEntity - whole web document. It may contains some other HtmlEntity, such
-    /// as page layout elements, or (and) other HtmlDocument's. For example, if the root document contains
+    /// Special kind of html_entity - whole web document. It may contains some other html_entity, such
+    /// as page layout elements, or (and) other html_document's. For example, if the root document contains
     /// frames, the frames sources will be added to root document as the child documents.
     /// @author	A. Abramov
     /// @date	26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma warning (disable: 4250)
-    class HtmlDocument : public iDocument, public HtmlEntity
+    class html_document : public iDocument, public html_entity
     {
     public:
-        HtmlDocument(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
-        HtmlDocument(HtmlDocument& entity);
-        ~HtmlDocument();
+        html_document(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL));
+        html_document(html_document& entity);
+        ~html_document();
 
         virtual const string InnerText(void);
         virtual const string OuterText(void);
 
-        virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode);
-        virtual weCmpState Compare(iEntity& cmp, weCmpMode mode);
+        virtual CmpResults* Diff(base_entity& cmp, weCmpMode mode);
+        virtual weCmpState Compare(base_entity& cmp, weCmpMode mode);
 
         /// @brief  Access the Data
         ///
@@ -185,10 +187,10 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   27.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class WeRefrenceObject : public HtmlDocument
+    class WeRefrenceObject : public html_document
     {
     public:
-        WeRefrenceObject(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
+        WeRefrenceObject(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL));
         WeRefrenceObject(WeRefrenceObject& entity);
         ~WeRefrenceObject();
 
@@ -199,8 +201,8 @@ namespace webEngine {
         /// following format: @n
         /// - @b empty - no linked data stored, only remote copy is available
         /// - @b data - linked object is stored inside the blob
-        /// - @b \<EntityID\> - linked object stored in the HtmlEntity. The ID of the
-        ///   HtmlEntity points the object that contains data.
+        /// - @b \<EntityID\> - linked object stored in the html_entity. The ID of the
+        ///   html_entity points the object that contains data.
         string LocalLink(void) const    { return(m_localLink);  };
         void LocalLink(string local)    { m_localLink = local;  };
         //@}
@@ -234,7 +236,7 @@ namespace webEngine {
     class WeScript : public WeRefrenceObject
     {
     public:
-        WeScript(iEntityPtr prnt = iEntityPtr((iEntity*)NULL));
+        WeScript(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL));
         WeScript(WeScript& entity);
         ~WeScript();
 

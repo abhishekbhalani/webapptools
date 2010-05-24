@@ -138,7 +138,7 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   10.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class i_response : virtual public i_operation
+    class i_response : public i_operation
     {
     public:
         i_response() {};

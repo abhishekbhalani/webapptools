@@ -40,7 +40,7 @@ also presented in this module.
 
 namespace webEngine {
 
-typedef iEntityPtr (*fnEntityFactory)(iEntityPtr prnt);
+typedef base_entity_ptr (*fnEntityFactory)(base_entity_ptr prnt);
 
 // typedef WeLinkedListElem<string, EntityFactory> WeHtmlFuncList;
 // typedef WeLinkedListElem<string, transport_factory> WeTranspFuncList;
@@ -53,14 +53,16 @@ typedef iEntityPtr (*fnEntityFactory)(iEntityPtr prnt);
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class HtmlFactory : public linked_list<string, fnEntityFactory>
+class HtmlFactory
 {
 public:
     HtmlFactory();
     void Init();
     void Add(string name, fnEntityFactory func);
-    iEntityPtr CreateEntity(string tagName, iEntityPtr prnt);
+    base_entity_ptr CreateEntity(string tagName, base_entity_ptr prnt);
     void Clean();
+private:
+	std::map<string, fnEntityFactory> factories_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="curllib-s.lib libboost_regex-vc80-mt-1_38.lib log4cxx.lib"
+				AdditionalDependencies="curllib.lib libboost_regex-vc90-mt-1_38.lib log4cxx.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\libs\release"
 				IgnoreDefaultLibraryNames="libcmt.lib"

@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     webEngine::LibInit();
 
     webEngine::engine_dispatcher kernel;
-    boost::shared_ptr<webEngine::HtmlDocument> doc(new webEngine::HtmlDocument());
+    boost::shared_ptr<webEngine::html_document> doc(new webEngine::html_document());
     boost::shared_ptr< webEngine::i_response > resp;
     boost::shared_ptr<webEngine::HttpResponse> htresp; 
     webEngine::HttpRequest  *req = NULL;

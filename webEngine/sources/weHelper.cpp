@@ -169,75 +169,61 @@ string UnscreenXML(const string& xml)
 //////////////////////////////////////////////////////////////////////////
 // HTML elements creation functions
 //////////////////////////////////////////////////////////////////////////
-static iEntityPtr weCreateRefObj(iEntityPtr prnt)
+static base_entity_ptr weCreateRefObj(base_entity_ptr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeRefrenceObject");
-    return iEntityPtr(new WeRefrenceObject(prnt));
+    return base_entity_ptr(new WeRefrenceObject(prnt));
 }
 
-static iEntityPtr weCreateText(iEntityPtr prnt)
+static base_entity_ptr weCreateText(base_entity_ptr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeInnerText");
-    return iEntityPtr(new WeInnerText(prnt));
+    return base_entity_ptr(new WeInnerText(prnt));
 }
 
-static iEntityPtr weCreateComment(iEntityPtr prnt)
+static base_entity_ptr weCreateComment(base_entity_ptr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeHtmlComment");
-    return iEntityPtr(new WeHtmlComment(prnt));
+    return base_entity_ptr(new WeHtmlComment(prnt));
 }
 
-static iEntityPtr weCreateCData(iEntityPtr prnt)
+static base_entity_ptr weCreateCData(base_entity_ptr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeCData");
-    return iEntityPtr(new WeCData(prnt));
+    return base_entity_ptr(new WeCData(prnt));
 }
 
-static iEntityPtr weCreatePhpInc(iEntityPtr prnt)
+static base_entity_ptr weCreatePhpInc(base_entity_ptr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WePhpInclude");
-    return iEntityPtr(new WePhpInclude(prnt));
+    return base_entity_ptr(new WePhpInclude(prnt));
 }
 
-static iEntityPtr weCreateDocument(iEntityPtr prnt)
+static base_entity_ptr weCreateDocument(base_entity_ptr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeHtmlDocument");
-    return iEntityPtr((iEntity*)NULL); //new WeDocument(prnt);
+    return base_entity_ptr((base_entity*)NULL); //new WeDocument(prnt);
 }
 
-static iEntityPtr weCreateScript(iEntityPtr prnt)
+static base_entity_ptr weCreateScript(base_entity_ptr prnt)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeScript");
-    return iEntityPtr(new WeScript(prnt));
+    return base_entity_ptr(new WeScript(prnt));
 }
 
-HtmlFactory::HtmlFactory() :
-    linked_list<string, fnEntityFactory>()
+HtmlFactory::HtmlFactory()
 {
-    data = new linked_list_elem<string, fnEntityFactory>;
-    data->key("");
-    data->value(NULL);
-    data->link(NULL);
 }
 
 void HtmlFactory::Add( string name, fnEntityFactory func )
 {
-    linked_list_elem<string, fnEntityFactory>* obj;
-
     LOG4CXX_TRACE(iLogger::GetLogger(), "new EntityFactory added for " << name);
-    obj = new linked_list_elem<string, fnEntityFactory>();
-    obj->key(name);
-    obj->value(func);
-    data->add(obj);
+	factories_[name] = func;
 }
 
 void HtmlFactory::Init()
 {
-    clear();
-    data = new linked_list_elem<string, fnEntityFactory>;
-    data->key("");
-    data->value(NULL);
-    data->link(NULL);
+    factories_.clear();
     Add("#document",    weCreateDocument);
     Add("#text",        weCreateText);
     Add("#comment",     weCreateComment);
@@ -252,38 +238,25 @@ void HtmlFactory::Init()
 #endif //__DOXYGEN__
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iEntity* HtmlFactory::CreateEntity(string tagName, HtmlEntity* prnt)
+/// @fn	base_entity* HtmlFactory::CreateEntity(string tagName, html_entity* prnt)
 ///
-/// @brief  Create HtmlEntity by the given TAG name.
+/// @brief  Create html_entity by the given TAG name.
 /// @param  tagName - Name of the html tag.
 /// @param  prnt    - Parent of the newly created object
-/// @retval	null if it fails, pointer to HtmlEntity ot it's successor else.
+/// @retval	null if it fails, pointer to html_entity ot it's successor else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iEntityPtr HtmlFactory::CreateEntity( string tagName, iEntityPtr prnt )
+base_entity_ptr HtmlFactory::CreateEntity( string tagName, base_entity_ptr prnt )
 {
-    fnEntityFactory func;
-
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory::CreateEntity => " << tagName);
-    func = find_first(tagName);
-    if (func == NULL) {
-        return iEntityPtr(new HtmlEntity(prnt));
-    }
-    return func(prnt);
+	std::map<string, fnEntityFactory>::const_iterator it = factories_.find(tagName);
+	if (it == factories_.end())
+		return base_entity_ptr(new html_entity(prnt));
+	return it->second(prnt);
 }
 
 void HtmlFactory::Clean()
 {
-    linked_list_elem<string, fnEntityFactory> *obj, *nxt;
-
-    obj = data;
-    nxt = obj->next();
-    while (nxt != NULL) {
-        delete obj;
-        obj = nxt;
-        nxt = obj->next();
-    }
-    delete obj;
-    data = NULL;
+    factories_.clear();
 }
 
 int LockedIncrement( int *val )

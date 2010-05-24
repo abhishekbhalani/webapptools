@@ -108,9 +108,9 @@ int main(int argc, char* argv[])
     {
         boost::archive::text_oarchive oa(ofs);
         // write class instance to archive
-        oa << opt1;
-        oa << opt2;
-        oa << opt3;
+        // oa << opt1;
+        // oa << opt2;
+        // oa << opt3;
         // archive and stream closed when destructor are called
     }
 

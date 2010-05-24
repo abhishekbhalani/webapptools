@@ -25,7 +25,8 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/variant.hpp>
 #include <boost/serialization/variant.hpp>
 #include <boost/lexical_cast.hpp>
-#include "weiParser.h"
+#include "weTagScanner.h"
+#include "weStrings.h"
 
 using namespace std;
 
@@ -104,14 +105,6 @@ namespace webEngine {
         wOptionVal  val;
         bool        empty;
 #endif //__DOXYGEN__
-
-    private:
-        DECLARE_SERIALIZATOR
-        {
-            ar & BOOST_SERIALIZATION_NVP(oname);
-            ar & BOOST_SERIALIZATION_NVP(val);
-            empty = false;
-        };
     };
 
     typedef map<string, wOption> wOptions;
@@ -185,12 +178,6 @@ public:
 protected:
     wOptions       options;
 #endif //__DOXYGEN__
-
-private:
-    DECLARE_SERIALIZATOR
-    {
-        ar & BOOST_SERIALIZATION_NVP(options);
-    };
 };
 
 } // namespace webEngine

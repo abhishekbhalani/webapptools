@@ -60,7 +60,7 @@ void blob::serialize(Archive &ar, const unsigned int version)
 //    ar & (std::vector*)this;
 }
 
-tag_stream* blob::stream()
+boost::shared_ptr<tag_stream> blob::stream()
 {
-    return new blob_stream(*this);
+    return boost::shared_ptr<tag_stream>(new blob_stream(*this));
 }

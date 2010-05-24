@@ -266,9 +266,9 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
         if (cTypeProcess)
         {
             LOG4CXX_TRACE(logger, "HttpInventory::process_response: parse document");
-            shared_ptr<HtmlDocument> parser(new HtmlDocument);
+            shared_ptr<html_document> parser(new html_document);
             bool saveParser;
-            EntityList lst;
+            entity_list lst;
 
             boost::posix_time::ptime pretm = boost::posix_time::microsec_clock::local_time();
             saveParser = parser->ParseData(resp);
@@ -285,8 +285,8 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
             LOG4CXX_DEBUG(logger, "HttpInventory::process_response: search for links");
             lst = parser->FindTags("a");
             if (lst.size() > 0) {
-                iEntity* ent = NULL;
-                EntityList::iterator iEnt;
+                base_entity* ent = NULL;
+                entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
                     href = (*iEnt)->Attr("href");
@@ -307,8 +307,8 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
             lst = parser->FindTags("img");
             if (lst.size() > 0)
             {
-                webEngine::iEntity* ent = NULL;
-                webEngine::EntityList::iterator iEnt;
+                webEngine::base_entity* ent = NULL;
+                webEngine::entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
                     href = (*iEnt)->Attr("src");
@@ -325,8 +325,8 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
             lst = parser->FindTags("frame");
             if (lst.size() > 0)
             {
-                webEngine::iEntity* ent = NULL;
-                webEngine::EntityList::iterator iEnt;
+                webEngine::base_entity* ent = NULL;
+                webEngine::entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
                     href = (*iEnt)->Attr("src");
@@ -343,8 +343,8 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
             lst = parser->FindTags("iframe");
             if (lst.size() > 0)
             {
-                webEngine::iEntity* ent = NULL;
-                webEngine::EntityList::iterator iEnt;
+                webEngine::base_entity* ent = NULL;
+                webEngine::entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
                     href = (*iEnt)->Attr("src");
@@ -362,8 +362,8 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
             lst = parser->FindTags("meta");
             if (lst.size() > 0)
             {
-                iEntity* ent = NULL;
-                EntityList::iterator iEnt;
+                base_entity* ent = NULL;
+                entity_list::iterator iEnt;
                 string href;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
                     href = (*iEnt)->Attr("http-equiv");
