@@ -14,7 +14,7 @@ v8_d.lib for the Debug build
 
 USAGE:
 
-	scan_demo.exe --target http://www.example.com:8080/start/url/path --result data.txt
+	crawler.exe --target http://www.example.com:8080/start/url/path --result data.txt
 
 Command-line configuration:
   --help                         this help message
@@ -50,8 +50,8 @@ Config file options:
 	plugin_dir          directory, where plug-ins are placed (default  value is .\)
 	db2_interface       plug-in identifier to connect to Storage DB (default value is mem_storage)
 	db2_parameters      plug-in configuration to connect to Storage DB
-    domain_list         semicolon separated list of the allowed sub-domains
-    ext_deny            semicolon separated list of the denied file types (by extensions)
+	domain_list         semicolon separated list of the allowed sub-domains
+	ext_deny            semicolon separated list of the denied file types (by extensions)
 	depth               scan depth (default  value is 10)
 	dir                 stay in the directory (0/1)
 	host                stay on the host (0/1)

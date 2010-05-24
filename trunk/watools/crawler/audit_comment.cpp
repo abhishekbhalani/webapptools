@@ -36,7 +36,7 @@ i_plugin* audit_comment::get_interface( const string& ifName )
 void audit_comment::start( task* tsk, shared_ptr<ScanData> scData )
 {
     LOG4CXX_TRACE(logger, "audit_comment::start");
-    EntityList lst;
+    entity_list lst;
     transport_url baseUrl;
     string text;
 
@@ -85,8 +85,8 @@ void audit_comment::start( task* tsk, shared_ptr<ScanData> scData )
             lst = scData->parsed_data->FindTags("#comment");
             if (lst.size() > 0)
             {
-                webEngine::iEntity* ent = NULL;
-                webEngine::EntityList::iterator iEnt;
+                webEngine::base_entity* ent = NULL;
+                webEngine::entity_list::iterator iEnt;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
                     text = (*iEnt)->InnerText();
                     if (text != "") {

@@ -9,24 +9,11 @@
 using namespace webEngine;
 
 jsExecutor* audit_jscript::js_exec = NULL;
+static log4cxx::LoggerPtr js_logger;
 
-typedef struct {
-    string url;
-    boost::shared_ptr<ScanData> sc_data;
-    boost::shared_ptr<HtmlDocument> parser;
-    iEntityPtr ent;
-} download_data;
-
-typedef struct {
-    audit_jscript* object;
-    boost::shared_ptr<ScanData> sc_data;
-    boost::shared_ptr<HtmlDocument> parser;
-    log4cxx::LoggerPtr logger;
-} thread_data;
-
-static bool remove_empty(void* obj)
+static bool remove_empty(ajs_to_process_ptr obj)
 {
-    return (obj == NULL);
+    return obj;
 }
 
 audit_jscript::audit_jscript(webEngine::engine_dispatcher* krnl, void* handle /*= NULL*/) :
@@ -36,17 +23,12 @@ audit_jscript::audit_jscript(webEngine::engine_dispatcher* krnl, void* handle /*
     pluginInfo.interface_list.push_back("audit_jscript");
     pluginInfo.plugin_desc = "Search JavaScript content for links";
     pluginInfo.plugin_id = "9251BAB1B2C8"; //{70ED0090-75AF-4925-A546-9251BAB1B2C8}
+    js_logger = logger;
+    thread_running = false;
 }
 
 audit_jscript::~audit_jscript(void)
 {
-    for(size_t i = 0; i < to_download.size(); i++) {
-        if (to_download[i] != NULL) {
-            delete to_download[i];
-        }
-    }
-    to_download.clear();
-    scandatas.clear();
 }
 
 i_plugin* audit_jscript::get_interface( const string& ifName )
@@ -61,11 +43,44 @@ i_plugin* audit_jscript::get_interface( const string& ifName )
     return i_audit::get_interface(ifName);
 }
 
+void audit_jscript::init( task* tsk )
+{
+    string text;
+    wOption opt;
+
+    // create list of the blocked extension
+    parent_task = tsk;
+    opt = tsk->Option("httpInventory/"weoDeniedFileTypes);
+    SAFE_GET_OPTION_VAL(opt, text, 1);
+    if (text != "")
+    {
+        size_t pos = text.find(';');
+        ext_deny.clear();
+        while(pos != string::npos) {
+            string ext = text.substr(0, pos);
+            ext_deny.push_back(ext);
+            if (pos < text.length())
+            {
+                text = text.substr(pos+1);
+            }
+            else {
+                text = "";
+            }
+            pos = text.find(';');
+        }
+    }
+    // processing options
+    opt_in_host = parent_task->IsSet("httpInventory/"weoStayInHost);
+    opt_in_domain = parent_task->IsSet("httpInventory/"weoStayInDomain);
+    opt_ignore_param = parent_task->IsSet("httpInventory/"weoIgnoreUrlParam);
+    opt = parent_task->Option("httpInventory/"weoScanDepth);
+    SAFE_GET_OPTION_VAL(opt, opt_max_depth, 0);
+}
+
 void audit_jscript::start( webEngine::task* tsk, boost::shared_ptr<ScanData>scData )
 {
     LOG4CXX_TRACE(logger, "audit_jscript::start");
-    EntityList lst;
-    int is_download;
+    entity_list lst;
 
     if (js_exec != NULL) {
         base_path = scData->object_url;
@@ -73,49 +88,50 @@ void audit_jscript::start( webEngine::task* tsk, boost::shared_ptr<ScanData>scDa
         if (scData->parsed_data != NULL) {
             lst = scData->parsed_data->FindTags("script");
             LOG4CXX_DEBUG(logger, "audit_jscript: found " << lst.size() << " scripts in " << scData->object_url);
-            // search for scripts to be downloaded
-            is_download = 0;
-            for (size_t i = 0; i < lst.size(); i++) {
-                iEntityPtr ent = lst[i];
-                if (ent != NULL) {
-                    std::string attr = ent->Attr("src");
-                    if (attr != "") {
-                        transport_url url;
-                        url.assign_with_referer(attr, &base_path);
-                        LOG4CXX_DEBUG(logger, "audit_jscript: need to download " << url.tostring());
-                        if (scandatas.find(scData->object_url) == scandatas.end() ) {
-                            scandatas[scData->object_url] = 0;
-                        }
-                        download_data *dnld = new download_data;
-                        dnld->url = url.tostring();
-                        dnld->sc_data = scData;
-                        dnld->parser = scData->parsed_data;
-                        dnld->ent = ent;
-                        to_download.push_back(dnld);
-                        scandatas[scData->object_url]++;
-                        is_download++;
+            if (lst.size() > 0)
+            {
+                // something to process
+                ajs_to_process_ptr tp(new ajs_to_process(scData, scData->parsed_data));
 
-                        webEngine::HttpRequest *req = new webEngine::HttpRequest(dnld->url);
-                        req->depth(scData->scan_depth + 1);
-                        req->context = this;
-                        req->processor = i_audit::response_dispatcher;
-                        parent_task->get_request_async(req);
-                    }
+                // search for scripts to be downloaded
+                for (size_t i = 0; i < lst.size(); i++) {
+                    base_entity_ptr ent = lst[i];
+                    if (ent != NULL) {
+                        std::string attr = ent->Attr("src");
+                        if (attr != "") {
+                            transport_url url;
+                            url.assign_with_referer(attr, &base_path);
+                            LOG4CXX_DEBUG(logger, "audit_jscript: need to download " << url.tostring());
+                            {
+                                boost::unique_lock<boost::mutex> lock(data_access);
+                                jscript_tasks.add(url.tostring(), tp, ent);
+                            }
+
+                            webEngine::HttpRequest *req = new webEngine::HttpRequest(url.tostring());
+                            req->depth(scData->scan_depth + 1);
+                            req->context = this;
+                            req->processor = i_audit::response_dispatcher;
+                            parent_task->get_request_async(req);
+                        } // if need to download
+                    } // if entity found
+                } // for each entity
+                ClearEntityList(lst);
+                if (tp->pending_requests > 0) {
+                    LOG4CXX_DEBUG(logger, "audit_jscript: need to download " << tp->pending_requests << " scripts, deffered processing");
                 }
-            }
-            ClearEntityList(lst);
-            if (is_download > 0) {
-                LOG4CXX_DEBUG(logger, "audit_jscript: need to download " << is_download << " scripts, deffered processing");
-            }
-            else {
-                vector<thread_data>* th_args = new vector<thread_data>;
-                thread_data tdata;
-                tdata.object = this;
-                tdata.sc_data = scData;
-                tdata.logger = logger;
-                th_args->push_back(tdata);
-                boost::thread process(parser_thread, th_args);
-            }
+                // else to_process will be processed on next thread iteration
+                
+                // run thread, if it not started yet
+                if (!thread_running) {
+                    boost::thread thrd(parser_thread, this);
+                }
+                // or wake it up
+                else {
+                    boost::lock_guard<boost::mutex> lock(thread_synch);
+                    thread_event.notify_all();
+                }
+
+            } // if something to process
         }// if parsed_data
     } // if js_exec
     LOG4CXX_TRACE(logger, "audit_jscript::start - finished");
@@ -124,61 +140,37 @@ void audit_jscript::start( webEngine::task* tsk, boost::shared_ptr<ScanData>scDa
 void audit_jscript::process_response( webEngine::i_response_ptr resp )
 {
     string sc;
-    vector<thread_data>* th_args = new vector<thread_data>;
 
     LOG4CXX_DEBUG(logger, "audit_jscript::process_response: " << resp->RealUrl().tostring());
-    size_t i;
-    string rurl = resp->RealUrl().tostring();
-    map<string, int>::iterator mit;
+    LOG4CXX_TRACE(logger, "audit_jscript::process_response: ENTER; to download: " << jscript_tasks.task_list.size() << "; documents: " << jscript_tasks.process_list.size() );
 
-    LOG4CXX_DEBUG(logger, "audit_jscript::process_response: ENTER to download: " << to_download.size() << "; scandatas: " << scandatas.size() );
-    th_args->clear();
-    for (i = 0; i < to_download.size(); i++) {
-        download_data *dnld = (download_data*)to_download[i];
-        if (dnld != NULL) {
-            string code((char*)&(resp->Data()[0]), resp->Data().size());
-            if (dnld->url == rurl) {
-                dnld->ent->Attr("src", "");
-                dnld->ent->Attr("#code", code);
-                scandatas[dnld->sc_data->object_url]--;
-                // run parser thread for ready object
-                if (scandatas[dnld->sc_data->object_url] <= 0) {
-                    thread_data tdata;
-                    tdata.object = this;
-                    tdata.sc_data = dnld->sc_data;
-                    tdata.parser = dnld->parser;
-                    tdata.logger = logger;
-                    th_args->push_back(tdata);
-                    scandatas.erase(dnld->sc_data->object_url);
-                }
-                delete dnld;
-                to_download[i] = NULL;
-            }
+    string rurl = resp->RealUrl().tostring();
+    boost::unique_lock<boost::mutex> lock(data_access);
+    map<string, ajs_download_list>::iterator mit = jscript_tasks.task_list.find(rurl);
+
+    // set entity data and decrement pending_requests counter
+    if (mit != jscript_tasks.task_list.end()) {
+        string code((char*)&(resp->Data()[0]), resp->Data().size());
+        for (size_t i = 0; i < mit->second.size(); i++) {
+            mit->second[i].first->Attr("src", "");
+            mit->second[i].first->Attr("#code", code);
+            mit->second[i].second->pending_requests--;
         }
+        jscript_tasks.task_list.erase(mit);
     }
-    to_download.erase(std::remove_if(to_download.begin(), to_download.end(), remove_empty), to_download.end());
-    LOG4CXX_DEBUG(logger, "audit_jscript::process_response: EXIT; to download: " << to_download.size() << "; scandatas: " << scandatas.size() );
-    if (th_args->size() > 0) {
-        boost::thread process(parser_thread, th_args);
+    // process documents with no pending requests in separate thread
+
+    // run thread, if it not started yet
+    if (!thread_running) {
+        boost::thread thrd(parser_thread, this);
     }
+    // or wake it up
     else {
-        delete th_args;
+        boost::lock_guard<boost::mutex> lock(thread_synch);
+        thread_event.notify_all();
     }
-//     for(mit = scandatas.begin(); mit != scandatas.end(); mit++) {
-//         if (mit->second == 0) {
-//             sc = mit->first;
-//             thread_data* tdata = new thread_data;
-//             tdata->object = this;
-//             tdata->sc_data = parent_task->GetScanData(sc);
-//             tdata->logger = logger;
-//             boost::thread process(parser_thread, tdata);
-//             scandatas.erase(mit);
-//             mit = scandatas.begin();
-//             if (mit == scandatas.end()) {
-//                 break;
-//             }
-//         }
-//     }
+
+    LOG4CXX_TRACE(logger, "audit_jscript::process_response: EXIT; to download: " << jscript_tasks.task_list.size() << "; documents: " << jscript_tasks.process_list.size() );
     return;
 }
 
@@ -262,10 +254,10 @@ void audit_jscript::add_url( webEngine::transport_url link, boost::shared_ptr<Sc
     }
 }
 
-void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_ptr<webEngine::HtmlDocument> parser)
+void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_ptr<webEngine::html_document> parser)
 {
     LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts for " << sc->parsed_data);
-    EntityList lst;
+    entity_list lst;
 
     if (js_exec == NULL) {
         LOG4CXX_ERROR(logger, "No JsExecutor given - exit");
@@ -277,7 +269,7 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts execute scripts for parsed_data " << parser);
         lst = parser->FindTags("script");
         for (size_t i = 0; i < lst.size(); i++) {
-            iEntityPtr ent = lst[i];
+            base_entity_ptr ent = lst[i];
             if (ent != NULL) {
                 string source = ent->Attr("#code");
 #ifdef _DEBUG
@@ -292,7 +284,7 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
         }
         ClearEntityList(lst);
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts process events");
-        //HtmlDocument* doc_entity = sc->parsed_data.get();
+        //html_document* doc_entity = sc->parsed_data.get();
         process_events(parser);
         // process results
         string res;
@@ -377,9 +369,9 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
     }
 }
 
-void audit_jscript::process_events( webEngine::iEntityPtr entity )
+void audit_jscript::process_events( webEngine::base_entity_ptr entity )
 {
-/* simple variant - reqursive descent throug DOM-tree
+/* simple variant - recursive descent through DOM-tree
     std::string src;
     // get on... events
     LOG4CXX_DEBUG(logger, "audit_jscript::process_events entity = " << entity->Name());
@@ -416,8 +408,8 @@ void audit_jscript::process_events( webEngine::iEntityPtr entity )
     }
 
     // and process all children
-    EntityList chld = entity->Children();
-    EntityList::iterator  it;
+    entity_list chld = entity->Children();
+    entity_list::iterator  it;
 
     for(size_t i = 0; i < chld.size(); i++) {
         std::string nm = chld[i]->Name();
@@ -429,19 +421,19 @@ void audit_jscript::process_events( webEngine::iEntityPtr entity )
     scanner_token  state;
     string         txtAttr;
     string         lString;
-    HtmlDocument*  doc = NULL;
+    html_document*  doc = NULL;
 
     try
     {
-        doc = dynamic_cast<HtmlDocument*>(entity.get());
+        doc = dynamic_cast<html_document*>(entity.get());
     }
     catch (std::exception &e)
     {
-        LOG4CXX_WARN(logger, "audit_jscript::process_events given entity can't be casted to HtmlDocument: " << e.what());
+        LOG4CXX_WARN(logger, "audit_jscript::process_events given entity can't be casted to html_document: " << e.what());
         return;
     }
 
-    tag_stream* stream = doc->Data().stream();
+    boost::shared_ptr<tag_stream> stream = doc->Data().stream();
     tag_scanner scanner(*stream);
 
     while (true)
@@ -486,53 +478,101 @@ void audit_jscript::process_events( webEngine::iEntityPtr entity )
             break;
         }
     }
-    delete stream;
-
-    // all results will be processed in the caller 
-    // parse_scripts function
+    // all results will be processed in the caller parse_scripts function
 }
 
-void audit_jscript::init( task* tsk )
+void parser_thread( audit_jscript* object )
 {
-    string text;
-    wOption opt;
+    size_t task_list;
+    ajs_to_process_list local_list;
 
-    // create list of the blocked extension
-    parent_task = tsk;
-    opt = tsk->Option("httpInventory/"weoDeniedFileTypes);
-    SAFE_GET_OPTION_VAL(opt, text, 1);
-    if (text != "")
-    {
-        size_t pos = text.find(';');
-        ext_deny.clear();
-        while(pos != string::npos) {
-            string ext = text.substr(0, pos);
-            ext_deny.push_back(ext);
-            if (pos < text.length())
-            {
-                text = text.substr(pos+1);
+    LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread started");
+    object->thread_running = true;
+    object->parent_task->add_thread();
+
+    local_list.clear();
+    while (true) {
+        { // wait scope: check for completion
+            boost::unique_lock<boost::mutex> lock(object->data_access);
+            task_list = object->jscript_tasks.task_list.size() + object->jscript_tasks.process_list.size();
+            if (task_list == 0) {
+                LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread no data in task lists - exiting");
+                break;
             }
-            else {
-                text = "";
+        } // wait scope - auto release mutex
+
+        // perform actions
+
+        { // wait scope: extract data from process_list
+            boost::unique_lock<boost::mutex> lock(object->data_access);
+            for (size_t i = 0; i < object->jscript_tasks.process_list.size(); i++) {
+                if (object->jscript_tasks.process_list[i]->pending_requests == 0) {
+                    local_list.push_back(object->jscript_tasks.process_list[i]);
+                }
             }
-            pos = text.find(';');
+            object->jscript_tasks.clean_done();
+        } // wait scope - auto release mutex
+        LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread: to download: " << object->jscript_tasks.task_list.size() <<
+            "; documents: " << object->jscript_tasks.process_list.size() );
+
+        if (local_list.size() > 0)
+        {
+            LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread: " << local_list.size() << " scripts to process");
+            for (size_t i = 0; i < local_list.size(); i++) {
+                object->parse_scripts(local_list[i]->sc_data, local_list[i]->parsed_data);
+            }
+            local_list.clear();
         }
-    }
-    // processing options
-    opt_in_host = parent_task->IsSet("httpInventory/"weoStayInHost);
-    opt_in_domain = parent_task->IsSet("httpInventory/"weoStayInDomain);
-    opt_ignore_param = parent_task->IsSet("httpInventory/"weoIgnoreUrlParam);
-    opt = parent_task->Option("httpInventory/"weoScanDepth);
-    SAFE_GET_OPTION_VAL(opt, opt_max_depth, 0);
+
+        { // get data size
+            boost::unique_lock<boost::mutex> lock(object->data_access);
+            task_list = object->jscript_tasks.task_list.size() + object->jscript_tasks.process_list.size();
+            LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread waiting for data: " << task_list << " processes in list");
+        } // wait scope - auto release mutex
+        if (task_list > 0){ // wait foe data
+            boost::unique_lock<boost::mutex> thrd_lock(object->thread_synch);
+            object->thread_event.wait(thrd_lock);
+        } // wait scope - auto release mutex
+    } // main thread loop
+
+    object->parent_task->remove_thread();
+    object->thread_running = false;
+    LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread finished");
 }
 
-void parser_thread( void *context )
+ajs_to_process::ajs_to_process( webEngine::scan_data_ptr sc /*= webEngine::scan_data_ptr()*/, boost::shared_ptr<html_document> pd /*= boost::shared_ptr<webEngine::html_document>()*/ )
 {
-    vector<thread_data> *th_args = (vector<thread_data>*)context;
-    for (size_t i = 0; i < th_args->size(); i++) {
-        LOG4CXX_TRACE((*th_args)[0].logger, "audit_jscript thread: process scripts " << i << " from " << th_args->size());
-        (*th_args)[i].object->parse_scripts((*th_args)[i].sc_data, (*th_args)[i].parser);
+    sc_data = sc;
+    parsed_data = pd;
+    pending_requests = 0;
+}
+
+void ajs_download_task::add( string url, ajs_to_process_ptr tp, webEngine::base_entity_ptr ent )
+{
+    LOG4CXX_TRACE(js_logger, "ajs_download_task::add new task for URL: " << url);
+    map<string, ajs_download_list>::iterator mit = task_list.find(url);
+
+    if (mit == task_list.end()) {
+        task_list[url] = ajs_download_list(1, ajs_download(ent, tp));
     }
-    th_args->clear();
-    delete th_args;
+    else {
+        mit->second.push_back(ajs_download(ent, tp));
+    }
+    ajs_to_process_list::iterator lit = std::find(process_list.begin(), process_list.end(), tp);
+    if (lit == process_list.end()) {
+        process_list.push_back(tp);
+    }
+    tp->pending_requests++;
+    LOG4CXX_TRACE(js_logger, "ajs_download_task::add - pending requests for this task: " << tp->pending_requests);
+    LOG4CXX_TRACE(js_logger, "ajs_download_task::add - tasks in queue: " << task_list.size());
+    LOG4CXX_TRACE(js_logger, "ajs_download_task::add - processes in queue: " << process_list.size());
+}
+
+void ajs_download_task::remove_url( string url )
+{
+}
+
+void ajs_download_task::clean_done( )
+{
+    process_list.erase(std::remove_if(process_list.begin(), process_list.end(), remove_empty), process_list.end());
 }
