@@ -78,8 +78,8 @@ namespace webEngine {
         WeInnerText(WeInnerText& entity);
         ~WeInnerText();
 
-        virtual const string Attr(string);
-        virtual void Attr(string, string);
+        virtual const string attr(string);
+        virtual void attr(string, string);
 
         virtual const string InnerText(void);
         virtual const string OuterText(void);
@@ -91,7 +91,7 @@ namespace webEngine {
         virtual boost::shared_ptr<base_entity> Child(string type) {return boost::shared_ptr<base_entity>((base_entity*)NULL);}   ///< Placeholder to avoid children manipulations
         /// @brief Placeholder to avoid children manipulations
         /// @throw runtime_error with description
-        virtual entity_list Children() {
+        virtual entity_list& Children() {
             throw runtime_error("WeInnerText: Children property is not accessible");
             return chldList;
         }

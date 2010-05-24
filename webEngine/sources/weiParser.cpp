@@ -31,7 +31,7 @@ weCmpMode base_entity::compareMode = weCmpDefault;
 #endif // __DOXYGEN__
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string base_entity::Attr(string )
+/// @fn	string base_entity::attr(string )
 ///
 /// @brief  Gets the attribute value.
 ///
@@ -40,7 +40,7 @@ weCmpMode base_entity::compareMode = weCmpDefault;
 /// @retval attribute value if the attribute exist,
 ///         empty string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string base_entity::Attr(string name)
+const string base_entity::attr(string name)
 {
     AttrMap::iterator it;
 
@@ -53,14 +53,14 @@ const string base_entity::Attr(string name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void base_entity::Attr(string , string )
+/// @fn	void base_entity::attr(string , string )
 ///
 /// @brief  Sets the attribute.
 ///
 /// @param  name - The attribute name.
 /// @param  value - The attribute value.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void base_entity::Attr(string name, string value)
+void base_entity::attr(string name, string value)
 {
     attributes[name] = value;
 }

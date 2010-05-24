@@ -58,13 +58,14 @@ public:
     base_entity() {};
     virtual ~base_entity() { ClearChildren(); };
 
-    virtual const string Attr(string);
-    virtual void Attr(string, string);
+    virtual const string attr(string);
+    virtual void attr(string, string);
+    virtual AttrMap& attr_list() { return attributes; }
     void ClearAttr(void)    { attributes.clear(); };        ///< Clears all attributes
 
     virtual base_entity_ptr Child(string type);
     virtual base_entity_ptr Child(int idx);
-    virtual entity_list Children() { return chldList; };  ///< Direct access to the children collection
+    virtual entity_list& Children() { return chldList; };  ///< Direct access to the children collection
     void ClearChildren(void);
 
     virtual const string InnerText(void) = 0;
