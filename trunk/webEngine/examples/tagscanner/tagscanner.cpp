@@ -36,8 +36,8 @@ const char* html = "<html><body><p align=right dir='rtl'>Begin &amp;    &copy; b
 int main(int argc, char* argv[])
 {
     blob  file;
-    tag_stream *st;
-    str_tag_stream *si;
+    boost::shared_ptr<tag_stream> st;
+    boost::shared_ptr<tag_stream> si;
 
     if (argc > 1) {
         ifstream ifs(argv[1]);
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
         st = file.stream();
     }
     else {
-        si = new str_tag_stream(html);
+        si = boost::shared_ptr<tag_stream>(new str_tag_stream(html));
         st = si;
     }
     tag_scanner sc(*st);

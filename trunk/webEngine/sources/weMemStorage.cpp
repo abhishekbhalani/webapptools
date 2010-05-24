@@ -25,6 +25,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include "weOptions.h"
 #include "weTagScanner.h"
 #include "weMemStorage.h"
 #include "weiBase.h"
@@ -40,7 +41,7 @@ static void OptionFromString(wOption& opt, const string& str)
         istrstream is(str.c_str(), str.length());
         boost::archive::text_iarchive ia(is);
         // read class instance from archive
-        ia >> opt;
+        //ia >> opt;
         // archive and stream closed when destructor are called
     }
     catch (std::exception& e)
@@ -56,7 +57,7 @@ static void OptionToString(wOption& opt, string& str)
         ostrstream os;
         boost::archive::text_oarchive oa(os);
         // read class instance from archive
-        oa << opt;
+        //oa << opt;
         // archive and stream closed when destructor are called
         str = string(os.rdbuf()->str(), os.rdbuf()->pcount());
     }

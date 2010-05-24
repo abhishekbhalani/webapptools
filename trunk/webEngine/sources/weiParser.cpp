@@ -27,11 +27,11 @@ using namespace boost::algorithm;
 namespace webEngine {
 
 #ifndef __DOXYGEN__
-weCmpMode iEntity::compareMode = weCmpDefault;
+weCmpMode base_entity::compareMode = weCmpDefault;
 #endif // __DOXYGEN__
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string iEntity::Attr(string )
+/// @fn	string base_entity::Attr(string )
 ///
 /// @brief  Gets the attribute value.
 ///
@@ -40,7 +40,7 @@ weCmpMode iEntity::compareMode = weCmpDefault;
 /// @retval attribute value if the attribute exist,
 ///         empty string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string iEntity::Attr(string name)
+const string base_entity::Attr(string name)
 {
     AttrMap::iterator it;
 
@@ -53,29 +53,29 @@ const string iEntity::Attr(string name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void iEntity::Attr(string , string )
+/// @fn	void base_entity::Attr(string , string )
 ///
 /// @brief  Sets the attribute.
 ///
 /// @param  name - The attribute name.
 /// @param  value - The attribute value.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void iEntity::Attr(string name, string value)
+void base_entity::Attr(string name, string value)
 {
     attributes[name] = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void iEntity::Child(string type)
+/// @fn	void base_entity::Child(string type)
 ///
 /// @brief  Access to children by entity name.
 /// @param  type - name of the child in the collection
 /// @retval null if it no children of such type, the pointer to the WeHtmlEntity else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iEntityPtr iEntity::Child(string type)
+base_entity_ptr base_entity::Child(string type)
 {
-    iEntityPtr retval;
-    EntityList::iterator  it;
+    base_entity_ptr retval;
+    entity_list::iterator  it;
 
     for(it = chldList.begin(); it != chldList.end(); it++) {
         if((*it)->Name() == type) {
@@ -87,29 +87,29 @@ iEntityPtr iEntity::Child(string type)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iEntity* iEntity::Child(int idx)
+/// @fn	base_entity* base_entity::Child(int idx)
 ///
 /// @brief  Access to children by index.
 /// @param  idx - index of the child in the collection
 /// @retval null if it fails, the pointer to the WeHtmlEntity else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iEntityPtr iEntity::Child(int idx)
+base_entity_ptr base_entity::Child(int idx)
 {
     if (idx < 0 || idx >= (int)chldList.size()) {
-        return iEntityPtr((iEntity*)NULL);
+        return base_entity_ptr((base_entity*)NULL);
     }
     return chldList[idx];
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void iEntity::GenerateId(void)
+/// @fn	void base_entity::GenerateId(void)
 ///
 /// @brief  Generates an identifier.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma warning(push)
 #pragma warning(disable : 4311)
 #pragma warning(disable : 4996)
-void iEntity::GenerateId(void)
+void base_entity::GenerateId(void)
 {
     // Entity format (like GUID): {B46FF8A5-F2E9-4297-9F73-2894AABBB740}
 /*    unsigned int first;
@@ -143,7 +143,7 @@ void iEntity::GenerateId(void)
 #pragma warning(pop)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	iEntity* iEntity::FindID(string id)
+/// @fn	base_entity* base_entity::FindID(string id)
 ///
 /// @brief  Finds the entity with given ID.
 ///
@@ -152,10 +152,10 @@ void iEntity::GenerateId(void)
 /// @param  id - The entity identifier.
 /// @retval	null if it no objects found, pointer to the object else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iEntityPtr iEntity::FindID(string id)
+base_entity_ptr base_entity::FindID(string id)
 {
-    EntityList::iterator  chld;
-    iEntityPtr retval;
+    entity_list::iterator  chld;
+    base_entity_ptr retval;
 
     if (id == m_entityId) {
         return shared_from_this();
@@ -166,11 +166,11 @@ iEntityPtr iEntity::FindID(string id)
             return retval;
         }
     }
-    return iEntityPtr((iEntity*)NULL);
+    return base_entity_ptr((base_entity*)NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	EntityList& iEntity::FindTags(string tag)
+/// @fn	entity_list& base_entity::FindTags(string tag)
 ///
 /// @brief  Finds the entity with given tag name.
 ///
@@ -179,16 +179,16 @@ iEntityPtr iEntity::FindID(string id)
 /// @param  tag - The tag name to search.
 /// @retval	empty list if it no objects found, list of the objects else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-EntityList iEntity::FindTags(string tag)
+entity_list base_entity::FindTags(string tag)
 {
-    EntityList retval;
-    EntityList::iterator  chld;
+    entity_list retval;
+    entity_list::iterator  chld;
 
     if (iequals(tag, entityName)) {
         retval.push_back(shared_from_this());
     }
     for (size_t i = 0; i < chldList.size(); i++) {
-        EntityList chlds = chldList[i]->FindTags(tag);
+        entity_list chlds = chldList[i]->FindTags(tag);
         for (size_t j = 0; j < chlds.size(); j++) {
             retval.push_back(chlds[j]);
         }
@@ -198,14 +198,14 @@ EntityList iEntity::FindTags(string tag)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void iEntity::ClearChildren( void )
+/// @fn	void base_entity::ClearChildren( void )
 ///
 /// @brief  Clears a children.
 ///
 /// @author A. Abramov
 /// @date   28.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void iEntity::ClearChildren( void )
+void base_entity::ClearChildren( void )
 {
 //     for (size_t i = 0; i < chldList.size(); i++) {
 //         chldList[i].reset(); 
@@ -214,12 +214,12 @@ void iEntity::ClearChildren( void )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeDocument* iEntity::GetRootDocument( void )
+/// @fn	WeDocument* base_entity::GetRootDocument( void )
 ///
 /// @brief  Gets the root document.
 /// @retval	null if no root document found, else the pointer to root document.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iDocument* iEntity::GetRootDocument( void )
+iDocument* base_entity::GetRootDocument( void )
 {
     if (entityName == "#document") {
         return dynamic_cast<iDocument*>(this);
@@ -227,20 +227,20 @@ iDocument* iEntity::GetRootDocument( void )
     if (parent.expired()) {
         return (iDocument*)NULL;
     }
-    iEntityPtr pl = parent.lock();
+    base_entity_ptr pl = parent.lock();
     iDocument* res = pl->GetRootDocument();
     return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn bool iEntity::IsParentTag( string tag )
+/// @fn bool base_entity::IsParentTag( string tag )
 ///
 /// @brief  Query if 'tag' is parent tag.
 ///
 /// @param  tag	 - The tag name.
 /// @retval	true if tag is in the parent tree, false if not.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool iEntity::IsParentTag( string tag )
+bool base_entity::IsParentTag( string tag )
 {
     if (iequals(tag, entityName)) {
         return true;
@@ -248,15 +248,15 @@ bool iEntity::IsParentTag( string tag )
     if (parent.expired()) {
         return false;
     }
-    iEntityPtr pl = parent.lock();
+    base_entity_ptr pl = parent.lock();
     bool res = pl->IsParentTag(tag);
     return res;
 }
 
-void ClearEntityList( EntityList &lst )
+void ClearEntityList( entity_list &lst )
 {
 //     for (size_t i = 0; i < lst.size(); i++) {
-//         iEntityPtr pt = lst[i];
+//         base_entity_ptr pt = lst[i];
 //         lst[i].reset();
 //     }
     lst.clear();    

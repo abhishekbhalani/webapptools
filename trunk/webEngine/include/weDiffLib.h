@@ -43,8 +43,8 @@ namespace webEngine {
         weCmpInserted   = 2
     } ;
 
-    class iEntity;  // forward declaration for pointer
-    typedef boost::variant<string, iEntity*> WeCmpEntity;
+    class base_entity;  // forward declaration for pointer
+    typedef boost::variant<string, base_entity*> WeCmpEntity;
 
     struct WeCmpBlock
     {

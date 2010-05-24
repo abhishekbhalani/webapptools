@@ -37,55 +37,54 @@ namespace webEngine {
 
 class i_transport;
 class i_response;
-
-class iEntity;
+class base_entity;
 class iDocument;
 
-typedef boost::shared_ptr<iEntity> iEntityPtr;
-typedef boost::weak_ptr<iEntity> iEntityWPtr;
-typedef vector<iEntityPtr> EntityList;
+typedef boost::shared_ptr<base_entity> base_entity_ptr;
+typedef boost::weak_ptr<base_entity> base_entity_wptr;
+typedef vector<base_entity_ptr> entity_list;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iEntity
+/// @interface  base_entity
 ///
 /// @brief  Processing Entity interface. 
 ///
 /// @author A. Abramov
 /// @date   08.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iEntity : public boost::enable_shared_from_this<iEntity>
+class base_entity : public boost::enable_shared_from_this<base_entity>
 {
 public:
-    iEntity() {};
-    virtual ~iEntity() { ClearChildren(); };
+    base_entity() {};
+    virtual ~base_entity() { ClearChildren(); };
 
     virtual const string Attr(string);
     virtual void Attr(string, string);
     void ClearAttr(void)    { attributes.clear(); };        ///< Clears all attributes
 
-    virtual iEntityPtr Child(string type);
-    virtual iEntityPtr Child(int idx);
-    virtual EntityList Children() { return chldList; };  ///< Direct access to the children collection
+    virtual base_entity_ptr Child(string type);
+    virtual base_entity_ptr Child(int idx);
+    virtual entity_list Children() { return chldList; };  ///< Direct access to the children collection
     void ClearChildren(void);
 
     virtual const string InnerText(void) = 0;
     virtual const string OuterText(void) = 0;
 
-    iEntityPtr FindID(string id);
-    EntityList FindTags(string tag);
+    base_entity_ptr FindID(string id);
+    entity_list FindTags(string tag);
 
     virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL) { return wstError; };
 
-    virtual CmpResults* Diff(iEntity& cmp, weCmpMode mode = weCmpDefault) = 0;
-    virtual weCmpState Compare(iEntity& cmp, weCmpMode mode = weCmpDefault) = 0;
-    virtual bool operator==(iEntity& cmp) { return (Compare(cmp) == weCmpEqual); };
+    virtual CmpResults* Diff(base_entity& cmp, weCmpMode mode = weCmpDefault) = 0;
+    virtual weCmpState Compare(base_entity& cmp, weCmpMode mode = weCmpDefault) = 0;
+    virtual bool operator==(base_entity& cmp) { return (Compare(cmp) == weCmpEqual); };
 
     iDocument* GetRootDocument(void);
 
     //@{
     /// @brief Access the Parent
-    const iEntityWPtr Parent(void) const	{ return(parent);   };
-    void Parent(iEntityWPtr prnt)  { parent = prnt;    };
+    const base_entity_wptr Parent(void) const	{ return(parent);   };
+    void Parent(base_entity_wptr prnt)  { parent = prnt;    };
     //}
 
     //@{
@@ -120,9 +119,9 @@ protected:
 
 #ifndef __DOXYGEN__
 protected:
-    iEntityWPtr parent;
+    base_entity_wptr parent;
     AttrMap attributes;
-    EntityList chldList;
+    entity_list chldList;
     string entityName;
     string m_entityId;
     static weCmpMode compareMode;
@@ -138,14 +137,14 @@ protected:
 /// @author A. Abramov
 /// @date   08.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iDocument : virtual public iEntity
+class iDocument : virtual public base_entity
 {
 public:
     virtual bool ParseData(boost::shared_ptr<i_response> resp, i_transport* processor = NULL) = 0;
     virtual blob& Data(void) = 0;
 };
 
-void ClearEntityList(EntityList &lst);
+void ClearEntityList(entity_list &lst);
 
 } // namespace webEngine
 

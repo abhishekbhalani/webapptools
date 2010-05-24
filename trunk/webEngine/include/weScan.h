@@ -32,7 +32,7 @@ namespace btm = boost::posix_time;
 namespace webEngine {
 
     class db_recordset;
-    class HtmlDocument;
+    class html_document;
 
     class ScanData
     {
@@ -49,11 +49,13 @@ namespace webEngine {
         int     download_time;
         int     scan_depth;
         string  content_type; 
-        boost::shared_ptr<HtmlDocument> parsed_data;
+        boost::shared_ptr<html_document> parsed_data;
 
         db_recordset* ToRS( const string& parentID = "" );
         void FromRS( db_recordset *rs );
     };
+
+    typedef boost::shared_ptr<ScanData> scan_data_ptr;
 
     class ScanInfo
     {
@@ -85,10 +87,10 @@ namespace webEngine {
         void FromRS( db_recordset *rs );
 
         boost::shared_ptr<ScanData> GetScanData( const string& object_url );
-        void SetScanData(const string& object_url, boost::shared_ptr<ScanData> scData);
+        void SetScanData(const string& object_url, scan_data_ptr scData);
 
     protected:
-        boost::unordered_map<string, boost::shared_ptr<ScanData> > scan_data;
+        boost::unordered_map<string, scan_data_ptr > scan_data;
     };
 
 } // namespace webEngine
