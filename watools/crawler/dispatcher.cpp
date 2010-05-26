@@ -39,9 +39,14 @@ namespace btm = boost::posix_time;
 class ScanRes : public webEngine::ScanInfo
 {
 public:
-    int GetScanSize(){ return scan_data.size(); };
+    typedef scan_map::iterator iterator;
+
+    int GetScanSize(){ return scan_data.size(); }
+    iterator begin() { return scan_data.begin(); }
+    iterator end() { return scan_data.end(); }
+
     boost::shared_ptr<webEngine::ScanData> GetData(int i) {
-        boost::unordered_map<string, boost::shared_ptr<webEngine::ScanData> >::iterator mit = scan_data.begin();
+        iterator mit = scan_data.begin();
         boost::shared_ptr<webEngine::ScanData> result;
 
         if (i > scan_data.size()) {
@@ -107,7 +112,7 @@ void signal_halt(int sig)
     }
 }
 
-void save_results(ScanRes *si, int format, string fname)
+void save_results(ScanRes *si, int format, string fname, size_t reqs = 0)
 {
     if (si != NULL)
     {
@@ -130,9 +135,17 @@ void save_results(ScanRes *si, int format, string fname)
         cout << "Scan finish:   " << si->finishTime << endl;
         btm::time_period scan_elapsed(si->startTime, si->finishTime);
         cout << "Scan duration: " << btm::to_simple_string(scan_elapsed.length()) << endl;
-        cout << "Scan size:     " << si->GetScanSize() << endl << endl;
-        for (int i = 0; i < si->GetScanSize(); i++) {
-            boost::shared_ptr<webEngine::ScanData> dt = si->GetData(i);
+        cout << "Scan size:     " << si->GetScanSize() << endl;
+        if (reqs > 0) {
+            double rps = (double)reqs / scan_elapsed.length().total_seconds();
+            cout.setf(ios::fixed,ios::floatfield);
+            cout.precision(3);
+            cout << "Scan speed:    " << reqs << " requests; " << rps << " requests per second" << endl;
+            cout.precision(3);
+        }
+        cout << endl;
+        for (ScanRes::iterator i = si->begin(); i != si->end(); i++) {
+            boost::shared_ptr<webEngine::ScanData> dt = i->second;
             if (dt) {
                 if (format == 0) {
                     cout << "Requested:     " << dt->object_url << endl;
@@ -421,6 +434,8 @@ void dispatcher_routine(po::variables_map& vm)
     inLoop = true;
     char ch;
     ScanRes *si;
+    size_t sz, dn;
+    double rps;
     string fname = "";
     if (vm.count("result")) {
         fname = vm["result"].as<string>();
@@ -449,6 +464,14 @@ void dispatcher_routine(po::variables_map& vm)
             ch = toupper(ch);
             switch (ch)
             {
+            case 'S':
+                sz = tsk->total_requests();
+                dn = tsk->total_processed();
+                rps = (double)dn / scan_elapsed.length().total_seconds();
+                cout.setf(ios::fixed,ios::floatfield);
+                cout.precision(3);
+                cout << endl << "Total requests: " << sz << "; processed: " << dn << " (" << rps << " requests per second)" << endl;
+                break;
             case 'Q':
                 inLoop = false;
                 break;
@@ -463,7 +486,7 @@ void dispatcher_routine(po::variables_map& vm)
                 }
             }
         }
-        tsk->CalcStatus();
+        tsk->calc_status();
         //if (time_to_save) {
         //    save_results(si, format, fname);
         //}
@@ -478,7 +501,7 @@ void dispatcher_routine(po::variables_map& vm)
         fname = vm["result"].as<string>();
     }
     format = vm["output"].as<int>();
-    save_results(si, format, fname);
+    save_results(si, format, fname, tsk->total_requests());
 
     for (size_t i = 0; i < scan_plugins.size(); i++) {
         scan_plugins[i]->release();

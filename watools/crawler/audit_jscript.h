@@ -29,8 +29,10 @@ class ajs_download_task :
 {
 // the URL is the key!
 public:
-    void add(string url, ajs_to_process_ptr tp, webEngine::base_entity_ptr ent);
-    void add(ajs_to_process_ptr tp);
+    ajs_download_task() { task_list.clear(); process_list.clear(); }
+
+    bool add(string url, ajs_to_process_ptr tp, webEngine::base_entity_ptr ent);
+    bool add(ajs_to_process_ptr tp);
     void remove_url(string url);
     void clean_done();
 
