@@ -59,31 +59,26 @@ i_plugin* i_transport::get_interface( const string& ifName )
 //////////////////////////////////////////////////////////////////////////
 i_operation::~i_operation()
 {
-    vector<iweOperationPtr*>::iterator it;
-
-    for (it = children.begin(); it != children.end(); it++) {
-        delete (*it);
-    }
     children.clear();
 }
 
-void i_operation::AddChild( iweOperationPtr* chld )
+void i_operation::AddChild( iweOperationPtr chld )
 {
-    vector<iweOperationPtr*>::iterator it;
+    vector<iweOperationPtr>::iterator it;
 
     it = find(children.begin(), children.end(), chld);
     if (it == children.end()) {
         children.push_back(chld);
     }
-    (*chld)->previous = this;
+    chld->previous.reset(this);
 }
 
-void i_operation::RemoveChild( iweOperationPtr* chld )
+void i_operation::RemoveChild( iweOperationPtr chld )
 {
-    vector<iweOperationPtr*>::iterator it;
+    vector<iweOperationPtr>::iterator it;
 
     it = find(children.begin(), children.end(), chld);
     if (it != children.end()) {
-        delete (*it);
+        children.erase(it);
     }
 }

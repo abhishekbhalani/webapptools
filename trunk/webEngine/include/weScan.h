@@ -59,7 +59,10 @@ namespace webEngine {
 
     class ScanInfo
     {
+        typedef std::map<string, scan_data_ptr >    scan_map;
     public:
+        typedef scan_map::iterator  iterator;
+
         enum weScanStatus {
             ScanStatusMask = 0xFFFFFFFF
         };
@@ -90,7 +93,8 @@ namespace webEngine {
         void SetScanData(const string& object_url, scan_data_ptr scData);
 
     protected:
-        boost::unordered_map<string, scan_data_ptr > scan_data;
+        //boost::unordered_map<string, scan_data_ptr > scan_data;
+        scan_map scan_data;
     };
 
 } // namespace webEngine

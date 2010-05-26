@@ -27,6 +27,8 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "weiPlugin.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/utility.hpp>
 
 //using namespace boost;
 
@@ -54,14 +56,16 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   16.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class i_operation : public boost::enable_shared_from_this<i_operation> 
+    class i_operation : 
+        public boost::enable_shared_from_this<i_operation>,
+        boost::noncopyable
     {
     public:
-        i_operation() { usage_count = 0; context = NULL; processor = NULL; depth_level = 0; };
+        i_operation() { context = NULL; processor = NULL; depth_level = 0; };
         virtual ~i_operation();
 
-        virtual void AddChild(iweOperationPtr* chld);
-        virtual void RemoveChild(iweOperationPtr* chld);
+        virtual void AddChild(iweOperationPtr chld);
+        virtual void RemoveChild(iweOperationPtr chld);
         //@{
         /// @brief  Access the BaseUrl property
         ///
@@ -90,15 +94,11 @@ namespace webEngine {
 
 #ifndef __DOXYGEN__
     protected:
-        int usage_count;
         transport_url baseUrl;
-        i_operation* previous;
-        vector<iweOperationPtr*> children;
+        iweOperationPtr previous;
+        vector<iweOperationPtr> children;
         string identifier;
         int depth_level;
-    private:
-        i_operation(i_operation&) {};               ///< Avoid object coping
-        i_operation& operator=(i_operation&) { return *this; };    ///< Avoid object coping
 #endif //__DOXYGEN__
     };
 
@@ -180,6 +180,16 @@ namespace webEngine {
 
         virtual void Process(i_transport* proc) = 0;
 
+        //@{
+        /// @brief  Access the start_time property
+        ///
+        /// Whatever the request already processed.
+        boost::posix_time::ptime start_time(void)       { return start_tm; }
+        void start_time(boost::posix_time::ptime stm)   { start_tm = stm; }
+        //@}
+
+        virtual void timeout() = 0;
+
 #ifndef __DOXYGEN__
     protected:
         transport_url realUrl;
@@ -187,6 +197,7 @@ namespace webEngine {
         blob data;
         int downTime;
         bool processed;
+        boost::posix_time::ptime start_tm;
 #endif //__DOXYGEN__
     };
 

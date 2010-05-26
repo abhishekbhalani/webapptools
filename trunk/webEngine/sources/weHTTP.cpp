@@ -134,6 +134,7 @@ http_transport::http_transport(engine_dispatcher* krnl, void* handle /*= NULL*/)
 
     default_port = 80;
     proto_name = "http";
+    default_timeout = 10;
     options.clear();
 }
 
@@ -244,6 +245,9 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
 
     if (transferHandle != NULL && ht_retval->CURLHandle() != NULL) {
         try {
+            // set the timeout
+            ht_retval->start_time(boost::posix_time::second_clock::local_time());
+            curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_TIMEOUT, default_timeout);
             curl_multi_add_handle(transferHandle, ht_retval->CURLHandle());
             process_requests();
         }
@@ -371,6 +375,27 @@ const int http_transport::process_requests( void )
     else {
         lastError = CURLM_BAD_HANDLE;
     }
+
+    // check for timeouts
+    boost::posix_time::ptime curr_tm = boost::posix_time::second_clock::local_time();
+    curr_tm -= boost::posix_time::seconds(default_timeout);
+    for (hnd = responces.begin(); hnd != responces.end();) {
+        if ((*hnd)->start_time() < curr_tm) {
+            // remove from list
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "http_transport::process_requests - timeout for request " << (*hnd)->BaseUrl().tostring());
+            resp = dynamic_cast<HttpResponse*>((*hnd).get());
+            // remove handle from cURL
+            curl_multi_remove_handle(transferHandle, resp->CURLHandle());
+            resp->timeout();
+            // ... and remove from processing queue
+            responces.erase(hnd);
+            hnd = responces.begin();
+        }
+        else {
+            hnd++;
+        }
+    }
+
     return lastError;
 }
 
@@ -400,6 +425,9 @@ void http_transport::load_settings( i_options_provider *data_provider, string ke
     opt = data_provider->Option(key + weoFollowLinks);
     SAFE_GET_OPTION_VAL(opt, val, false);
     options[weoFollowLinks] = val;
+
+    opt = data_provider->Option(key + "/timeout");
+    SAFE_GET_OPTION_VAL(opt, default_timeout, 10);
 }
 
 bool http_transport::is_set( const string& name )

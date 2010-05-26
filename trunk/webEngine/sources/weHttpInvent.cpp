@@ -270,7 +270,9 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
             bool saveParser;
             entity_list lst;
 
+#ifdef DEBUG
             boost::posix_time::ptime pretm = boost::posix_time::microsec_clock::local_time();
+#endif
             saveParser = parser->ParseData(resp);
             if (scData->parsed_data != NULL) {
                 saveParser = false;
@@ -279,9 +281,11 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
             {
                 scData->parsed_data = parser;
             }
+#ifdef DEBUG
             boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
             boost::posix_time::time_period duration(pretm, postm);
-            LOG4CXX_DEBUG(logger, "HttpInventory::process_response " << htResp->Data().size() << "bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
+            LOG4CXX_DEBUG(logger, "HttpInventory::process_response " << htResp->Data().size() << " bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
+#endif
             LOG4CXX_DEBUG(logger, "HttpInventory::process_response: search for links");
             lst = parser->FindTags("a");
             if (lst.size() > 0) {

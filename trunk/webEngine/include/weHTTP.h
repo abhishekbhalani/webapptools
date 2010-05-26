@@ -117,6 +117,7 @@ namespace webEngine {
         const string ContentType(void) { return(contentType);    };
 
         void Process(i_transport* proc);
+        virtual void timeout();
 
     protected:
         static size_t Receiver(void *ptr, size_t size, size_t nmemb, void *ourpointer);
@@ -235,6 +236,7 @@ namespace webEngine {
         CURLM*          transferHandle;
         CURLMcode       lastError;
         int             default_port;
+        int             default_timeout;
         string          proto_name;
         map<string, bool> options;
 #endif //__DOXYGEN__
