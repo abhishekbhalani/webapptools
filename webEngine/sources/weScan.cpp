@@ -146,7 +146,7 @@ void ScanInfo::FromRS( db_recordset* rs )
 shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )
 {
     shared_ptr<ScanData> retval;
-    unordered_map<string, shared_ptr<ScanData> >::iterator mit = scan_data.find(object_url);
+    ScanInfo::iterator mit = scan_data.find(object_url);
 
     if (mit != scan_data.end()) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::GetScanData - found existing ScanData");

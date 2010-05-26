@@ -28,7 +28,6 @@
 #include <weDispatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/thread.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/scoped_ptr.hpp>
 
@@ -78,6 +77,7 @@ void TaskProcessor(task* tsk)
 
         // send request if slots available
         while (tsk->taskQueueSize > tsk->taskQueue.size()) {
+            boost::unique_lock<boost::mutex> lock(tsk->tsk_mutex);
             if (!tsk->taskList.empty())
             {
                 curr_url = tsk->taskList[0];
@@ -143,7 +143,8 @@ void TaskProcessor(task* tsk)
                             tsk->inventories[i]->process_response(*rIt);
                         }
                     }
-                    rIt->reset();
+                    //(*rIt).reset();
+                    tsk->total_done++;
                     tsk->taskQueue.erase(rIt);
                     rIt = tsk->taskQueue.begin();
                 }
@@ -152,7 +153,7 @@ void TaskProcessor(task* tsk)
                 }
             }
         }
-        tsk->CalcStatus();
+        tsk->calc_status();
     };
     tsk->isRunning = false;
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor finished for task " << ((void*)&tsk));
@@ -164,9 +165,9 @@ task::task(engine_dispatcher *krnl /*= NULL*/)
     kernel = krnl;
     processThread = false;
     isRunning = false;
-    scandata_mutex = (void*)(new boost::mutex);
-    mutex_ptr = (void*)(new boost::mutex);
-    event_ptr = (void*)(new boost::condition_variable);
+//     scandata_mutex = (void*)(new boost::mutex);
+//     tsk_mutex = (void*)(new boost::mutex);
+//     tsk_event = (void*)(new boost::condition_variable);
     taskList.clear();
     taskQueue.clear();
     taskListSize = 0;
@@ -195,21 +196,6 @@ task::~task()
     if (scanInfo != NULL) {
         delete scanInfo;
         scanInfo = NULL;
-    }
-    if (event_ptr != NULL) {
-        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
-        delete cond;
-        event_ptr = NULL;
-    }
-    if (mutex_ptr != NULL) {
-        boost::mutex *mt = (boost::mutex*)mutex_ptr;
-        delete mt;
-        mutex_ptr = NULL;
-    }
-    if (scandata_mutex != NULL) {
-        boost::mutex *mt = (boost::mutex*)scandata_mutex;
-        delete mt;
-        scandata_mutex = NULL;
     }
     size_t i;
     for (i = 0; i < transports.size(); i++) {
@@ -258,20 +244,17 @@ void task::get_request_async( i_request* req )
         boost::thread process(TaskProcessor, this);
     }
     // wake-up task_processor
-    if (event_ptr != NULL && mutex_ptr != NULL) {
-        boost::mutex *mt = (boost::mutex*)mutex_ptr;
-        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
-        boost::unique_lock<boost::mutex> lock(*mt);
-        if (req->processor != NULL) {
-            taskList.insert(taskList.begin(), req);
-        }
-        else {
-            taskList.push_back(req);
-        }
-        taskListSize++;
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
-        cond->notify_all();
+    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+    if (req->processor != NULL) {
+        taskList.insert(taskList.begin(), req);
     }
+    else {
+        taskList.push_back(req);
+    }
+    total_reqs++;
+    taskListSize++;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
+    tsk_event.notify_all();
     return;
 }
 
@@ -427,6 +410,8 @@ void task::Run(void)
     // switch context to initialize TaskProcessor
     boost::this_thread::sleep(boost::posix_time::millisec(10));
 
+    total_reqs = 0;
+    total_done = 0;
     processThread = true;
     for (size_t i = 0; i < auditors.size(); i++)
     {
@@ -439,12 +424,9 @@ void task::Run(void)
         inventories[i]->start(this);
     }
     Option(weoTaskStatus, WI_TSK_RUN);
-    if (event_ptr != NULL && mutex_ptr != NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
-        boost::mutex *mt = (boost::mutex*)mutex_ptr;
-        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
-        cond->notify_all();
-    }
+
+    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+    tsk_event.notify_all();
 }
 
 void task::Pause(const bool& state /*= true*/)
@@ -462,12 +444,10 @@ void task::Pause(const bool& state /*= true*/)
         idata = WI_TSK_RUN;
     }
     Option(weoTaskStatus, idata);
-    if (event_ptr != NULL && mutex_ptr != NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
-        boost::mutex *mt = (boost::mutex*)mutex_ptr;
-        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
-        cond->notify_all();
-    }
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
+    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+    tsk_event.notify_all();
 }
 
 void task::Stop()
@@ -479,20 +459,19 @@ void task::Stop()
         active_threads = LockedGetValue(&thread_count);
     }
     processThread = false;
-    if (event_ptr != NULL && mutex_ptr != NULL) {
+    {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop notify all about TaskStatus change");
-        boost::mutex *mt = (boost::mutex*)mutex_ptr;
-        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
-        cond->notify_all();
+        boost::unique_lock<boost::mutex> lock(tsk_mutex);
+        tsk_event.notify_all();
     }
     // switch context to finalize TaskProcessor
     boost::this_thread::sleep(boost::posix_time::millisec(10));
     taskList.clear();
     taskQueue.clear();
-    CalcStatus();
+    calc_status();
 }
 
-void task::CalcStatus()
+void task::calc_status()
 {
 
     size_t count = taskList.size();
@@ -501,18 +480,17 @@ void task::CalcStatus()
         idata = (taskListSize - count) * 100 / taskListSize;
     }
     int active_threads = LockedGetValue(&thread_count);
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "task::CalcStatus: rest " << count << " queries  from " <<
-        taskListSize << " (" << (taskListSize - count) << ": " << idata << "%); " << active_threads << " active threads");
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: rest " << count << " queries  from " <<
+        taskListSize << " (" << (taskListSize - count) << ": " << idata << "%); waiting for: " << taskQueue.size() << " requests; " << active_threads << " active threads");
     Option(weoTaskCompletion, idata);
     // set task status
     if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::CalcStatus: finish!");
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
         processThread = false;
         scanInfo->finishTime = btm::second_clock::local_time();
         Option(weoTaskStatus, WI_TSK_IDLE);
-        boost::mutex *mt = (boost::mutex*)mutex_ptr;
-        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
-        cond->notify_all();
+        boost::unique_lock<boost::mutex> lock(tsk_mutex);
+        tsk_event.notify_all();
     }
 }
 
@@ -544,12 +522,9 @@ void task::SetScanData( const string& baseUrl, shared_ptr<ScanData> scData )
 
 void task::FreeScanData(shared_ptr<ScanData> scData)
 {
-    if (scandata_mutex != NULL) {
-        boost::mutex *mt = (boost::mutex*)scandata_mutex;
-        boost::unique_lock<boost::mutex> lock(*mt);
-        LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data (SC = " << scData.use_count() << "; PD = " << scData->parsed_data << ")");
-        scData->parsed_data.reset();
-    }
+    boost::unique_lock<boost::mutex> lock(scandata_mutex);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data (SC = " << scData.use_count() << "; PD = " << scData->parsed_data << ")");
+    scData->parsed_data.reset();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -741,14 +716,12 @@ void task::WaitForData()
     opt = Option(weoTaskStatus);
     SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
 
-    if (event_ptr != NULL && mutex_ptr != NULL) {
+    {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::WaitForData synch object ready");
-        boost::mutex *mt = (boost::mutex*)mutex_ptr;
-        boost::condition_variable *cond = (boost::condition_variable*)event_ptr;
-        boost::unique_lock<boost::mutex> lock(*mt);
+        boost::unique_lock<boost::mutex> lock(tsk_mutex);
         while((taskList.size() == 0 && taskQueue.size() == 0) || idata == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
             LOG4CXX_DEBUG(iLogger::GetLogger(), "task::WaitForData: go to sleep");
-            cond->wait(lock);
+            tsk_event.wait(lock);
 
             opt = Option(weoTaskStatus);
             SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);

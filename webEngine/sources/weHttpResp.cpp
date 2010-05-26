@@ -158,6 +158,15 @@ void HttpResponse::Process(i_transport* proc)
     }
 }
 
+void HttpResponse::timeout( )
+{
+    processed = true;
+    httpCode = 418; // HTTP: timeout
+    realUrl = baseUrl;
+    data.clear();
+    headData.clear();
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn size_t HttpResponse::Receiver( void *ptr,
 /// 	        size_t size, size_t nmemb, void *ourpointer )

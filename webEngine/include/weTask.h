@@ -22,6 +22,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <map>
+#include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
 //#include <boost/any.hpp>
@@ -129,7 +130,7 @@ namespace webEngine {
         void FromRS( db_recordset *rs );
 
         void WaitForData();
-        void CalcStatus();
+        void calc_status();
 
         virtual ScanInfo* GetScan() { return scanInfo; };
         virtual boost::shared_ptr<ScanData> GetScanData(const string& baseUrl);
@@ -163,6 +164,8 @@ namespace webEngine {
 
         virtual bool is_url_processed(string url);
         virtual void register_url(string url);
+        size_t total_requests() { return total_reqs; }
+        size_t total_processed() { return total_done; }
 
 #ifndef __DOXYGEN__
     protected:
@@ -173,15 +176,17 @@ namespace webEngine {
         vector<iVulner*> vulners;
         bool processThread;
         bool isRunning;
-        void* mutex_ptr;
-        void* event_ptr;
-        void* scandata_mutex;
+        boost::mutex tsk_mutex;
+        boost::condition_variable tsk_event;
+        boost::mutex scandata_mutex;
         size_t taskQueueSize;
         size_t taskListSize;
         vector<i_request*> taskList;
         vector< boost::shared_ptr<i_response> > taskQueue;
         ScanInfo* scanInfo;
         int thread_count;
+        size_t total_reqs;
+        size_t total_done;
         engine_dispatcher *kernel;
         boost::unordered_map<string, int > processed_urls;
 #endif //__DOXYGEN__
