@@ -73,49 +73,61 @@ void TaskProcessor(task* tsk)
         SAFE_GET_OPTION_VAL(opt, iData, 1);
         tsk->taskQueueSize = iData;
         LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor max requests: " << tsk->taskQueueSize <<
-            " in queue: " << tsk->taskQueue.size() << " waiting: " << tsk->taskList.size());
+            " in queue: " << tsk->taskQueue.size() << " waiting: " << tsk->taskList.size() << " done: " << tsk->total_done);
 
         // send request if slots available
-        while (tsk->taskQueueSize > tsk->taskQueue.size()) {
+        {
             boost::unique_lock<boost::mutex> lock(tsk->tsk_mutex);
-            if (!tsk->taskList.empty())
-            {
-                curr_url = tsk->taskList[0];
-                // search for transport or recreate request to all transports
-                if (curr_url->RequestUrl().is_valid()) {
-                    // search for transport
-                    for(i = 0; i < tsk->transports.size(); i++)
-                    {
-                        if (tsk->transports[i]->is_own_protocol(curr_url->RequestUrl().protocol)) {
+            while (tsk->taskQueueSize > tsk->taskQueue.size()) {
+                if (!tsk->taskList.empty())
+                {
+                    curr_url = tsk->taskList[0];
+                    // search for transport or recreate request to all transports
+                    if (curr_url->RequestUrl().is_valid()) {
+                        // search for transport
+                        for(i = 0; i < tsk->transports.size(); i++)
+                        {
+                            if (tsk->transports[i]->is_own_protocol(curr_url->RequestUrl().protocol)) {
+                                resp = tsk->transports[i]->request(curr_url);
+                                resp->ID(curr_url->ID());
+                                resp->processor = curr_url->processor;
+                                resp->context = curr_url->context;
+                                tsk->taskQueue.push_back(resp);
+                                LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
+                                break;
+                            }
+                        }
+                        if ( i == tsk->transports.size()) {
+                            LOG4CXX_WARN(iLogger::GetLogger(), "WeTaskProcessor: can't send request to " << curr_url->RequestUrl().tostring() <<
+                                " no transports accept this request!");
+                            // need to send the "abort request" message to caller
+                            resp = curr_url->abort_request();
+                            resp->ID(curr_url->ID());
+                            resp->processor = curr_url->processor;
+                            resp->context = curr_url->context;
+                            tsk->taskQueue.push_back(resp);
+                        }
+                    }
+                    else {
+                        // try to send request though appropriate transports
+                        LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
+                        for(i = 0; i < tsk->transports.size(); i++)
+                        {
                             resp = tsk->transports[i]->request(curr_url);
                             resp->ID(curr_url->ID());
                             resp->processor = curr_url->processor;
                             resp->context = curr_url->context;
                             tsk->taskQueue.push_back(resp);
-                            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
-                            break;
                         }
                     }
+
+                    //string u_req = curr_url->RequestUrl().tostring();
+                    tsk->taskList.erase(tsk->taskList.begin());
+                    delete curr_url;
                 }
                 else {
-                    // try to send request though appropriate transports
-                    LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
-                    for(i = 0; i < tsk->transports.size(); i++)
-                    {
-                        resp = tsk->transports[i]->request(curr_url);
-                        resp->ID(curr_url->ID());
-                        resp->processor = curr_url->processor;
-                        resp->context = curr_url->context;
-                        tsk->taskQueue.push_back(resp);
-                    }
+                    break; // no URLs in the waiting list
                 }
-
-                //string u_req = curr_url->RequestUrl().tostring();
-                tsk->taskList.erase(tsk->taskList.begin());
-                delete curr_url;
-            }
-            else {
-                break; // no URLs in the waiting list
             }
         }
 
@@ -130,6 +142,8 @@ void TaskProcessor(task* tsk)
             boost::this_thread::sleep(boost::posix_time::millisec(100));
             for(rIt = tsk->taskQueue.begin(); rIt != tsk->taskQueue.end();) {
                 if ((*rIt)->Processed()) {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: received! Queue: " << tsk->taskQueue.size() << " done: " << tsk->total_done);
+                    tsk->total_done++;
                     if ((*rIt)->processor) {
                         // send to owner
                         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to owner");
@@ -144,7 +158,6 @@ void TaskProcessor(task* tsk)
                         }
                     }
                     //(*rIt).reset();
-                    tsk->total_done++;
                     tsk->taskQueue.erase(rIt);
                     rIt = tsk->taskQueue.begin();
                 }
@@ -152,6 +165,7 @@ void TaskProcessor(task* tsk)
                     rIt++;
                 }
             }
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: queue: " << tsk->taskQueue.size() << " done: " << tsk->total_done);
         }
         tsk->calc_status();
     };
@@ -170,7 +184,6 @@ task::task(engine_dispatcher *krnl /*= NULL*/)
 //     tsk_event = (void*)(new boost::condition_variable);
     taskList.clear();
     taskQueue.clear();
-    taskListSize = 0;
     thread_count = 0;
 
     transports.clear();
@@ -252,7 +265,6 @@ void task::get_request_async( i_request* req )
         taskList.push_back(req);
     }
     total_reqs++;
-    taskListSize++;
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
     tsk_event.notify_all();
     return;
@@ -476,12 +488,16 @@ void task::calc_status()
 
     size_t count = taskList.size();
     int idata = 100;
-    if (taskListSize != 0) {
-        idata = (taskListSize - count) * 100 / taskListSize;
+    if (total_reqs != 0) {
+        idata = (total_reqs - count) * 100 / total_reqs;
     }
     int active_threads = LockedGetValue(&thread_count);
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: rest " << count << " queries  from " <<
-        taskListSize << " (" << (taskListSize - count) << ": " << idata << "%); waiting for: " << taskQueue.size() << " requests; " << active_threads << " active threads");
+        total_reqs << " (" << (total_reqs - count) << ": " << idata << "%); waiting for: " << taskQueue.size() <<
+        " requests, done: " << total_done << "; "<< active_threads << " active threads");
+    if ( (count + total_done + taskQueue.size()) < total_reqs) {
+        LOG4CXX_WARN(iLogger::GetLogger(), "task::calc_status: counters mismatch! count + total_done + taskQueue.size() < total_reqs!");
+    }
     Option(weoTaskCompletion, idata);
     // set task status
     if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {

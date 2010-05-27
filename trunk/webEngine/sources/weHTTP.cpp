@@ -112,6 +112,19 @@ void HttpRequest::ComposePost( int method /*= composeOverwrite*/ )
         /// @todo Compose POST data
     }
 }
+
+webEngine::i_response_ptr HttpRequest::abort_request()
+{
+    HttpResponse *resp = new HttpResponse;
+
+    resp->HttpCode(406); // Not Acceptable
+    resp->RealUrl(reqUrl);
+    resp->BaseUrl(reqUrl);
+    resp->Data().clear();
+    resp->Processed(true);
+
+    return i_response_ptr(resp);
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	http_transport::http_transport(engine_dispatcher* krnl, void* handle = NULL)
 ///

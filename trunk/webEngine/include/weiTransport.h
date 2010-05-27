@@ -125,6 +125,8 @@ namespace webEngine {
         virtual void RequestUrl(const string &ReqUrl, i_operation* resp = NULL) = 0;
         virtual void RequestUrl(const transport_url &ReqUrl, i_operation* resp = NULL) = 0;
         //@}
+
+        virtual boost::shared_ptr<i_response> abort_request() = 0;
     };
 
     typedef boost::shared_ptr<i_request> i_request_ptr;

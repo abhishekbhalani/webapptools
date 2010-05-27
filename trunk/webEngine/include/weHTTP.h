@@ -186,6 +186,8 @@ namespace webEngine {
         WeProxy *Proxy(void) const  { return(proxy);    };
         void Proxy(WeProxy *prx)    { proxy = prx;      };
 
+        virtual i_response_ptr abort_request();
+
 #ifndef __DOXYGEN__
     protected:
         weHttpMethod    method;
