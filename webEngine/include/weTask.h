@@ -180,7 +180,6 @@ namespace webEngine {
         boost::condition_variable tsk_event;
         boost::mutex scandata_mutex;
         size_t taskQueueSize;
-        size_t taskListSize;
         vector<i_request*> taskList;
         vector< boost::shared_ptr<i_response> > taskQueue;
         ScanInfo* scanInfo;
