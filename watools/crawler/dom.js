@@ -11,6 +11,9 @@ function setTimeout(arg, t) {
 
 document.images = Array();
 document.forms = Array();
+document.location = location;
+document.getElementById = function(id) { return undefined; };
+
 function createElement(name, tmpl){
     return document.createElement(name, tmpl);
 }
@@ -70,6 +73,10 @@ function Window (url, nm) {
         }
         return defaultText;
     };
+	this.print = function() {
+		// do nothing
+		return;
+	};
     this.setTimeout = function(arg, t) {
         setTimeout(arg, t);
     };
@@ -125,3 +132,9 @@ function XMLHttpRequest() {
     }
 };
 
+function Screen () {
+	this.width = 800;
+	this.height = 600;
+};
+
+var screen = new Screen();
