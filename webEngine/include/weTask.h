@@ -123,8 +123,8 @@ namespace webEngine {
         void Stop();
 
         bool IsReady();
-        virtual boost::shared_ptr<i_response> get_request(i_request* req);
-        virtual void get_request_async(i_request* req);
+        virtual i_response_ptr get_request(i_request_ptr req);
+        virtual void get_request_async(i_request_ptr req);
 
         db_recordset* ToRS( const string& parentID = "" );
         void FromRS( db_recordset *rs );
@@ -180,7 +180,7 @@ namespace webEngine {
         boost::condition_variable tsk_event;
         boost::mutex scandata_mutex;
         size_t taskQueueSize;
-        vector<i_request*> taskList;
+        vector<i_request_ptr> taskList;
         vector< boost::shared_ptr<i_response> > taskQueue;
         ScanInfo* scanInfo;
         int thread_count;
