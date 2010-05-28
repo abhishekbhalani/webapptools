@@ -13,7 +13,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
-//! todo: upgrade to the boost_1.42 to use natuve version
+//! @todo: upgrade to the boost_1.42 to use native version
 #include "boost/uuid.hpp"
 #include "boost/uuid_generators.hpp"
 #include "boost/uuid_io.hpp"

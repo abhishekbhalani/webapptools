@@ -23,22 +23,27 @@ typedef boost::shared_ptr<ajs_to_process> ajs_to_process_ptr;
 typedef vector<ajs_to_process_ptr> ajs_to_process_list;
 typedef pair<webEngine::base_entity_ptr, ajs_to_process_ptr> ajs_download;
 typedef vector<ajs_download>  ajs_download_list;
+typedef pair<string, ajs_download_list>  ajs_download_task;
 
-class ajs_download_task :
+class ajs_download_queue :
     public boost::noncopyable
 {
 // the URL is the key!
 public:
-    ajs_download_task() { task_list.clear(); process_list.clear(); }
+    ajs_download_queue() { task_list.clear(); process_list.clear(); }
 
-    bool add(string url, ajs_to_process_ptr tp, webEngine::base_entity_ptr ent);
+    webEngine::i_request_ptr add(string url, ajs_to_process_ptr tp, webEngine::base_entity_ptr ent);
     bool add(ajs_to_process_ptr tp);
-    void remove_url(string url);
+    void remove_request(string req_id);
     void clean_done();
 
-    map<string, ajs_download_list> task_list;
+    map<string, ajs_download_task> task_list;
+    typedef map<string, ajs_download_task>::iterator iterator;
     ajs_to_process_list process_list;
 };
+#define AJS_DOWNLOAD_URL(it)    (it)->first
+#define AJS_DOWNLOAD_ID(it)     (it)->second.first
+#define AJS_DOWNLOAD_LIST(it)   (it)->second.second
 
 class audit_jscript :
     public webEngine::i_audit
@@ -111,7 +116,7 @@ protected:
 
     webEngine::transport_url base_path;
     vector<string> ext_deny;
-    ajs_download_task jscript_tasks;
+    ajs_download_queue jscript_tasks;
     boost::mutex data_access;
     boost::mutex thread_synch;
     boost::condition_variable thread_event;

@@ -23,6 +23,7 @@ jsDomBrowser::jsDomBrowser()
     props["appName"] = Persistent<Value>::New(String::New("Netscape"));
     props["appVersion"] = Persistent<Value>::New(String::New("5.0 (Windows; ru)"));
     props["cookieEnabled"] = Persistent<Value>::New(Boolean::New(true));
+    props["javaEnabled"] = Persistent<Value>::New(Boolean::New(false));
     props["cpuClass"] = Persistent<Value>::New(String::New(""));
     props["onLine"] = Persistent<Value>::New(Boolean::New(true));
     props["platform"] = Persistent<Value>::New(String::New("Win32"));

@@ -190,7 +190,7 @@ void audit_comment::add_url( transport_url link, transport_url *base_url, shared
             // to send response to the inventories
             new_url->processor = NULL;
             new_url->context = NULL; 
-            parent_task->get_request_async(new_url);
+            parent_task->get_request_async(i_request_ptr(new_url));
         }
         else
         {
