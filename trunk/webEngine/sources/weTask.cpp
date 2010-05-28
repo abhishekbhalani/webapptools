@@ -61,8 +61,8 @@ void TaskProcessor(task* tsk)
     size_t i;
     int iData;
     response_list::iterator rIt;
-    boost::shared_ptr<i_response> resp;
-    i_request* curr_url;
+    i_response_ptr resp;
+    i_request_ptr curr_url;
 
     tsk->isRunning = true;
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor started for task " << ((void*)&tsk));
@@ -88,7 +88,7 @@ void TaskProcessor(task* tsk)
                         for(i = 0; i < tsk->transports.size(); i++)
                         {
                             if (tsk->transports[i]->is_own_protocol(curr_url->RequestUrl().protocol)) {
-                                resp = tsk->transports[i]->request(curr_url);
+                                resp = tsk->transports[i]->request(curr_url.get());
                                 resp->ID(curr_url->ID());
                                 resp->processor = curr_url->processor;
                                 resp->context = curr_url->context;
@@ -113,7 +113,7 @@ void TaskProcessor(task* tsk)
                         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
                         for(i = 0; i < tsk->transports.size(); i++)
                         {
-                            resp = tsk->transports[i]->request(curr_url);
+                            resp = tsk->transports[i]->request(curr_url.get());
                             resp->ID(curr_url->ID());
                             resp->processor = curr_url->processor;
                             resp->context = curr_url->context;
@@ -123,7 +123,7 @@ void TaskProcessor(task* tsk)
 
                     //string u_req = curr_url->RequestUrl().tostring();
                     tsk->taskList.erase(tsk->taskList.begin());
-                    delete curr_url;
+                    //curr_url.reset(); - automatically desctroy on list.erase
                 }
                 else {
                     break; // no URLs in the waiting list
@@ -225,10 +225,10 @@ task::~task()
     }
 }
 
-boost::shared_ptr<i_response> task::get_request( i_request* req )
+i_response_ptr task::get_request( i_request_ptr req )
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request (WeURL)");
-    boost::shared_ptr<i_response> retval;
+    i_response_ptr retval;
     boost::scoped_ptr<sync_req_data> rdata(new sync_req_data);
     rdata->req_mutex.reset(new boost::mutex);
     rdata->req_event.reset(new boost::condition_variable);
@@ -247,7 +247,7 @@ boost::shared_ptr<i_response> task::get_request( i_request* req )
     return retval;
 }
 
-void task::get_request_async( i_request* req )
+void task::get_request_async( i_request_ptr req )
 {
     /// @todo Implement this!
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async");

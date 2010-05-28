@@ -160,7 +160,7 @@ void HttpInventory::start( task* tsk )
                 req->processor = HttpInventory::response_dispatcher;
                 req->context = (void*)this;
                 parent_task->register_url(start_url.tostring());
-                parent_task->get_request_async(req);
+                parent_task->get_request_async(i_request_ptr(req));
             }
             else {
                 LOG4CXX_WARN(logger, "HttpInventory::start: Can't find hostname. Finishing.");
@@ -468,7 +468,7 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_pt
             new_url->ID(scData->data_id);
             new_url->processor = HttpInventory::response_dispatcher;
             new_url->context = (void*)this;
-            parent_task->get_request_async(new_url);
+            parent_task->get_request_async(i_request_ptr(new_url));
         }
         else
         {
