@@ -36,6 +36,9 @@ namespace webEngine {
         // iwePlugin functions
         virtual i_plugin* get_interface(const string& ifName);
         virtual const string get_setup_ui( void );
+        virtual void init(task* tsk) {}
+        virtual void pause(task* tsk, bool paused = true) {}
+        virtual void stop(task* tsk) {}
 
         // i_inventory functions
         void start(task* tsk);

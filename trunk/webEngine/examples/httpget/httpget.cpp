@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
         req = new webEngine::HttpRequest(url);
         url = req->RequestUrl().tostring();
         printf("Get data from: %s\n", url.c_str());
-        resp = tsk.get_request(req);
+        resp = tsk.get_request(webEngine::i_request_ptr(req));
         htresp = boost::shared_dynamic_cast<webEngine::HttpResponse>(resp);
         if (htresp != NULL) {
             printf("Response: %d\n", htresp->HttpCode());

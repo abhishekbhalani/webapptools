@@ -73,6 +73,9 @@ public:
 
     // i_plugin functions
     virtual i_plugin* get_interface(const string& ifName);
+    virtual void init(task* tsk) {}
+    virtual void pause(task* tsk, bool paused = true) {}
+    virtual void stop(task* tsk) {}
 
     // i_storage functions
     typedef enum { mask = 0xff} Operation;

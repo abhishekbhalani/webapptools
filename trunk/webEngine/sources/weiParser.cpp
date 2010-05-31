@@ -219,16 +219,16 @@ void base_entity::ClearChildren( void )
 /// @brief  Gets the root document.
 /// @retval	null if no root document found, else the pointer to root document.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-iDocument* base_entity::GetRootDocument( void )
+i_document* base_entity::GetRootDocument( void )
 {
     if (entityName == "#document") {
-        return dynamic_cast<iDocument*>(this);
+        return dynamic_cast<i_document*>(this);
     }
     if (parent.expired()) {
-        return (iDocument*)NULL;
+        return (i_document*)NULL;
     }
     base_entity_ptr pl = parent.lock();
-    iDocument* res = pl->GetRootDocument();
+    i_document* res = pl->GetRootDocument();
     return res;
 }
 
@@ -260,6 +260,53 @@ void ClearEntityList( entity_list &lst )
 //         lst[i].reset();
 //     }
     lst.clear();    
+}
+
+i_parser::i_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+    i_plugin(krnl, handle)
+{
+    pluginInfo.interface_name = "i_parser";
+    pluginInfo.interface_list.push_back("i_parser");
+    pluginInfo.plugin_desc = "Abstract parser interface";
+    pluginInfo.plugin_id = "4E90373C65BA"; //{4C57EC48-C3BC-4d41-9D16-4E90373C65BA}
+}
+
+i_plugin* i_parser::get_interface( const string& ifName )
+{
+    LOG4CXX_TRACE(logger, "i_parser::get_interface " << ifName);
+    if (iequals(ifName, "i_parser"))
+    {
+        LOG4CXX_DEBUG(logger, "i_parser::get_interface found!");
+        usageCount++;
+        return (this);
+    }
+    return i_plugin::get_interface(ifName);
+}
+
+html_parser::html_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+    i_parser(krnl, handle)
+{
+    pluginInfo.interface_name = "html_parser";
+    pluginInfo.interface_list.push_back("html_parser");
+    pluginInfo.plugin_desc = "HTML parser";
+    pluginInfo.plugin_id = "7467A5250777"; //{9E53EE57-7456-4b32-8574-7467A5250777}
+}
+
+i_plugin* html_parser::get_interface( const string& ifName )
+{
+    LOG4CXX_TRACE(logger, "html_parser::get_interface " << ifName);
+    if (iequals(ifName, "html_parser"))
+    {
+        LOG4CXX_DEBUG(logger, "html_parser::get_interface found!");
+        usageCount++;
+        return (this);
+    }
+    return i_parser::get_interface(ifName);
+}
+
+i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
+{
+    return i_document_ptr();
 }
 
 } // namespace webEngine
