@@ -67,6 +67,8 @@ public:
     /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void start(task* tsk, boost::shared_ptr<ScanData> scData) = 0;
+    virtual void pause(task* tsk, bool paused = true) {}
+    virtual void stop(task* tsk) {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void process_response(i_response *resp)

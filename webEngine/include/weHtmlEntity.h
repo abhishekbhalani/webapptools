@@ -148,7 +148,7 @@ namespace webEngine {
     /// @date	26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma warning (disable: 4250)
-    class html_document : public iDocument, public html_entity
+    class html_document : public i_document, public html_entity
     {
     public:
         html_document(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL));

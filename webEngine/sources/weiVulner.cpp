@@ -21,12 +21,12 @@
 
 namespace webEngine {
 
-iVulner::iVulner(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+i_vulner::i_vulner(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     i_plugin(krnl, handle)
 {
 }
 
-iVulner::~iVulner(void)
+i_vulner::~i_vulner(void)
 {
 }
 

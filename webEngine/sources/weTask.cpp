@@ -346,7 +346,7 @@ void task::AddPlgAuditor( i_audit* plugin )
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgAuditor: added " << plugin->get_description());
 }
 
-void task::AddPlgVulner( iVulner* plugin )
+void task::AddPlgVulner( i_vulner* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
@@ -404,11 +404,11 @@ void task::StorePlugins(vector<i_plugin*>& plugins)
             AddPlgAuditor((i_audit*)plugins[i]);
         }
 
-        trsp = find(ifaces.begin(), ifaces.end(), "iVulner");
+        trsp = find(ifaces.begin(), ifaces.end(), "i_vulner");
         if (trsp != ifaces.end())
         {
             LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found vulner: " << plugins[i]->get_description());
-            AddPlgVulner((iVulner*)plugins[i]);
+            AddPlgVulner((i_vulner*)plugins[i]);
         }
     }
 

@@ -26,19 +26,19 @@
 namespace webEngine {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @interface  iVulner
+/// @interface  i_vulner
 ///
 /// @brief  Interface for the vulnerabilities plugins. 
 ///
 /// @author A. Abramov
 /// @date   19.08.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class iVulner :
+class i_vulner :
     public i_plugin
 {
 public:
-    iVulner(engine_dispatcher* krnl, void* handle = NULL);
-    virtual ~iVulner(void);
+    i_vulner(engine_dispatcher* krnl, void* handle = NULL);
+    virtual ~i_vulner(void);
 };
 
 } // namespace webEngine

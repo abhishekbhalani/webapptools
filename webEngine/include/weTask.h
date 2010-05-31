@@ -39,7 +39,7 @@ namespace webEngine {
     class i_transport;
     class i_inventory;
     class i_audit;
-    class iVulner;
+    class i_vulner;
     class i_request;
     class ScanData;
     class ScanInfo;
@@ -101,12 +101,12 @@ namespace webEngine {
         void AddPlgAuditor(i_audit* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgVulner(iVulner* plugin)
+        /// @fn void AddPlgVulner(i_vulner* plugin)
         ///
         /// @brief  Adds a vulnerability search plugin to the task object.
-        /// @param  plugin   - Plugin with iVulner interface. 
+        /// @param  plugin   - Plugin with i_vulner interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgVulner(iVulner* plugin);
+        void AddPlgVulner(i_vulner* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn	void StorePlugins(vector<i_plugin*>& plugins)
@@ -173,7 +173,7 @@ namespace webEngine {
         vector<i_transport*> transports;
         vector<i_inventory*> inventories;
         vector<i_audit*> auditors;
-        vector<iVulner*> vulners;
+        vector<i_vulner*> vulners;
         bool processThread;
         bool isRunning;
         boost::mutex tsk_mutex;

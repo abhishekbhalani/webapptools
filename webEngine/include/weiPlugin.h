@@ -42,6 +42,7 @@ struct plugin_info
 
 // forward declaration
 class engine_dispatcher;
+class task;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  i_plugin
@@ -190,6 +191,10 @@ public:
     /// @brief  Gets the plugin's priority (0 - 100, default: 50).
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual int get_priority() { return priority; };
+
+    virtual void init(task* tsk) = 0;
+    virtual void pause(task* tsk, bool paused = true) = 0;
+    virtual void stop(task* tsk) = 0;
 
 #ifndef __DOXYGEN__
 protected:
