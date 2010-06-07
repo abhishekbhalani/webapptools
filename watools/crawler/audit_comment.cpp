@@ -33,9 +33,9 @@ i_plugin* audit_comment::get_interface( const string& ifName )
     return i_audit::get_interface(ifName);
 }
 
-void audit_comment::start( task* tsk, shared_ptr<ScanData> scData )
+void audit_comment::process( task* tsk, shared_ptr<ScanData> scData )
 {
-    LOG4CXX_TRACE(logger, "audit_comment::start");
+    LOG4CXX_TRACE(logger, "audit_comment::process");
     entity_list lst;
     transport_url baseUrl;
     string text;
