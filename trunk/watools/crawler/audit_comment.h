@@ -43,14 +43,14 @@ public:
     virtual void init(webEngine::task* tsk);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void start(task* tsk, ScanData* scData)
+    /// @fn void process(task* tsk, ScanData* scData)
     ///
     /// @brief  Starts the audit process for given ScanData object. 
     ///
     /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
     /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void start(webEngine::task* tsk, boost::shared_ptr<webEngine::ScanData> scData);
+    virtual void process(webEngine::task* tsk, boost::shared_ptr<webEngine::ScanData> scData);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void process_response(i_response *resp)

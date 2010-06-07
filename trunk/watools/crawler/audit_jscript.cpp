@@ -81,21 +81,49 @@ void audit_jscript::init( task* tsk )
     SAFE_GET_OPTION_VAL(opt, opt_max_depth, 0);
 }
 
-void audit_jscript::start( webEngine::task* tsk, boost::shared_ptr<ScanData>scData )
+void audit_jscript::stop(webEngine::task* tsk)
 {
-    LOG4CXX_TRACE(logger, "audit_jscript::start");
+    LOG4CXX_DEBUG(logger, "audit_jscript::stop");
+
+    {
+        boost::unique_lock<boost::mutex> lock(data_access);
+        if (jscript_tasks.process_list.size() > 0 || jscript_tasks.task_list.size() > 0) {
+            LOG4CXX_WARN(logger, "audit_jscript::stop - stop requested, but " << jscript_tasks.task_list.size() <<
+                " task(s) and " << jscript_tasks.process_list.size() << " process(es) are still in the queue");
+        }
+        jscript_tasks.process_list.clear();
+        jscript_tasks.task_list.clear();
+    }
+    {
+        boost::lock_guard<boost::mutex> lock(thread_synch);
+        thread_event.notify_all();
+    }
+}
+
+void audit_jscript::process( webEngine::task* tsk, boost::shared_ptr<ScanData>scData )
+{
+    LOG4CXX_TRACE(logger, "audit_jscript::process");
     entity_list lst;
+    html_document_ptr parsed;
+
+    try {
+        parsed = boost::shared_dynamic_cast<html_document>(scData->parsed_data);
+    }
+    catch(bad_cast) {
+        LOG4CXX_ERROR(logger, "audit_jscript::process - can't process given document as html_document");
+        return;
+    }
 
     if (js_exec != NULL) {
         base_path = scData->object_url;
         parent_task = tsk;
-        if (scData->parsed_data != NULL) {
-            lst = scData->parsed_data->FindTags("script");
+        if (parsed) {
+            lst = parsed->FindTags("script");
             LOG4CXX_DEBUG(logger, "audit_jscript: found " << lst.size() << " scripts in " << scData->object_url);
             if (lst.size() > 0)
             {
                 // something to process
-                ajs_to_process_ptr tp(new ajs_to_process(scData, scData->parsed_data));
+                ajs_to_process_ptr tp(new ajs_to_process(scData, parsed));
 
                 // search for scripts to be downloaded
                 for (size_t i = 0; i < lst.size(); i++) {
@@ -130,8 +158,8 @@ void audit_jscript::start( webEngine::task* tsk, boost::shared_ptr<ScanData>scDa
                     jscript_tasks.add(tp);
                 }
 
-                LOG4CXX_DEBUG(js_logger, "audit_jscript::start - tasks in queue: " << jscript_tasks.task_list.size());
-                LOG4CXX_DEBUG(js_logger, "audit_jscript::start - processes in queue: " << jscript_tasks.process_list.size());
+                LOG4CXX_DEBUG(js_logger, "audit_jscript::process - tasks in queue: " << jscript_tasks.task_list.size());
+                LOG4CXX_DEBUG(js_logger, "audit_jscript::process - processes in queue: " << jscript_tasks.process_list.size());
                 
                 // run thread, if it not started yet
                 if (!thread_running) {
@@ -146,7 +174,7 @@ void audit_jscript::start( webEngine::task* tsk, boost::shared_ptr<ScanData>scDa
             } // if something to process
         }// if parsed_data
     } // if js_exec
-    LOG4CXX_TRACE(logger, "audit_jscript::start - finished");
+    LOG4CXX_TRACE(logger, "audit_jscript::process - finished");
 }
 
 void audit_jscript::process_response( webEngine::i_response_ptr resp )
