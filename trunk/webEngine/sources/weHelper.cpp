@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
 #include <string.h>
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
@@ -55,6 +56,7 @@ static void LibInitCommon()
         LOG4CXX_INFO(iLogger::GetLogger(), "cURL library version: " << cver);
     }
     isLibInited = true;
+    LOG4CXX_INFO(iLogger::GetLogger(), "WebEngine initialized. Version " WE_VERSION_PRODUCTSTR);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

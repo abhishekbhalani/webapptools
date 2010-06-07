@@ -17,6 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
+
 #include <weHelper.h>
 #include <weOptions.h>
 #include <weiStorage.h>
@@ -158,7 +160,7 @@ wOption options_provider::Option( const string& name )
 {
     wOptions::iterator it;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::Option(" << name << ")");
+    //LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::Option(" << name << ")");
     it = options.find(name);
     if (it != options.end())
     {
@@ -171,7 +173,7 @@ void options_provider::Option( const string& name, wOptionVal val )
 {
     wOptions::iterator it;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::Option(" << name << ") set value=" << val);
+    //LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::Option(" << name << ") set value=" << val);
     it = options.find(name);
     if (it != options.end())
     {
@@ -211,7 +213,7 @@ bool options_provider::IsSet( const string& name )
             retval = false;
         }
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::IsSet(" << name << ") value=" << retval);
+    //LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::IsSet(" << name << ") value=" << retval);
     return retval;
 }
 

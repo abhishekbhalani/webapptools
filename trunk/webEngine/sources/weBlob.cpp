@@ -17,8 +17,10 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
+
 #include <iostream>
-#include "weBlob.h"
+#include <weBlob.h>
 
 using namespace webEngine;
 

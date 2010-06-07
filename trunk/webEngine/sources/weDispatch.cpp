@@ -17,6 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
+
 #include "externals/shared_object.hpp"
 #include "weiBase.h"
 #include "weHTTP.h"
@@ -141,6 +143,8 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
     plg_list.push_back(*(plugin_info*)httpTrans.info());
     HttpInventory httpInvent(this);
     plg_list.push_back(*(plugin_info*)httpInvent.info());
+    html_parser htmlParser(this);
+    plg_list.push_back(*(plugin_info*)htmlParser.info());
 
     // search for dynamic libraries with plugin interface
     string_list files = find_files(baseDir.string());
@@ -500,6 +504,11 @@ static void* create_http_inventory(void* krnl, void* handle = NULL)
     return (void*) (new HttpInventory((engine_dispatcher*)krnl, handle));
 }
 
+static void* create_html_parser(void* krnl, void* handle = NULL)
+{
+    return (void*) (new html_parser((engine_dispatcher*)krnl, handle));
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn plugin_factory::plugin_factory()
 ///
@@ -519,6 +528,8 @@ plugin_factory::plugin_factory()
     add_plugin_class("http_transport", create_http_transport);  // copy for interface name
     add_plugin_class("AB7ED6E5A7B3", create_http_inventory);
     add_plugin_class("http_inventory", create_http_inventory);  // copy for interface name
+    add_plugin_class("7467A5250777", create_html_parser);
+    add_plugin_class("html_parser", create_html_parser);  // copy for interface name
 }
 
 plugin_factory::~plugin_factory()

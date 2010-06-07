@@ -17,15 +17,15 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
 #include <weHelper.h>
 #include <weDispatch.h>
 #include <weTask.h>
 #include <weHttpInvent.h>
 #include <weScan.h>
-#include <boost/algorithm/string/trim.hpp>
 
 static string xrc = "<plugin><category label='Basic settings' name='generic'>\
- <option name='httpInventory/BaseURL' label='start transport_url' type='8' control='string' mode='window'>/</option>\
+ <option name='httpInventory/BaseURL' label='init transport_url' type='8' control='string' mode='window'>/</option>\
  <category label='Crawler' name='crawler'>\
   <option name='' label='Crawling mode'>&lt;composed&gt;\
    <option name='httpInventory/StayInDir' label='Stay in directory' type='6' control='bool' chkbox='1'>1</option>\
@@ -75,7 +75,7 @@ const string HttpInventory::get_setup_ui( void )
     return xrc;
 }
 
-void HttpInventory::start( task* tsk )
+void HttpInventory::init( task* tsk )
 {
     transport_url   start_url;
 
@@ -90,12 +90,6 @@ void HttpInventory::start( task* tsk )
             if (host != "")
             {
                 string path;
-                int iData;
-                opt = tsk->Option("httpInventory/"weoParallelReq);
-                SAFE_GET_OPTION_VAL(opt, iData, 1);
-                /// @todo Verify existing option and correctly update it
-                tsk->Option(weoParallelReq, iData);
-
                 // create list of the blocked extension
                 opt = tsk->Option("httpInventory/"weoDeniedFileTypes);
                 SAFE_GET_OPTION_VAL(opt, path, 1);
@@ -153,42 +147,45 @@ void HttpInventory::start( task* tsk )
                 start_url.host = host;
                 start_url.request = path;
                 host += path;
-                LOG4CXX_INFO(logger, "HttpInventory::start: start scanning from: " << host << " ==> " << start_url.tostring());
+                LOG4CXX_INFO(logger, "HttpInventory::init: init scanning from: " << host << " ==> " << start_url.tostring());
                 HttpRequest* req = new HttpRequest;
                 req->RequestUrl(start_url);
-                LOG4CXX_TRACE(logger, "HttpInventory::start: start request = " << req->RequestUrl().tostring());
-                req->processor = HttpInventory::response_dispatcher;
-                req->context = (void*)this;
+                LOG4CXX_TRACE(logger, "HttpInventory::init: init request = " << req->RequestUrl().tostring());
+//                req->processor = HttpInventory::response_dispatcher;
+//                req->context = (void*)this;
                 parent_task->register_url(start_url.tostring());
                 parent_task->get_request_async(i_request_ptr(req));
             }
             else {
-                LOG4CXX_WARN(logger, "HttpInventory::start: Can't find hostname. Finishing.");
+                LOG4CXX_WARN(logger, "HttpInventory::init: Can't find hostname. Finishing.");
             }
         }
         else {
-            LOG4CXX_WARN(logger, "HttpInventory::start: No kernel given - can't read options. Finishing.");
+            LOG4CXX_WARN(logger, "HttpInventory::init: No kernel given - can't read options. Finishing.");
         }
     }
     else {
-        LOG4CXX_WARN(logger, "HttpInventory::start: No parent task - can't process requests. Finishing.");
+        LOG4CXX_WARN(logger, "HttpInventory::init: No parent task - can't process requests. Finishing.");
     }
 }
 
-void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
+void HttpInventory::process( task* tsk, scan_data_ptr scData )
 {
     HttpResponse* htResp;
 
     try {
-        htResp = reinterpret_cast<HttpResponse*>(resp.get());
+        htResp = reinterpret_cast<HttpResponse*>(scData->response.get());
     }
     catch (...) {
-        LOG4CXX_ERROR(logger, "HttpInventory::process_response: The response from " << resp->BaseUrl().tostring() << " isn't the HttpResponse!");
+        LOG4CXX_ERROR(logger, "HttpInventory::process: The response from " << scData->response->BaseUrl().tostring() << " isn't the HttpResponse!");
+        return;
+    }
+    if (htResp == NULL) {
+        LOG4CXX_TRACE(logger, "HttpInventory::process: subsequent processing, or transport fail - no responce given.");
         return;
     }
     // process response
-    LOG4CXX_TRACE(logger, "HttpInventory::process_response: process response with code=" << htResp->HttpCode());
-    shared_ptr<ScanData> scData = parent_task->GetScanData(htResp->BaseUrl().tostring());
+    LOG4CXX_TRACE(logger, "HttpInventory::process: process response with code=" << htResp->HttpCode());
     if (scData->parent_id == "")
     {
         scData->parent_id = htResp->ID();
@@ -206,87 +203,32 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
     /// @todo process options
     if (htResp->HttpCode() >= 300 && htResp->HttpCode() < 400) {
         // redirections
-        LOG4CXX_TRACE(logger, "HttpInventory::process_response: process redirect");
+        LOG4CXX_TRACE(logger, "HttpInventory::process: process redirect");
         string url = htResp->Headers().find_first("Location");
         if (!url.empty()) {
             LOG4CXX_DEBUG(iLogger::GetLogger(), "task_executor: redirected to " << url);
             bool to_process = true;
             transport_url baseUrl = htResp->BaseUrl();
             baseUrl.assign_with_referer(url);
-            LOG4CXX_DEBUG(logger, "HttpInventory::process_response: reconstructed url is " << baseUrl.tostring());
+            LOG4CXX_DEBUG(logger, "HttpInventory::process: reconstructed url is " << baseUrl.tostring());
             add_url(baseUrl, htResp, scData);
         }
     }
     /// @todo select appropriate parser
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
     {
-        string cType = htResp->ContentType();
-        boost::trim(cType);
-        if (cType == "") {
-            // set "text/html" by default
-            /// @todo: move it to the options!!!
-            cType == "text/html";
-        }
-        LOG4CXX_TRACE(logger, "HttpInventory::process_response: content-type analyze method = " << opt_ctype_method);
-        bool cTypeProcess = false;
-        switch(opt_ctype_method)
-        {
-        case 0: // any content-type
-            cTypeProcess = true;
-            break;
-        case 1: // empty and "text/*"
-            if (cType == "" || starts_with(cType, "text/"))
-            {
-                cTypeProcess = true;
-            }
-        	break;
-        case 2: // only "text/*"
-            if (starts_with(cType, "text/"))
-            {
-                cTypeProcess = true;
-            }
-        	break;
-        case 3: // empty and "text/html"
-            if (cType == "" || starts_with(cType, "text/html"))
-            {
-                cTypeProcess = true;
-            }
-            break;
-        case 4: // only "text/*"
-            if (starts_with(cType, "text/html"))
-            {
-                cTypeProcess = true;
-            }
-            break;
-        default:
-            cTypeProcess = false;
-            LOG4CXX_WARN(logger, "HttpInventory::process_response: unknown content-type analyze method = " << opt_ctype_method);
-            break;
-        }
-        if (cTypeProcess)
-        {
-            LOG4CXX_TRACE(logger, "HttpInventory::process_response: parse document");
-            shared_ptr<html_document> parser(new html_document);
-            bool saveParser;
-            entity_list lst;
+        shared_ptr<html_document> parser;
+        entity_list lst;
 
-#ifdef DEBUG
-            boost::posix_time::ptime pretm = boost::posix_time::microsec_clock::local_time();
-#endif
-            saveParser = parser->ParseData(resp);
-            if (scData->parsed_data != NULL) {
-                saveParser = false;
-            }
-            if (saveParser)
-            {
-                scData->parsed_data = parser;
-            }
-#ifdef DEBUG
-            boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
-            boost::posix_time::time_period duration(pretm, postm);
-            LOG4CXX_DEBUG(logger, "HttpInventory::process_response " << htResp->Data().size() << " bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
-#endif
-            LOG4CXX_DEBUG(logger, "HttpInventory::process_response: search for links");
+        try{
+            parser = boost::shared_dynamic_cast<html_document>(scData->parsed_data);
+        }
+        catch (bad_cast) {
+            LOG4CXX_ERROR(logger, "HttpInventory::process: can't process given document as html_document");
+            parser.reset();
+        }
+        if (parser) {
+            LOG4CXX_DEBUG(logger, "HttpInventory::process: search for links");
             lst = parser->FindTags("a");
             if (lst.size() > 0) {
                 base_entity* ent = NULL;
@@ -297,7 +239,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
-                        LOG4CXX_TRACE(logger, "HttpInventory::process_response: <a href...> tag. url=" << link.tostring());
+                        LOG4CXX_TRACE(logger, "HttpInventory::process: <a href...> tag. url=" << link.tostring());
                         add_url(link, htResp, scData);
                     } // end href attribute
                 } // end <a ...> loop
@@ -319,7 +261,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
-                        LOG4CXX_DEBUG(logger, "HttpInventory::process_response: IMG url = " << link.tostring());
+                        LOG4CXX_DEBUG(logger, "HttpInventory::process: IMG url = " << link.tostring());
                         add_url(link, htResp, scData);
                     } // end src attribute
                 } // end <img ...> loop
@@ -337,7 +279,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
-                        LOG4CXX_DEBUG(logger, "HttpInventory::process_response: FRAME url = " << link.tostring());
+                        LOG4CXX_DEBUG(logger, "HttpInventory::process: FRAME url = " << link.tostring());
                         add_url(link, htResp, scData);
                     } // end src attribute
                 } // end <iframe ...> loop
@@ -355,7 +297,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
-                        LOG4CXX_DEBUG(logger, "HttpInventory::process_response: IFRAME url = " << link.tostring());
+                        LOG4CXX_DEBUG(logger, "HttpInventory::process: IFRAME url = " << link.tostring());
                         add_url(link, htResp, scData);
                     } // end src attribute
                 } // end <iframe ...> loop
@@ -382,7 +324,7 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                                 href = href.substr(np+4);
                             }
                             link.assign_with_referer(href, &(htResp->RealUrl()));
-                            LOG4CXX_DEBUG(logger, "HttpInventory::process_response: META url = " << link.tostring());
+                            LOG4CXX_DEBUG(logger, "HttpInventory::process: META url = " << link.tostring());
                             add_url(link, htResp, scData);
                         }
                     } // end http-equiv attribute
@@ -390,11 +332,8 @@ void HttpInventory::process_response( boost::shared_ptr<i_response> resp )
                 ClearEntityList(lst);
             } // end <meta ...> tags processing
             // etc ???
-        }
-        else {
-            LOG4CXX_WARN(logger, "HttpInventory::process_response: inconsistent content-type: " << cType);
-        }
-    }
+        } // if document parsed
+    } // if HTTP code valid
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 400) || htResp->HttpCode() >= 500)
     {
         parent_task->SetScanData(scData->object_url, scData);
@@ -466,8 +405,8 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_pt
             HttpRequest* new_url = new HttpRequest(u_req);
             new_url->depth(htResp->depth() + 1);
             new_url->ID(scData->data_id);
-            new_url->processor = HttpInventory::response_dispatcher;
-            new_url->context = (void*)this;
+//            new_url->processor = HttpInventory::response_dispatcher;
+//            new_url->context = (void*)this;
             parent_task->get_request_async(i_request_ptr(new_url));
         }
         else

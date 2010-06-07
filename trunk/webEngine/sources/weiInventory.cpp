@@ -17,8 +17,10 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
 #include <weHelper.h>
 #include <weDispatch.h>
+#include <weScan.h>
 #include <weiInventory.h>
 #include "iweInventory.xpm"
 
@@ -53,12 +55,13 @@ i_plugin* i_inventory::get_interface( const string& ifName )
 void i_inventory::response_dispatcher(boost::shared_ptr<i_response> resp, void* context )
 {
     i_inventory* object = (i_inventory*)context;
-//     if (object->process_response) {
-        object->process_response(resp);
+    LOG4CXX_ERROR(object->logger, "i_inventory::response_dispatcher: direct processing not implemented! Logical error!");
+//     if (object->process) {
+//        object->process(resp);
 //     }
 //     else
 //     {
-//         LOG4CXX_ERROR(object->logger, "i_inventory::response_dispatcher: invalid context, or abstract class - process_response == NULL");
+//         LOG4CXX_ERROR(object->logger, "i_inventory::response_dispatcher: invalid context, or abstract class - process == NULL");
 //     }
 }
 

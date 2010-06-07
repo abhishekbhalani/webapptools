@@ -21,6 +21,8 @@ along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
 #define __WESCAN_H__
 #include <weTagScanner.h>
 #include <weBlob.h>
+#include <weiParser.h>
+#include <weiTransport.h>
 #include <boost/unordered_map.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
@@ -49,7 +51,8 @@ namespace webEngine {
         int     download_time;
         int     scan_depth;
         string  content_type; 
-        boost::shared_ptr<html_document> parsed_data;
+        i_document_ptr parsed_data;
+        i_response_ptr response;
 
         db_recordset* ToRS( const string& parentID = "" );
         void FromRS( db_recordset *rs );

@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
 
 #include <time.h>
 #include <boost/algorithm/string/predicate.hpp>
@@ -281,32 +282,6 @@ i_plugin* i_parser::get_interface( const string& ifName )
         return (this);
     }
     return i_plugin::get_interface(ifName);
-}
-
-html_parser::html_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
-    i_parser(krnl, handle)
-{
-    pluginInfo.interface_name = "html_parser";
-    pluginInfo.interface_list.push_back("html_parser");
-    pluginInfo.plugin_desc = "HTML parser";
-    pluginInfo.plugin_id = "7467A5250777"; //{9E53EE57-7456-4b32-8574-7467A5250777}
-}
-
-i_plugin* html_parser::get_interface( const string& ifName )
-{
-    LOG4CXX_TRACE(logger, "html_parser::get_interface " << ifName);
-    if (iequals(ifName, "html_parser"))
-    {
-        LOG4CXX_DEBUG(logger, "html_parser::get_interface found!");
-        usageCount++;
-        return (this);
-    }
-    return i_parser::get_interface(ifName);
-}
-
-i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
-{
-    return i_document_ptr();
 }
 
 } // namespace webEngine

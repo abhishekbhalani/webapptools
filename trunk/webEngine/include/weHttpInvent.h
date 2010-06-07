@@ -33,16 +33,15 @@ namespace webEngine {
         HttpInventory(engine_dispatcher* krnl, void* handle = NULL);
         virtual ~HttpInventory(void);
 
-        // iwePlugin functions
+        // i_plugin functions
         virtual i_plugin* get_interface(const string& ifName);
         virtual const string get_setup_ui( void );
-        virtual void init(task* tsk) {}
+        virtual void init(task* tsk);
         virtual void pause(task* tsk, bool paused = true) {}
         virtual void stop(task* tsk) {}
 
         // i_inventory functions
-        void start(task* tsk);
-        void process_response(boost::shared_ptr<i_response> resp);
+        void process(task* tsk, scan_data_ptr scData);
     protected:
 
         void add_url(transport_url link, HttpResponse *htResp, boost::shared_ptr<ScanData> scData);
