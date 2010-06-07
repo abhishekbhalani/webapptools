@@ -17,6 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
+
 #include <weOptions.h>
 #include <weiPlugin.h>
 #include <weDispatch.h>

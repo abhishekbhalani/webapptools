@@ -18,7 +18,8 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include "weiPlugin.h"
+#include <weScan.h>
+#include <weiPlugin.h>
 
 namespace webEngine {
 
@@ -48,22 +49,22 @@ public:
     virtual i_plugin* get_interface(const string& ifName);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void start(task* tsk)
+    /// @fn void init(task* tsk)
     ///
     /// @brief  Starts the inventory process. 
     ///
     /// @param  tsk	 - If non-null, the pointer to task what handles the process. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void start(task* tsk) = 0;
+    virtual void init(task* tsk) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void process_response(i_response *resp)
+    /// @fn void process(i_response *resp)
     ///
     /// @brief  Process the transport response described by resp.
     /// 		
     /// @param  resp - If non-null, the resp. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void process_response(boost::shared_ptr<i_response> resp) = 0;
+    virtual void process(task* tsk, scan_data_ptr scData) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn static void response_dispatcher(i_response *resp, void* context)

@@ -17,6 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
+
 #include <weLogger.h>
 #include <weHelper.h>
 #include <boost/lexical_cast.hpp>

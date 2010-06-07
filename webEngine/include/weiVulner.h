@@ -39,6 +39,10 @@ class i_vulner :
 public:
     i_vulner(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~i_vulner(void);
+
+    virtual void process(task* tsk, scan_data_ptr scData) {}
+    virtual void pause(task* tsk, bool paused = true) {}
+    virtual void stop(task* tsk) {}
 };
 
 } // namespace webEngine

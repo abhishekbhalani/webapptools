@@ -26,8 +26,8 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
 //#include <boost/any.hpp>
-#include "weiBase.h"
-#include "weOptions.h"
+#include <weiBase.h>
+#include <weOptions.h>
 
 //using boost::any_cast;
 //using namespace boost;
@@ -75,6 +75,14 @@ namespace webEngine {
         void CopyOptions(i_options_provider* cpy);
         string_list OptionsList();
         size_t OptionSize();
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn void AddPlgParser(i_parser* plugin)
+        ///
+        /// @brief  Adds a parser plugin to the task object.
+        /// @param  plugin   - Plugin with i_parser interface. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        void AddPlgParser(i_parser* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn void AddPlgTransport(i_transport* plugin)
@@ -170,12 +178,14 @@ namespace webEngine {
 #ifndef __DOXYGEN__
     protected:
         typedef map<string, i_request*> WeRequestMap;
+        vector<i_parser*> parsers;
         vector<i_transport*> transports;
         vector<i_inventory*> inventories;
         vector<i_audit*> auditors;
         vector<i_vulner*> vulners;
+        vector< boost::shared_ptr<ScanData> > sc_process;
+        bool dataThread;
         bool processThread;
-        bool isRunning;
         boost::mutex tsk_mutex;
         boost::condition_variable tsk_event;
         boost::mutex scandata_mutex;
@@ -191,7 +201,8 @@ namespace webEngine {
 #endif //__DOXYGEN__
 
     private:
-        friend void TaskProcessor(task* tsk);
+        friend void task_processor(task* tsk);
+        friend void task_data_process(task* tsk);
     };
 
 } // namespace webEngine

@@ -46,7 +46,8 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="webEngine.h"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
@@ -109,7 +110,8 @@
 				AdditionalIncludeDirectories=".\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;BOOST_REGEX_NO_LIB;CURL_STATICLIB"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="webEngine.h"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
@@ -175,6 +177,22 @@
 			<File
 				RelativePath=".\sources\weHelper.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\sources\weHtmlEntity.cpp"
@@ -264,6 +282,10 @@
 			>
 			<File
 				RelativePath=".\sources\externals\shared_object.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\include\webEngine.h"
 				>
 			</File>
 			<File
@@ -369,6 +391,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\WebEngineStructure.cd"
+			>
+		</File>
 	</Files>
 	<Globals>
 		<Global

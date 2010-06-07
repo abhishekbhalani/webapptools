@@ -17,6 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
+
 #include <weHelper.h>
 #include <weTask.h>
 #include <weiTransport.h>
@@ -55,7 +57,7 @@ void task_sync_request(boost::shared_ptr<i_response> resp, void* context)
     req_data->req_event->notify_all();
 }
 
-void TaskProcessor(task* tsk)
+void task_processor(task* tsk)
 {
     wOption opt;
     size_t i;
@@ -64,8 +66,8 @@ void TaskProcessor(task* tsk)
     i_response_ptr resp;
     i_request_ptr curr_url;
 
-    tsk->isRunning = true;
-    LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor started for task " << ((void*)&tsk));
+    tsk->processThread = true;
+    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessor started for task " << ((void*)&tsk));
     while (tsk->IsReady())
     {
         tsk->WaitForData();
@@ -94,6 +96,7 @@ void TaskProcessor(task* tsk)
                                 resp->context = curr_url->context;
                                 tsk->taskQueue.push_back(resp);
                                 LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
+                                resp.reset();
                                 break;
                             }
                         }
@@ -150,12 +153,28 @@ void TaskProcessor(task* tsk)
                         (*rIt)->processor((*rIt), (*rIt)->context);
                     }
                     else {
-                        // send to all inventories
-                        for (size_t i = 0; i < tsk->inventories.size(); i++)
+                        // process response by task queue
+                        // 1. Parse data
+                        i_document_ptr parsed_doc;
+
+                        for (size_t i = 0; i < tsk->parsers.size(); i++)
                         {
-                            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to " << tsk->inventories[i]->get_description());
-                            tsk->inventories[i]->process_response(*rIt);
+                            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: parse response by " << tsk->parsers[i]->get_description());
+                            parsed_doc = tsk->parsers[i]->parse(*rIt);
+                            if (parsed_doc) {
+                                // parsed!
+                                LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor: parsed!");
+                                break;
+                            }
                         }
+                        // 2. Create ScanData
+                        scan_data_ptr scd = tsk->GetScanData((*rIt)->BaseUrl().tostring());
+                        scd->response = *rIt;
+                        if (! (scd->parsed_data)) {
+                            scd->parsed_data = parsed_doc;
+                        }
+                        // 3. Push to processing
+                        tsk->SetScanData((*rIt)->BaseUrl().tostring(), scd);
                     }
                     //(*rIt).reset();
                     tsk->taskQueue.erase(rIt);
@@ -169,8 +188,50 @@ void TaskProcessor(task* tsk)
         }
         tsk->calc_status();
     };
-    tsk->isRunning = false;
-    LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor finished for task " << ((void*)&tsk));
+    tsk->processThread = false;
+    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessor finished for task " << ((void*)&tsk));
+}
+
+void task_data_process(task* tsk)
+{
+    scan_data_ptr sc_data;
+
+    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessData started for task " << ((void*)&tsk));
+    tsk->add_thread();
+    while (tsk->sc_process.size() > 0) {
+        {
+            boost::unique_lock<boost::mutex> lock(tsk->scandata_mutex);
+            sc_data = tsk->sc_process[0];
+            tsk->sc_process.erase(tsk->sc_process.begin());
+        }
+        if (sc_data) {
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task_data_process: response for " << sc_data->object_url << " id = " << sc_data->data_id );
+            // send to all inventories
+            for (size_t i = 0; i < tsk->inventories.size(); i++)
+            {
+                LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->inventories[i]->get_description());
+                tsk->inventories[i]->process(tsk, sc_data);
+            }
+            // send to all auditors
+            for (size_t i = 0; i < tsk->auditors.size(); i++)
+            {
+                LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->auditors[i]->get_description());
+                tsk->auditors[i]->process(tsk, sc_data);
+            }
+            // send to all vulner detectors
+            for (size_t i = 0; i < tsk->vulners.size(); i++)
+            {
+                LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->vulners[i]->get_description());
+                tsk->vulners[i]->process(tsk, sc_data);
+            }
+            /// @todo: !!! REMOVE THIS!!! It's only debug!
+            /// need to implement clever clean-up scheme
+            tsk->FreeScanData(sc_data);
+        } // if sc_data valid
+    } // while sc_process.size > 0
+    tsk->remove_thread();
+    tsk->dataThread = false;
+    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessData finished for task " << ((void*)&tsk));
 }
 
 task::task(engine_dispatcher *krnl /*= NULL*/)
@@ -178,14 +239,13 @@ task::task(engine_dispatcher *krnl /*= NULL*/)
     // set the default options
     kernel = krnl;
     processThread = false;
-    isRunning = false;
-//     scandata_mutex = (void*)(new boost::mutex);
-//     tsk_mutex = (void*)(new boost::mutex);
-//     tsk_event = (void*)(new boost::condition_variable);
+    dataThread = false;
+
     taskList.clear();
     taskQueue.clear();
     thread_count = 0;
 
+    parsers.clear();
     transports.clear();
     inventories.clear();
     auditors.clear();
@@ -211,6 +271,9 @@ task::~task()
         scanInfo = NULL;
     }
     size_t i;
+    for (i = 0; i < parsers.size(); i++) {
+        parsers[i]->release();
+    }
     for (i = 0; i < transports.size(); i++) {
         transports[i]->release();
     }
@@ -251,10 +314,10 @@ void task::get_request_async( i_request_ptr req )
 {
     /// @todo Implement this!
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async");
-    processThread = true;
-    if (!isRunning) {
+    if (!processThread) {
+        processThread = true;
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::get_request_async: create WeTaskProcessor");
-        boost::thread process(TaskProcessor, this);
+        boost::thread process(task_processor, this);
     }
     // wake-up task_processor
     boost::unique_lock<boost::mutex> lock(tsk_mutex);
@@ -274,6 +337,22 @@ bool task::IsReady()
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsReady - " << processThread);
     return (processThread);
+}
+
+void task::AddPlgParser(i_parser* plugin)
+{
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgParser");
+    for (size_t i = 0; i < parsers.size(); i++)
+    {
+        if (parsers[i]->get_id() == plugin->get_id())
+        {
+            // transport already in list
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgParser - parser already in list");
+            return;
+        }
+    }
+    parsers.push_back(plugin);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgParser: added " << plugin->get_description());
 }
 
 void task::AddPlgTransport( i_transport* plugin )
@@ -383,6 +462,13 @@ void task::StorePlugins(vector<i_plugin*>& plugins)
         ifaces = plugins[i]->interface_list();
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - plugin: " << plugins[i]->get_description() << " ifaces: " << ifaces.size());
 
+        trsp = find(ifaces.begin(), ifaces.end(), "i_parser");
+        if (trsp != ifaces.end())
+        {
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found parser: " << plugins[i]->get_description());
+            AddPlgParser((i_parser*)plugins[i]);
+        }
+
         trsp = find(ifaces.begin(), ifaces.end(), "i_transport");
         if (trsp != ifaces.end())
         {
@@ -418,22 +504,43 @@ void task::Run(void)
 {
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Run: create WeTaskProcessor");
     Option(weoTaskStatus, WI_TSK_PAUSED);
-    boost::thread process(TaskProcessor, this);
-    // switch context to initialize TaskProcessor
-    boost::this_thread::sleep(boost::posix_time::millisec(10));
+    if (!processThread)
+    {
+        processThread = true;
+        boost::thread process(task_processor, this);
+        // switch context to initialize TaskProcessor
+        boost::this_thread::sleep(boost::posix_time::millisec(10));
+    }
 
     total_reqs = 0;
     total_done = 0;
     processThread = true;
+    // init parsers first
+    for (size_t i = 0; i < parsers.size(); i++)
+    {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << parsers[i]->get_description());
+        parsers[i]->init(this);
+    }
+
+    // init vulner detectors
+    for (size_t i = 0; i < vulners.size(); i++)
+    {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << vulners[i]->get_description());
+        vulners[i]->init(this);
+    }
+
+    // init auditors
     for (size_t i = 0; i < auditors.size(); i++)
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << auditors[i]->get_description());
         auditors[i]->init(this);
     }
+
+    // last step: init inventories and run the process
     for (size_t i = 0; i < inventories.size(); i++)
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: start " << inventories[i]->get_description());
-        inventories[i]->start(this);
+        inventories[i]->init(this);
     }
     Option(weoTaskStatus, WI_TSK_RUN);
 
@@ -465,6 +572,35 @@ void task::Pause(const bool& state /*= true*/)
 void task::Stop()
 {
     int active_threads = LockedGetValue(&thread_count);
+
+    // stop vulner detectors
+    for (size_t i = 0; i < vulners.size(); i++)
+    {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: stopping " << vulners[i]->get_description());
+        vulners[i]->stop(this);
+    }
+
+    // stop auditors
+    for (size_t i = 0; i < auditors.size(); i++)
+    {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: stopping " << auditors[i]->get_description());
+        auditors[i]->stop(this);
+    }
+
+    // stop inventories
+    for (size_t i = 0; i < inventories.size(); i++)
+    {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: stopping " << inventories[i]->get_description());
+        inventories[i]->stop(this);
+    }
+
+    // stop parsers
+    for (size_t i = 0; i < parsers.size(); i++)
+    {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: stopping " << parsers[i]->get_description());
+        parsers[i]->stop(this);
+    }
+
     while (active_threads > 0) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Stop: " << active_threads << " threads still active, waiting...");
         boost::this_thread::sleep(boost::posix_time::millisec(100));
@@ -522,24 +658,22 @@ shared_ptr<ScanData> task::GetScanData( const string& baseUrl )
 
 void task::SetScanData( const string& baseUrl, shared_ptr<ScanData> scData )
 {
-    scanInfo->SetScanData(baseUrl, scData);
-    if (scData->parsed_data) {
-        // send to all auditors
-        for (size_t i = 0; i < auditors.size(); i++)
-        {
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::SetScanData: send response to " << auditors[i]->get_description());
-            auditors[i]->start(this, scData);
-        }
+    {
+        boost::unique_lock<boost::mutex> lock(scandata_mutex);
+        scanInfo->SetScanData(baseUrl, scData);
+        sc_process.push_back(scData);
     }
-    /// @todo: !!! REMOVE THIS!!! It's only debug!
-    /// need to implement clever clean-up scheme
-    FreeScanData(scData);
+    if (!dataThread) {
+        dataThread = true;
+        boost::thread(task_data_process, this);
+    }
 }
 
 void task::FreeScanData(shared_ptr<ScanData> scData)
 {
     boost::unique_lock<boost::mutex> lock(scandata_mutex);
     LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data (SC = " << scData.use_count() << "; PD = " << scData->parsed_data << ")");
+    scData->response.reset();
     scData->parsed_data.reset();
 }
 

@@ -17,14 +17,17 @@
     You should have received a copy of the GNU General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <webEngine.h>
 
 #include <time.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/compare.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/regex.hpp>
-#include "weHelper.h"
-#include "weHtmlEntity.h"
+#include <weHelper.h>
+#include <weHtmlEntity.h>
+#include <weTask.h>
 
 using namespace boost;
 using namespace boost::algorithm;
@@ -1009,4 +1012,111 @@ void* WeScript::Execute()
 {
     /// @todo implement this
     return NULL;
+}
+
+html_parser::html_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
+i_parser(krnl, handle)
+{
+    pluginInfo.interface_name = "html_parser";
+    pluginInfo.interface_list.push_back("html_parser");
+    pluginInfo.plugin_desc = "HTML parser";
+    pluginInfo.plugin_id = "7467A5250777"; //{9E53EE57-7456-4b32-8574-7467A5250777}
+}
+
+i_plugin* html_parser::get_interface( const string& ifName )
+{
+    LOG4CXX_TRACE(logger, "html_parser::get_interface " << ifName);
+    if (iequals(ifName, "html_parser"))
+    {
+        LOG4CXX_DEBUG(logger, "html_parser::get_interface found!");
+        usageCount++;
+        return (this);
+    }
+    return i_parser::get_interface(ifName);
+}
+
+void html_parser::init(task* tsk)
+{
+    wOption opt;
+
+    opt = tsk->Option("httpInventory/AllowedCType");
+    SAFE_GET_OPTION_VAL(opt, opt_ctype_method, 0); // default - any type
+}
+
+i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
+{
+    html_document_ptr parser(new html_document);
+
+    HttpResponse* htResp;
+
+    try {
+        htResp = reinterpret_cast<HttpResponse*>(input.get());
+
+        if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
+        {
+            string cType = htResp->ContentType();
+            boost::trim(cType);
+            if (cType == "") {
+                // set "text/html" by default
+                /// @todo: move it to the options!!!
+                cType == "text/html";
+            }
+            LOG4CXX_TRACE(logger, "HttpInventory::process: content-type analyze method = " << opt_ctype_method);
+            bool cTypeProcess = false;
+            switch(opt_ctype_method)
+            {
+            case 0: // any content-type
+                cTypeProcess = true;
+                break;
+            case 1: // empty and "text/*"
+                if (cType == "" || starts_with(cType, "text/"))
+                {
+                    cTypeProcess = true;
+                }
+                break;
+            case 2: // only "text/*"
+                if (starts_with(cType, "text/"))
+                {
+                    cTypeProcess = true;
+                }
+                break;
+            case 3: // empty and "text/html"
+                if (cType == "" || starts_with(cType, "text/html"))
+                {
+                    cTypeProcess = true;
+                }
+                break;
+            case 4: // only "text/*"
+                if (starts_with(cType, "text/html"))
+                {
+                    cTypeProcess = true;
+                }
+                break;
+            default:
+                cTypeProcess = false;
+                LOG4CXX_WARN(logger, "HttpInventory::process: unknown content-type analyze method = " << opt_ctype_method);
+                break;
+            }
+
+            if (cTypeProcess) {
+#ifdef DEBUG
+                boost::posix_time::ptime pretm = boost::posix_time::microsec_clock::local_time();
+#endif
+                bool pres = parser->ParseData(input);
+#ifdef DEBUG
+                boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
+                boost::posix_time::time_period duration(pretm, postm);
+                LOG4CXX_DEBUG(logger, "HttpInventory::process " << htResp->Data().size() << " bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
+#endif
+                if ( !pres ) {
+                    parser.reset();
+                }
+            } // if need to process
+        } // if HTTP code valid
+    }
+    catch (bad_cast) {
+        LOG4CXX_ERROR(logger, "HttpInventory::process: The response from " << input->BaseUrl().tostring() << " isn't the HttpResponse!");
+    }
+
+    return parser;
 }

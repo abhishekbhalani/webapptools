@@ -190,12 +190,15 @@ public:
 
     // i_plugin functions
     virtual i_plugin* get_interface(const string& ifName);
-    virtual void init(task* tsk) {}
+    virtual void init(task* tsk);
     virtual void pause(task* tsk, bool paused = true) {}
     virtual void stop(task* tsk) {}
 
     // i_parser functions
     virtual i_document_ptr parse(boost::shared_ptr<i_response> input);
+
+protected:
+    int opt_ctype_method;
 };
 
 } // namespace webEngine
