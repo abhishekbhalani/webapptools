@@ -161,15 +161,17 @@ void audit_jscript::process( webEngine::task* tsk, boost::shared_ptr<ScanData>sc
                 LOG4CXX_DEBUG(js_logger, "audit_jscript::process - tasks in queue: " << jscript_tasks.task_list.size());
                 LOG4CXX_DEBUG(js_logger, "audit_jscript::process - processes in queue: " << jscript_tasks.process_list.size());
                 
-                // run thread, if it not started yet
-                if (!thread_running) {
-                    boost::thread thrd(parser_thread, this);
-                }
-                // or wake it up
-                else {
-                    boost::lock_guard<boost::mutex> lock(thread_synch);
-                    thread_event.notify_all();
-                }
+                if (tp->pending_requests == 0) {
+                    // run thread, if it not started yet
+                    if (!thread_running) {
+                        boost::thread thrd(parser_thread, this);
+                    }
+                    // or wake it up
+                    else {
+                        boost::lock_guard<boost::mutex> lock(thread_synch);
+                        thread_event.notify_all();
+                    }
+                } // if no pending requests
 
             } // if something to process
         }// if parsed_data
@@ -186,50 +188,53 @@ void audit_jscript::process_response( webEngine::i_response_ptr resp )
     LOG4CXX_DEBUG(logger, "audit_jscript::process_response: " << rurl);
     LOG4CXX_TRACE(logger, "audit_jscript::process_response: ENTER; to download: " << jscript_tasks.task_list.size() << "; documents: " << jscript_tasks.process_list.size() );
 
-    boost::unique_lock<boost::mutex> lock(data_access);
-    ajs_download_queue::iterator mit = jscript_tasks.task_list.find(rurl);
+    { // auto-release mutex scope
+        boost::unique_lock<boost::mutex> lock(data_access);
+        ajs_download_queue::iterator mit = jscript_tasks.task_list.find(rurl);
 
-    if (ht_resp->HttpCode() > 399)
-    {
-        LOG4CXX_WARN(logger, "audit_jscript::process_response - bad respose: " << ht_resp->HttpCode() << " " << rurl);
-    }
-    if (mit == jscript_tasks.task_list.end()) {
-        LOG4CXX_DEBUG(logger, "audit_jscript::process_response: unregistered URL " << resp->RealUrl().tostring());
-        for (mit = jscript_tasks.task_list.begin(); mit != jscript_tasks.task_list.end(); mit++) {
-            if (AJS_DOWNLOAD_ID(mit) == resp->ID()) {
-                LOG4CXX_DEBUG(logger, "audit_jscript::process_response: responce found by identifier");
-                break;
-            } // if found
-        } // foreach ajs_download_queue
-    } // if URL not found
-    // set entity data and decrement pending_requests counter
-    if (mit != jscript_tasks.task_list.end()) {
-        string code = "";
-        if (ht_resp->HttpCode() >= 200 && ht_resp->HttpCode() < 300) {
-            code.assign((char*)&(resp->Data()[0]), resp->Data().size());
+        if (ht_resp->HttpCode() > 399)
+        {
+            LOG4CXX_WARN(logger, "audit_jscript::process_response - bad respose: " << ht_resp->HttpCode() << " " << rurl);
         }
-        
-        LOG4CXX_DEBUG(logger, "audit_jscript::process_response: clear download task for " << AJS_DOWNLOAD_URL(mit));
-        for (size_t i = 0; i < AJS_DOWNLOAD_LIST(mit).size(); i++) {
-            AJS_DOWNLOAD_LIST(mit)[i].first->attr("src", "");
-            AJS_DOWNLOAD_LIST(mit)[i].first->attr("#code", code);
-            AJS_DOWNLOAD_LIST(mit)[i].second->pending_requests--;
+        if (mit == jscript_tasks.task_list.end()) {
+            LOG4CXX_DEBUG(logger, "audit_jscript::process_response: unregistered URL " << resp->RealUrl().tostring());
+            for (mit = jscript_tasks.task_list.begin(); mit != jscript_tasks.task_list.end(); mit++) {
+                if (AJS_DOWNLOAD_ID(mit) == resp->ID()) {
+                    LOG4CXX_DEBUG(logger, "audit_jscript::process_response: responce found by identifier");
+                    break;
+                } // if found
+            } // foreach ajs_download_queue
+        } // if URL not found
+        // set entity data and decrement pending_requests counter
+        if (mit != jscript_tasks.task_list.end()) {
+            string code = "";
+            if (ht_resp->HttpCode() >= 200 && ht_resp->HttpCode() < 300) {
+                code.assign((char*)&(resp->Data()[0]), resp->Data().size());
+            }
+
+            LOG4CXX_DEBUG(logger, "audit_jscript::process_response: clear download task for " << AJS_DOWNLOAD_URL(mit));
+            for (size_t i = 0; i < AJS_DOWNLOAD_LIST(mit).size(); i++) {
+                AJS_DOWNLOAD_LIST(mit)[i].first->attr("src", "");
+                AJS_DOWNLOAD_LIST(mit)[i].first->attr("#code", code);
+                AJS_DOWNLOAD_LIST(mit)[i].second->pending_requests--;
+            }
+            jscript_tasks.task_list.erase(mit);
         }
-        jscript_tasks.task_list.erase(mit);
-    }
-    else {
-        LOG4CXX_WARN(logger, "audit_jscript::process_response: unregistered URL " << resp->RealUrl().tostring());
-        string dmp = "";
-        for (mit = jscript_tasks.task_list.begin(); mit != jscript_tasks.task_list.end(); mit++) {
-            dmp += mit->first;
-            dmp += "\n\r";
+        else {
+            LOG4CXX_WARN(logger, "audit_jscript::process_response: unregistered URL " << resp->RealUrl().tostring());
+            string dmp = "";
+            for (mit = jscript_tasks.task_list.begin(); mit != jscript_tasks.task_list.end(); mit++) {
+                dmp += mit->first;
+                dmp += "\n\r";
+            }
+            LOG4CXX_TRACE(logger, "audit_jscript::process_response - the list \n\r" << dmp);
         }
-        LOG4CXX_TRACE(logger, "audit_jscript::process_response - the list \n\r" << dmp);
-    }
+    } // release mutex
     // process documents with no pending requests in separate thread
 
     // run thread, if it not started yet
     if (!thread_running) {
+        thread_running = true;
         boost::thread thrd(parser_thread, this);
     }
     // or wake it up
@@ -490,6 +495,7 @@ void audit_jscript::process_events( webEngine::base_entity_ptr entity )
 
 void parser_thread( audit_jscript* object )
 {
+    bool in_loop = true;
     size_t task_list;
     ajs_to_process_list local_list;
 
@@ -498,15 +504,18 @@ void parser_thread( audit_jscript* object )
     object->parent_task->add_thread();
 
     local_list.clear();
-    while (true) {
+    while (in_loop) {
         { // wait scope: check for completion
             boost::unique_lock<boost::mutex> lock(object->data_access);
             task_list = object->jscript_tasks.task_list.size() + object->jscript_tasks.process_list.size();
             if (task_list == 0) {
                 LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread no data in task lists - exiting");
-                break;
+                in_loop = false;
             }
         } // wait scope - auto release mutex
+        if (!in_loop) {
+            break;
+        }
 
         // perform actions
 
@@ -530,16 +539,27 @@ void parser_thread( audit_jscript* object )
             }
             local_list.clear();
         }
-
-        { // get data size
+        else {
+            // we don't found any documents to process
             boost::unique_lock<boost::mutex> lock(object->data_access);
             task_list = object->jscript_tasks.task_list.size() + object->jscript_tasks.process_list.size();
-            LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread waiting for data: " << task_list << " processes in list");
-        } // wait scope - auto release mutex
-        if (task_list > 0){ // wait foe data
-            boost::unique_lock<boost::mutex> thrd_lock(object->thread_synch);
-            object->thread_event.wait(thrd_lock);
-        } // wait scope - auto release mutex
+            LOG4CXX_INFO(js_logger, "DEBUG: audit_jscript::parser_thread waiting for data: " << object->jscript_tasks.task_list.size() <<
+                " to download and " << object->jscript_tasks.process_list.size() << " documents still in the list");
+            in_loop = false;
+        }
+        if (!in_loop) {
+            break;
+        }
+
+//         { // get data size
+//             boost::unique_lock<boost::mutex> lock(object->data_access);
+//             task_list = object->jscript_tasks.task_list.size() + object->jscript_tasks.process_list.size();
+//             LOG4CXX_TRACE(js_logger, "audit_jscript::parser_thread waiting for data: " << task_list << " processes in list");
+//         } // wait scope - auto release mutex
+//         if (task_list > 0){ // wait for data
+//             boost::unique_lock<boost::mutex> thrd_lock(object->thread_synch);
+//             object->thread_event.wait(thrd_lock);
+//         } // wait scope - auto release mutex
     } // main thread loop
 
     object->parent_task->remove_thread();
