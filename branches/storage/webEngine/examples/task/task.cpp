@@ -38,7 +38,7 @@ using namespace webEngine;
 
 int main(int argc, char* argv[])
 {
-    wOption     opt1, opt2, opt3;
+    we_option     opt1, opt2, opt3, opt4, opt5;
     string      str("sample");
     string      st2;
     int         iVal;
@@ -54,6 +54,12 @@ int main(int argc, char* argv[])
 
     opt3.name("testChar");
     opt3.SetValue(char(2));
+
+    opt4.name("testInt");
+    opt4.SetValue(2);
+
+    opt5.name("testInt");
+    opt5.SetValue(char(2));
 
     cout << "Opt1 type = " << opt1.GetTypeName() << endl;
     cout << "Opt2 type = " << opt2.GetTypeName() << endl;
@@ -100,6 +106,32 @@ int main(int argc, char* argv[])
     catch (...)
     {
         cout << "Exception!!!" << endl;
+    }
+
+    try
+    {
+        if (opt2 == opt4) {
+            cout << "opt2 == opt4" << endl;
+        }
+        else {
+            cout << "opt2 != opt4" << endl;
+        }
+        if (opt1 == opt4) {
+            cout << "opt1 == opt4" << endl;
+        }
+        else {
+            cout << "opt1 != opt4" << endl;
+        }
+        if (opt2 == opt5) {
+            cout << "opt2 == opt5" << endl;
+        }
+        else {
+            cout << "opt2 != opt5" << endl;
+        }
+    }
+    catch (std::exception &ex)
+    {
+        cout << "Exception!!! " << ex.what() << endl;
     }
 
     std::ofstream ofs("options");

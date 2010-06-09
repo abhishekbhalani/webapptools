@@ -25,7 +25,7 @@
 
 using namespace webEngine;
 
-static wOption empty_option;
+static we_option empty_option;
 
 //////////////////////////////////////////////////////////////////////////
 //             i w e T r a n s p o r t    c l a s s

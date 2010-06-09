@@ -85,7 +85,7 @@ void HttpInventory::init( task* tsk )
         if (kernel)
         {
             string host;
-            wOption opt = tsk->Option("scan_host");
+            we_option opt = tsk->Option("scan_host");
             SAFE_GET_OPTION_VAL(opt, host, "");
             if (host != "")
             {

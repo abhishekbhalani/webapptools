@@ -67,8 +67,8 @@ namespace webEngine {
         ~task();
 
         // i_options_provider functions
-        virtual wOption Option(const string& name);
-        virtual void Option(const string& name, wOptionVal val);
+        virtual we_option& Option(const string& name);
+        virtual void Option(const string& name, we_variant val);
         virtual bool IsSet(const string& name);
         virtual void Erase(const string& name);
         virtual void Clear();

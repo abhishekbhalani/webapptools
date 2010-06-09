@@ -55,7 +55,7 @@ db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
     //db_recordset* rsData;
     db_record* rec = new db_record;
 
-    rec->objectID = weObjTypeScan;
+/*    rec->objectID = weObjTypeScan;
     rec->Option(weoID, scanID);
     rec->Option(weoParentID, objectID);
     rec->Option(weoProfileID, profileID);
@@ -80,10 +80,10 @@ db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
 
 void ScanInfo::FromRS( db_recordset* rs )
 {
-    db_record rec;
+/*    db_record rec;
     size_t r;
-    wOptionVal optVal;
-    wOption opt;
+    we_variant optVal;
+    we_option opt;
     string strData;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "ScanInfo::FromRS");
@@ -142,7 +142,7 @@ void ScanInfo::FromRS( db_recordset* rs )
 
             break;
         }
-    }
+    }*/
 }
 
 shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )
@@ -188,7 +188,7 @@ db_recordset* ScanData::ToRS( const string& parentID/* = ""*/ )
     db_recordset* res = new db_recordset;
     db_record* rec = new db_record;
 
-    rec->objectID = weObjTypeScanData;
+/*    rec->objectID = weObjTypeScanData;
     rec->Option(weoID, data_id);
     rec->Option(weoParentID, scan_id);
     rec->Option("updata", parentID);
@@ -198,17 +198,17 @@ db_recordset* ScanData::ToRS( const string& parentID/* = ""*/ )
     rec->Option("download_time", boost::lexical_cast<string>(download_time));
     rec->Option("scanning_depth", boost::lexical_cast<string>(scan_depth));
 
-    res->push_back(*rec);
+    res->push_back(*rec);*/
 
     return res;
 }
 
 void ScanData::FromRS( db_recordset* rs )
 {
-    db_record rec;
+/*    db_record rec;
     size_t r;
-    wOptionVal optVal;
-    wOption opt;
+    we_variant optVal;
+    we_option opt;
     string strData;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "ScanInfo::FromRS");
@@ -255,7 +255,7 @@ void ScanData::FromRS( db_recordset* rs )
 
             break;
         }
-    }
+    }*/
 }
 
 } // namespace webEngine

@@ -23,37 +23,190 @@
 #pragma once
 #include "weiPlugin.h"
 #include "weOptions.h"
+#include <boost/utility.hpp>
 
 namespace webEngine {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  db_record
 ///
-/// @brief  set of fields (individual data) as name-value pairs.
+/// @brief  set of fields as zero-based array of values.
 ///
 /// @author A. Abramov
-/// @date	03.09.2009
+/// @date	09.06.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class db_record : public options_provider
+class db_record : public vector< we_variant >
 {
 public:
-    /// namespace of the object
-    string objectID;
-    // nothing special
+    db_record() : vector< we_variant>() {}
+    db_record(size_t sz) : vector< we_variant>() { reserve(sz); }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  db_fw_cursor
+///
+/// @brief  Provide forward-only, read-only access to records and fields in the recordset.
+///
+/// @author A. Abramov
+/// @date	09.06.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class db_fw_cursor
+{
+public:
+    db_fw_cursor();
+    ~db_fw_cursor();
+
+    // access to current record fields 
+    const we_variant& operator[](string name);
+    const we_variant& operator[](int index);
+
+    // move cursor thought recordset
+    db_fw_cursor& operator++();
+    db_fw_cursor& operator++(int);
+    db_fw_cursor& operator+=(size_t offs);
+
+    // test cursor
+    operator bool() const;
+    bool operator==(const db_fw_cursor& other) const;
+    bool operator!=(const db_fw_cursor& other) const;
+    bool operator>=(const db_fw_cursor& other) const;
+    bool operator<=(const db_fw_cursor& other) const;
+    bool operator>(const db_fw_cursor& other) const;
+    bool operator<(const db_fw_cursor& other) const;
+
+protected:
+};
+
+class db_cursor
+{
+public:
+    db_cursor();
+    db_cursor(const db_cursor& c);
+    ~db_cursor();
+
+    // access to current record fields 
+    we_variant& operator[](string name);
+    we_variant& operator[](int index);
+
+    // move cursor thought recordset
+    db_cursor& operator++();
+    db_cursor& operator++(int);
+    db_cursor& operator+=(size_t offs);
+    db_cursor& operator--();
+    db_cursor& operator--(int);
+    db_cursor& operator-=(size_t offs);
+
+    // test cursor
+    operator bool() const;
+    bool operator==(const db_cursor& other) const;
+    bool operator!=(const db_cursor& other) const;
+    bool operator>=(const db_cursor& other) const;
+    bool operator<=(const db_cursor& other) const;
+    bool operator>(const db_cursor& other) const;
+    bool operator<(const db_cursor& other) const;
+
+protected:
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  db_recordset
 ///
-/// @brief  set of records of class db_record.
+/// @brief  array of db_records. Implement iterations, structure control and others.
 ///
 /// @author A. Abramov
-/// @date	03.09.2009
+/// @date	09.06.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class db_recordset : public vector<db_record>
+class db_recordset : public boost::noncopyable
 {
-    // nothing special
-    /// @todo: add logical operators to build complex queries from separate db_record's
+public:
+    db_recordset();
+    explicit db_recordset(vector<string> fld_names);
+    explicit db_recordset(db_record& rec);
+    ~db_recordset();
+
+    void erase(db_cursor& at);
+    void push_back(db_record& rec);
+    void insert(db_cursor& before, db_record& rec);
+
+    const size_t size();
+    db_cursor begin();
+    db_cursor end();
+
+protected:
+    vector<string> field_names;
+    vector<db_record> records;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  db_condition
+///
+/// @brief  atomic logical operation for DB queries.
+///
+/// @author A. Abramov
+/// @date	09.06.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class db_condition
+{
+public:
+    db_condition() {}
+    db_condition(string s) {}
+    db_condition(const db_condition& c) {}
+    ~db_condition() {}
+
+    string& field() { return field_name; }
+    string& operation() { return op_code; }
+    we_variant& value() { return test_value; }
+
+protected:
+    string field_name;
+    string op_code;
+    we_variant test_value;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  db_filter
+///
+/// @brief  logical set of conditions and filters
+///
+/// @author A. Abramov
+/// @date	09.06.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class db_filter
+{
+public:
+    db_filter() {}
+    db_filter(const db_filter& c) {}
+    explicit db_filter(const db_condition& cond);
+
+    db_filter& set(db_condition& cond);
+    db_filter& set(db_filter& cond);
+    db_filter& or(db_condition& cond);
+    db_filter& or(db_filter& cond);
+    db_filter& and(db_condition& cond);
+    db_filter& and(db_filter& cond);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  db_query
+///
+/// @brief  set of data for execute DB query
+///
+/// @author A. Abramov
+/// @date	09.06.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class db_query
+{
+public:
+    db_query();
+
+    db_filter& where() { return filter; }
+    vector<string>& what() { return output; }
+    db_recordset& values() { return data_set; }
+
+protected:
+    db_filter filter;
+    vector<string> output;
+    db_recordset data_set;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +214,7 @@ class db_recordset : public vector<db_record>
 ///
 /// @brief  Interface for storage subsystem.
 ///
-/// @author A. Abramov, A. Yudin
+/// @author A. Abramov
 /// @date	14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class i_storage :
@@ -77,13 +230,6 @@ public:
     virtual void pause(task* tsk, bool paused = true) {}
     virtual void stop(task* tsk) {}
 
-    // i_storage functions
-    typedef enum { mask = 0xff} Operation;
-    static const Operation insert = (Operation)0x01;
-    static const Operation update = (Operation)0x02;
-    static const Operation remove = (Operation)0x03;
-    static const Operation autoop = (Operation)0xff;
-
     virtual bool init_storage(const string& params) {return false;};
     virtual void flush(const string& params = "") {};
     virtual string generate_id(const string& objType = "");
@@ -95,13 +241,12 @@ public:
     ///         equality of the selected field to the given values. The response will contains only
     ///         the fields included into the given @b respFilter structure.
     ///
-    /// @param  filter          - the db_record to filter the request 
-    /// @param  respFilter      - set of field to be placed into result. If empty - all data will be retrieved
+    /// @param  query           - the db_query to perform request 
     /// @param  [out] results   - the db_recordset to fill it with results 
     ///
     /// @retval number of records in the response. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results) = 0;
+    virtual int get(db_query& query, db_recordset& results) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn int set(db_record& filter, db_record& data)
@@ -110,12 +255,12 @@ public:
     ///         (not the full description of the object), and non-empty @b filters may be used to
     ///         update selected object(s).
     ///
-    /// @param  filter  - the db_record to select object(s) for update 
-    /// @param  data    - the db_record to be stored 
+    /// @param  query   - the db_query to select object(s) for update 
+    /// @param  data    - the db_recordset to be stored 
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int set(db_record& filter, db_record& data) = 0;
+    virtual int set(db_query& query, db_recordset& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn int set(db_recordset& data)
@@ -134,11 +279,11 @@ public:
     ///
     /// @brief	Deletes the filtered object(s). 
     ///
-    /// @param  filter - the db_record to select object(s) for deletion 
+    /// @param  filter - the db_query to select object(s) for deletion 
     ///
     /// @retval	Number of deleted records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int del(db_record& filter) = 0;
+    virtual int del(db_query& filter) = 0;
 
 protected:
     static int last_id;

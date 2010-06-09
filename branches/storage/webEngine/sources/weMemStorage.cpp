@@ -36,7 +36,7 @@ using namespace boost;
 
 namespace webEngine {
 
-static void OptionFromString(wOption& opt, const string& str)
+static void OptionFromString(we_option& opt, const string& str)
 {
     try
     {
@@ -52,7 +52,7 @@ static void OptionFromString(wOption& opt, const string& str)
     }
 }
 
-static void OptionToString(wOption& opt, string& str)
+static void OptionToString(we_option& opt, string& str)
 {
     try
     {
@@ -103,7 +103,7 @@ i_plugin* mem_storage::get_interface( const string& ifName )
 int mem_storage::get(db_record& filter, db_record& respFilter, db_recordset& results)
 {
     string fID, stData, key;
-    wOption opt;
+    we_option opt;
     StringMap::iterator obj;
     string_list* objIdxs;
     string_list filterNames;
@@ -114,7 +114,7 @@ int mem_storage::get(db_record& filter, db_record& respFilter, db_recordset& res
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::get");
 
-    results.clear();
+/*    results.clear();
 
     if (filter.OptionSize() > 0)
     {
@@ -160,14 +160,14 @@ int mem_storage::get(db_record& filter, db_record& respFilter, db_recordset& res
             } // end of objects search
         } // has objects
         delete objIdxs;
-    } // received indexes
+    } // received indexes*/
 
     return results.size();
 }
 
 int mem_storage::set(db_record& filter, db_record& data)
 {
-    wOption opt;
+    we_option opt;
     string idx;
     string_list* lst = NULL;
     string_list* objIdxs = NULL;
@@ -179,7 +179,7 @@ int mem_storage::set(db_record& filter, db_record& data)
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(filter, db_record)");
 
-    if (filter.OptionSize() > 0)
+/*    if (filter.OptionSize() > 0)
     {   // try to update
         lst = search_db(filter);
     }
@@ -208,7 +208,7 @@ int mem_storage::set(db_record& filter, db_record& data)
     {
         for (j = 0; j < objProps.size(); j++)
         {
-            wOption opt = data.Option(objProps[j]);
+            we_option opt = data.Option(objProps[j]);
             stValue = boost::lexical_cast<std::string>(opt.Value());
             stData = (*lst)[i] + "_" + objProps[j];
             storage_db[stData] = stValue;
@@ -225,7 +225,7 @@ int mem_storage::set(db_record& filter, db_record& data)
     set_namespace_idxs(data.objectID, objIdxs);
 
     delete lst;
-    delete objIdxs;
+    delete objIdxs;*/
     return (int)i;
 }
 
@@ -236,13 +236,13 @@ int mem_storage::set(db_recordset& data)
     db_record filt;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(db_recordset)");
-    filt.Clear();
+/*    filt.Clear();
     retval = 0;
     for (i = 0; i < data.size(); i++)
     {
         filt.objectID = data[i].objectID;
         retval += set(filt, data[i]);
-    }
+    }*/
 
     return retval;
 }
@@ -252,9 +252,9 @@ int mem_storage::del(db_record& filter)
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::delete");
 
     string_list* lst = search_db(filter);
-    string_list* objs = get_namespace_idxs(filter.objectID);
+//    string_list* objs = get_namespace_idxs(filter.objectID);
     int retval;
-    size_t i;
+/*    size_t i;
     StringMap::iterator obj;
     string_list::iterator idxIt;
 
@@ -272,7 +272,7 @@ int mem_storage::del(db_record& filter)
     }
     set_namespace_idxs(filter.objectID, objs);
     delete lst;
-    delete objs;
+    delete objs;*/
     return retval;
 }
 
@@ -357,14 +357,14 @@ string_list* mem_storage::search_db(db_record& filter)
     string_list objProps;
     size_t i, j;
 
-    objIdxs = get_namespace_idxs(filter.objectID);
+/*    objIdxs = get_namespace_idxs(filter.objectID);
 
     for (i = 0; i < objIdxs->size(); i++) {
         bool skip = false;
         objProps = filter.OptionsList();
         for (j = 0; j < objProps.size(); j++)
         {
-            wOption opt = filter.Option(objProps[j]);
+            we_option opt = filter.Option(objProps[j]);
             stValue = boost::lexical_cast<std::string>(opt.Value());
 
             stData = (*objIdxs)[i] + "_" + objProps[j];
@@ -387,7 +387,7 @@ string_list* mem_storage::search_db(db_record& filter)
         }
     }
 
-    delete objIdxs;
+    delete objIdxs;*/
 
     return retlist;
 }
@@ -398,7 +398,7 @@ string_list* mem_storage::get_namespace_idxs(const string& objType)
     StringMap::iterator obj;
     string stData;
 
-    obj = storage_db.find(objType);
+/*    obj = storage_db.find(objType);
 
     if (obj != storage_db.end()) {
         stData = obj->second;
@@ -414,7 +414,7 @@ string_list* mem_storage::get_namespace_idxs(const string& objType)
             LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get_namespace_idxs namespace search error: " << e.what());
             objIdxs->clear();
         }
-    }
+    }*/
     return objIdxs;
 }
 
@@ -448,7 +448,7 @@ void mem_storage::fix_namespace_struct(db_record& filter)
     size_t i;
 
 
-    obj = storage_db.find(filter.objectID + "_struct");
+//    obj = storage_db.find(filter.objectID + "_struct");
     if (obj != storage_db.end()) {
         stData = obj->second;
         try
@@ -461,11 +461,11 @@ void mem_storage::fix_namespace_struct(db_record& filter)
         }
         catch(std::exception& e)
         {
-            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::fix_namespace_struct " << filter.objectID << " structure error: " << e.what());
+//            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::fix_namespace_struct " << filter.objectID << " structure error: " << e.what());
             return;
         }
     }
-    flNames = filter.OptionsList();
+/*    flNames = filter.OptionsList();
     for (i = 0 ; i < flNames.size(); i++)
     {
         lst = find(structNames.begin(), structNames.end(), flNames[i]);
@@ -485,10 +485,10 @@ void mem_storage::fix_namespace_struct(db_record& filter)
     }
     catch(std::exception& e)
     {
-        LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::fix_namespace_struct save " << filter.objectID << " structure error: " << e.what());
+//        LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::fix_namespace_struct save " << filter.objectID << " structure error: " << e.what());
         return;
     }
-    storage_db[filter.objectID + "_struct"] = stData;
+    storage_db[filter.objectID + "_struct"] = stData;*/
 }
 
 string_list* mem_storage::get_namespace_struct(db_record& filter)
@@ -498,7 +498,7 @@ string_list* mem_storage::get_namespace_struct(db_record& filter)
     string stData;
 
     structNames = new string_list;
-    obj = storage_db.find(filter.objectID + "_struct");
+/*    obj = storage_db.find(filter.objectID + "_struct");
     if (obj != storage_db.end()) {
         stData = obj->second;
         try
@@ -511,11 +511,11 @@ string_list* mem_storage::get_namespace_struct(db_record& filter)
         }
         catch(std::exception& e)
         {
-            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::get_namespace_struct " << filter.objectID << " structure error: " << e.what());
+//            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::get_namespace_struct " << filter.objectID << " structure error: " << e.what());
             delete structNames;
             structNames = NULL;
         }
-    }
+    }*/
     return structNames;
 }
 

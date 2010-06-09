@@ -60,3 +60,18 @@ std::string i_storage::generate_id( const string& objType /*= ""*/ )
 {
     return lexical_cast<string>(++last_id);
 }
+
+db_recordset::db_recordset(void)
+{
+
+}
+
+db_recordset::~db_recordset(void)
+{
+
+}
+
+const size_t db_recordset::size(void)
+{
+    return records.size();
+}

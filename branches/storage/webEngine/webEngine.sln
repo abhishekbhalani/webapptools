@@ -28,6 +28,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "difflib", "examples\difflib
 		{FB361FB1-7F6C-414E-B624-FEED130D0FAF} = {FB361FB1-7F6C-414E-B624-FEED130D0FAF}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dbtest", "examples\dbtest\dbtest.vcproj", "{761A460E-46E4-42B4-B442-5BAD0928C2BC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FB361FB1-7F6C-414E-B624-FEED130D0FAF} = {FB361FB1-7F6C-414E-B624-FEED130D0FAF}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -58,6 +63,10 @@ Global
 		{99E5BEDA-D7DB-4CCF-B46A-6A27EC040BF4}.Debug|Win32.Build.0 = Debug|Win32
 		{99E5BEDA-D7DB-4CCF-B46A-6A27EC040BF4}.Release|Win32.ActiveCfg = Release|Win32
 		{99E5BEDA-D7DB-4CCF-B46A-6A27EC040BF4}.Release|Win32.Build.0 = Release|Win32
+		{761A460E-46E4-42B4-B442-5BAD0928C2BC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{761A460E-46E4-42B4-B442-5BAD0928C2BC}.Debug|Win32.Build.0 = Debug|Win32
+		{761A460E-46E4-42B4-B442-5BAD0928C2BC}.Release|Win32.ActiveCfg = Release|Win32
+		{761A460E-46E4-42B4-B442-5BAD0928C2BC}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

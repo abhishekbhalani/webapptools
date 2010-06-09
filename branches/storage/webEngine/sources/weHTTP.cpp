@@ -206,7 +206,7 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
 {
     i_response_ptr retval;
     HttpResponse* ht_retval;
-    wOption opt;
+    we_option opt;
 
     if (!req->RequestUrl().is_valid()) {
         if (resp != NULL) {
@@ -424,7 +424,7 @@ void http_transport::load_settings( i_options_provider *data_provider, string ke
     if (key == "") {
         key = "httpTransport";
     }
-    wOption opt;
+    we_option opt;
     bool val;
 
     opt = data_provider->Option(key + "/port");

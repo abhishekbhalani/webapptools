@@ -23,6 +23,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/variant.hpp>
+#include <boost/blank.hpp>
 #include <boost/serialization/variant.hpp>
 #include <boost/lexical_cast.hpp>
 #include "weTagScanner.h"
@@ -35,30 +36,41 @@ namespace webEngine {
 
     class db_recordset;
 
-    typedef ::boost::variant< char,
-        unsigned char,
-        int,
-        unsigned int,
-        long,
-        unsigned long,
-        bool,
-        double,
-        string> wOptionVal;
+    class we_variant : public boost::variant< char, unsigned char, int, unsigned int, long, unsigned long, bool, double, string, boost::blank>
+    {
+        typedef boost::variant< char, unsigned char, int, unsigned int, long, unsigned long, bool, double, string, boost::blank> we_types;
+    public:
+        // construct/copy/destruct
+        we_variant() : we_types(boost::blank()) {}
+        we_variant(const we_variant &t) { we_types::operator=(*(static_cast<const we_types*>(&t))); }
+        template<typename T> we_variant(const T &t) : we_types(t) {}
+
+        we_variant& operator=(const we_variant &cpy) { we_types::operator=(*(static_cast<const we_types*>(&cpy))); return *this; }
+        template<typename T> we_variant& operator=(const T &t) { we_types::operator=(t); return *this; }
+
+        bool operator==(const we_variant &rhl) const {return we_types::operator==(*(static_cast<const we_types*>(&rhl))); }
+        template<typename U> void operator==(const U &rhl) const  {}
+
+        const bool empty() { return which() == 9; }
+        void clear() { we_types::operator=(boost::blank()); }
+    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  wOption
+    /// @class  we_option
     ///
     /// @brief  Options for the WeTask and whole process
     ///
     /// @author A. Abramov
     /// @date   09.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class wOption
+    class we_option
     {
     public:
-        wOption() { val = 0; empty = true; };
-        wOption(string nm) { oname = nm; empty = true; };
-        ~wOption() {};
+        we_option() { val = boost::blank(); }
+        we_option(const we_option& c) { oname = c.oname; val = c.val; }
+        we_option(string n) { oname = n; val = boost::blank(); }
+        we_option(string n, we_variant v) { oname = n; val = v; }
+        ~we_option() {};
 
         //@{
         /// @brief  Access the name property
@@ -71,45 +83,42 @@ namespace webEngine {
         // const type_info &Value(void) const     { return(tpId);     };
         template <typename T>
         void GetValue(T& dt)
-        {   string tmp;
-            tmp = boost::lexical_cast<string>(val);
-            dt = boost::lexical_cast<T>(tmp);
-        };
+        { dt = boost::get<T>(val); }
+
         template <typename T>
         void SetValue(T dt)
-        { val = dt; empty = false; };
+        { val = dt; }
         //@}
-        wOptionVal Value() { return val; };
+        we_variant& Value() { return val; }
 
-        bool IsEmpty(void)                          { return empty;   };            ///< Is the value empty
-        string GetTypeName(void)                    { return val.type().name();};   ///< Gets the value type name
-        const ::std::type_info& GetType(void) const { return val.type();  };        ///< Gets the value type
-        const int Which(void) const                 { return val.which();  };       ///< Gets the internal type
+        bool IsEmpty(void)                          { return val.empty(); }         ///< Is the value empty
+        string GetTypeName(void)                    { return val.type().name(); }   ///< Gets the value type name
+        const std::type_info& GetType(void) const   { return val.type();  }         ///< Gets the value type
 
         /// @brief Assignment operator
-        wOption& operator=(wOption& cpy)
+        we_option& operator=(we_option& cpy)
         {   oname = cpy.oname;
-        val = cpy.val;
-        empty = cpy.empty;
-        return *this; };
+            val = cpy.val;
+            return *this;
+        }
 
-        bool operator==(wOption& cpy)
-        {   oname = cpy.oname;
-        val = cpy.val;
-        empty = cpy.empty;
-        return (oname == cpy.oname && val == cpy.val); };
+        bool operator==(we_option& cpy)
+        {
+            bool result = (oname == cpy.oname);
+            result = result && (val == cpy.val);
+            return result;
+        }
 
 #ifndef __DOXYGEN__
     protected:
         string      oname;
-        wOptionVal  val;
-        bool        empty;
+        we_variant  val;
 #endif //__DOXYGEN__
     };
 
-    typedef map<string, wOption> wOptions;
+    typedef map<string, we_option> wOptions;
 
-#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (...) { (var) = (def); };
+#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (bad_cast &) { (var) = (def); };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  i_options_provider
 ///
@@ -124,9 +133,9 @@ public:
     i_options_provider() {};
     virtual ~i_options_provider() {};
 
-    virtual wOption Option(const string& name) = 0;
+    virtual we_option& Option(const string& name) = 0;
     virtual bool IsSet(const string& name) = 0;
-    virtual void Option(const string& name, wOptionVal val) = 0;
+    virtual void Option(const string& name, we_variant val) = 0;
     virtual void Erase(const string& name) = 0;
     virtual void Clear() = 0;
 
@@ -134,7 +143,7 @@ public:
     virtual string_list OptionsList() = 0;
     virtual size_t OptionSize() = 0;
 
-    static wOption empty_option;
+    static we_option empty_option;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,9 +160,9 @@ public:
     options_provider() {};
     virtual ~options_provider();
 
-    virtual wOption Option(const string& name);
+    virtual we_option& Option(const string& name);
     virtual bool IsSet(const string& name);
-    virtual void Option(const string& name, wOptionVal val);
+    virtual void Option(const string& name, we_variant val);
     virtual void Erase(const string& name)
     {
         wOptions::iterator it;
@@ -181,7 +190,7 @@ protected:
 };
 
 } // namespace webEngine
-BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
+BOOST_CLASS_TRACKING(webEngine::we_option, boost::serialization::track_never)
 
 //////////////////////////////////////////////////////////////////////////
 // Define options names

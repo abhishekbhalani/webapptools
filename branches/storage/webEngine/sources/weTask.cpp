@@ -38,7 +38,7 @@ using namespace boost;
 namespace webEngine {
 
 #ifndef __DOXYGEN__
-static const wOption empty_option("_empty_");
+static const we_option empty_option("_empty_");
 #endif //__DOXYGEN__
 
 typedef struct _sync_req_data {
@@ -59,7 +59,7 @@ void task_sync_request(boost::shared_ptr<i_response> resp, void* context)
 
 void task_processor(task* tsk)
 {
-    wOption opt;
+    we_option opt;
     size_t i;
     int iData;
     response_list::iterator rIt;
@@ -551,7 +551,7 @@ void task::Run(void)
 void task::Pause(const bool& state /*= true*/)
 {
     int idata;
-//    wOption opt;
+//    we_option opt;
 //    opt = Option(weoTaskStatus);
 //    SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
     if (state)
@@ -694,7 +694,7 @@ db_recordset* task::ToRS( const string& parentID/* = ""*/ )
     db_recordset* res = NULL; /* new db_recordset;
     db_record* rec;
     db_record* trec;
-    wOption optVal;
+    we_option optVal;
     string strData;
     string tskId;
     int optCount;
@@ -775,8 +775,8 @@ void task::FromRS( db_recordset *rs  )
 {
 /*    db_record rec;
     size_t r;
-    wOptionVal optVal;
-    wOption opt;
+    we_variant optVal;
+    we_option opt;
     string strData, sName;
     int tp;
     char c;
@@ -862,7 +862,7 @@ void task::FromRS( db_recordset *rs  )
 void task::WaitForData()
 {
     int idata;
-    wOption opt;
+    we_option opt;
     opt = Option(weoTaskStatus);
     SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
 
@@ -899,7 +899,7 @@ int task::remove_thread()
     return nt; 
 }
 
-wOption task::Option( const string& name )
+we_option& task::Option( const string& name )
 {
     wOptions::iterator it;
 
@@ -913,7 +913,7 @@ wOption task::Option( const string& name )
 
 }
 
-void task::Option( const string& name, wOptionVal val )
+void task::Option( const string& name, we_variant val )
 {
     if (kernel != NULL) {
         kernel->Option(name, val);

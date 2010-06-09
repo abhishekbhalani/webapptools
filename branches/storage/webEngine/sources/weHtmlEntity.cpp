@@ -1037,7 +1037,7 @@ i_plugin* html_parser::get_interface( const string& ifName )
 
 void html_parser::init(task* tsk)
 {
-    wOption opt;
+    we_option opt;
 
     opt = tsk->Option("httpInventory/AllowedCType");
     SAFE_GET_OPTION_VAL(opt, opt_ctype_method, 0); // default - any type

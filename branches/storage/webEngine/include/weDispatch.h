@@ -111,8 +111,8 @@ public:
     void add_plugin_class(string name, fnWePluginFactory func);
 
     // 
-    virtual wOption Option(const string& name);
-    virtual void Option(const string& name, wOptionVal val);
+    virtual we_option& Option(const string& name);
+    virtual void Option(const string& name, we_variant val);
     virtual bool IsSet(const string& name);
     virtual void Erase(const string& name);
     virtual void Clear();

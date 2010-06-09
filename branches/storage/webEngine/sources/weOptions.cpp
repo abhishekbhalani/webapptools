@@ -29,7 +29,7 @@
 namespace webEngine {
 
 #ifndef __DOXYGEN__
-wOption i_options_provider::empty_option("_empty_");
+we_option i_options_provider::empty_option("_empty_");
 #endif //__DOXYGEN__
 
 void i_options_provider::CopyOptions( i_options_provider* cpy )
@@ -39,7 +39,7 @@ void i_options_provider::CopyOptions( i_options_provider* cpy )
     opt_names = cpy->OptionsList();
 
     for (size_t i = 0; i < opt_names.size(); i++) {
-        wOption opt = cpy->Option(opt_names[i]);
+        we_option opt = cpy->Option(opt_names[i]);
         Option(opt_names[i], opt.Value());
     }
 }
@@ -58,16 +58,16 @@ options_provider::~options_provider()
 db_recordset* options_provider::ToRS( const string& parentID/* = ""*/ )
 {
     db_recordset* res = new db_recordset;
-    db_record* rec;
+/*    db_record* rec;
     wOptions::iterator it;
-    wOptionVal optVal;
+    we_variant optVal;
     string strData;
 
     for (it = options.begin(); it != options.end(); it++) {
         strData = it->first;
         optVal = it->second.Value();
         rec = new db_record;
-        rec->objectID = weObjTypeSysOption;
+       rec->objectID = weObjTypeSysOption;
         rec->Option(weoName, strData);
         rec->Option(weoParentID, parentID);
         rec->Option(weoTypeID, it->second.Which());
@@ -79,18 +79,18 @@ db_recordset* options_provider::ToRS( const string& parentID/* = ""*/ )
         strData = boost::lexical_cast<string>(hs);
         rec->Option(weoID, strData);
         res->push_back(*rec);
-    }
+    }*/
 
     return res;
 }
 
 void options_provider::FromRS( db_recordset *rs )
 {
-    db_record rec;
+/*    db_record rec;
     size_t r;
     int tp;
-    wOptionVal optVal;
-    wOption opt;
+    we_variant optVal;
+    we_option opt;
     string sName, strData;
     char c;
     unsigned char uc;
@@ -153,10 +153,10 @@ void options_provider::FromRS( db_recordset *rs )
                 break;
             }
         }
-    }
+    }*/
 }
 
-wOption options_provider::Option( const string& name )
+we_option& options_provider::Option( const string& name )
 {
     wOptions::iterator it;
 
@@ -169,7 +169,7 @@ wOption options_provider::Option( const string& name )
     return empty_option;
 }
 
-void options_provider::Option( const string& name, wOptionVal val )
+void options_provider::Option( const string& name, we_variant val )
 {
     wOptions::iterator it;
 
@@ -180,7 +180,7 @@ void options_provider::Option( const string& name, wOptionVal val )
         it->second.SetValue(val);
     }
     else {
-        wOption opt;
+        we_option opt;
         opt.name(name);
         opt.SetValue(val);
         options[name] = opt;
@@ -249,7 +249,7 @@ std::string options_provider::ToXml( void )
     string optList;
     int optCount;
     int optType;
-    wOption optVal;
+    we_option optVal;
     string strData;
     int    intData;
     unsigned int uintData;
@@ -263,7 +263,7 @@ std::string options_provider::ToXml( void )
 
     retval = "";
 
-    optCount = 0;
+/*    optCount = 0;
     optList = "";
     for (it = options.begin(); it != options.end(); it++) {
         strData = it->first;
@@ -325,7 +325,7 @@ std::string options_provider::ToXml( void )
         retval += "<options count='" + boost::lexical_cast<string>(optCount) + "'>\n";
         retval += optList;
         retval += "</options>\n";
-    }
+    }*/
     return retval;
 }
 

@@ -30,7 +30,7 @@ using namespace boost::filesystem;
 using namespace webEngine;
 
 #ifndef __DOXYGEN__
-static const wOption empty_option("_empty_");
+static const we_option empty_option("_empty_");
 #endif //__DOXYGEN_ _
 
 static string_list find_files ( path baseDir)
@@ -255,9 +255,9 @@ void engine_dispatcher::storage( const i_storage* store )
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::SetStorage - plugin: " << plg_storage->get_description());
     db_recordset res;
     db_record filter;
-    filter.Clear();
+/*    filter.Clear();
     filter.objectID = weObjTypeSysOption;
-    filter.Option(weoParentID, string("0"));
+    filter.Option(weoParentID, string("0"));*/
     plg_storage->get(filter, filter, res);
     /*i_options_provider::FromRS(&res);*/
 }
@@ -278,13 +278,13 @@ void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFact
     delete plg;
 }
 
-wOption engine_dispatcher::Option( const string& name )
+we_option& engine_dispatcher::Option( const string& name )
 {
     db_recordset res;
     db_record filter;
     db_record rec;
-    wOption retval;
-    wOption opt;
+    we_option retval;
+    we_option opt;
     string parentID = "0";
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ")");
@@ -292,7 +292,7 @@ wOption engine_dispatcher::Option( const string& name )
     retval = i_options_provider::empty_option;
 
     if (plg_storage != NULL) {
-        filter.Clear();
+/*        filter.Clear();
         filter.objectID = weObjTypeSysOption;
         filter.Option(weoParentID, parentID);
         filter.Option(weoName, name);
@@ -305,20 +305,20 @@ wOption engine_dispatcher::Option( const string& name )
                 retval = opt;
                 retval.name(name);
             }
-        }
+        }*/
     }
 
     return retval;
 }
 
-void engine_dispatcher::Option( const string& name, wOptionVal val )
+void engine_dispatcher::Option( const string& name, we_variant val )
 {
     string strData;
     db_record rec;
     db_record flt;
     string parentID = "0";
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") set value=" << val);
+/*    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") set value=" << val);
     if (plg_storage != NULL) {
         rec.objectID = weObjTypeSysOption;
         rec.Option(weoName, name);
@@ -336,7 +336,7 @@ void engine_dispatcher::Option( const string& name, wOptionVal val )
         rec.Option(weoID, strData);
         flt.Option(weoID, strData);
         plg_storage->set(flt, rec);
-    }
+    }*/
 }
 
 bool webEngine::engine_dispatcher::IsSet( const string& name )
@@ -345,12 +345,12 @@ bool webEngine::engine_dispatcher::IsSet( const string& name )
     db_recordset res;
     db_record filter;
     db_record rec;
-    wOption opt;
+    we_option opt;
     string parentID = "0";
 
     retval = false;
     if (plg_storage != NULL) {
-        filter.Clear();
+/*        filter.Clear();
         filter.objectID = weObjTypeSysOption;
         filter.Option(weoParentID, parentID);
         filter.Option(weoName, name);
@@ -369,7 +369,7 @@ bool webEngine::engine_dispatcher::IsSet( const string& name )
                     retval = false;
                 }
             }
-        }
+        }*/
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") value=" << retval);
     return retval;
@@ -381,10 +381,10 @@ void webEngine::engine_dispatcher::Erase( const string& name )
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        filter.Clear();
+/*        filter.Clear();
         filter.objectID = weObjTypeSysOption;
         filter.Option(weoParentID, parentID);
-        filter.Option(weoName, name);
+        filter.Option(weoName, name);*/
         plg_storage->del(filter);
     }
 }
@@ -406,12 +406,12 @@ webEngine::string_list webEngine::engine_dispatcher::OptionsList()
     db_recordset res;
     db_record filter;
     db_record rec;
-    wOption opt;
+    we_option opt;
     string name;
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        filter.Clear();
+/*        filter.Clear();
         filter.objectID = weObjTypeSysOption;
         filter.Option(weoParentID, parentID);
         plg_storage->get(filter, filter, res);
@@ -422,7 +422,7 @@ webEngine::string_list webEngine::engine_dispatcher::OptionsList()
             if (name != "") {
                 retval.push_back(name);
             } // if name present
-        } // result loop
+        } // result loop*/
     } // if plg_storage != NULL
 
     return retval;
@@ -436,11 +436,11 @@ size_t webEngine::engine_dispatcher::OptionSize()
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        filter.Clear();
+/*        filter.Clear();
         filter.objectID = weObjTypeSysOption;
         filter.Option(weoParentID, parentID);
         plg_storage->get(filter, filter, res);
-        retval = res.size();
+        retval = res.size();*/
     }
     return 0;
 }
