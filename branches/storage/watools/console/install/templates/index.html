@@ -1,0 +1,21 @@
+<html>
+<head>
+    <title>Web "A" Tools Instalation</title>
+</head>
+<body>
+    <h1>Welcome</h1>
+    <div>This wizard will guide you throug the instalation process.</div>
+    <form action="stage1.php" method="POST">
+        <table border="0">
+            <tr>
+                <td>Select preffered language </td>
+                <td><select name="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td><input type="submit" value="Next >"></td>
+            </tr>
+        </table>
+    </form>
+</body>
+</html>

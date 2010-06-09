@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="task" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="Debug\bin\task" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug\obj\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add directory="..\..\libs\debug" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="Release\bin\task" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release\obj\" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add directory="..\..\libs\release" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="/W3" />
+			<Add option="/EHsc" />
+			<Add directory="..\..\include" />
+		</Compiler>
+		<Linker>
+			<Add library="libwebEngine.a" />
+		</Linker>
+		<Unit filename="task.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

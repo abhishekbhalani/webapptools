@@ -1,0 +1,46 @@
+<html>
+<head>
+    <title>Web "A" Tools Instalation</title>
+    <script type="text/javascript" src="stage1.js"></script>
+    <style type="text/css">
+    .error {
+        color: #ff0000;
+        font-weight: bold;
+        display: none;
+    }
+    </style>
+</head>
+<body>
+    <h1>Step 1. Database connection.</h1>
+    <p>Set up database connection for this server</p>
+    <form action="stage2.php" method="POST" onsubmit="return doStage1();">
+        <table border="0"><tr><td>
+        <fieldset width="0">
+            <legend><b>REDIS DB configuration</b></legend>
+            <table border="0">
+                <tr><td>Host:</td><td><input type="text" name="redis_host" value="127.0.0.1"></td></tr>
+                <tr><td>Port:</td><td><input type="text" name="redis_port" value="6379"></td></tr>
+                <tr><td>Authentication:</td><td><input id="redis_pass" type="password" name="redis_pass" value=""></td></tr>
+                <tr><td>Database:</td><td><input type="text" name="redis_db" value="0"></td></tr>
+                <tr><td>Clear DB:</td><td><input type="checkbox" name="redis_clear" id="redis_clear" value="0">
+                                            <label for="redis_clear">Yes</label></td></tr>
+            </table>
+        </fieldset>
+        <br/>
+        <div id="checkResults" style="display:none">
+            <fieldset width="0">
+                <legend><b>Configuration errors</b></legend>
+                <ul>
+                <li id="srv" class="error">Server host must not be empty!</li>
+                <li id="port" class="error">Server port is not valid!</li>
+                <li id="dbnum" class="error">Database number is not valid!</li>
+                <li id="redis" class="error">Redis error: <span id="redis_err"></span>!</li>
+                </ul>
+            </fieldset>
+            <br/>
+        </div>
+        <input type="submit" value="Next >"></td>
+        </td></tr></table>
+    </form>
+</body>
+</html>
