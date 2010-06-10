@@ -66,12 +66,102 @@ db_recordset::db_recordset(void)
 
 }
 
+db_recordset::db_recordset(vector<string> fld_names)
+{
+    field_names.assign(fld_names.begin(), fld_names.end());
+}
+
+db_recordset::db_recordset(db_record& rec)
+{
+    records.push_back(rec);
+}
+
 db_recordset::~db_recordset(void)
 {
 
 }
 
-const size_t db_recordset::size(void)
+void db_recordset::erase(db_cursor& at)
 {
-    return records.size();
+    records.erase(static_cast< vector<db_record>::iterator >(at));
+}
+
+void db_recordset::push_back(db_record& rec)
+{
+    // @todo Verify data types
+    records.push_back(rec);
+}
+
+void db_recordset::insert(db_cursor& before, db_record& rec)
+{
+    records.insert(before, rec);
+}
+
+db_cursor db_recordset::begin()
+{
+    return db_cursor(this, records.begin());
+}
+
+db_cursor db_recordset::end()
+{
+    return db_cursor(this, records.end());
+}
+
+db_cursor::db_cursor( db_recordset* rs, vector<db_record>::iterator it )
+{
+    parent = rs;
+
+    if (parent != NULL) {
+        vector<db_record>::iterator::operator=(it);
+    }
+}
+
+db_cursor::db_cursor( const db_cursor& cp )
+{
+    parent = cp.parent;
+    vector<db_record>::iterator::operator=(static_cast< vector<db_record>::iterator >(cp));
+}
+
+db_cursor& db_cursor::operator=( const db_cursor& cp )
+{
+    parent = cp.parent;
+    vector<db_record>::iterator::operator=(static_cast< vector<db_record>::iterator >(cp));
+    return *this;
+}
+
+we_variant& db_cursor::operator[]( string name )
+{
+    int index = 0;
+
+    if (parent == NULL) {
+        // throw exception
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    vector<string>::iterator fn_it;
+    for (fn_it = parent->field_names.begin(); fn_it != parent->field_names.end(); fn_it++) {
+        if (*fn_it == name) {
+            break;
+        }
+        index++;
+    }
+    if (fn_it == parent->field_names.end())
+    {
+        // throw exception
+        throw_exception(out_of_range("cursor not dereferencable: field name found"));
+    }
+    if (static_cast< vector<db_record>::iterator >(*this) == parent->records.end()) {
+        throw_exception(out_of_range("cursor not dereferencable"));
+    }
+    return (*operator->())[index];
+}
+
+we_variant& db_cursor::operator[]( int index )
+{
+    if (parent == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    if (static_cast< vector<db_record>::iterator >(*this) == parent->records.end()) {
+        throw_exception(out_of_range("cursor not dereferencable"));
+    }
+    return (*operator->())[index];
 }

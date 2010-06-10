@@ -42,7 +42,7 @@ public:
     db_record(size_t sz) : vector< we_variant>() { reserve(sz); }
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/*///////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  db_fw_cursor
 ///
 /// @brief  Provide forward-only, read-only access to records and fields in the recordset.
@@ -84,10 +84,6 @@ public:
     db_cursor(const db_cursor& c);
     ~db_cursor();
 
-    // access to current record fields 
-    we_variant& operator[](string name);
-    we_variant& operator[](int index);
-
     // move cursor thought recordset
     db_cursor& operator++();
     db_cursor& operator++(int);
@@ -106,6 +102,19 @@ public:
     bool operator<(const db_cursor& other) const;
 
 protected:
+};*/
+class db_cursor : public vector<db_record>::iterator {
+public:
+    db_cursor() : vector<db_record>::iterator(), parent(NULL) {}
+    db_cursor(const db_cursor& cp);
+    explicit db_cursor(db_recordset* rs, vector<db_record>::iterator it);
+
+    db_cursor& operator=(const db_cursor& cp);
+    // access to current record fields 
+    we_variant& operator[](string name);
+    we_variant& operator[](int index);
+protected:
+    db_recordset* parent;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,6 +128,8 @@ protected:
 class db_recordset : public boost::noncopyable
 {
 public:
+
+public:
     db_recordset();
     explicit db_recordset(vector<string> fld_names);
     explicit db_recordset(db_record& rec);
@@ -128,11 +139,13 @@ public:
     void push_back(db_record& rec);
     void insert(db_cursor& before, db_record& rec);
 
-    const size_t size();
+    const size_t size() { return records.size(); }
     db_cursor begin();
     db_cursor end();
 
 protected:
+    friend class db_cursor;
+
     vector<string> field_names;
     vector<db_record> records;
 };

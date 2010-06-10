@@ -112,7 +112,7 @@ int null_storage::del(db_record& filter)
 //////////////////////////////////////////////////////////////////////////
 engine_dispatcher::engine_dispatcher(void)
 {
-    plg_storage = new null_storage(this);
+    //plg_storage = new null_storage(this);
     plg_list.clear();
 }
 
@@ -137,8 +137,8 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
 
     plg_list.clear();
 
-    mem_storage memStore(this);
-    plg_list.push_back(*(plugin_info*)memStore.info());
+//     mem_storage memStore(this);
+//     plg_list.push_back(*(plugin_info*)memStore.info());
     http_transport httpTrans(this);
     plg_list.push_back(*(plugin_info*)httpTrans.info());
     HttpInventory httpInvent(this);
@@ -250,15 +250,15 @@ void engine_dispatcher::storage( const i_storage* store )
     plg_storage = (i_storage*)store;
     if (plg_storage == NULL)
     {
-        plg_storage = new null_storage(this);
+        plg_storage = NULL; //new null_storage(this);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::SetStorage - plugin: " << plg_storage->get_description());
     db_recordset res;
     db_record filter;
 /*    filter.Clear();
     filter.objectID = weObjTypeSysOption;
-    filter.Option(weoParentID, string("0"));*/
-    plg_storage->get(filter, filter, res);
+    filter.Option(weoParentID, string("0"));
+    plg_storage->get(filter, filter, res);*/
     /*i_options_provider::FromRS(&res);*/
 }
 
@@ -384,8 +384,8 @@ void webEngine::engine_dispatcher::Erase( const string& name )
 /*        filter.Clear();
         filter.objectID = weObjTypeSysOption;
         filter.Option(weoParentID, parentID);
-        filter.Option(weoName, name);*/
-        plg_storage->del(filter);
+        filter.Option(weoName, name);
+        plg_storage->del(filter);*/
     }
 }
 
@@ -486,12 +486,12 @@ void engine_dispatcher::flush()
 //////////////////////////////////////////////////////////////////////////
 static void* create_null_storage(void* krnl, void* handle = NULL)
 {
-    return (void*) (new null_storage((engine_dispatcher*)krnl, handle));
+    return NULL; //(void*) (new null_storage((engine_dispatcher*)krnl, handle));
 }
 
 static void* create_mem_storage(void* krnl, void* handle = NULL)
 {
-    return (void*) (new mem_storage((engine_dispatcher*)krnl, handle));
+    return NULL; //(void*) (new mem_storage((engine_dispatcher*)krnl, handle));
 }
 
 static void* create_http_transport(void* krnl, void* handle = NULL)
