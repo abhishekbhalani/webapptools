@@ -262,6 +262,9 @@ bool db_condition::eval( db_cursor& data )
         case db_condition::equal:
             result = (test_value == val);
             break;
+        case db_condition::not_equal:
+            result = !(test_value == val);
+            break;
         case db_condition::less:
             result = (val < test_value);
             break;
@@ -291,4 +294,54 @@ bool db_condition::eval( db_cursor& data )
             break;
     }
     return result;
+}
+
+string db_condition::tostring( )
+{
+	string res, op, val;
+
+	res = field_name;
+	op = "";
+	val = "";
+    switch(op_code) {
+        case db_condition::equal:
+            op = " == ";
+			val = boost::lexical_cast<string>(test_value);
+            break;
+        case db_condition::not_equal:
+            op = " != ";
+			val = boost::lexical_cast<string>(test_value);
+            break;
+        case db_condition::less:
+            op = " < ";
+			val = boost::lexical_cast<string>(test_value);
+            break;
+        case db_condition::great:
+            op = " > ";
+			val = boost::lexical_cast<string>(test_value);
+            break;
+        case db_condition::less_or_equal:
+            op = " <= ";
+			val = boost::lexical_cast<string>(test_value);
+            break;
+        case db_condition::great_or_equal:
+            op = " >= ";
+			val = boost::lexical_cast<string>(test_value);
+            break;
+        case db_condition::like:
+            op = " like ";
+			val = boost::lexical_cast<string>(test_value);
+            break;
+        case db_condition::is_null:
+            op = " is_null";
+			val = "";
+            break;
+        case db_condition::not_null:
+            op = " not_null";
+			val = "";
+            break;
+    }
+	res += op;
+	res += val;
+	return res;
 }

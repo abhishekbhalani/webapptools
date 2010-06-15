@@ -188,6 +188,7 @@ public:
     ~db_filter_base() {}
 
     virtual bool eval(db_cursor& data) = 0;
+	virtual string tostring() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,6 +204,7 @@ class db_condition : public db_filter_base
 public:
     typedef enum {
         equal,
+		not_equal,
         less,
         great,
         less_or_equal,
@@ -223,6 +225,7 @@ public:
     we_variant& value() { return test_value; }
 
     virtual bool eval(db_cursor& data);
+	virtual string tostring();
 
 protected:
     string field_name;
@@ -255,6 +258,7 @@ public:
     db_filter& and(db_filter& cond);
 
     virtual bool eval(db_cursor& data);
+	virtual string tostring();
 
 protected:
     typedef enum {

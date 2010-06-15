@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     cond.operation() = db_condition::equal;
     cond.value() = 1;
     cursor = rs.begin();
-    cout << "Condition: id == 1" << endl;
+    cout << "Condition: " << cond.tostring() << endl;
     for (r = 0; r < rs.size(); r++)
     {
         try{
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     cond.operation() = db_condition::great;
     cond.value() = 2.3;
     cursor = rs.begin();
-    cout << "Condition: value > 2.3" << endl;
+    cout << "Condition: " << cond.tostring() << endl;
     for (r = 0; r < rs.size(); r++)
     {
         try{
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     cond.operation() = db_condition::like;
     cond.value() = string("es");
     cursor = rs.begin();
-    cout << "Condition: name like es" << endl;
+    cout << "Condition: " << cond.tostring() << endl;
     for (r = 0; r < rs.size(); r++)
     {
         try{
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
     cond.field() = "value";
     cond.operation() = db_condition::is_null;
     cursor = rs.begin();
-    cout << "Condition: value is_null" << endl;
+	cout << "Condition: " << cond.tostring() << endl;
     for (r = 0; r < rs.size(); r++)
     {
         try{
