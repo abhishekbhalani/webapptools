@@ -86,15 +86,59 @@ void db_recordset::erase(db_cursor& at)
     records.erase(static_cast< vector<db_record>::iterator >(at));
 }
 
-void db_recordset::push_back(db_record& rec)
+db_cursor db_recordset::push_back(db_record& rec)
 {
     // @todo Verify data types
+    size_t sz = records.size();
+
+    rec.resize(field_names.size());
     records.push_back(rec);
+
+    // get the iterator points to the first added element
+    vector<db_record>::iterator it = records.begin();
+    return db_cursor(this, it + sz);
 }
 
-void db_recordset::insert(db_cursor& before, db_record& rec)
+db_cursor db_recordset::push_back(size_t num/* = 1*/)
 {
+    // @todo Verify data types
+    size_t sz = records.size();
+
+    if (num > 0) {
+        db_record rec;
+        rec.resize(field_names.size());
+        records.insert(records.end(), num, rec);
+    }
+    else {
+        // to point to last element
+        sz--;
+    }
+
+    // get the iterator points to the last element
+    vector<db_record>::iterator it = records.begin();
+    return db_cursor(this, it + sz);
+}
+
+db_cursor db_recordset::insert(db_cursor& before, size_t num/* = 1*/)
+{
+    size_t off = records.size() == 0 ? 0 : before - records.begin();
+
+    if (num > 0) {
+        db_record rec;
+        rec.resize(field_names.size());
+        records.insert(before, num, rec);
+    }
+    return db_cursor(this, records.begin() + off);
+}
+
+db_cursor db_recordset::insert(db_cursor& before, db_record& rec)
+{
+    size_t off = records.size() == 0 ? 0 : before - records.begin();
+
+    rec.resize(field_names.size());
     records.insert(before, rec);
+
+    return db_cursor(this, records.begin() + off);
 }
 
 db_cursor db_recordset::begin()
@@ -164,4 +208,87 @@ we_variant& db_cursor::operator[]( int index )
         throw_exception(out_of_range("cursor not dereferencable"));
     }
     return (*operator->())[index];
+}
+
+const size_t db_cursor::record_size()
+{
+    if (parent == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    return parent->record_size();
+}
+
+db_condition::db_condition()
+{
+    field_name = "";
+    op_code = db_condition::equal;
+    test_value.clear();
+}
+
+db_condition::db_condition( const db_condition& c )
+{
+    field_name = c.field_name;
+    op_code = c.op_code;
+    test_value = c.test_value;
+}
+
+db_condition::db_condition( string s )
+{
+    // @todo parse string
+}
+
+db_condition& db_condition::operator=( db_condition& c )
+{
+    field_name = c.field_name;
+    op_code = c.op_code;
+    test_value = c.test_value;
+
+    return *this;
+}
+
+bool db_condition::eval( db_cursor& data )
+{
+    bool result = false;
+    we_variant val;
+    string s_t, s_a;
+    size_t pos;
+
+    val = data[field_name];
+    if (val.which() != test_value.which() && 
+        (op_code != db_condition::is_null && op_code != db_condition::not_null)) {
+        throw_exception(bad_cast("db_condition::eval - arguments are not same types"));
+    }
+    switch(op_code) {
+        case db_condition::equal:
+            result = (test_value == val);
+            break;
+        case db_condition::less:
+            result = (val < test_value);
+            break;
+        case db_condition::great:
+            result = (val > test_value);
+            break;
+        case db_condition::less_or_equal:
+            result = (val <= test_value);
+            break;
+        case db_condition::great_or_equal:
+            result = (val <= test_value);
+            break;
+        case db_condition::like:
+            if (val.type() != typeid(string) || test_value.type() != typeid(string)) {
+                throw_exception(bad_cast("db_condition::eval::like - not a string values"));
+            }
+            s_t = boost::get<string>(test_value);
+            s_a = boost::get<string>(val);
+            pos = s_a.find(s_t);
+            result = (pos != string::npos);
+            break;
+        case db_condition::is_null:
+            result = val.empty();
+            break;
+        case db_condition::not_null:
+            result = !val.empty();
+            break;
+    }
+    return result;
 }

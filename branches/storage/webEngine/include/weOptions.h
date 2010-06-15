@@ -50,6 +50,10 @@ namespace webEngine {
 
         bool operator==(const we_variant &rhl) const {return we_types::operator==(*(static_cast<const we_types*>(&rhl))); }
         template<typename U> void operator==(const U &rhl) const  {}
+        bool operator<(const we_variant &rhl) const;
+        bool operator>(const we_variant &rhl) const;
+        bool operator<=(const we_variant &rhl) const;
+        bool operator>=(const we_variant &rhl) const;
 
         const bool empty() { return which() == 9; }
         void clear() { we_types::operator=(boost::blank()); }

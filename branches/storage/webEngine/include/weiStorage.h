@@ -27,6 +27,9 @@
 
 namespace webEngine {
 
+class db_cursor;
+class db_recordset;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  db_record
 ///
@@ -35,11 +38,24 @@ namespace webEngine {
 /// @author A. Abramov
 /// @date	09.06.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class db_record : public vector< we_variant >
+class db_record : protected vector< we_variant >
 {
 public:
     db_record() : vector< we_variant>() {}
     db_record(size_t sz) : vector< we_variant>() { reserve(sz); }
+
+protected:
+    friend class db_cursor;
+    friend class db_recordset;
+
+/*    void resize(size_t num) { vector< we_variant >::resize(num); }
+    void resize(size_t num, we_variant val) { vector< we_variant >::resize(num, val); }
+    vector< we_variant >::iterator begin() { return vector< we_variant >::begin(); }
+    vector< we_variant >::iterator end() { return vector< we_variant >::end(); }
+    vector< we_variant >::reverse_iterator rbegin() { return vector< we_variant >::rbegin(); }
+    vector< we_variant >::reverse_iterator rend() { return vector< we_variant >::rend(); }
+    we_variant& operator[](int n) { return vector< we_variant >::operator[](n); }
+    void push_back(we_variant val) { vector< we_variant >::push_back(val); }*/
 };
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +129,9 @@ public:
     // access to current record fields 
     we_variant& operator[](string name);
     we_variant& operator[](int index);
+
+    const size_t record_size();
+
 protected:
     db_recordset* parent;
 };
@@ -136,18 +155,39 @@ public:
     ~db_recordset();
 
     void erase(db_cursor& at);
-    void push_back(db_record& rec);
-    void insert(db_cursor& before, db_record& rec);
+    db_cursor push_back(size_t num = 1);
+    db_cursor insert(db_cursor& before, size_t num = 1);
 
     const size_t size() { return records.size(); }
+    const size_t record_size() { return field_names.size(); }
     db_cursor begin();
     db_cursor end();
 
 protected:
     friend class db_cursor;
 
+    db_cursor push_back(db_record& rec);
+    db_cursor insert(db_cursor& before, db_record& rec);
+
     vector<string> field_names;
     vector<db_record> records;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  db_filter_base
+///
+/// @brief  Abstract base class to construct logical queries.
+///
+/// @author A. Abramov
+/// @date	15.06.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class db_filter_base
+{
+public:
+    db_filter_base() {}
+    ~db_filter_base() {}
+
+    virtual bool eval(db_cursor& data) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,21 +198,35 @@ protected:
 /// @author A. Abramov
 /// @date	09.06.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class db_condition
+class db_condition : public db_filter_base
 {
 public:
-    db_condition() {}
-    db_condition(string s) {}
-    db_condition(const db_condition& c) {}
+    typedef enum {
+        equal,
+        less,
+        great,
+        less_or_equal,
+        great_or_equal,
+        like,
+        is_null,
+        not_null
+    } opcode;
+    db_condition();
+    db_condition(const db_condition& c);
+    explicit db_condition(string s);
     ~db_condition() {}
 
+    db_condition& operator=(db_condition& c);
+
     string& field() { return field_name; }
-    string& operation() { return op_code; }
+    opcode& operation() { return op_code; }
     we_variant& value() { return test_value; }
+
+    virtual bool eval(db_cursor& data);
 
 protected:
     string field_name;
-    string op_code;
+    opcode op_code;
     we_variant test_value;
 };
 
@@ -184,12 +238,14 @@ protected:
 /// @author A. Abramov
 /// @date	09.06.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class db_filter
+class db_filter : public db_filter_base
 {
 public:
     db_filter() {}
-    db_filter(const db_filter& c) {}
+    explicit db_filter(const db_filter& filt);
     explicit db_filter(const db_condition& cond);
+
+    db_filter& operator=(const db_filter& cpy);
 
     db_filter& set(db_condition& cond);
     db_filter& set(db_filter& cond);
@@ -197,6 +253,19 @@ public:
     db_filter& or(db_filter& cond);
     db_filter& and(db_condition& cond);
     db_filter& and(db_filter& cond);
+
+    virtual bool eval(db_cursor& data);
+
+protected:
+    typedef enum {
+        link_null,
+        link_or,
+        link_and,
+        link_not
+    } link_code;
+    typedef pair<link_code, db_filter_base*> element;
+
+    vector< element > condition;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
