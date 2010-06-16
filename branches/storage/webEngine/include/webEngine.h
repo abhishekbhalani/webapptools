@@ -23,9 +23,9 @@
 
 #define WE_VERSION_MAJOR        0
 #define WE_VERSION_MINOR        1
-#define WE_VERSION_BUILDNO      100
-#define WE_VERSION_EXTEND       773
+#define WE_VERSION_BUILDNO      101
+#define WE_VERSION_EXTEND       796
 
-#define WE_VERSION_PRODUCTSTR   "0,1,100,773"
+#define WE_VERSION_PRODUCTSTR   "0,1,100,796"
 
 #endif //__WEBENGINE_H__

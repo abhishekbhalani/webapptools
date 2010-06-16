@@ -57,103 +57,81 @@ options_provider::~options_provider()
 
 db_recordset* options_provider::ToRS( const string& parentID/* = ""*/ )
 {
-    db_recordset* res = new db_recordset;
-/*    db_record* rec;
+    db_recordset* res;
+    vector<string> fnames;
+    db_cursor rec;
     wOptions::iterator it;
     we_variant optVal;
     string strData;
 
+    fnames.push_back(weObjTypeProfile "." weoParentID);
+    fnames.push_back(weObjTypeProfile "." weoName);
+    fnames.push_back(weObjTypeProfile "." weoTypeID);
+    fnames.push_back(weObjTypeProfile "." weoValue);
+    res = new db_recordset(fnames);
     for (it = options.begin(); it != options.end(); it++) {
         strData = it->first;
         optVal = it->second.Value();
-        rec = new db_record;
-       rec->objectID = weObjTypeSysOption;
-        rec->Option(weoName, strData);
-        rec->Option(weoParentID, parentID);
-        rec->Option(weoTypeID, it->second.Which());
-        rec->Option(weoValue, optVal);
-        strData += parentID;
-        strData += boost::lexical_cast<string>(it->second.Which());
-        boost::hash<string> strHash;
-        size_t hs = strHash(strData);
-        strData = boost::lexical_cast<string>(hs);
-        rec->Option(weoID, strData);
-        res->push_back(*rec);
-    }*/
+        rec = res->push_back();
+        rec[0] = parentID;
+        rec[1] = strData;
+        rec[2] = optVal.which();
+        rec[3] = optVal;
+    }
 
     return res;
 }
 
 void options_provider::FromRS( db_recordset *rs )
 {
-/*    db_record rec;
+    db_cursor rec;
     size_t r;
     int tp;
     we_variant optVal;
-    we_option opt;
-    string sName, strData;
+    string sName, s;
     char c;
-    unsigned char uc;
     int i;
-    unsigned int ui;
-    long l;
-    unsigned long ul;
     bool b;
     double d;
+    boost::blank empt;
 
-    for (r = 0; r < rs->size(); r++)
-    {
-        rec = (*rs)[r];
-        if (rec.objectID == weObjTypeSysOption) {
-            opt = rec.Option(weoName);
-            SAFE_GET_OPTION_VAL(opt, sName, "");
-            // type doesn't matter here
-            opt = rec.Option(weoTypeID);
-            SAFE_GET_OPTION_VAL(opt, strData, "8");
-            tp = boost::lexical_cast<int>(strData);
-            opt = rec.Option(weoValue);
-            strData = boost::lexical_cast<string>(opt.Value());
+    rec = rs->begin();
+    try {
+        for (r = 0; r < rs->size(); r++)
+        {
+            sName = boost::get<string>(rec[weObjTypeProfile "." weoName]);
+            tp = boost::get<int>(rec[weObjTypeProfile "." weoTypeID]);
             switch(tp)
             {
-            case 0:
-                c = boost::lexical_cast<char>(strData);
+            case 0: // char
+                c = boost::get<char>(rec[weObjTypeProfile "." weoValue]);
                 Option(sName, c);
-            	break;
-            case 1:
-                uc = boost::lexical_cast<unsigned char>(strData);
-                Option(sName, uc);
-            	break;
-            case 2:
-                i = boost::lexical_cast<int>(strData);
+                break;
+            case 1: // int
+                i = boost::get<int>(rec[weObjTypeProfile "." weoValue]);
                 Option(sName, i);
                 break;
-            case 3:
-                ui = boost::lexical_cast<unsigned int>(strData);
-                Option(sName, ui);
-                break;
-            case 4:
-                l = boost::lexical_cast<long>(strData);
-                Option(sName, l);
-            	break;
-            case 5:
-                ul = boost::lexical_cast<unsigned long>(strData);
-                Option(sName, ul);
-            	break;
-            case 6:
-                b = boost::lexical_cast<bool>(strData);
+            case 2: // bool
+                b = boost::get<bool>(rec[weObjTypeProfile "." weoValue]);
                 Option(sName, b);
                 break;
-            case 7:
-                d = boost::lexical_cast<double>(strData);
-                Option(sName, d);
+            case 3: // double
+                d = boost::get<double>(rec[weObjTypeProfile "." weoValue]);
+                Option(sName, b);
                 break;
-            case 8:
+            case 4: // string
+                s = boost::get<string>(rec[weObjTypeProfile "." weoValue]);
+                Option(sName, b);
+                break;
             default:
-                Option(sName, strData);
-                break;
+                Option(sName, empt);
             }
-        }
-    }*/
+            rec++; // next record
+        } // foreach records
+    }
+    catch(exception &e) {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "options_provider::FromRS exception - " << e.what());
+    }
 }
 
 we_option& options_provider::Option( const string& name )
@@ -251,69 +229,20 @@ std::string options_provider::ToXml( void )
     int optType;
     we_option optVal;
     string strData;
-    int    intData;
-    unsigned int uintData;
-    char   chData;
-    unsigned char uchData;
-    long    longData;
-    unsigned long ulongData;
-    bool    boolData;
-    double  doubleData;
     wOptions::iterator it;
 
     retval = "";
 
-/*    optCount = 0;
+    optCount = 0;
     optList = "";
     for (it = options.begin(); it != options.end(); it++) {
         strData = it->first;
-        optType = it->second.Which();
-        try
-        {
-            switch(optType)
-            {
-            case 0:
-                it->second.GetValue(chData);
-                strData = boost::lexical_cast<string>(chData); 
-                break;
-            case 1:
-                it->second.GetValue(uchData);
-                strData = boost::lexical_cast<string>(uchData); 
-                break;
-            case 2:
-                it->second.GetValue(intData);
-                strData = boost::lexical_cast<string>(intData); 
-                break;
-            case 3:
-                it->second.GetValue(uintData);
-                strData = boost::lexical_cast<string>(uintData); 
-                break;
-            case 4:
-                it->second.GetValue(longData);
-                strData = boost::lexical_cast<string>(longData); 
-                break;
-            case 5:
-                it->second.GetValue(ulongData);
-                strData = boost::lexical_cast<string>(ulongData); 
-                break;
-            case 6:
-                it->second.GetValue(boolData);
-                strData = boost::lexical_cast<string>(boolData); 
-                break;
-            case 7:
-                it->second.GetValue(doubleData);
-                strData = boost::lexical_cast<string>(doubleData); 
-                break;
-            case 8:
-                it->second.GetValue(strData);
-                break;
-            default:
-                //optVal = *(it->second);
-                strData = "";
-            }
+        optType = it->second.Value().which();
+        try {
+            strData = boost::lexical_cast<string>(it->second.Value());
         }
-        catch (...)
-        {
+        catch (bad_cast &e) {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "options_provider::ToXml exception - " << e.what());
             strData = "";
         }
         optCount++;
@@ -325,7 +254,7 @@ std::string options_provider::ToXml( void )
         retval += "<options count='" + boost::lexical_cast<string>(optCount) + "'>\n";
         retval += optList;
         retval += "</options>\n";
-    }*/
+    }
     return retval;
 }
 
@@ -369,13 +298,10 @@ void options_provider::FromXml( tag_scanner& sc, int token /*= -1*/ )
     int optType;
     string strData;
     int    intData;
-    unsigned int uintData;
     char   chData;
-    unsigned char uchData;
-    long    longData;
-    unsigned long ulongData;
-    bool    boolData;
-    double  doubleData;
+    bool   boolData;
+    double doubleData;
+    boost::blank empt;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::FromXml - tag_scanner");
     while (inParsing)
@@ -481,6 +407,7 @@ void options_provider::FromXml( tag_scanner& sc, int token /*= -1*/ )
                         Option(optName, dat);
                         break;
                     default:
+                        Option(optName, empt);
                         break;
                     }
                     parseLevel = 1;
