@@ -78,7 +78,9 @@ int main(int argc, char* argv[])
     rec = rs.insert(cursor, 2);
     rec["id"] = 3;
     rec["name"] = string("news");
-    rec[2] = 2.17;   
+    rec[2] = 2.17;
+    rec++;
+    rec["id"] = 4;
 
     cursor = rs.begin();
     cout << "After second insert:" << endl << "Size: " << rs.size() << endl;
@@ -155,6 +157,40 @@ int main(int argc, char* argv[])
     {
         try{
             cout << "Record " << r << " condition is " << cond.eval(cursor) << endl;
+        }
+        catch (bad_cast &e) {
+            cout << "Record " << r << " can't compare: " << e.what() << endl;
+        }
+        cursor++;
+    }
+
+    // construct filters
+    db_condition c1("id > 2");
+    db_condition c2("value > 3.0");
+    db_filter filter;
+
+    filter.set(db_condition("name like es")).or(c1);
+    cursor = rs.begin();
+    cout << "Filter: " << filter.tostring() << endl;
+    for (r = 0; r < rs.size(); r++)
+    {
+        try{
+            cout << "Record " << r << " condition is " << filter.eval(cursor) << endl;
+        }
+        catch (bad_cast &e) {
+            cout << "Record " << r << " can't compare: " << e.what() << endl;
+        }
+        cursor++;
+    }
+
+    db_filter filter2;
+    filter2.set(cond).and(filter);
+    cursor = rs.begin();
+    cout << "Filter: " << filter2.tostring() << endl;
+    for (r = 0; r < rs.size(); r++)
+    {
+        try{
+            cout << "Record " << r << " condition is " << filter2.eval(cursor) << endl;
         }
         catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;

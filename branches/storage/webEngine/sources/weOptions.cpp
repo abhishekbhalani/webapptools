@@ -466,34 +466,18 @@ void options_provider::FromXml( tag_scanner& sc, int token /*= -1*/ )
                         Option(optName, chData);
                         break;
                     case 1:
-                        uchData = boost::lexical_cast<unsigned char>(dat);
-                        Option(optName, uchData);
-                        break;
-                    case 2:
                         intData = boost::lexical_cast<int>(dat);
                         Option(optName, intData);
                         break;
-                    case 3:
-                        uintData = boost::lexical_cast<unsigned int>(dat);
-                        Option(optName, uintData);
-                        break;
-                    case 4:
-                        longData = boost::lexical_cast<long>(dat);
-                        Option(optName, longData);
-                        break;
-                    case 5:
-                        ulongData = boost::lexical_cast<unsigned long>(dat);
-                        Option(optName, ulongData);
-                        break;
-                    case 6:
+                    case 2:
                         boolData = boost::lexical_cast<bool>(dat);
                         Option(optName, boolData);
                         break;
-                    case 7:
+                    case 3:
                         doubleData = boost::lexical_cast<double>(dat);
                         Option(optName, doubleData);
                         break;
-                    case 8:
+                    case 4:
                         Option(optName, dat);
                         break;
                     default:
@@ -537,11 +521,7 @@ bool we_variant::operator<( const we_variant &rhl ) const
 {
     bool result = false;
     double c_t, c_a;
-    double uc_t, uc_a;
     double i_t, i_a;
-    double ui_t, ui_a;
-    double l_t, l_a;
-    double ul_t, ul_a;
     double b_t, b_a;
     double d_t, d_a;
     string s_t, s_a;
@@ -552,42 +532,22 @@ bool we_variant::operator<( const we_variant &rhl ) const
         c_a = boost::get<char>(rhl);
         result = (c_t < c_a);
         break;
-    case 1: // unsigned char
-        uc_t = boost::get<unsigned char>(*this);
-        uc_a = boost::get<unsigned char>(rhl);
-        result = (uc_t < uc_a);
-        break;
-    case 2: // int
+    case 1: // int
         i_t = boost::get<int>(*this);
         i_a = boost::get<int>(rhl);
         result = (i_t < i_a);
         break;
-    case 3: // unsigned int
-        ui_t = boost::get<unsigned int>(*this);
-        ui_a = boost::get<unsigned int>(rhl);
-        result = (ui_t < ui_a);
-        break;
-    case 4: // long
-        l_t = boost::get<long>(*this);
-        l_a = boost::get<long>(rhl);
-        result = (l_t < l_a);
-        break;
-    case 5: // unsigned long
-        ul_t = boost::get<unsigned long>(*this);
-        ul_a = boost::get<unsigned long>(rhl);
-        result = (ul_t < ul_a);
-        break;
-    case 6: // bool
+    case 2: // bool
         b_t = boost::get<bool>(*this);
         b_a = boost::get<bool>(rhl);
         result = (b_t < b_a);
         break;
-    case 7: // double
+    case 3: // double
         d_t = boost::get<double>(*this);
         d_a = boost::get<double>(rhl);
         result = (d_t < d_a);
         break;
-    case 8: // string
+    case 4: // string
         s_t = boost::get<string>(*this);
         s_a = boost::get<string>(rhl);
         result = (s_t < s_a);
@@ -602,11 +562,7 @@ bool we_variant::operator>( const we_variant &rhl ) const
 {
     bool result = false;
     double c_t, c_a;
-    double uc_t, uc_a;
     double i_t, i_a;
-    double ui_t, ui_a;
-    double l_t, l_a;
-    double ul_t, ul_a;
     double b_t, b_a;
     double d_t, d_a;
     string s_t, s_a;
@@ -617,42 +573,22 @@ bool we_variant::operator>( const we_variant &rhl ) const
         c_a = boost::get<char>(rhl);
         result = (c_t > c_a);
         break;
-    case 1: // unsigned char
-        uc_t = boost::get<unsigned char>(*this);
-        uc_a = boost::get<unsigned char>(rhl);
-        result = (uc_t > uc_a);
-        break;
-    case 2: // int
+    case 1: // int
         i_t = boost::get<int>(*this);
         i_a = boost::get<int>(rhl);
         result = (i_t > i_a);
         break;
-    case 3: // unsigned int
-        ui_t = boost::get<unsigned int>(*this);
-        ui_a = boost::get<unsigned int>(rhl);
-        result = (ui_t > ui_a);
-        break;
-    case 4: // long
-        l_t = boost::get<long>(*this);
-        l_a = boost::get<long>(rhl);
-        result = (l_t > l_a);
-        break;
-    case 5: // unsigned long
-        ul_t = boost::get<unsigned long>(*this);
-        ul_a = boost::get<unsigned long>(rhl);
-        result = (ul_t > ul_a);
-        break;
-    case 6: // bool
+    case 2: // bool
         b_t = boost::get<bool>(*this);
         b_a = boost::get<bool>(rhl);
         result = (b_t > b_a);
         break;
-    case 7: // double
+    case 3: // double
         d_t = boost::get<double>(*this);
         d_a = boost::get<double>(rhl);
         result = (d_t > d_a);
         break;
-    case 8: // string
+    case 4: // string
         s_t = boost::get<string>(*this);
         s_a = boost::get<string>(rhl);
         result = (s_t > s_a);
@@ -667,11 +603,7 @@ bool we_variant::operator<=( const we_variant &rhl ) const
 {
     bool result = false;
     double c_t, c_a;
-    double uc_t, uc_a;
     double i_t, i_a;
-    double ui_t, ui_a;
-    double l_t, l_a;
-    double ul_t, ul_a;
     double b_t, b_a;
     double d_t, d_a;
     string s_t, s_a;
@@ -682,42 +614,22 @@ bool we_variant::operator<=( const we_variant &rhl ) const
         c_a = boost::get<char>(rhl);
         result = (c_t <= c_a);
         break;
-    case 1: // unsigned char
-        uc_t = boost::get<unsigned char>(*this);
-        uc_a = boost::get<unsigned char>(rhl);
-        result = (uc_t <= uc_a);
-        break;
-    case 2: // int
+    case 1: // int
         i_t = boost::get<int>(*this);
         i_a = boost::get<int>(rhl);
         result = (i_t <= i_a);
         break;
-    case 3: // unsigned int
-        ui_t = boost::get<unsigned int>(*this);
-        ui_a = boost::get<unsigned int>(rhl);
-        result = (ui_t <= ui_a);
-        break;
-    case 4: // long
-        l_t = boost::get<long>(*this);
-        l_a = boost::get<long>(rhl);
-        result = (l_t <= l_a);
-        break;
-    case 5: // unsigned long
-        ul_t = boost::get<unsigned long>(*this);
-        ul_a = boost::get<unsigned long>(rhl);
-        result = (ul_t <= ul_a);
-        break;
-    case 6: // bool
+    case 2: // bool
         b_t = boost::get<bool>(*this);
         b_a = boost::get<bool>(rhl);
         result = (b_t <= b_a);
         break;
-    case 7: // double
+    case 3: // double
         d_t = boost::get<double>(*this);
         d_a = boost::get<double>(rhl);
         result = (d_t <= d_a);
         break;
-    case 8: // string
+    case 4: // string
         s_t = boost::get<string>(*this);
         s_a = boost::get<string>(rhl);
         result = (s_t <= s_a);
@@ -732,11 +644,11 @@ bool we_variant::operator>=( const we_variant &rhl ) const
 {
     bool result = false;
     double c_t, c_a;
-    double uc_t, uc_a;
+/*    double uc_t, uc_a;*/
     double i_t, i_a;
-    double ui_t, ui_a;
+/*    double ui_t, ui_a;
     double l_t, l_a;
-    double ul_t, ul_a;
+    double ul_t, ul_a;*/
     double b_t, b_a;
     double d_t, d_a;
     string s_t, s_a;
@@ -747,15 +659,32 @@ bool we_variant::operator>=( const we_variant &rhl ) const
         c_a = boost::get<char>(rhl);
         result = (c_t >= c_a);
         break;
-    case 1: // unsigned char
-        uc_t = boost::get<unsigned char>(*this);
-        uc_a = boost::get<unsigned char>(rhl);
-        result = (uc_t >= uc_a);
-        break;
-    case 2: // int
+    case 1: // int
         i_t = boost::get<int>(*this);
         i_a = boost::get<int>(rhl);
         result = (i_t >= i_a);
+        break;
+    case 2: // bool
+        b_t = boost::get<bool>(*this);
+        b_a = boost::get<bool>(rhl);
+        result = (b_t >= b_a);
+        break;
+    case 3: // double
+        d_t = boost::get<double>(*this);
+        d_a = boost::get<double>(rhl);
+        result = (d_t >= d_a);
+        break;
+    case 4: // string
+        s_t = boost::get<string>(*this);
+        s_a = boost::get<string>(rhl);
+        result = (s_t >= s_a);
+        break;
+    default:
+        result = false;
+/*    case 1: // unsigned char
+        uc_t = boost::get<unsigned char>(*this);
+        uc_a = boost::get<unsigned char>(rhl);
+        result = (uc_t >= uc_a);
         break;
     case 3: // unsigned int
         ui_t = boost::get<unsigned int>(*this);
@@ -771,24 +700,7 @@ bool we_variant::operator>=( const we_variant &rhl ) const
         ul_t = boost::get<unsigned long>(*this);
         ul_a = boost::get<unsigned long>(rhl);
         result = (ul_t >= ul_a);
-        break;
-    case 6: // bool
-        b_t = boost::get<bool>(*this);
-        b_a = boost::get<bool>(rhl);
-        result = (b_t >= b_a);
-        break;
-    case 7: // double
-        d_t = boost::get<double>(*this);
-        d_a = boost::get<double>(rhl);
-        result = (d_t >= d_a);
-        break;
-    case 8: // string
-        s_t = boost::get<string>(*this);
-        s_a = boost::get<string>(rhl);
-        result = (s_t >= s_a);
-        break;
-    default:
-        result = false;
+        break;*/
     }
     return result;
 }

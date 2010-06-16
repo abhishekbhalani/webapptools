@@ -36,9 +36,9 @@ namespace webEngine {
 
     class db_recordset;
 
-    class we_variant : public boost::variant< char, unsigned char, int, unsigned int, long, unsigned long, bool, double, string, boost::blank>
+    class we_variant : public boost::variant< char, int, bool, double, string, boost::blank >
     {
-        typedef boost::variant< char, unsigned char, int, unsigned int, long, unsigned long, bool, double, string, boost::blank> we_types;
+        typedef boost::variant< char, int, bool, double, string, boost::blank > we_types;
     public:
         // construct/copy/destruct
         we_variant() : we_types(boost::blank()) {}
@@ -55,7 +55,7 @@ namespace webEngine {
         bool operator<=(const we_variant &rhl) const;
         bool operator>=(const we_variant &rhl) const;
 
-        const bool empty() { return which() == 9; }
+        const bool empty() { return type() == typeid(boost::blank); }
         void clear() { we_types::operator=(boost::blank()); }
     };
 

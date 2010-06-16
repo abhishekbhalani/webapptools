@@ -21,6 +21,8 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/regex.hpp>
 #include "weiBase.h"
 #include "weTagScanner.h"
 #include "weiStorage.h"
@@ -234,7 +236,101 @@ db_condition::db_condition( const db_condition& c )
 
 db_condition::db_condition( string s )
 {
-    // @todo parse string
+    string tmp;
+    // ([^=\<\>!\s]+)\s+([\S]+)\s+(.*?)\s*$
+    boost::regex re("([^=\\<\\>!\\s]+)\\s+([\\S]+)\\s+(.*?)\\s*$");
+    boost::smatch mres;
+    /*char cv;
+    unsigned char ucv;
+    int iv;
+    unsigned int uiv;
+    long lv;
+    unsigned long ulv;
+    bool bv;
+    double dv;*/
+
+    if (regex_match(s, mres, re, match_default)) {
+        field_name = mres[1];
+        tmp = mres[2];
+        if (tmp == "==") {
+            op_code = db_condition::equal;
+        }
+        else if (tmp == "<") {
+            op_code = db_condition::less;
+        }
+        else if (tmp == ">") {
+            op_code = db_condition::great;
+        }
+        else if (tmp == "<=") {
+            op_code = db_condition::less_or_equal;
+        }
+        else if (tmp == ">=") {
+            op_code = db_condition::great_or_equal;
+        }
+        else if (iequals(tmp, "like")) {
+            op_code = db_condition::like;
+        }
+        else if (iequals(tmp, "is_null")) {
+            op_code = db_condition::is_null;
+        }
+        else if (iequals(tmp, "not_null")) {
+            op_code = db_condition::not_null;
+        }
+        else {
+            // throw exception
+            tmp = "db_condition: can't recognize condition - " + tmp;
+            throw_exception(bad_cast(tmp.c_str()));
+        }
+        tmp = mres[3];
+        if (op_code != db_condition::is_null && op_code != db_condition::not_null) {
+            // try to cast string to value
+            if (iequals(tmp, "true")) {
+                // boolean TRUE
+                test_value = true;
+            }
+            else if (iequals(tmp, "false")) {
+                test_value = false;
+            }
+            else if (all(tmp.c_str(), is_digit())) {
+                // int, uint, long, ulong ... hmm how determine?
+                int iv;
+                try{
+                    iv = boost::lexical_cast<int>(tmp);
+                    test_value = iv;
+                }
+                catch(bad_cast &) {
+                    // fail - convert to string
+                    test_value = tmp;
+                }
+            }
+            else if (all(tmp.c_str(), is_digit() || is_any_of("."))) {
+                // double value
+                double dv;
+                try{
+                    dv = boost::lexical_cast<double>(tmp);
+                    test_value = dv;
+                }
+                catch(bad_cast &) {
+                    // fail - convert to string
+                    test_value = tmp;
+                }
+            }
+//             else if (tmp.length() == 1) {
+//                 // char value
+//                 char ch = tmp[0];
+//                 test_value = ch;
+//             }
+            else {
+                // string
+                test_value = tmp;
+            }
+        } // if op_code no is_null nor not_null
+    }
+    else {
+        // throw exception
+        tmp = "db_condition: can't parse string - " + s;
+        throw_exception(bad_cast(tmp.c_str()));
+    }
 }
 
 db_condition& db_condition::operator=( db_condition& c )
@@ -256,7 +352,7 @@ bool db_condition::eval( db_cursor& data )
     val = data[field_name];
     if (val.which() != test_value.which() && 
         (op_code != db_condition::is_null && op_code != db_condition::not_null)) {
-        throw_exception(bad_cast("db_condition::eval - arguments are not same types"));
+            return false;
     }
     switch(op_code) {
         case db_condition::equal:
@@ -279,7 +375,10 @@ bool db_condition::eval( db_cursor& data )
             break;
         case db_condition::like:
             if (val.type() != typeid(string) || test_value.type() != typeid(string)) {
-                throw_exception(bad_cast("db_condition::eval::like - not a string values"));
+                s_t  = "db_condition::eval::like (";
+                s_t += tostring();
+                s_t += ") - not a string values";
+                throw_exception(bad_cast(s_t.c_str()));
             }
             s_t = boost::get<string>(test_value);
             s_a = boost::get<string>(val);
@@ -344,4 +443,149 @@ string db_condition::tostring( )
 	res += op;
 	res += val;
 	return res;
+}
+
+db_filter_base* db_condition::copy()
+{
+    db_condition* cpy = new db_condition(*this);
+    return cpy;
+}
+
+db_filter::db_filter( const db_filter& filt )
+{
+    db_filter *elem = new db_filter();
+    *elem = filt;
+    condition.clear();
+    condition.push_back(element(link_null, elem));
+}
+
+db_filter::db_filter( const db_condition& cond )
+{
+    db_condition *elem = new db_condition(cond);
+    condition.clear();
+    condition.push_back(element(link_null, elem));
+}
+
+db_filter::~db_filter()
+{
+    for (size_t i = 0; i < condition.size(); i++) {
+        delete condition[i].second;
+    }
+}
+
+db_filter& db_filter::operator=( const db_filter& cpy )
+{
+    condition.clear();
+    for (size_t i = 0 ; i < cpy.condition.size(); i++) {
+        condition.push_back(element(cpy.condition[i].first, cpy.condition[i].second->copy()));
+    }
+    return *this;
+}
+
+db_filter& db_filter::set( db_condition& cond )
+{
+    db_condition *elem = new db_condition(cond);
+    condition.clear();
+    condition.push_back(element(link_null, elem));
+    return *this;
+}
+
+db_filter& db_filter::set( db_filter& cond )
+{
+    db_filter *elem = new db_filter();
+    *elem = cond;
+    condition.clear();
+    condition.push_back(element(link_null, elem));
+    return *this;
+}
+
+db_filter& db_filter::or( db_condition& cond )
+{
+    db_condition *elem = new db_condition(cond);
+    condition.push_back(element(link_or, elem));
+    return *this;
+}
+
+db_filter& db_filter::or( db_filter& cond )
+{
+    db_filter *elem = new db_filter();
+    *elem = cond;
+    condition.push_back(element(link_or, elem));
+    return *this;
+}
+
+db_filter& db_filter::and( db_condition& cond )
+{
+    db_condition *elem = new db_condition(cond);
+    condition.push_back(element(link_and, elem));
+    return *this;
+}
+
+db_filter& db_filter::and( db_filter& cond )
+{
+    db_filter *elem = new db_filter();
+    *elem = cond;
+    condition.push_back(element(link_and, elem));
+    return *this;
+}
+
+bool db_filter::eval( db_cursor& data )
+{
+    bool result = false;
+
+    if (condition.size() > 0) {
+        result = condition[0].second->eval(data);
+        for (size_t i = 1; i < condition.size(); i++) {
+            if (condition[i].first == link_or) {
+                if (!result) {
+                    // evaluate condition only if need
+                    result = result || condition[i].second->eval(data);
+                }
+            } // if link_or
+            if (condition[i].first == link_and) {
+                if (result) {
+                    // evaluate condition only if need
+                    result = result && condition[i].second->eval(data);
+                }
+            } // if link_and
+        } // for all conditions
+    } // if need to evaluate
+
+    return result;
+}
+
+string db_filter::tostring()
+{
+    string res = "";
+
+    if (condition.size() > 0) {
+        res = "( " + condition[0].second->tostring();
+        for (size_t i = 1; i < condition.size(); i++) {
+            switch (condition[i].first) {
+            case db_filter::link_or:
+                res += " OR ";
+                break;
+            case db_filter::link_and:
+                res += " AND ";
+                break;
+//             case db_filter::link_not:
+//                 res += " NOT ";
+//                 break;
+            default:
+                // something strange!!!
+                break;
+            }
+            res += condition[i].second->tostring();
+        }
+        res += " )";
+    }
+
+    return res;
+}
+
+db_filter_base* db_filter::copy()
+{
+    db_filter* cpy = new db_filter();
+    *cpy = *this;
+    return cpy;
 }

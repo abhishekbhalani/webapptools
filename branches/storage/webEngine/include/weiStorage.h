@@ -181,14 +181,20 @@ protected:
 /// @author A. Abramov
 /// @date	15.06.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+class db_filter;
+
 class db_filter_base
 {
 public:
     db_filter_base() {}
-    ~db_filter_base() {}
+    virtual ~db_filter_base() {}
 
     virtual bool eval(db_cursor& data) = 0;
 	virtual string tostring() = 0;
+
+protected:
+    friend class db_filter;
+    virtual db_filter_base* copy() = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,6 +234,8 @@ public:
 	virtual string tostring();
 
 protected:
+    virtual db_filter_base* copy();
+
     string field_name;
     opcode op_code;
     we_variant test_value;
@@ -247,6 +255,7 @@ public:
     db_filter() {}
     explicit db_filter(const db_filter& filt);
     explicit db_filter(const db_condition& cond);
+    ~db_filter();
 
     db_filter& operator=(const db_filter& cpy);
 
@@ -261,11 +270,13 @@ public:
 	virtual string tostring();
 
 protected:
+    virtual db_filter_base* copy();
+
     typedef enum {
         link_null,
         link_or,
-        link_and,
-        link_not
+        link_and
+//        link_not
     } link_code;
     typedef pair<link_code, db_filter_base*> element;
 
