@@ -22,10 +22,10 @@
 #define __WEBENGINE_H__
 
 #define WE_VERSION_MAJOR        0
-#define WE_VERSION_MINOR        1
-#define WE_VERSION_BUILDNO      101
-#define WE_VERSION_EXTEND       796
+#define WE_VERSION_MINOR        2
+#define WE_VERSION_BUILDNO      3
+#define WE_VERSION_EXTEND       825
 
-#define WE_VERSION_PRODUCTSTR   "0,1,100,796"
+#define WE_VERSION_PRODUCTSTR   "0,2,3,825"
 
 #endif //__WEBENGINE_H__

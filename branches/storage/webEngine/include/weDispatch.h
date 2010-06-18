@@ -49,10 +49,10 @@ public:
     // i_storage functions
     virtual bool init_storage(const string& params) { return true; };
     virtual void flush(const string& params = "") { return; };
-    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results);
-    virtual int set(db_record& filter, db_record& data);
+    virtual int get(db_query& query, db_recordset& results);
+    virtual int set(db_query& query, db_recordset& data);
     virtual int set(db_recordset& data);
-    virtual int del(db_record& filter);
+    virtual int del(db_filter& filter);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ public:
     void add_plugin_class(string name, fnWePluginFactory func);
 
     // 
-    virtual we_option& Option(const string& name);
+    virtual we_option Option(const string& name);
     virtual void Option(const string& name, we_variant val);
     virtual bool IsSet(const string& name);
     virtual void Erase(const string& name);

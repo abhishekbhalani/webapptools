@@ -47,33 +47,22 @@ public:
     // i_storage functions
     virtual bool init_storage(const string& params);
     virtual void flush(const string& params = "");
-    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results);
-    virtual int set(db_record& filter, db_record& data);
+    virtual int get(db_query& query, db_recordset& results);
+    virtual int set(db_query& query, db_recordset& data);
     virtual int set(db_recordset& data);
-    virtual int del(db_record& filter);
+    virtual int del(db_filter& filter);
 
     // mem_storage functions
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn string_list* search_db(db_record& filter)
-    ///
-    /// @brief  Searches database for objects. 
-    ///
-    /// @param  filter - the db_record to filter the request 
-    ///
-    /// @retval List of object ID's 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    string_list* search_db(db_record& filter);
-    string_list* get_namespace_idxs(const string& objType);
-    void set_namespace_idxs(const string& objType, string_list* lst);
     void fix_namespace_struct(db_record& filter);
     string_list* get_namespace_struct(db_record& filter);
     void save_db(const string& fname);
     void load_db(const string& fname);
 
 protected:
+    typedef map<string, db_recordset*> mem_tables;
     string file_name;
-    StringMap storage_db;
+    mem_tables name_spaces;
 };
 
 } // namespace webEngine

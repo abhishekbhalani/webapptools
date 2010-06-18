@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     try {
         cout << "Value of [0][0] is " << cursor[0] << endl;
     }
-    catch(std::exception &e) {
+    catch(out_of_range &e) {
         cout << "Exception: " << e.what() << endl;
     }
 
@@ -84,7 +84,8 @@ int main(int argc, char* argv[])
 
     cursor = rs.begin();
     cout << "After second insert:" << endl << "Size: " << rs.size() << endl;
-    for (r = 0; r < rs.size(); r++)
+    r = 0;
+    while (cursor != rs.end())
     {
         cout << "Record [" << r << "] is:" << endl;
         for (size_t i = 0; i < cursor.record_size(); i ++) {
@@ -96,6 +97,7 @@ int main(int argc, char* argv[])
             }
         }
         cursor++;
+        r++;
     }
 
     // conditions
@@ -196,6 +198,39 @@ int main(int argc, char* argv[])
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
         cursor++;
+    }
+
+    // delete record
+    filter.set(db_condition("id == 2")).or(db_condition("id == 4"));
+    cursor = rs.begin();
+    while (cursor != rs.end())
+    {
+        size_t nxt = cursor - rs.begin();
+        if (filter.eval(cursor)) {
+            rs.erase(cursor);
+            cursor = rs.begin();
+            cursor += nxt;
+        }
+        else {
+            cursor++;
+        }
+    }
+    cout << "After deletion " << filter.tostring() << endl << "Size: " << rs.size() << endl;
+    cursor = rs.begin();
+    r = 0;
+    while (cursor != rs.end())
+    {
+        cout << "Record [" << r << "] is:" << endl;
+        for (size_t i = 0; i < cursor.record_size(); i ++) {
+            if (cursor[i].empty()) {
+                cout << "\t[" << i << "] = <empty>" << endl;
+            }
+            else {
+                cout << "\t[" << i << "] = " << cursor[i] << endl;
+            }
+        }
+        cursor++;
+        r++;
     }
 
     return 0;

@@ -117,11 +117,11 @@ void options_provider::FromRS( db_recordset *rs )
                 break;
             case 3: // double
                 d = boost::get<double>(rec[weObjTypeProfile "." weoValue]);
-                Option(sName, b);
+                Option(sName, d);
                 break;
             case 4: // string
                 s = boost::get<string>(rec[weObjTypeProfile "." weoValue]);
-                Option(sName, b);
+                Option(sName, s);
                 break;
             default:
                 Option(sName, empt);
@@ -134,7 +134,7 @@ void options_provider::FromRS( db_recordset *rs )
     }
 }
 
-we_option& options_provider::Option( const string& name )
+we_option options_provider::Option( const string& name )
 {
     wOptions::iterator it;
 

@@ -67,12 +67,12 @@ namespace webEngine {
         ~task();
 
         // i_options_provider functions
-        virtual we_option& Option(const string& name);
+        virtual we_option Option(const string& name);
         virtual void Option(const string& name, we_variant val);
         virtual bool IsSet(const string& name);
         virtual void Erase(const string& name);
         virtual void Clear();
-        void CopyOptions(i_options_provider* cpy);
+        // void CopyOptions(i_options_provider* cpy);
         string_list OptionsList();
         size_t OptionSize();
 
@@ -175,8 +175,12 @@ namespace webEngine {
         size_t total_requests() { return total_reqs; }
         size_t total_processed() { return total_done; }
 
+        string get_profile_id() { return profile_id; }
+        void set_profile_id(string id) { profile_id = id; }
+
 #ifndef __DOXYGEN__
     protected:
+        string profile_id;
         typedef map<string, i_request*> WeRequestMap;
         vector<i_parser*> parsers;
         vector<i_transport*> transports;

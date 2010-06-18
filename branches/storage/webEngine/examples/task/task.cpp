@@ -27,6 +27,7 @@
 #include <strstream>
 #include "weHelper.h"
 #include "weTask.h"
+#include "weDispatch.h"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -38,13 +39,22 @@ using namespace webEngine;
 
 int main(int argc, char* argv[])
 {
-    we_option     opt1, opt2, opt3, opt4, opt5;
+    we_option   opt1, opt2, opt3, opt4, opt5;
     string      str("sample");
     string      st2;
     int         iVal;
     char        cVal;
 
     LibInit(); // for initialize logging
+
+    engine_dispatcher we_dispatcer;
+    i_plugin* plg = we_dispatcer.load_plugin("mem_storage");
+    if (plg != NULL)
+    {
+        i_storage* storage = (i_storage*)plg->get_interface("i_storage");
+        storage->init_storage("task_db.txt");
+        we_dispatcer.storage(storage);
+    }
 
     opt1.name("testStr");
     opt1.SetValue(str);
@@ -146,7 +156,7 @@ int main(int argc, char* argv[])
         // archive and stream closed when destructor are called
     }
 
-    task tsk;
+    task tsk(&we_dispatcer);
 
     try
     {
@@ -175,6 +185,18 @@ int main(int argc, char* argv[])
     cout << endl;
 
     tsk.Option(testOpt, 3);
+
+    cout << "Read \"test\" option: " << tsk.Option("test").name() << " (" << tsk.Option("test").GetTypeName() << ") -> ";
+    if (!tsk.Option("test").IsEmpty()) {
+        tsk.Option("test").GetValue(iVal);
+        cout << iVal;
+    }
+    else {
+        cout << "{empty}";
+    }
+    cout << endl;
+
+    tsk.Option(testOpt, 20);
 
     cout << "Read \"test\" option: " << tsk.Option("test").name() << " (" << tsk.Option("test").GetTypeName() << ") -> ";
     if (!tsk.Option("test").IsEmpty()) {
@@ -270,6 +292,9 @@ int main(int argc, char* argv[])
         // archive and stream closed when destructor are called
     }
 
+    if (we_dispatcer.storage() != NULL) {
+        we_dispatcer.storage()->flush();
+    }
     LibClose();
 
     return 0;

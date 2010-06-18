@@ -122,7 +122,7 @@ namespace webEngine {
 
     typedef map<string, we_option> wOptions;
 
-#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (bad_cast &) { (var) = (def); };
+#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (boost::bad_get &) { (var) = (def); };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  i_options_provider
 ///
@@ -137,7 +137,7 @@ public:
     i_options_provider() {};
     virtual ~i_options_provider() {};
 
-    virtual we_option& Option(const string& name) = 0;
+    virtual we_option Option(const string& name) = 0;
     virtual bool IsSet(const string& name) = 0;
     virtual void Option(const string& name, we_variant val) = 0;
     virtual void Erase(const string& name) = 0;
@@ -164,7 +164,7 @@ public:
     options_provider() {};
     virtual ~options_provider();
 
-    virtual we_option& Option(const string& name);
+    virtual we_option Option(const string& name);
     virtual bool IsSet(const string& name);
     virtual void Option(const string& name, we_variant val);
     virtual void Erase(const string& name)

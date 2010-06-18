@@ -21,53 +21,53 @@
 
 #include <fstream>
 #include <strstream>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
 #include "weOptions.h"
 #include "weTagScanner.h"
 #include "weMemStorage.h"
 #include "weiBase.h"
+#include "weHelper.h"
 
 using namespace boost;
+namespace bfs = boost::filesystem;
 
 namespace webEngine {
 
-static void OptionFromString(we_option& opt, const string& str)
-{
-    try
-    {
-        istrstream is(str.c_str(), str.length());
-        boost::archive::text_iarchive ia(is);
-        // read class instance from archive
-        //ia >> opt;
-        // archive and stream closed when destructor are called
-    }
-    catch (std::exception& e)
-    {
-        LOG4CXX_ERROR(iLogger::GetLogger(), "::OptionFromString error: " << e.what());
-    }
-}
-
-static void OptionToString(we_option& opt, string& str)
-{
-    try
-    {
-        ostrstream os;
-        boost::archive::text_oarchive oa(os);
-        // read class instance from archive
-        //oa << opt;
-        // archive and stream closed when destructor are called
-        str = string(os.rdbuf()->str(), os.rdbuf()->pcount());
-    }
-    catch (std::exception& e)
-    {
-        LOG4CXX_ERROR(iLogger::GetLogger(), "::OptionFromString error: " << e.what());
-    }
-}
+// static void OptionFromString(we_option& opt, const string& str)
+// {
+//     try
+//     {
+//         istrstream is(str.c_str(), str.length());
+//         boost::archive::text_iarchive ia(is);
+//         // read class instance from archive
+//         //ia >> opt;
+//         // archive and stream closed when destructor are called
+//     }
+//     catch (std::exception& e)
+//     {
+//         LOG4CXX_ERROR(iLogger::GetLogger(), "::OptionFromString error: " << e.what());
+//     }
+// }
+// 
+// static void OptionToString(we_option& opt, string& str)
+// {
+//     try
+//     {
+//         ostrstream os;
+//         boost::archive::text_oarchive oa(os);
+//         // read class instance from archive
+//         //oa << opt;
+//         // archive and stream closed when destructor are called
+//         str = string(os.rdbuf()->str(), os.rdbuf()->pcount());
+//     }
+//     catch (std::exception& e)
+//     {
+//         LOG4CXX_ERROR(iLogger::GetLogger(), "::OptionFromString error: " << e.what());
+//     }
+// }
 
 mem_storage::mem_storage( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     i_storage(krnl, handle)
@@ -100,196 +100,231 @@ i_plugin* mem_storage::get_interface( const string& ifName )
     return i_storage::get_interface(ifName);
 }
 
-int mem_storage::get(db_record& filter, db_record& respFilter, db_recordset& results)
+int mem_storage::get(db_query& query, db_recordset& results)
 {
-    string fID, stData, key;
-    we_option opt;
-    StringMap::iterator obj;
-    string_list* objIdxs;
-    string_list filterNames;
-    string_list reportNames;
-    string_list nonflNames;
-    string_list::iterator lstIt;
-    size_t i, j;
+    std::set<string> ns_list;
+    std::set<string>::iterator ns_it;
+    vector<string>::iterator rec_it;
+    db_cursor cursor;
+    db_cursor record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::get");
 
-/*    results.clear();
+    results.clear();
+    results.set_names(query.what());
+    query.where().get_namespaces(ns_list);
 
-    if (filter.OptionSize() > 0)
-    {
-        objIdxs = search_db(filter);
+    // @todo implement db_recordset.join to perform queries from more than one table
+    if (ns_list.size() != 1) {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get - query wants data from " << ns_list.size() << " tables; Only one table supported.");
     }
-    else {
-        objIdxs = get_namespace_idxs(filter.objectID);
+    if (ns_list.size() > 0) {
+        ns_it = ns_list.begin();
+        mem_tables::iterator mit = name_spaces.find(*ns_it);
+        if (mit != name_spaces.end())
+        {
+            cursor = mit->second->begin();
+            while (cursor != name_spaces[*ns_it]->end()) {
+                if (query.where().eval(cursor)) {
+                    record = results.push_back();
+                    for(rec_it = query.what().begin(); rec_it != query.what().end(); rec_it++) {
+                        try {
+                            record[*rec_it] = cursor[*rec_it];
+                        }
+                        catch(out_of_range &e) {
+                            LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get - can't get filed " << *rec_it << ": source doesn't contains this field. " << e.what());
+                        }
+                    } // foreach field
+                } // if record in filter
+                cursor++;
+            } // foreach record
+        } // if namespase exist
+        else {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::set - can't find namespace " << *ns_it);
+        }
     }
-    if (objIdxs != NULL) {
-        if (objIdxs->size() > 0) {
-            // prepare filter list
-            reportNames = respFilter.OptionsList();
-            if (reportNames.size() == 0)
-            {
-                string_list* strct;
-                strct = get_namespace_struct(filter);
-                if (strct != NULL)
-                {
-                    reportNames = *strct;
-                    delete strct;
-                }
-            }
-            opt = filter.Option(weoID);
-            SAFE_GET_OPTION_VAL(opt, fID, "");
-
-            for (i = 0; i < objIdxs->size(); i++) {
-                //db_record* objRes = new db_record;
-                db_record objRes;
-                objRes.objectID = filter.objectID;
-                for (j = 0; j < reportNames.size(); j++)
-                {
-                    key = (*objIdxs)[i] + "_" + reportNames[j];
-                    obj = storage_db.find(key);
-                    if (obj != storage_db.end())
-                    {
-                        objRes.Option(reportNames[j], obj->second);
-                    } 
-                    else {
-                        objRes.Option(reportNames[j], string(""));
-                    }
-                } // and of attribute filters
-                results.push_back(objRes);
-            } // end of objects search
-        } // has objects
-        delete objIdxs;
-    } // received indexes*/
-
     return results.size();
 }
 
-int mem_storage::set(db_record& filter, db_record& data)
+int mem_storage::set(db_query& query, db_recordset& data)
 {
-    we_option opt;
-    string idx;
-    string_list* lst = NULL;
-    string_list* objIdxs = NULL;
-    string_list objProps;
-    size_t i, j;
-    string stData, stValue;
-    StringMap::iterator obj;
-    string_list::iterator idIt;
+    int retval = 0;
+    bool updated;
+    std::set<string> ns_list;
+    std::set<string>::iterator ns_it;
+    db_cursor cursor;
+    db_cursor record;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(filter, db_record)");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(query, db_record)");
 
-/*    if (filter.OptionSize() > 0)
-    {   // try to update
-        lst = search_db(filter);
+    query.where().get_namespaces(ns_list);
+    // @todo implement db_recordset.join to perform queries from more than one table
+    if (ns_list.size() != 1) {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get - query wants data from " << ns_list.size() << " tables; Only one table supported.");
     }
-    if (lst->size() == 0) {
-        delete lst;
-        lst = NULL;
-    }
-
-
-    if (filter.OptionSize() == 0 || lst == NULL)
-    {   // insert data
-        lst = new string_list;
-        opt = data.Option(weoID);
-        SAFE_GET_OPTION_VAL(opt, idx, "");
-        if (idx == "")
-        {   // get next index from list
-            idx = generate_id(data.objectID);
-        }
-        lst->push_back(idx);
-    }
-    
-    objProps = data.OptionsList();
-
-    objIdxs = get_namespace_idxs(data.objectID);
-    for (i = 0; i < lst->size(); i++)
-    {
-        for (j = 0; j < objProps.size(); j++)
+    if (ns_list.size() > 0) {
+        ns_it = ns_list.begin();
+        mem_tables::iterator mit = name_spaces.find(*ns_it);
+        if (mit != name_spaces.end())
         {
-            we_option opt = data.Option(objProps[j]);
-            stValue = boost::lexical_cast<std::string>(opt.Value());
-            stData = (*lst)[i] + "_" + objProps[j];
-            storage_db[stData] = stValue;
+            cursor = mit->second->begin();
+            updated = false;
+            while (cursor != name_spaces[*ns_it]->end()) {
+                if (query.where().eval(cursor)) {
+                    updated = true;
+                    // update record
+                    // @todo only firs record from argument used for update
+                    record = data.begin();
+                    try {
+                        vector<string> rec_fields = data.get_names();
+                        for (size_t i = 0; i < rec_fields.size(); i++) {
+                            cursor[rec_fields[i]] = record[rec_fields[i]];
+                        } // foreach field
+                    } catch(out_of_range &) {};
+                } // if need to update
+                cursor++;
+            } // foreach record
+            if (!updated) {
+                // insert new record
+                cursor = mit->second->push_back();
+                record = data.begin();
+                try {
+                    vector<string> rec_fields = data.get_names();
+                    for (size_t i = 0; i < rec_fields.size(); i++) {
+                        cursor[rec_fields[i]] = record[rec_fields[i]];
+                    } // foreach field
+                } catch(out_of_range &) {};
+            } // if not updated
         }
-        idIt = find(objIdxs->begin(), objIdxs->end(), (*lst)[i]);
-        if (idIt == objIdxs->end())
-        {
-            objIdxs->push_back((*lst)[i]);
+        else {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::set - can't find namespace " << *ns_it);
         }
     }
-    fix_namespace_struct(data);
 
-    i = lst->size();
-    set_namespace_idxs(data.objectID, objIdxs);
-
-    delete lst;
-    delete objIdxs;*/
-    return (int)i;
+    return retval;
 }
 
 int mem_storage::set(db_recordset& data)
 {
-    int retval;
+    int retval = 0;
+    string ns_name;
     size_t i;
-    db_record filt;
+    db_cursor cursor;
+    db_cursor record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(db_recordset)");
-/*    filt.Clear();
-    retval = 0;
-    for (i = 0; i < data.size(); i++)
-    {
-        filt.objectID = data[i].objectID;
-        retval += set(filt, data[i]);
-    }*/
+    // get fields and extract namespace
+    vector<string> rec_fields = data.get_names();
+    if (rec_fields.size() > 0) {
+        ns_name = rec_fields[0];
+        i = ns_name.find_last_of('.');
+        if (i != string::npos) {
+            ns_name = ns_name.substr(i + 1);
+            mem_tables::iterator mit = name_spaces.find(ns_name);
+            if (mit != name_spaces.end())
+            {
+                cursor = mit->second->push_back();
+                record = data.begin();
+                try {
+                    vector<string> rec_fields = data.get_names();
+                    for (size_t i = 0; i < rec_fields.size(); i++) {
+                        cursor[rec_fields[i]] = record[rec_fields[i]];
+                    } // foreach field
+                } catch(out_of_range &) {};
+            }
+        } // namespace name found
+    } // request has fields
 
     return retval;
 }
 
-int mem_storage::del(db_record& filter)
+int mem_storage::del(db_filter& filter)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::delete");
 
-    string_list* lst = search_db(filter);
-//    string_list* objs = get_namespace_idxs(filter.objectID);
-    int retval;
-/*    size_t i;
-    StringMap::iterator obj;
-    string_list::iterator idxIt;
+    int retval = 0;
+    std::set<string> ns_list;
+    std::set<string>::iterator ns_it;
+    db_cursor cursor;
 
-    retval = (int)lst->size();
-    for (i = 0; i < lst->size(); i++)
-    {
-        obj = storage_db.find((*lst)[i]);
-        if (obj != storage_db.end())
-        {
-            storage_db.erase(obj);
-            /// @todo: find all properties and delete them to
-        }
-        idxIt = find(objs->begin(), objs->end(), (*lst)[i]);
-        objs->erase(idxIt);
-    }
-    set_namespace_idxs(filter.objectID, objs);
-    delete lst;
-    delete objs;*/
+    filter.get_namespaces(ns_list);
+    for (ns_it = ns_list.begin(); ns_it != ns_list.end(); ns_it++) {
+        if (name_spaces.find(*ns_it) != name_spaces.end()) {
+            cursor = name_spaces[*ns_it]->begin();
+            while (cursor != name_spaces[*ns_it]->end()) {
+                size_t nxt = cursor - name_spaces[*ns_it]->begin();
+                nxt++;
+                if (filter.eval(cursor)) {
+                    name_spaces[*ns_it]->erase(cursor);
+                    cursor = name_spaces[*ns_it]->begin();
+                    cursor += nxt;
+                    retval++;
+                }
+                else {
+                    cursor++;
+                }
+            } // foreach record
+        } // if table exist
+    } // foreach table
     return retval;
 }
 
-
 void mem_storage::save_db( const string& fname )
 {
+    size_t i, j;
+    string s;
+
     try {
         LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::save_db");
         std::ofstream ofs(fname.c_str());
         // save data to archive
-        {
-            boost::archive::xml_oarchive oa(ofs);
-            // write class instance to archive
-            oa << BOOST_SERIALIZATION_NVP(last_id);
-            oa << BOOST_SERIALIZATION_NVP(storage_db);
-            // archive and stream closed when destructor are called
+
+        // 1. write header
+        ofs << "<database last_id='" << last_id << "'>" << endl;
+
+        // 2. save namespaces
+        mem_tables::iterator mit = name_spaces.begin();
+        while (mit != name_spaces.end()) {
+            ofs << "\t<namespace name='" << mit->first << "'>" << endl;
+            // 3. save namespace structure
+            ofs << "\t\t<columns>" << endl;
+            vector<string> cols = mit->second->get_names();
+            for (i = 0; i < cols.size(); i++) {
+                s = cols[i];
+                if ( starts_with(s, mit->first) ) {
+                    s = s.substr(mit->first.length()+1);
+                }
+                ofs << "\t\t\t<column name='" << s << "'/>" << endl;
+            }
+            ofs << "\t\t</columns>" << endl;
+            // 4. save namespace data
+            ofs << "\t\t<records>" << endl;
+            db_cursor rec = mit->second->begin();
+            j = 0;
+            while (rec != mit->second->end()) {
+                ofs << "\t\t\t<record idx='" << j << "'>" << endl;
+                for (i = 0; i < cols.size(); i++) {
+                    ofs << "\t\t\t\t<column idx='" << i << "' type='" << rec[i].which() << "'>";
+                    try {
+                        s = boost::lexical_cast<string>(rec[i]);
+                    } catch (bad_lexical_cast &e) {
+                        s = "";
+                        LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::save_db - can't save value: " << e.what() << "\n" <<
+                            "namespace: " << mit->first << " record: " << j << " column: " << i);
+                    }
+                    s = ScreenXML(s);
+                    ofs << s << "</column>" << endl;
+                }
+                ofs << "\t\t\t</record>" << endl;
+                rec++;
+                j++;
+            }
+            ofs << "\t\t</records>" << endl;
+            // close namespace
+            ofs << "\t</namespace>" << endl;
+            mit++;
         }
+        ofs << "</database>" << endl;
     }
     catch(std::exception& e)
     {
@@ -300,22 +335,208 @@ void mem_storage::save_db( const string& fname )
 
 void mem_storage::load_db( const string& fname )
 {
+    char* buff = NULL;
+
     try{
         LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::load_db");
         std::ifstream ifs(fname.c_str());
 
-        // save data to archive
-        {
-            boost::archive::xml_iarchive ia(ifs);
-            // write class instance to archive
-            ia >> BOOST_SERIALIZATION_NVP(last_id);
-            ia >> BOOST_SERIALIZATION_NVP(storage_db);
-            // archive and stream closed when destructor are called
-        }
+        // load data from archive
+        if (ifs.is_open()) {
+            size_t fsize = bfs::file_size(bfs::path(fname));
+            buff = new char[fsize + 10];
+            if(buff != NULL)
+            {
+                memset(buff, 0, fsize+10);
+                ifs.read(buff, fsize);
+            }
+            else {
+                // can't read file - exit
+                LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::load_db can't load file " << fname);
+                return;
+            }
+
+            str_tag_stream ss(buff);
+            tag_scanner sc(ss);
+
+            bool in_parsing = true;
+            bool in_records = false;
+            int  parse_level = 0;
+            int token;
+            int tp = -1;
+            int rec_num;
+            string name, val, dat;
+            string ns_name;
+            db_recordset* ns_recs = NULL;
+            db_cursor record;
+            vector<string> fnames;
+
+            mem_tables::iterator mit = name_spaces.begin();
+            while (mit != name_spaces.end()) {
+                delete mit->second;
+                mit++;
+            }
+            name_spaces.clear();
+            
+            while (in_parsing)
+            {
+                token = sc.get_token();
+                switch(token)
+                {
+                case wstError:
+                    LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db parsing error");
+                    in_parsing = false;
+                    break;
+                case wstEof:
+                    LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::load_db - EOF");
+                    in_parsing = false;
+                    break;
+                case wstTagStart:
+                    name = sc.get_tag_name();
+                    switch (parse_level) {
+                    case 0:
+                        if ( !iequals(name, "database") ) {
+                            in_parsing = false;
+                        }
+                        break;
+                    case 1:
+                        if ( iequals(name, "namespace") ) {
+                            ns_name = "";
+                        }
+                        else {
+                            in_parsing = false;
+                        }
+                        break;
+                    case 2:
+                        if ( iequals(name, "columns") ) {
+                            in_records = false;
+                            fnames.clear();
+                        }
+                        else if ( iequals(name, "records") ) {
+                            in_records = true;
+                        }
+                        else {
+                            in_parsing = false;
+                        }
+                        break;
+                    case 3:
+                        if ( iequals(name, "column") ) {
+                            in_records = false;
+                        }
+                        else if ( iequals(name, "record") ) {
+                            in_parsing = true;
+                            rec_num = 0;
+                            if (ns_recs != NULL) {
+                                record = ns_recs->push_back();
+                            }
+                        }
+                        else {
+                            in_parsing = false;
+                        }
+                        break;
+                    case 4:
+                        if ( !iequals(name, "column") ) {
+                            in_parsing = false;
+                        }
+                        break;
+                    default:
+                        in_parsing = false;
+                    }
+                    if (in_parsing) {
+                        parse_level++;
+                        val = "";
+                        dat = "";
+                        tp = -1;
+                    }
+                    else {
+                        LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db parsing error - unexpected tag " << name);
+                    }
+                    break;
+                case wstTagEnd:
+                    name = sc.get_tag_name();
+                    parse_level--;
+                    if (parse_level == 0) {
+                        in_parsing = false;
+                    }
+                    if ( iequals(name, "columns") ) {
+                        ns_recs = new db_recordset(fnames);
+                    }
+                    if ( iequals(name, "namespace") && ns_recs != NULL ) {
+                        name_spaces[ns_name] = ns_recs;
+                        ns_recs = NULL;
+                    }
+                    if ( iequals(name, "column") && ns_recs != NULL && in_records ) {
+                        try{
+                            switch(tp) {
+                            case 0:
+                                record[rec_num] = boost::lexical_cast<char>(dat);
+                                break;
+                            case 1:
+                                record[rec_num] = boost::lexical_cast<int>(dat);
+                                break;
+                            case 2:
+                                record[rec_num] = boost::lexical_cast<bool>(dat);
+                                break;
+                            case 3:
+                                record[rec_num] = boost::lexical_cast<double>(dat);
+                                break;
+                            case 4:
+                                record[rec_num] = dat;
+                                break;
+                            default:
+                                record[rec_num] = boost::blank();
+                                break;
+                            }
+                        }
+                        catch(bad_lexical_cast &e) {
+                            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db can't store '" << dat << "' as value of column " << rec_num << 
+                                " in namespace " << ns_name << endl << e.what());
+                        }
+                        rec_num++;
+                    }
+                    break;
+                case wstAttr:
+                    name = sc.get_attr_name();
+                    val = sc.get_value();
+                    val = UnscreenXML(val);
+                    if (parse_level == 1 && iequals(name, "last_id") ) {
+                        try{
+                            last_id = boost::lexical_cast<int>(val);
+                        } catch (bad_lexical_cast &e) {
+                            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db can't parse " << val << " as last_id value: " << e.what());
+                        }
+                    }
+                    if (parse_level == 2 && iequals(name, "name") ) {
+                        ns_name = val;
+                    }
+                    if (parse_level == 4 && iequals(name, "name") && !in_records ) {
+                        // <column name=""/>
+                        val = ns_name + "." + val;
+                        fnames.push_back(val);
+                    }
+                    if (parse_level == 5 && iequals(name, "type") ) {
+                        try{
+                            tp = boost::lexical_cast<int>(val);
+                        } catch (bad_lexical_cast &e) {
+                            tp = -1;
+                            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db can't parse " << val << " as type_id value: " << e.what());
+                        }
+                    }
+                    break;
+                case wstWord: 
+                case wstSpace:
+                    dat += sc.get_value();
+                    break;
+                };
+            }
+        } // if file open
     }
     catch(std::exception& e)
     {
         LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::load_db error: " << e.what());
+    }
+    if (buff != NULL) {
+        delete buff;
     }
     return;
 }
@@ -348,108 +569,10 @@ void mem_storage::flush( const string& params /*= ""*/)
     }
 }
 
-string_list* mem_storage::search_db(db_record& filter)
-{
-    string_list* retlist = new string_list;
-    StringMap::iterator obj;
-    string stData, stValue;
-    string_list* objIdxs;
-    string_list objProps;
-    size_t i, j;
-
-/*    objIdxs = get_namespace_idxs(filter.objectID);
-
-    for (i = 0; i < objIdxs->size(); i++) {
-        bool skip = false;
-        objProps = filter.OptionsList();
-        for (j = 0; j < objProps.size(); j++)
-        {
-            we_option opt = filter.Option(objProps[j]);
-            stValue = boost::lexical_cast<std::string>(opt.Value());
-
-            stData = (*objIdxs)[i] + "_" + objProps[j];
-            obj = storage_db.find(stData);
-            if (obj != storage_db.end())
-            {
-                stData = obj->second;
-            }
-            else {
-                stData = "";
-            }
-            if (stData != stValue)
-            {
-                skip = true;
-            }
-        }
-        if (!skip)
-        {
-            retlist->push_back((*objIdxs)[i]);
-        }
-    }
-
-    delete objIdxs;*/
-
-    return retlist;
-}
-
-string_list* mem_storage::get_namespace_idxs(const string& objType)
-{
-    string_list* objIdxs = new string_list;
-    StringMap::iterator obj;
-    string stData;
-
-/*    obj = storage_db.find(objType);
-
-    if (obj != storage_db.end()) {
-        stData = obj->second;
-        try {
-            istrstream is(stData.c_str(), stData.length());
-            boost::archive::text_iarchive ia(is);
-            // read class instance from archive
-            ia >> (*objIdxs);
-            // archive and stream closed when destructor are called
-        }
-        catch(std::exception& e)
-        {
-            LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get_namespace_idxs namespace search error: " << e.what());
-            objIdxs->clear();
-        }
-    }*/
-    return objIdxs;
-}
-
-void mem_storage::set_namespace_idxs(const string& objType, string_list* lst)
-{
-    string stData;
-
-    try {
-        ostrstream os;
-        boost::archive::text_oarchive oa(os);
-        // read class instance from archive
-        oa << (*lst);
-        // archive and stream closed when destructor are called
-        stData = string(os.str(), os.pcount());
-    }
-    catch(std::exception& e)
-    {
-        LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::set_namespace_idxs namespace search error: " << e.what());
-        return;
-    }
-    storage_db[objType] = stData;
-}
-
 void mem_storage::fix_namespace_struct(db_record& filter)
 {
-    StringMap::iterator obj;
-    string_list::iterator lst;
-    string stData;
-    string_list structNames;
-    string_list flNames;
-    size_t i;
-
-
 //    obj = storage_db.find(filter.objectID + "_struct");
-    if (obj != storage_db.end()) {
+/*    if (obj != storage_db.end()) {
         stData = obj->second;
         try
         {
@@ -493,9 +616,7 @@ void mem_storage::fix_namespace_struct(db_record& filter)
 
 string_list* mem_storage::get_namespace_struct(db_record& filter)
 {
-    StringMap::iterator obj;
     string_list *structNames;
-    string stData;
 
     structNames = new string_list;
 /*    obj = storage_db.find(filter.objectID + "_struct");

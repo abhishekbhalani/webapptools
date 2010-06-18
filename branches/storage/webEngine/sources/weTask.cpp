@@ -244,6 +244,9 @@ task::task(engine_dispatcher *krnl /*= NULL*/)
     taskList.clear();
     taskQueue.clear();
     thread_count = 0;
+    total_reqs = 0;
+    total_done = 0;
+    profile_id = "0";
 
     parsers.clear();
     transports.clear();
@@ -259,6 +262,16 @@ task::task(engine_dispatcher *krnl /*= NULL*/)
 task::task( task& cpy )
 {
     kernel = cpy.kernel;
+    total_reqs = cpy.total_reqs;
+    total_done = cpy.total_done;
+    profile_id = cpy.profile_id;
+
+    parsers.assign(cpy.parsers.begin(), cpy.parsers.end());
+    transports.assign(cpy.transports.begin(), cpy.transports.end());
+    inventories.assign(cpy.inventories.begin(), cpy.inventories.end());
+    auditors.assign(cpy.auditors.begin(), cpy.auditors.end());
+    vulners.assign(cpy.vulners.begin(), cpy.vulners.end());
+
     LOG4CXX_TRACE(iLogger::GetLogger(), "task assigned");
 }
 
@@ -899,79 +912,259 @@ int task::remove_thread()
     return nt; 
 }
 
-we_option& task::Option( const string& name )
+we_option task::Option( const string& name )
 {
-    wOptions::iterator it;
+    db_recordset res;
+    db_query flt;
+    we_option opt;
+    char c;
+    int i;
+    bool b;
+    double d;
+    string s;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::Option(" << name << ")");
-    if (kernel != NULL) {
-        return kernel->Option(name);
+    opt = i_options_provider::empty_option;
+    if (kernel != NULL && kernel->storage() != NULL) {
+        flt.what().clear();
+        flt.what().push_back(weObjTypeProfile "." weoTypeID);
+        flt.what().push_back(weObjTypeProfile "." weoValue);
+
+        db_condition p_cond;
+        db_condition n_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = profile_id;
+
+        n_cond.field() = weObjTypeProfile "." weoName;
+        n_cond.operation() = db_condition::equal;
+        n_cond.value() = name;
+
+        flt.where().set(p_cond).and(n_cond);
+        kernel->storage()->get(flt, res);
+
+        if (res.size() > 0) {
+            db_cursor rec = res.begin();
+            try{
+                if (!rec[1].empty()) {
+                    int tp = boost::lexical_cast<int>(rec[0]);
+                    opt.name(name);
+                    switch(tp)
+                    {
+                    case 0: // char
+                        c = boost::get<char>(rec[weObjTypeProfile "." weoValue]);
+                        opt.SetValue(c);
+                        break;
+                    case 1: // int
+                        i = boost::get<int>(rec[weObjTypeProfile "." weoValue]);
+                        opt.SetValue(i);
+                        break;
+                    case 2: // bool
+                        b = boost::get<bool>(rec[weObjTypeProfile "." weoValue]);
+                        opt.SetValue(b);
+                        break;
+                    case 3: // double
+                        d = boost::get<double>(rec[weObjTypeProfile "." weoValue]);
+                        opt.SetValue(d);
+                        break;
+                    case 4: // string
+                        s = boost::get<string>(rec[weObjTypeProfile "." weoValue]);
+                        opt.SetValue(s);
+                        break;
+                    default:
+                        opt.SetValue(boost::blank());
+                    }
+                } // if result not <empty>
+            }
+            catch(std::exception &e) {
+                opt = i_options_provider::empty_option;
+                LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") can't get option value: " << e.what());
+            }
+        }
     }
 
-    // worst case... :(
-    return i_options_provider::empty_option;
+    return opt;
 
 }
 
 void task::Option( const string& name, we_variant val )
 {
-    if (kernel != NULL) {
-        kernel->Option(name, val);
+    db_query flt;
+
+    if (kernel != NULL && kernel->storage() != NULL) {
+        flt.what().clear();
+        flt.what().push_back(weObjTypeProfile "." weoParentID);
+        flt.what().push_back(weObjTypeProfile "." weoName);
+        flt.what().push_back(weObjTypeProfile "." weoTypeID);
+        flt.what().push_back(weObjTypeProfile "." weoValue);
+
+        db_condition p_cond;
+        db_condition n_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = profile_id;
+
+        n_cond.field() = weObjTypeProfile "." weoName;
+        n_cond.operation() = db_condition::equal;
+        n_cond.value() = name;
+
+        flt.where().set(p_cond).and(n_cond);
+
+        db_recordset data(flt.what());
+        db_cursor rec = data.push_back();
+
+        rec[0] = profile_id;
+        rec[1] = name;
+        rec[2] = val.which();
+        rec[3] = val;
+
+        kernel->storage()->set(flt, data);
     }
 }
 
 bool task::IsSet( const string& name )
 {
-    bool res = false;
+    bool retval = false;
+    db_recordset res;
+    db_query flt;
 
-    if (kernel != NULL) {
-        res = kernel->IsSet(name);
+    if (kernel != NULL && kernel->storage() != NULL) {
+        flt.what().clear();
+        flt.what().push_back(weObjTypeProfile "." weoTypeID);
+        flt.what().push_back(weObjTypeProfile "." weoValue);
+
+        db_condition p_cond;
+        db_condition n_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = profile_id;
+
+        n_cond.field() = weObjTypeProfile "." weoName;
+        n_cond.operation() = db_condition::equal;
+        n_cond.value() = name;
+
+        flt.where().set(p_cond).and(n_cond);
+        kernel->storage()->get(flt, res);
+
+        if (res.size() > 0) {
+            db_cursor rec = res.begin();
+            try{
+                if (!rec[1].empty()) {
+                    int tp = boost::lexical_cast<int>(rec[0]);
+                    if ( tp == 2) {
+                        // we_variant::which(bool)
+                        retval = boost::lexical_cast<bool>(rec[1]);
+                    }
+                    else {
+                        retval = true;
+                    }
+                } // if result not <empty>
+            }
+            catch(bad_cast &e) {
+                retval = false;
+                LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") can't get option value: " << e.what());
+            }
+        } // if result size > 0
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsSet(" << name << ") value=" << res);
-    return res;
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsSet(" << name << ") value=" << retval);
+    return retval;
 }
 
 void task::Erase( const string& name )
 {
-    if (kernel != NULL) {
-        kernel->Erase(name);
+    if (kernel != NULL && kernel->storage() != NULL) {
+        db_filter filter;
+        db_condition p_cond;
+        db_condition n_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = profile_id;
+
+        n_cond.field() = weObjTypeProfile "." weoName;
+        n_cond.operation() = db_condition::equal;
+        n_cond.value() = name;
+
+        filter.set(p_cond).and(n_cond);
+        LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Erase - " << filter.tostring());
+        kernel->storage()->del(filter);
     }
 }
 
 void task::Clear()
 {
-    if (kernel != NULL) {
-        kernel->Clear();
+    if (kernel != NULL && kernel->storage() != NULL) {
+        string_list opt_names;
+        opt_names = OptionsList();
+        for (size_t i = 0; i < opt_names.size(); i++) {
+            Erase(opt_names[i]);
+        }
     }
 }
 
-void task::CopyOptions( i_options_provider* cpy )
-{
-    if (kernel != NULL) {
-        kernel->CopyOptions(cpy);
-    }
-}
-
+// void task::CopyOptions( i_options_provider* cpy )
+// {
+//     if (kernel != NULL) {
+//         kernel->CopyOptions(cpy);
+//     }
+// }
+// 
 string_list task::OptionsList()
 {
-    string_list lst;
+    string_list retval;
+    db_recordset res;
+    db_query flt;
+    string name;
 
-    if (kernel != NULL) {
-        lst = kernel->OptionsList();
+    if (kernel != NULL && kernel->storage() != NULL) {
+        flt.what().clear();
+        flt.what().push_back(weObjTypeProfile "." weoName);
+        db_condition p_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = profile_id;
+
+        flt.where().set(p_cond);
+        kernel->storage()->get(flt, res);
+
+        db_cursor rec = res.begin();
+        while(rec != res.end()) {
+            name = boost::get<string>(rec[0]);
+            if (name != "") {
+                retval.push_back(name);
+            } // if name present
+            rec++;
+        } // foreach record
     }
 
-    return lst;
+    return retval;
 }
 
 size_t task::OptionSize()
 {
-    size_t res = 0;
+    int retval = 0;
+    db_recordset res;
+    db_query flt;
 
-    if (kernel != NULL) {
-        res = kernel->OptionSize();
+    if (kernel != NULL && kernel->storage() != NULL) {
+        flt.what().clear();
+        flt.what().push_back(weObjTypeProfile "." weoName);
+        db_condition p_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = profile_id;
+
+        flt.where().set(p_cond);
+        kernel->storage()->get(flt, res);
+        retval = res.size();
     }
 
-    return res;
+    return retval;
 }
 
 bool task::is_url_processed( string url )

@@ -24,6 +24,7 @@
 #include "weiPlugin.h"
 #include "weOptions.h"
 #include <boost/utility.hpp>
+#include <set>
 
 namespace webEngine {
 
@@ -155,6 +156,9 @@ public:
     ~db_recordset();
 
     void erase(db_cursor& at);
+    void clear() { records.clear(); field_names.clear(); }
+    void set_names(vector<string> fld_names) { field_names.assign(fld_names.begin(), fld_names.end()); }
+    vector<string> get_names() { return field_names; }
     db_cursor push_back(size_t num = 1);
     db_cursor insert(db_cursor& before, size_t num = 1);
 
@@ -191,6 +195,7 @@ public:
 
     virtual bool eval(db_cursor& data) = 0;
 	virtual string tostring() = 0;
+    virtual void get_namespaces(std::set<string>& ns_list) = 0;
 
 protected:
     friend class db_filter;
@@ -232,6 +237,7 @@ public:
 
     virtual bool eval(db_cursor& data);
 	virtual string tostring();
+    virtual void get_namespaces(std::set<string>& ns_list);
 
 protected:
     virtual db_filter_base* copy();
@@ -268,6 +274,7 @@ public:
 
     virtual bool eval(db_cursor& data);
 	virtual string tostring();
+    virtual void get_namespaces(std::set<string>& ns_list);
 
 protected:
     virtual db_filter_base* copy();
@@ -294,16 +301,16 @@ protected:
 class db_query
 {
 public:
-    db_query();
+    db_query() {}
 
     db_filter& where() { return filter; }
     vector<string>& what() { return output; }
-    db_recordset& values() { return data_set; }
+//    db_recordset& values() { return data_set; }
 
 protected:
     db_filter filter;
     vector<string> output;
-    db_recordset data_set;
+//    db_recordset data_set;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,7 +339,7 @@ public:
     virtual string generate_id(const string& objType = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int get( db_record& filter, db_record& respFilter, db_recordset& results)
+    /// @fn int get( db_query& filter, db_recordset& results)
     ///
     /// @brief  Gets the db_recordset from given namespace (objType). The response filtered to
     ///         equality of the selected field to the given values. The response will contains only
@@ -346,7 +353,7 @@ public:
     virtual int get(db_query& query, db_recordset& results) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int set(db_record& filter, db_record& data)
+    /// @fn int set(db_query& query, db_recordset& data)
     ///
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object), and non-empty @b filters may be used to
@@ -372,15 +379,15 @@ public:
     virtual int set(db_recordset& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int del(db_record& filter)
+    /// @fn int del(db_filter& filter)
     ///
     /// @brief	Deletes the filtered object(s). 
     ///
-    /// @param  filter - the db_query to select object(s) for deletion 
+    /// @param  filter - the db_filter to select object(s) for deletion 
     ///
     /// @retval	Number of deleted records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int del(db_query& filter) = 0;
+    virtual int del(db_filter& filter) = 0;
 
 protected:
     static int last_id;

@@ -445,6 +445,19 @@ string db_condition::tostring( )
 	return res;
 }
 
+void db_condition::get_namespaces( std::set<string>& ns_list )
+{
+    string name = field_name;
+    size_t pos = name.find_last_of('.');
+    if (pos != string::npos) {
+        name = name.substr(0, pos);
+    }
+    else {
+        name = "";
+    }
+    ns_list.insert(name);
+}
+
 db_filter_base* db_condition::copy()
 {
     db_condition* cpy = new db_condition(*this);
@@ -588,4 +601,11 @@ db_filter_base* db_filter::copy()
     db_filter* cpy = new db_filter();
     *cpy = *this;
     return cpy;
+}
+
+void db_filter::get_namespaces( std::set<string>& ns_list )
+{
+    for (size_t i = 0; i < condition.size(); i++) {
+        condition[i].second->get_namespaces(ns_list);
+    }
 }
