@@ -218,47 +218,39 @@ int main(int argc, char* argv[])
     }
     cout << endl;
 
-
-    // save data to archive
-    {
-        std::ofstream tfs("task");
-        boost::archive::xml_oarchive oa(tfs);
-        // write class instance to archive
-        // oa << BOOST_SERIALIZATION_NVP(tsk);
-        // archive and stream closed when destructor are called
-    }
-
     // save data to simple XML
     tsk.Option(weoName, string("<test task>"));
     tsk.Option(weoID, string("&24'u\"3ou"));
-    {
-        std::ofstream tfs("task.xml");
-        std::string xml = ""; //tsk.ToXml();
-        // write class instance to archive
-        tfs << xml;
-        // archive and stream closed when destructor are called
-    }
-    // restore data from simple XML
-    {
-        std::ifstream tfs("task.xml");
-        std::string xml;
-        // read class instance from archive
-        if (!tfs.bad())
-        {
-            ostrstream oss;
-            oss << tfs.rdbuf();
-            xml = string(oss.str(), oss.rdbuf()->pcount());
+
+    // direct access to DB
+    if (we_dispatcer.storage() != NULL) {
+        db_recordset recs;
+        db_query flt;
+        db_condition p_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.operation() = db_condition::great;
+        p_cond.value() = string("");
+
+        flt.what().clear();
+        flt.what().push_back(weObjTypeProfile "." weoParentID);
+        flt.what().push_back(weObjTypeProfile "." weoName);
+        flt.what().push_back(weObjTypeProfile "." weoTypeID);
+        flt.what().push_back(weObjTypeProfile "." weoValue);
+
+        flt.where().set(p_cond);
+        we_dispatcer.storage()->get(flt, recs);
+        db_cursor cursor = recs.begin();
+        int r = 0;
+        while (cursor != recs.end()) {
+            cout << "Record " << r << ":" << endl;
+            for (size_t i = 0; i < cursor.record_size(); i++) {
+                cout << "\tField[" << i << "] = " << cursor[i] << endl;
+            }
+            cursor++;
+            r++;
         }
-        //tsk.FromXml(xml);
-        // archive and stream closed when destructor are called
-    }
-    // save data to archive
-    {
-        std::ofstream tfs("task2");
-        boost::archive::xml_oarchive oa(tfs);
-        // write class instance to archive
-        // oa << BOOST_SERIALIZATION_NVP(tsk);
-        // archive and stream closed when destructor are called
+
     }
 
     StringLinks lst;
