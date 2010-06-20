@@ -36,27 +36,23 @@ class db_recordset;
 ///
 /// @brief  set of fields as zero-based array of values.
 ///
+/// db_record is the set of we_variant values. This is the internal class to store database
+/// records as the zero-based array of columns.
+///
 /// @author A. Abramov
 /// @date	09.06.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class db_record : protected vector< we_variant >
 {
 public:
+	/// construct the array
     db_record() : vector< we_variant>() {}
+	/// construct the array and reserve space for values
     db_record(size_t sz) : vector< we_variant>() { reserve(sz); }
 
 protected:
     friend class db_cursor;
     friend class db_recordset;
-
-/*    void resize(size_t num) { vector< we_variant >::resize(num); }
-    void resize(size_t num, we_variant val) { vector< we_variant >::resize(num, val); }
-    vector< we_variant >::iterator begin() { return vector< we_variant >::begin(); }
-    vector< we_variant >::iterator end() { return vector< we_variant >::end(); }
-    vector< we_variant >::reverse_iterator rbegin() { return vector< we_variant >::rbegin(); }
-    vector< we_variant >::reverse_iterator rend() { return vector< we_variant >::rend(); }
-    we_variant& operator[](int n) { return vector< we_variant >::operator[](n); }
-    void push_back(we_variant val) { vector< we_variant >::push_back(val); }*/
 };
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,17 +116,35 @@ public:
 
 protected:
 };*/
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  db_cursor
+///
+/// @brief  Provide access to records and fields in the recordset.
+///
+/// Extend the vector::iterator to access record columns by index or by name. db_cursor is the
+/// iterator-like accessor to the db_recordset. This is only correct way to access the data
+/// stored in the db_recordset.
+///
+/// @author A. Abramov
+/// @date	09.06.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class db_cursor : public vector<db_record>::iterator {
 public:
+	/// default constructor
     db_cursor() : vector<db_record>::iterator(), parent(NULL) {}
+	/// copy constructor
     db_cursor(const db_cursor& cp);
+	/// explicit constructor to create cursor for specified db_recordset and vector::iterator
     explicit db_cursor(db_recordset* rs, vector<db_record>::iterator it);
 
+	/// copy opreator
     db_cursor& operator=(const db_cursor& cp);
-    // access to current record fields 
+    /// access to current record fields by record name
     we_variant& operator[](string name);
+    /// access to current record fields by record index
     we_variant& operator[](int index);
 
+	/// get the numbers of columns in the recordset
     const size_t record_size();
 
 protected:
@@ -140,7 +154,11 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  db_recordset
 ///
-/// @brief  array of db_records. Implement iterations, structure control and others.
+/// @brief  array of db_record objects. Implement iterations, structure control and others.
+///
+/// Two-demension array of data to store slice of database storage. Data can be accessed
+/// through the db_cursor variations. To acces may be used zero-based indexes of the columns,
+/// or columns names.
 ///
 /// @author A. Abramov
 /// @date	09.06.2010
@@ -151,20 +169,30 @@ public:
 
 public:
     db_recordset();
+	/// explicit constructor with predefined set of columns names
     explicit db_recordset(vector<string> fld_names);
-    explicit db_recordset(db_record& rec);
     ~db_recordset();
 
+	/// remove record from specified position
     void erase(db_cursor& at);
+	/// clear all records and fields names
     void clear() { records.clear(); field_names.clear(); }
+	/// replace fields names with new set
     void set_names(vector<string> fld_names) { field_names.assign(fld_names.begin(), fld_names.end()); }
+	/// get fileds names
     vector<string> get_names() { return field_names; }
+	/// append one or more empty records to the end of dataset
     db_cursor push_back(size_t num = 1);
+	/// insert one or more empty records at the specified position
     db_cursor insert(db_cursor& before, size_t num = 1);
 
+	/// get the number of records in the dataset
     const size_t size() { return records.size(); }
+	/// get the number of columns in the datatset
     const size_t record_size() { return field_names.size(); }
+	/// get the db_cursor that points to the first record in the dataset
     db_cursor begin();
+	/// get the db_cursor that points to outside the last record
     db_cursor end();
 
 protected:
@@ -192,6 +220,7 @@ class db_filter_base
 public:
     db_filter_base() {}
     virtual ~db_filter_base() {}
+
 
     virtual bool eval(db_cursor& data) = 0;
 	virtual string tostring() = 0;
@@ -235,8 +264,19 @@ public:
     opcode& operation() { return op_code; }
     we_variant& value() { return test_value; }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn virtual bool eval(db_cursor& data)
+    ///
+    /// @brief	Evaluate the logical expression on the given data. 
+    ///
+    /// @param  data - the db_cursor to access the data 
+    ///
+    /// @retval	bool value of the expression. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual bool eval(db_cursor& data);
+	/// generates string representation of the stored condition
 	virtual string tostring();
+	/// extract set of namepspaces from the condition fields
     virtual void get_namespaces(std::set<string>& ns_list);
 
 protected:
