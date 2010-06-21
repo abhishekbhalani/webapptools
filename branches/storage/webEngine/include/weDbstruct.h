@@ -30,6 +30,25 @@ using namespace std;
 
 namespace webEngine {
 
+	/**
+	 * @page db_layer Database Abstraction Layer
+	 *
+	 * Database abstraction layer is the set of classes to implement database-related
+	 * structures. It provides universal classes to access structured data.
+	 * List of classes:
+	 * @li db_record
+	 * @li db_recordset
+	 * @li db_cursor
+	 * @li db_condition
+	 * @li db_filter
+	 * @li db_query
+	 *
+	 * All of these classes except db_query may be used independently of webEngine system.
+	 * But the db_query class proposed to use with the i_storage interfase implementations.
+	 * BOOST_SERIALIZATION_NVP serialization mechanism implemented in the db_record and
+	 * db_recordset to use in various schemes.
+	 */
+
     class db_cursor;
     class db_recordset;
 
@@ -39,7 +58,8 @@ namespace webEngine {
     /// @brief  set of fields as zero-based array of values.
     ///
     /// db_record is the set of we_variant values. This is the internal class to store database
-    /// records as the zero-based array of columns.
+    /// records as the zero-based array of columns. This class implements serialization to
+	/// allow db_recordset class to be serialized.
     ///
     /// @author A. Abramov
     /// @date	09.06.2010
