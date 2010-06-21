@@ -167,6 +167,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sources\weDbstruct.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sources\weDiffLib.cpp"
 				>
 			</File>
@@ -271,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sources\weVariant.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sources\weVulners.cpp"
 				>
 			</File>
@@ -290,6 +298,10 @@
 			</File>
 			<File
 				RelativePath=".\include\weBlob.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\weDbstruct.h"
 				>
 			</File>
 			<File
@@ -378,6 +390,10 @@
 			</File>
 			<File
 				RelativePath=".\include\weUrl.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\weVariant.h"
 				>
 			</File>
 			<File

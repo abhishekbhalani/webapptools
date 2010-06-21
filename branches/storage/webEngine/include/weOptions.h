@@ -28,6 +28,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/lexical_cast.hpp>
 #include "weTagScanner.h"
 #include "weStrings.h"
+#include "weVariant.h"
 
 using namespace std;
 
@@ -35,29 +36,6 @@ using namespace std;
 namespace webEngine {
 
     class db_recordset;
-
-    class we_variant : public boost::variant< char, int, bool, double, string, boost::blank >
-    {
-        typedef boost::variant< char, int, bool, double, string, boost::blank > we_types;
-    public:
-        // construct/copy/destruct
-        we_variant() : we_types(boost::blank()) {}
-        we_variant(const we_variant &t) { we_types::operator=(*(static_cast<const we_types*>(&t))); }
-        template<typename T> we_variant(const T &t) : we_types(t) {}
-
-        we_variant& operator=(const we_variant &cpy) { we_types::operator=(*(static_cast<const we_types*>(&cpy))); return *this; }
-        template<typename T> we_variant& operator=(const T &t) { we_types::operator=(t); return *this; }
-
-        bool operator==(const we_variant &rhl) const {return we_types::operator==(*(static_cast<const we_types*>(&rhl))); }
-        template<typename U> void operator==(const U &rhl) const  {}
-        bool operator<(const we_variant &rhl) const;
-        bool operator>(const we_variant &rhl) const;
-        bool operator<=(const we_variant &rhl) const;
-        bool operator>=(const we_variant &rhl) const;
-
-        const bool empty() { return type() == typeid(boost::blank); }
-        void clear() { we_types::operator=(boost::blank()); }
-    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @class  we_option

@@ -669,7 +669,7 @@ shared_ptr<ScanData> task::GetScanData( const string& baseUrl )
     return retval;
 }
 
-void task::SetScanData( const string& baseUrl, shared_ptr<ScanData> scData )
+void task::SetScanData( const string& baseUrl, boost::shared_ptr<ScanData> scData )
 {
     {
         boost::unique_lock<boost::mutex> lock(scandata_mutex);
@@ -682,7 +682,7 @@ void task::SetScanData( const string& baseUrl, shared_ptr<ScanData> scData )
     }
 }
 
-void task::FreeScanData(shared_ptr<ScanData> scData)
+void task::FreeScanData(boost::shared_ptr<ScanData> scData)
 {
     boost::unique_lock<boost::mutex> lock(scandata_mutex);
     LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data (SC = " << scData.use_count() << "; PD = " << scData->parsed_data << ")");

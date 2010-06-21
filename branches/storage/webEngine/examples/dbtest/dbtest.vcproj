@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="curllib.lib libboost_regex-vc90-mt-gd-1_38.lib libboost_serialization-vc90-mt-gd-1_38.lib log4cxx.lib"
+				AdditionalDependencies="libboost_regex-vc90-mt-gd-1_38.lib libboost_serialization-vc90-mt-gd-1_38.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\libs\debug"
 				IgnoreDefaultLibraryNames="libcmtd.lib"
@@ -118,6 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="..\..\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -136,7 +137,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libboost_regex-vc90-mt-1_38.lib libboost_serialization-vc90-mt-1_38.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\libs\release"
+				IgnoreDefaultLibraryNames="libcmt.lib"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -177,6 +181,14 @@
 			<File
 				RelativePath=".\dbtest.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
