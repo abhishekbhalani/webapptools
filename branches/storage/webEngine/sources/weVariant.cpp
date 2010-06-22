@@ -21,9 +21,19 @@
 
 #include <weVariant.h>
 
-using namespace webEngine;
+namespace webEngine {
 
-bool we_variant::operator<( const we_variant &rhl ) const
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @property   bool operator<( const we_variant& lhs, const we_variant& rhs )
+///
+/// @brief   basic boolean operator for we_variant instances.
+///
+/// boost::less_than_comparable and boost::equivalent extends this operator and allows the
+/// we_variant to be an totally ordered class.
+///
+/// @return true if lhs is less than rhs, false if not. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool operator<( const we_variant& lhs, const we_variant& rhs )
 {
     bool result = false;
     char c_t, c_a;
@@ -32,30 +42,33 @@ bool we_variant::operator<( const we_variant &rhl ) const
     double d_t, d_a;
     string s_t, s_a;
 
-    switch (which()) {
+    if (lhs.which() != rhs.which()) {
+        return false;
+    }
+    switch (lhs.which()) {
     case 0: // char
-        c_t = boost::get<char>(*this);
-        c_a = boost::get<char>(rhl);
+        c_t = lhs.get<char>();
+        c_a = rhs.get<char>();
         result = (c_t < c_a);
         break;
     case 1: // int
-        i_t = boost::get<int>(*this);
-        i_a = boost::get<int>(rhl);
+        i_t = lhs.get<int>();
+        i_a = rhs.get<int>();
         result = (i_t < i_a);
         break;
     case 2: // bool
-        b_t = boost::get<bool>(*this);
-        b_a = boost::get<bool>(rhl);
+        b_t = lhs.get<bool>();
+        b_a = rhs.get<bool>();
         result = (b_t < b_a);
         break;
     case 3: // double
-        d_t = boost::get<double>(*this);
-        d_a = boost::get<double>(rhl);
+        d_t = lhs.get<double>();
+        d_a = rhs.get<double>();
         result = (d_t < d_a);
         break;
     case 4: // string
-        s_t = boost::get<string>(*this);
-        s_a = boost::get<string>(rhl);
+        s_t = lhs.get<string>();
+        s_a = rhs.get<string>();
         result = (s_t < s_a);
         break;
     default:
@@ -64,7 +77,7 @@ bool we_variant::operator<( const we_variant &rhl ) const
     return result;
 }
 
-bool we_variant::operator>( const we_variant &rhl ) const
+/*bool we_variant::operator>( const we_variant &rhl ) const
 {
     bool result = false;
     char c_t, c_a;
@@ -157,7 +170,7 @@ bool we_variant::operator>=( const we_variant &rhl ) const
     /*    double uc_t, uc_a;
     double ui_t, ui_a;
     double l_t, l_a;
-    double ul_t, ul_a;*/
+    double ul_t, ul_a;* /
 
     switch (which()) {
     case 0: // char
@@ -206,7 +219,9 @@ bool we_variant::operator>=( const we_variant &rhl ) const
         ul_t = boost::get<unsigned long>(*this);
         ul_a = boost::get<unsigned long>(rhl);
         result = (ul_t >= ul_a);
-        break;*/
+        break;* /
     }
     return result;
-}
+}*/
+
+} // namespace webEngine

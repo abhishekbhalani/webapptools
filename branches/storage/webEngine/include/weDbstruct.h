@@ -44,7 +44,7 @@ namespace webEngine {
 	 * @li db_query
 	 *
 	 * All of these classes except db_query may be used independently of webEngine system.
-	 * But the db_query class proposed to use with the i_storage interfase implementations.
+	 * But the db_query class proposed to use with the i_storage interface implementations.
 	 * BOOST_SERIALIZATION_NVP serialization mechanism implemented in the db_record and
 	 * db_recordset to use in various schemes.
 	 */
@@ -58,48 +58,32 @@ namespace webEngine {
     /// @brief  set of fields as zero-based array of values.
     ///
     /// db_record is the set of we_variant values. This is the internal class to store database
-    /// records as the zero-based array of columns. This class implements serialization to
-	/// allow db_recordset class to be serialized.
+    /// records as the zero-based array of columns. This class implements serialization
+    /// to allow db_recordset class to be serialized.
     ///
     /// @author A. Abramov
     /// @date	09.06.2010
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class db_record : protected vector< we_variant >
+    class db_record
     {
     public:
-        /// construct the array
-        db_record() : vector< we_variant>() {}
-        /// construct the array and reserve space for values
-        db_record(size_t sz) : vector< we_variant>() { reserve(sz); }
+        // all defaults
     protected:
         friend class db_cursor;
         friend class db_recordset;
-        friend class ::boost::serialization::access;
-        BOOST_SERIALIZATION_SPLIT_MEMBER();
-        /// save instance to the given archive
+
+        we_variant& operator[](size_t n) { return data[n]; }
+        void push_back(we_variant val) { data.push_back(val); }
+        void resize(size_t n) { data.resize(n); }
+
+        friend class boost::serialization::access;
+        /// serialize instance to the given archive
         template<class Archive>
-        void save(Archive & ar, const unsigned int version) const { 
-            size_t vsize;
-            we_variant value;
-            vsize = size();
-            ar & BOOST_SERIALIZATION_NVP(vsize);
-            for (size_t i = 0; i < vsize; i++) {
-                value = (*this)[i];
-                ar & BOOST_SERIALIZATION_NVP(value);
-            }
+        void serialize(Archive & ar, const unsigned int version) { 
+            ar & BOOST_SERIALIZATION_NVP(data);
         }
-        /// load instance from the given archive
-        template<class Archive>
-        void load(Archive & ar, const unsigned int version) { 
-            size_t vsize;
-            we_variant value;
-            clear();
-            ar & BOOST_SERIALIZATION_NVP(vsize);
-            for (size_t i = 0; i < vsize; i++) {
-                ar & BOOST_SERIALIZATION_NVP(value);
-                push_back(value);
-            }
-        }
+    private:
+        vector< we_variant > data;
     };
 
     /*///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,12 +103,13 @@ namespace webEngine {
     ///
     /// @brief  Provide access to records and fields in the recordset.
     ///
-    /// Extend the vector::iterator to access record columns by index or by name. db_cursor is the
-    /// iterator-like accessor to the db_recordset. This is only correct way to access the data
-    /// stored in the db_recordset.
+    /// Extend the vector::iterator to access record columns by index or by name. db_cursor
+    /// provides the iterator-like access to the db_recordset. This is only correct way to
+    /// access the data stored in the db_recordset.
     ///
     /// @author A. Abramov
     /// @date	09.06.2010
+    /// @example dbtest.cpp
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class db_cursor : public vector<db_record>::iterator {
     public:
@@ -160,6 +145,7 @@ namespace webEngine {
     ///
     /// @author A. Abramov
     /// @date	09.06.2010
+    /// @example dbtest.cpp
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class db_recordset : public boost::noncopyable
     {
@@ -168,7 +154,7 @@ namespace webEngine {
     public:
         db_recordset();
         /// explicit constructor with predefined set of columns names
-        explicit db_recordset(vector<string> fld_names);
+        explicit db_recordset(const vector<string>& fld_names);
         ~db_recordset();
 
         /// remove record from specified position
@@ -176,9 +162,9 @@ namespace webEngine {
         /// clear all records and fields names
         void clear() { records.clear(); field_names.clear(); }
         /// replace fields names with new set
-        void set_names(vector<string> fld_names) { field_names.assign(fld_names.begin(), fld_names.end()); }
+        void set_names(const vector<string>& fld_names) { field_names = fld_names; }
         /// get fileds names
-        vector<string> get_names() { return field_names; }
+        const vector<string>& get_names() const { return field_names; }
         /// append one or more empty records to the end of dataset
         db_cursor push_back(size_t num = 1);
         /// insert one or more empty records at the specified position
@@ -190,19 +176,16 @@ namespace webEngine {
         const size_t record_size() { return field_names.size(); }
         /// get the db_cursor that points to the first record in the dataset
         db_cursor begin();
-        /// get the db_cursor that points to outside the last record
+        /// get the db_cursor that points to beyond the last record
         db_cursor end();
 
     protected:
         friend class db_cursor;
 
-        db_cursor push_back(db_record& rec);
-        db_cursor insert(db_cursor& before, db_record& rec);
-
         vector<string> field_names;
         vector<db_record> records;
 
-        friend class ::boost::serialization::access;
+        friend class boost::serialization::access;
 
         /// serialize data to the archive
         template<class Archive>
@@ -246,7 +229,7 @@ namespace webEngine {
     protected:
         friend class db_filter;
         /// create copy of the object for the internal usage
-        virtual db_filter_base* copy() = 0;
+        virtual db_filter_base* clone() = 0;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -256,6 +239,7 @@ namespace webEngine {
     ///
     /// @author A. Abramov
     /// @date	09.06.2010
+    /// @example dbtest.cpp
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class db_condition : public db_filter_base
     {
@@ -272,11 +256,8 @@ namespace webEngine {
             not_null
         } opcode;
         db_condition();
-        db_condition(const db_condition& c);
         explicit db_condition(string s);
         ~db_condition() {}
-
-        db_condition& operator=(db_condition& c);
 
         string& field() { return field_name; }
         opcode& operation() { return op_code; }
@@ -287,7 +268,7 @@ namespace webEngine {
         virtual void get_namespaces(std::set<string>& ns_list);
 
     protected:
-        virtual db_filter_base* copy();
+        virtual db_filter_base* clone();
 
         string field_name;
         opcode op_code;
@@ -301,6 +282,7 @@ namespace webEngine {
     ///
     /// @author A. Abramov
     /// @date	09.06.2010
+    /// @example dbtest.cpp
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     class db_filter : public db_filter_base
     {
@@ -324,7 +306,7 @@ namespace webEngine {
         virtual void get_namespaces(std::set<string>& ns_list);
 
     protected:
-        virtual db_filter_base* copy();
+        virtual db_filter_base* clone();
 
         typedef enum {
             link_null,
@@ -348,16 +330,10 @@ namespace webEngine {
     class db_query
     {
     public:
-        db_query() {}
-
-        db_filter& where() { return filter; }
-        vector<string>& what() { return output; }
-        //    db_recordset& values() { return data_set; }
-
-    protected:
-        db_filter filter;
-        vector<string> output;
-        //    db_recordset data_set;
+        /// defines logical filter for resulting dataset
+        db_filter where;
+        /// defines subset of fields which are expected in the results
+        vector<string> what;
     };
 
 } // namespace webEngine

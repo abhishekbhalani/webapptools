@@ -111,8 +111,8 @@ int mem_storage::get(db_query& query, db_recordset& results)
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::get");
 
     results.clear();
-    results.set_names(query.what());
-    query.where().get_namespaces(ns_list);
+    results.set_names(query.what);
+    query.where.get_namespaces(ns_list);
 
     // @todo implement db_recordset.join to perform queries from more than one table
     if (ns_list.size() != 1) {
@@ -125,9 +125,9 @@ int mem_storage::get(db_query& query, db_recordset& results)
         {
             cursor = mit->second->begin();
             while (cursor != name_spaces[*ns_it]->end()) {
-                if (query.where().eval(cursor)) {
+                if (query.where.eval(cursor)) {
                     record = results.push_back();
-                    for(rec_it = query.what().begin(); rec_it != query.what().end(); rec_it++) {
+                    for(rec_it = query.what.begin(); rec_it != query.what.end(); rec_it++) {
                         try {
                             record[*rec_it] = cursor[*rec_it];
                         }
@@ -157,7 +157,7 @@ int mem_storage::set(db_query& query, db_recordset& data)
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(query, db_record)");
 
-    query.where().get_namespaces(ns_list);
+    query.where.get_namespaces(ns_list);
     // @todo implement db_recordset.join to perform queries from more than one table
     if (ns_list.size() != 1) {
         LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get - query wants data from " << ns_list.size() << " tables; Only one table supported.");
@@ -170,7 +170,7 @@ int mem_storage::set(db_query& query, db_recordset& data)
             cursor = mit->second->begin();
             updated = false;
             while (cursor != name_spaces[*ns_it]->end()) {
-                if (query.where().eval(cursor)) {
+                if (query.where.eval(cursor)) {
                     updated = true;
                     // update record
                     // @todo only firs record from argument used for update

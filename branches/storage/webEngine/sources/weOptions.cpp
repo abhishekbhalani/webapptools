@@ -99,28 +99,28 @@ void options_provider::FromRS( db_recordset *rs )
     try {
         for (r = 0; r < rs->size(); r++)
         {
-            sName = boost::get<string>(rec[weObjTypeProfile "." weoName]);
-            tp = boost::get<int>(rec[weObjTypeProfile "." weoTypeID]);
+            sName = rec[weObjTypeProfile "." weoName].get<string>();
+            tp = rec[weObjTypeProfile "." weoTypeID].get<int>();
             switch(tp)
             {
             case 0: // char
-                c = boost::get<char>(rec[weObjTypeProfile "." weoValue]);
+                c = rec[weObjTypeProfile "." weoValue].get<char>();
                 Option(sName, c);
                 break;
             case 1: // int
-                i = boost::get<int>(rec[weObjTypeProfile "." weoValue]);
+                i = rec[weObjTypeProfile "." weoValue].get<int>();
                 Option(sName, i);
                 break;
             case 2: // bool
-                b = boost::get<bool>(rec[weObjTypeProfile "." weoValue]);
+                b = rec[weObjTypeProfile "." weoValue].get<bool>();
                 Option(sName, b);
                 break;
             case 3: // double
-                d = boost::get<double>(rec[weObjTypeProfile "." weoValue]);
+                d = rec[weObjTypeProfile "." weoValue].get<double>();
                 Option(sName, d);
                 break;
             case 4: // string
-                s = boost::get<string>(rec[weObjTypeProfile "." weoValue]);
+                s = rec[weObjTypeProfile "." weoValue].get<string>();
                 Option(sName, s);
                 break;
             default:

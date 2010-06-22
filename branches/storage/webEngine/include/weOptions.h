@@ -65,7 +65,7 @@ namespace webEngine {
         // const type_info &Value(void) const     { return(tpId);     };
         template <typename T>
         void GetValue(T& dt)
-        { dt = boost::get<T>(val); }
+        { dt = val.get<T>(); }
 
         template <typename T>
         void SetValue(T dt)

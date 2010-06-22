@@ -23,10 +23,10 @@
 
 #define WE_VERSION_MAJOR        0
 #define WE_VERSION_MINOR        2
-#define WE_VERSION_BUILDNO      3
-#define WE_VERSION_EXTEND       835
+#define WE_VERSION_BUILDNO      4
+#define WE_VERSION_EXTEND       860
 
-#define WE_VERSION_PRODUCTSTR   "0,2,3,835"
+#define WE_VERSION_PRODUCTSTR   "0,2,4,860"
 
 /**
 	@namespace	webEngine
@@ -53,7 +53,7 @@
 	@ref shared_object "dyn::shared_object library". For difference operation used
 	@ref dtl "Diff Templates Library". For ability to use different database engines
 	webEngine provides @ref db_layer "database abstraction layer". This set of classes
-	may be used to sore different structures. See the <a href="classes.html"><b>class
+	may be used to store different structures. See the <a href="classes.html"><b>class
 	index</b></a> page to the complete list of library classes.
 */
 

@@ -167,7 +167,7 @@ shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )
     return retval;
 }
 
-void ScanInfo::SetScanData( const string& object_url, shared_ptr<ScanData> scData )
+void ScanInfo::SetScanData( const string& object_url, scan_data_ptr scData )
 {
     scan_data[object_url] = scData;
 }

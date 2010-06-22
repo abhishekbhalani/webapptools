@@ -247,6 +247,8 @@ int main(int argc, char* argv[])
         r++;
     }
 
+    // append empty record for serialized data
+    rs.push_back();
     // save data to archive
     {
         std::ofstream ofs("saved.db");
@@ -262,6 +264,33 @@ int main(int argc, char* argv[])
         // write class instance to archive
         oa << BOOST_SERIALIZATION_NVP(rs);
         // archive and stream closed when destructor are called
+    }
+
+    rs.clear();
+    // restore data from archive
+    {
+        std::ifstream ifs("saved.db");
+        boost::archive::text_iarchive ia(ifs);
+        // write class instance to archive
+        ia >> BOOST_SERIALIZATION_NVP(rs);
+        // archive and stream closed when destructor are called
+    }
+    cout << "Restored recordset - " << "Size: " << rs.size() << endl;
+    cursor = rs.begin();
+    r = 0;
+    while (cursor != rs.end())
+    {
+        cout << "Record [" << r << "] is:" << endl;
+        for (size_t i = 0; i < cursor.record_size(); i ++) {
+            if (cursor[i].empty()) {
+                cout << "\t[" << i << "] = <empty>" << endl;
+            }
+            else {
+                cout << "\t[" << i << "] = " << cursor[i] << endl;
+            }
+        }
+        cursor++;
+        r++;
     }
 
     return 0;

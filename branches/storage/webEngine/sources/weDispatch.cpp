@@ -287,9 +287,9 @@ we_option engine_dispatcher::Option( const string& name )
 
     opt = i_options_provider::empty_option;
     if (plg_storage != NULL) {
-        flt.what().clear();
-        flt.what().push_back(weObjTypeProfile "." weoTypeID);
-        flt.what().push_back(weObjTypeProfile "." weoValue);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoTypeID);
+        flt.what.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -302,7 +302,7 @@ we_option engine_dispatcher::Option( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where().set(p_cond).and(n_cond);
+        flt.where.set(p_cond).and(n_cond);
         plg_storage->get(flt, res);
 
         if (res.size() > 0) {
@@ -314,23 +314,23 @@ we_option engine_dispatcher::Option( const string& name )
                     switch(tp)
                     {
                     case 0: // char
-                        c = boost::get<char>(rec[weObjTypeProfile "." weoValue]);
+                        c = rec[weObjTypeProfile "." weoValue].get<char>();
                         opt.SetValue(c);
                         break;
                     case 1: // int
-                        i = boost::get<int>(rec[weObjTypeProfile "." weoValue]);
+                        i = rec[weObjTypeProfile "." weoValue].get<int>();
                         opt.SetValue(i);
                         break;
                     case 2: // bool
-                        b = boost::get<bool>(rec[weObjTypeProfile "." weoValue]);
+                        b = rec[weObjTypeProfile "." weoValue].get<bool>();
                         opt.SetValue(b);
                         break;
                     case 3: // double
-                        d = boost::get<double>(rec[weObjTypeProfile "." weoValue]);
+                        d = rec[weObjTypeProfile "." weoValue].get<double>();
                         opt.SetValue(d);
                         break;
                     case 4: // string
-                        s = boost::get<string>(rec[weObjTypeProfile "." weoValue]);
+                        s = rec[weObjTypeProfile "." weoValue].get<string>();
                         opt.SetValue(s);
                         break;
                     default:
@@ -355,11 +355,11 @@ void engine_dispatcher::Option( const string& name, we_variant val )
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") set value=" << val);
     if (plg_storage != NULL) {
-        flt.what().clear();
-        flt.what().push_back(weObjTypeProfile "." weoParentID);
-        flt.what().push_back(weObjTypeProfile "." weoName);
-        flt.what().push_back(weObjTypeProfile "." weoTypeID);
-        flt.what().push_back(weObjTypeProfile "." weoValue);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoParentID);
+        flt.what.push_back(weObjTypeProfile "." weoName);
+        flt.what.push_back(weObjTypeProfile "." weoTypeID);
+        flt.what.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -372,9 +372,9 @@ void engine_dispatcher::Option( const string& name, we_variant val )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where().set(p_cond).and(n_cond);
+        flt.where.set(p_cond).and(n_cond);
 
-        db_recordset data(flt.what());
+        db_recordset data(flt.what);
         db_cursor rec = data.push_back();
 
         rec[0] = parentID;
@@ -395,9 +395,9 @@ bool engine_dispatcher::IsSet( const string& name )
 
     retval = false;
     if (plg_storage != NULL) {
-        flt.what().clear();
-        flt.what().push_back(weObjTypeProfile "." weoTypeID);
-        flt.what().push_back(weObjTypeProfile "." weoValue);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoTypeID);
+        flt.what.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -410,7 +410,7 @@ bool engine_dispatcher::IsSet( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where().set(p_cond).and(n_cond);
+        flt.where.set(p_cond).and(n_cond);
         plg_storage->get(flt, res);
 
         if (res.size() > 0) {
@@ -480,20 +480,20 @@ string_list engine_dispatcher::OptionsList()
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        flt.what().clear();
-        flt.what().push_back(weObjTypeProfile "." weoName);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
         p_cond.field() = weObjTypeProfile "." weoParentID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 
-        flt.where().set(p_cond);
+        flt.where.set(p_cond);
         plg_storage->get(flt, res);
 
         db_cursor rec = res.begin();
         while(rec != res.end()) {
-            name = boost::get<string>(rec[0]);
+            name = rec[0].get<string>();
             if (name != "") {
                 retval.push_back(name);
             } // if name present
@@ -512,15 +512,15 @@ size_t engine_dispatcher::OptionSize()
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        flt.what().clear();
-        flt.what().push_back(weObjTypeProfile "." weoName);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
         p_cond.field() = weObjTypeProfile "." weoParentID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 
-        flt.where().set(p_cond);
+        flt.where.set(p_cond);
         plg_storage->get(flt, res);
         retval = res.size();
     }

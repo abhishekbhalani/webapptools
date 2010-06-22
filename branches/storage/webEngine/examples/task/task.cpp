@@ -232,13 +232,13 @@ int main(int argc, char* argv[])
         p_cond.operation() = db_condition::great;
         p_cond.value() = string("");
 
-        flt.what().clear();
-        flt.what().push_back(weObjTypeProfile "." weoParentID);
-        flt.what().push_back(weObjTypeProfile "." weoName);
-        flt.what().push_back(weObjTypeProfile "." weoTypeID);
-        flt.what().push_back(weObjTypeProfile "." weoValue);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoParentID);
+        flt.what.push_back(weObjTypeProfile "." weoName);
+        flt.what.push_back(weObjTypeProfile "." weoTypeID);
+        flt.what.push_back(weObjTypeProfile "." weoValue);
 
-        flt.where().set(p_cond);
+        flt.where.set(p_cond);
         we_dispatcer.storage()->get(flt, recs);
         db_cursor cursor = recs.begin();
         int r = 0;

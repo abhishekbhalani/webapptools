@@ -33,9 +33,9 @@ db_recordset::db_recordset(void)
 
 }
 
-db_recordset::db_recordset(vector<string> fld_names)
+db_recordset::db_recordset(const vector<string>& fld_names)
 {
-    field_names.assign(fld_names.begin(), fld_names.end());
+    field_names = fld_names;
 }
 
 db_recordset::~db_recordset(void)
@@ -48,18 +48,18 @@ void db_recordset::erase(db_cursor& at)
     records.erase(static_cast< vector<db_record>::iterator >(at));
 }
 
-db_cursor db_recordset::push_back(db_record& rec)
-{
-    // @todo Verify data types
-    size_t sz = records.size();
-
-    rec.resize(field_names.size());
-    records.push_back(rec);
-
-    // get the iterator points to the first added element
-    vector<db_record>::iterator it = records.begin();
-    return db_cursor(this, it + sz);
-}
+// db_cursor db_recordset::push_back(db_record& rec)
+// {
+//     // @todo Verify data types
+//     size_t sz = records.size();
+// 
+//     rec.resize(field_names.size());
+//     records.push_back(rec);
+// 
+//     // get the iterator points to the first added element
+//     vector<db_record>::iterator it = records.begin();
+//     return db_cursor(this, it + sz);
+// }
 
 db_cursor db_recordset::push_back(size_t num/* = 1*/)
 {
@@ -93,15 +93,15 @@ db_cursor db_recordset::insert(db_cursor& before, size_t num/* = 1*/)
     return db_cursor(this, records.begin() + off);
 }
 
-db_cursor db_recordset::insert(db_cursor& before, db_record& rec)
-{
-    size_t off = records.size() == 0 ? 0 : before - records.begin();
-
-    rec.resize(field_names.size());
-    records.insert(before, rec);
-
-    return db_cursor(this, records.begin() + off);
-}
+// db_cursor db_recordset::insert(db_cursor& before, db_record& rec)
+// {
+//     size_t off = records.size() == 0 ? 0 : before - records.begin();
+// 
+//     rec.resize(field_names.size());
+//     records.insert(before, rec);
+// 
+//     return db_cursor(this, records.begin() + off);
+// }
 
 db_cursor db_recordset::begin()
 {
@@ -187,13 +187,6 @@ db_condition::db_condition()
     test_value.clear();
 }
 
-db_condition::db_condition( const db_condition& c )
-{
-    field_name = c.field_name;
-    op_code = c.op_code;
-    test_value = c.test_value;
-}
-
 db_condition::db_condition( string s )
 {
     string tmp;
@@ -275,11 +268,11 @@ db_condition::db_condition( string s )
                     test_value = tmp;
                 }
             }
-            //             else if (tmp.length() == 1) {
-            //                 // char value
-            //                 char ch = tmp[0];
-            //                 test_value = ch;
-            //             }
+//             else if (tmp.length() == 1) {
+//                 // char value
+//                 char ch = tmp[0];
+//                 test_value = ch;
+//             }
             else {
                 // string
                 test_value = tmp;
@@ -291,15 +284,6 @@ db_condition::db_condition( string s )
         tmp = "db_condition: can't parse string - " + s;
         throw_exception(bad_cast(tmp.c_str()));
     }
-}
-
-db_condition& db_condition::operator=( db_condition& c )
-{
-    field_name = c.field_name;
-    op_code = c.op_code;
-    test_value = c.test_value;
-
-    return *this;
 }
 
 bool db_condition::eval( db_cursor& data )
@@ -340,8 +324,8 @@ bool db_condition::eval( db_cursor& data )
                 s_t += ") - not a string values";
                 throw_exception(bad_cast(s_t.c_str()));
             }
-            s_t = boost::get<string>(test_value);
-            s_a = boost::get<string>(val);
+            s_t = boost::get<string>( (we_types&)test_value );
+            s_a = val.get<string>();
             pos = s_a.find(s_t);
             result = (pos != string::npos);
             break;
@@ -361,35 +345,28 @@ string db_condition::tostring( )
 
     res = field_name;
     op = "";
-    val = "";
+    val = boost::lexical_cast<string>((we_types&)test_value);
     switch(op_code) {
         case db_condition::equal:
             op = " == ";
-            val = boost::lexical_cast<string>(test_value);
             break;
         case db_condition::not_equal:
             op = " != ";
-            val = boost::lexical_cast<string>(test_value);
             break;
         case db_condition::less:
             op = " < ";
-            val = boost::lexical_cast<string>(test_value);
             break;
         case db_condition::great:
             op = " > ";
-            val = boost::lexical_cast<string>(test_value);
             break;
         case db_condition::less_or_equal:
             op = " <= ";
-            val = boost::lexical_cast<string>(test_value);
             break;
         case db_condition::great_or_equal:
             op = " >= ";
-            val = boost::lexical_cast<string>(test_value);
             break;
         case db_condition::like:
             op = " like ";
-            val = boost::lexical_cast<string>(test_value);
             break;
         case db_condition::is_null:
             op = " is_null";
@@ -418,10 +395,9 @@ void db_condition::get_namespaces( std::set<string>& ns_list )
     ns_list.insert(name);
 }
 
-db_filter_base* db_condition::copy()
+db_filter_base* db_condition::clone()
 {
-    db_condition* cpy = new db_condition(*this);
-    return cpy;
+    return new db_condition(*this);
 }
 
 db_filter::db_filter( const db_filter& filt )
@@ -450,7 +426,7 @@ db_filter& db_filter::operator=( const db_filter& cpy )
 {
     condition.clear();
     for (size_t i = 0 ; i < cpy.condition.size(); i++) {
-        condition.push_back(element(cpy.condition[i].first, cpy.condition[i].second->copy()));
+        condition.push_back(element(cpy.condition[i].first, cpy.condition[i].second->clone()));
     }
     return *this;
 }
@@ -556,11 +532,9 @@ string db_filter::tostring()
     return res;
 }
 
-db_filter_base* db_filter::copy()
+db_filter_base* db_filter::clone()
 {
-    db_filter* cpy = new db_filter();
-    *cpy = *this;
-    return cpy;
+    return new db_filter(*this);
 }
 
 void db_filter::get_namespaces( std::set<string>& ns_list )
