@@ -53,9 +53,6 @@ public:
     virtual int del(db_filter& filter);
 
     // mem_storage functions
-
-    void fix_namespace_struct(db_record& filter);
-    string_list* get_namespace_struct(db_record& filter);
     void save_db(const string& fname);
     void load_db(const string& fname);
 

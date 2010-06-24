@@ -23,6 +23,7 @@ along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
 #include <weBlob.h>
 #include <weiParser.h>
 #include <weiTransport.h>
+#include <weDbstruct.h>
 #include <boost/unordered_map.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
@@ -54,8 +55,8 @@ namespace webEngine {
         i_document_ptr parsed_data;
         i_response_ptr response;
 
-        db_recordset* ToRS( const string& parentID = "" );
-        void FromRS( db_recordset *rs );
+        bool to_dataset( db_cursor& dataset );
+        bool from_dataset( const db_cursor& dataset );
     };
 
     typedef boost::shared_ptr<ScanData> scan_data_ptr;

@@ -23,10 +23,10 @@
 
 #define WE_VERSION_MAJOR        0
 #define WE_VERSION_MINOR        2
-#define WE_VERSION_BUILDNO      4
-#define WE_VERSION_EXTEND       860
+#define WE_VERSION_BUILDNO      105
+#define WE_VERSION_EXTEND       916
 
-#define WE_VERSION_PRODUCTSTR   "0,2,4,860"
+#define WE_VERSION_PRODUCTSTR   "0,2,105,916"
 
 /**
 	@namespace	webEngine

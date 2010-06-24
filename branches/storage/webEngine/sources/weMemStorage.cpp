@@ -23,6 +23,8 @@
 #include <strstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
 #include "weOptions.h"
@@ -553,6 +555,34 @@ bool mem_storage::init_storage( const string& params )
 {
     file_name = params;
     load_db(file_name);
+    size_t i = 0;
+    std::vector<std::string> inits;
+    std::vector<std::string> fields;
+
+    while (idb_struct[i] != NULL) {
+        boost::split(inits, idb_struct[i], boost::is_any_of(":"));
+        if (inits.size() > 0) {
+            if (name_spaces.find(inits[0]) == name_spaces.end()) {
+                //create namespace
+                fields.clear();
+                for (size_t j = 1; j < inits.size(); j++) {
+                    string fld = inits[j];
+                    size_t pos = fld.find(' ');
+                    if (pos != string::npos) {
+                        fld = fld.substr(0, pos);
+                    }
+                    if (fld.length() > 0) {
+                        fields.push_back(inits[0] + "." + fld);
+                    }
+                } // for each field
+                if (fields.size() > 0) {
+                    db_recordset* dbr = new db_recordset(fields);
+                    name_spaces[inits[0]] = dbr;
+                }
+            } // not namespace found
+        } // if inits parsed
+        i++;
+    } // while exist initializer
     return true;
 }
 
@@ -567,77 +597,6 @@ void mem_storage::flush( const string& params /*= ""*/)
         LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::flush: filename not empty, save data");
         save_db(file_name);
     }
-}
-
-void mem_storage::fix_namespace_struct(db_record& filter)
-{
-//    obj = storage_db.find(filter.objectID + "_struct");
-/*    if (obj != storage_db.end()) {
-        stData = obj->second;
-        try
-        {
-            istrstream is(stData.c_str(), stData.length());
-            boost::archive::text_iarchive ia(is);
-            // read class instance from archive
-            ia >> structNames;
-            // archive and stream closed when destructor are called
-        }
-        catch(std::exception& e)
-        {
-//            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::fix_namespace_struct " << filter.objectID << " structure error: " << e.what());
-            return;
-        }
-    }
-/*    flNames = filter.OptionsList();
-    for (i = 0 ; i < flNames.size(); i++)
-    {
-        lst = find(structNames.begin(), structNames.end(), flNames[i]);
-        if (lst == structNames.end())
-        {
-            structNames.push_back(flNames[i]);
-        }
-    }
-    try
-    {
-        ostrstream os;
-        boost::archive::text_oarchive oa(os);
-        // read class instance from archive
-        oa << structNames;
-        // archive and stream closed when destructor are called
-        stData = string(os.str(), os.pcount());
-    }
-    catch(std::exception& e)
-    {
-//        LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::fix_namespace_struct save " << filter.objectID << " structure error: " << e.what());
-        return;
-    }
-    storage_db[filter.objectID + "_struct"] = stData;*/
-}
-
-string_list* mem_storage::get_namespace_struct(db_record& filter)
-{
-    string_list *structNames;
-
-    structNames = new string_list;
-/*    obj = storage_db.find(filter.objectID + "_struct");
-    if (obj != storage_db.end()) {
-        stData = obj->second;
-        try
-        {
-            istrstream is(stData.c_str(), stData.length());
-            boost::archive::text_iarchive ia(is);
-            // read class instance from archive
-            ia >> (*structNames);
-            // archive and stream closed when destructor are called
-        }
-        catch(std::exception& e)
-        {
-//            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::get_namespace_struct " << filter.objectID << " structure error: " << e.what());
-            delete structNames;
-            structNames = NULL;
-        }
-    }*/
-    return structNames;
 }
 
 } // namespace webEngine

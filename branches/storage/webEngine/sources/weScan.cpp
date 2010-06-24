@@ -21,10 +21,11 @@
 
 #include <weLogger.h>
 #include <weHelper.h>
+#include <weScan.h>
+// for table names
+#include <weiStorage.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include "weScan.h"
-#include <weiStorage.h>
 
 using namespace boost;
 
@@ -68,7 +69,7 @@ db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
     res->push_back(*rec);
 
 /*    for (size_t i = 0; i < scan_data.size(); i++) {
-        rsData = scan_data[i]->ToRS(scanID);
+        rsData = scan_data[i]->to_dataset(scanID);
         for (size_t j = 0; j < rsData->size(); j++)
         {
             res->push_back((*rsData)[j]);
@@ -86,7 +87,7 @@ void ScanInfo::FromRS( db_recordset* rs )
     we_option opt;
     string strData;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "ScanInfo::FromRS");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "ScanInfo::from_dataset");
 
     for (r = 0; r < rs->size(); r++)
     {
@@ -174,88 +175,88 @@ void ScanInfo::SetScanData( const string& object_url, scan_data_ptr scData )
 
 ScanData::ScanData()
 {
+    response.reset();
     parsed_data.reset();
     scan_depth = 0;
 }
 
 ScanData::~ScanData()
 {
+    response.reset();
     parsed_data.reset();
 }
 
-db_recordset* ScanData::ToRS( const string& parentID/* = ""*/ )
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn bool ScanData::to_dataset( db_recordset& dataset )
+///
+/// @brief  Converts a ScanData to a dataset. 
+///
+/// @author A. Abramov
+/// @date   24.06.2010
+///
+/// @param [in,out] dataset The dataset. 
+///
+/// @return true if it succeeds, false if it fails. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool ScanData::to_dataset( db_cursor& dataset )
 {
-    db_recordset* res = new db_recordset;
-    db_record* rec = new db_record;
+    bool retval = true;
 
-/*    rec->objectID = weObjTypeScanData;
-    rec->Option(weoID, data_id);
-    rec->Option(weoParentID, scan_id);
-    rec->Option("updata", parentID);
-    rec->Option("req_url", object_url);
-    rec->Option("response", boost::lexical_cast<string>(resp_code));
-    rec->Option("data_size", boost::lexical_cast<string>(data_size));
-    rec->Option("download_time", boost::lexical_cast<string>(download_time));
-    rec->Option("scanning_depth", boost::lexical_cast<string>(scan_depth));
-
-    res->push_back(*rec);*/
-
-    return res;
+    try {
+        dataset[weObjTypeScanData "." weoID] = data_id;
+        dataset[weObjTypeScanData "." "task_id"] = scan_id;
+        dataset[weObjTypeScanData "." weoParentID] = parent_id;
+        dataset[weObjTypeScanData "." "object_url"] = object_url;
+        dataset[weObjTypeScanData "." "scan_depth"] = scan_depth;
+        dataset[weObjTypeScanData "." "resp_code"] = resp_code;
+        dataset[weObjTypeScanData "." "data_size"] = data_size;
+        dataset[weObjTypeScanData "." "dnld_time"] = download_time;
+        dataset[weObjTypeScanData "." "content_type"] = content_type;
+    }
+    catch (std::exception &e) {
+        // may be out_of_range or bad_cast
+        LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::to_dataset exception: " << e.what());
+        retval = false;
+    }
+    return retval;
 }
 
-void ScanData::FromRS( db_recordset* rs )
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn bool ScanData::from_dataset( const db_cursor& dataset )
+///
+/// @brief  Initializes this object from the given from dataset. 
+///
+/// @author A. Abramov
+/// @date   24.06.2010
+///
+/// @param  dataset The dataset. 
+///
+/// @return true if it succeeds, false if it fails. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool ScanData::from_dataset( const db_cursor& dataset )
 {
-/*    db_record rec;
-    size_t r;
-    we_variant optVal;
-    we_option opt;
-    string strData;
+    bool retval = true;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "ScanInfo::FromRS");
+    try {
+        parsed_data.reset();
+        response.reset();
 
-    for (r = 0; r < rs->size(); r++)
-    {
-        rec = (*rs)[r];
-        if (rec.objectID == weObjTypeTask) {
-            opt = rec.Option(weoID);
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            data_id = strData;
-
-            opt = rec.Option(weoParentID);
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            scan_id = strData;
-
-            opt = rec.Option("updata");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            parent_id = strData;
-
-            opt = rec.Option("req_url");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            object_url = strData;
-
-//             opt = rec.Option("final_url");
-//             SAFE_GET_OPTION_VAL(opt, strData, "");
-//             realURL = strData;
-
-            opt = rec.Option("response");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            resp_code = boost::lexical_cast<int>(strData);
-
-            opt = rec.Option("data_size");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            data_size = boost::lexical_cast<int>(strData);
-
-            opt = rec.Option("download_time");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            download_time = boost::lexical_cast<int>(strData);
-
-            opt = rec.Option("scanning_depth");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            scan_depth = boost::lexical_cast<int>(strData);
-
-            break;
-        }
-    }*/
+        data_id = dataset[weObjTypeScanData "." weoID].get<string>();
+        scan_id = dataset[weObjTypeScanData "." "task_id"].get<string>();
+        parent_id = dataset[weObjTypeScanData "." weoParentID].get<string>();
+        object_url = dataset[weObjTypeScanData "." "object_url"].get<string>();
+        scan_depth = dataset[weObjTypeScanData "." "scan_depth"].get<int>();
+        resp_code = dataset[weObjTypeScanData "." "resp_code"].get<int>();
+        data_size = dataset[weObjTypeScanData "." "data_size"].get<int>();
+        download_time = dataset[weObjTypeScanData "." "dnld_time"].get<int>();
+        content_type = dataset[weObjTypeScanData "." "content_type"].get<string>();
+    }
+    catch (std::exception &e) {
+        // may be out_of_range or bad_cast
+        LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::from_dataset exception: " << e.what());
+        retval = false;
+    }
+    return retval;
 }
 
 } // namespace webEngine

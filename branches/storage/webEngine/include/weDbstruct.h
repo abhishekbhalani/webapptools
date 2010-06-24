@@ -73,6 +73,7 @@ namespace webEngine {
         friend class db_recordset;
 
         we_variant& operator[](size_t n) { return data[n]; }
+        we_variant const& operator[](size_t n) const { return data[n]; }
         void push_back(we_variant val) { data.push_back(val); }
         void resize(size_t n) { data.resize(n); }
 
@@ -116,16 +117,18 @@ namespace webEngine {
         /// default constructor
         db_cursor() : vector<db_record>::iterator(), parent(NULL) {}
         /// copy constructor
-        db_cursor(const db_cursor& cp);
-        /// explicit constructor to create cursor for specified db_recordset and vector::iterator
-        explicit db_cursor(db_recordset* rs, vector<db_record>::iterator it);
+        //db_cursor(const db_cursor& cp);
+        /// constructor to create cursor for specified db_recordset and vector::iterator
+        db_cursor(db_recordset* rs, vector<db_record>::iterator it);
 
         /// copy opreator
-        db_cursor& operator=(const db_cursor& cp);
+        //db_cursor& operator=(const db_cursor& cp);
         /// access to current record fields by record name
         we_variant& operator[](string name);
+        const we_variant& operator[](string name) const;
         /// access to current record fields by record index
         we_variant& operator[](int index);
+        const we_variant& operator[](int index) const;
 
         /// get the numbers of columns in the recordset
         const size_t record_size();
@@ -268,7 +271,7 @@ namespace webEngine {
         virtual void get_namespaces(std::set<string>& ns_list);
 
     protected:
-        virtual db_filter_base* clone();
+        virtual db_condition* clone();
 
         string field_name;
         opcode op_code;
@@ -294,19 +297,16 @@ namespace webEngine {
 
         db_filter& operator=(const db_filter& cpy);
 
-        db_filter& set(db_condition& cond);
-        db_filter& set(db_filter& cond);
-        db_filter& or(db_condition& cond);
-        db_filter& or(db_filter& cond);
-        db_filter& and(db_condition& cond);
-        db_filter& and(db_filter& cond);
+        db_filter& set(db_filter_base& cond);
+        db_filter& or(db_filter_base& cond);
+        db_filter& and(db_filter_base& cond);
 
         virtual bool eval(db_cursor& data);
         virtual string tostring();
         virtual void get_namespaces(std::set<string>& ns_list);
 
     protected:
-        virtual db_filter_base* clone();
+        virtual db_filter* clone();
 
         typedef enum {
             link_null,

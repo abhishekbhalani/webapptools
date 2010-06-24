@@ -30,8 +30,11 @@
 #include <weDispatch.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/foreach.hpp>
 
 using namespace boost;
 
@@ -168,13 +171,13 @@ void task_processor(task* tsk)
                             }
                         }
                         // 2. Create ScanData
-                        scan_data_ptr scd = tsk->GetScanData((*rIt)->BaseUrl().tostring());
+                        scan_data_ptr scd = tsk->get_scan_data((*rIt)->BaseUrl().tostring());
                         scd->response = *rIt;
                         if (! (scd->parsed_data)) {
                             scd->parsed_data = parsed_doc;
                         }
                         // 3. Push to processing
-                        tsk->SetScanData((*rIt)->BaseUrl().tostring(), scd);
+                        tsk->set_scan_data((*rIt)->BaseUrl().tostring(), scd);
                     }
                     //(*rIt).reset();
                     tsk->taskQueue.erase(rIt);
@@ -226,7 +229,7 @@ void task_data_process(task* tsk)
             }
             /// @todo: !!! REMOVE THIS!!! It's only debug!
             /// need to implement clever clean-up scheme
-            tsk->FreeScanData(sc_data);
+            tsk->free_scan_data(sc_data);
         } // if sc_data valid
     } // while sc_process.size > 0
     tsk->remove_thread();
@@ -247,14 +250,14 @@ task::task(engine_dispatcher *krnl /*= NULL*/)
     total_reqs = 0;
     total_done = 0;
     profile_id = "0";
+    tsk_status = WI_TSK_IDLE;
+    tsk_completion = 0;
 
     parsers.clear();
     transports.clear();
     inventories.clear();
     auditors.clear();
     vulners.clear();
-
-    scanInfo = new ScanInfo;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "task created");
 }
@@ -265,6 +268,8 @@ task::task( task& cpy )
     total_reqs = cpy.total_reqs;
     total_done = cpy.total_done;
     profile_id = cpy.profile_id;
+    tsk_status = cpy.tsk_status;
+    tsk_completion = cpy.tsk_completion;
 
     parsers.assign(cpy.parsers.begin(), cpy.parsers.end());
     transports.assign(cpy.transports.begin(), cpy.transports.end());
@@ -279,10 +284,6 @@ task::~task()
 {
     /// @todo Cleanup
     Stop();
-    if (scanInfo != NULL) {
-        delete scanInfo;
-        scanInfo = NULL;
-    }
     size_t i;
     for (i = 0; i < parsers.size(); i++) {
         parsers[i]->release();
@@ -516,7 +517,7 @@ void task::StorePlugins(vector<i_plugin*>& plugins)
 void task::Run(void)
 {
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Run: create WeTaskProcessor");
-    Option(weoTaskStatus, WI_TSK_PAUSED);
+    tsk_status = WI_TSK_PAUSED;
     if (!processThread)
     {
         processThread = true;
@@ -555,7 +556,7 @@ void task::Run(void)
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: start " << inventories[i]->get_description());
         inventories[i]->init(this);
     }
-    Option(weoTaskStatus, WI_TSK_RUN);
+    tsk_status = WI_TSK_RUN;
 
     boost::unique_lock<boost::mutex> lock(tsk_mutex);
     tsk_event.notify_all();
@@ -575,7 +576,7 @@ void task::Pause(const bool& state /*= true*/)
     {
         idata = WI_TSK_RUN;
     }
-    Option(weoTaskStatus, idata);
+    tsk_status = idata;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
     boost::unique_lock<boost::mutex> lock(tsk_mutex);
@@ -647,33 +648,111 @@ void task::calc_status()
     if ( (count + total_done + taskQueue.size()) < total_reqs) {
         LOG4CXX_WARN(iLogger::GetLogger(), "task::calc_status: counters mismatch! count + total_done + taskQueue.size() < total_reqs!");
     }
-    Option(weoTaskCompletion, idata);
+    tsk_completion = idata;
     // set task status
     if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
         processThread = false;
-        scanInfo->finishTime = btm::second_clock::local_time();
-        Option(weoTaskStatus, WI_TSK_IDLE);
+        finish_tm = btm::second_clock::local_time();
+        tsk_status = WI_TSK_IDLE;
+        save_to_db();
         boost::unique_lock<boost::mutex> lock(tsk_mutex);
         tsk_event.notify_all();
     }
 }
 
-shared_ptr<ScanData> task::GetScanData( const string& baseUrl )
+std::auto_ptr<db_recordset> task::get_scan()
 {
-    shared_ptr<ScanData> retval = scanInfo->GetScanData( baseUrl );
-    if (retval->scan_id == "")
+    vector<string> fnames = i_storage::get_namespace_struct(weObjTypeScanData);
+    db_recordset* retval = new db_recordset(fnames);
+
+    if (kernel != NULL && kernel->storage() != NULL)
     {
-        retval->scan_id = scanInfo->scanID;
+        db_query flt;
+        db_condition icond;
+
+        flt.what = fnames;
+        icond.field() = weObjTypeScanData "." "task_id";
+        icond.operation() = db_condition::equal;
+        icond.value() = scan_id;
+        flt.where.set(icond);
+        kernel->storage()->get(flt, *retval);
     }
+
+    return auto_ptr<db_recordset>(retval);
+}
+
+shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
+{
+    boost::unique_lock<boost::mutex> lock(scandata_mutex);
+    shared_ptr<ScanData> retval;
+    ScanData* data;
+
+    data = NULL;
+    if (kernel != NULL && kernel->storage() != NULL) {
+        db_query flt;
+        db_condition ucond;
+        db_condition scond;
+        db_recordset rs;
+
+        flt.what = i_storage::get_namespace_struct(weObjTypeScanData);
+        db_recordset dbres(flt.what);
+
+        ucond.field() = weObjTypeScanData "." "object_url";
+        ucond.operation() = db_condition::equal;
+        ucond.value() = baseUrl;
+        scond.field() = weObjTypeScanData "." "task_id";
+        scond.operation() = db_condition::equal;
+        scond.value() = scan_id;
+        flt.where.set(scond).and(ucond);
+        if (kernel->storage()->get(flt, rs) > 0) {
+            db_cursor r = rs.begin();
+            data = new ScanData;
+            if (! data->from_dataset(r) ){
+                delete data;
+                data = NULL;
+            }
+        }// if data found
+    } // if storage present
+    if (data == NULL) {
+        // no data found
+        data = new ScanData;
+        data->object_url = baseUrl;
+    } // if no data found
+    if (data->scan_id == "")
+    {
+        data->scan_id = scan_id;
+    }
+    retval = shared_ptr<ScanData>(data);
     return retval;
 }
 
-void task::SetScanData( const string& baseUrl, boost::shared_ptr<ScanData> scData )
+void task::set_scan_data( const string& baseUrl, boost::shared_ptr<ScanData> scData )
 {
     {
         boost::unique_lock<boost::mutex> lock(scandata_mutex);
-        scanInfo->SetScanData(baseUrl, scData);
+        if (kernel != NULL && kernel->storage() != NULL) {
+            db_query flt;
+            db_condition ucond;
+            db_condition scond;
+
+            flt.what = i_storage::get_namespace_struct(weObjTypeScanData);
+            db_recordset dbres(flt.what);
+
+            ucond.field() = weObjTypeScanData "." "object_url";
+            ucond.operation() = db_condition::equal;
+            ucond.value() = baseUrl;
+            scond.field() = weObjTypeScanData "." "task_id";
+            scond.operation() = db_condition::equal;
+            scond.value() = scan_id;
+            flt.where.set(scond).and(ucond);
+
+            db_cursor r = dbres.push_back();
+            if ( scData->to_dataset(r) ) {
+                kernel->storage()->set(flt, dbres);
+            }
+
+        } // if storage present
         sc_process.push_back(scData);
     }
     if (!dataThread) {
@@ -682,7 +761,7 @@ void task::SetScanData( const string& baseUrl, boost::shared_ptr<ScanData> scDat
     }
 }
 
-void task::FreeScanData(boost::shared_ptr<ScanData> scData)
+void task::free_scan_data(boost::shared_ptr<ScanData> scData)
 {
     boost::unique_lock<boost::mutex> lock(scandata_mutex);
     LOG4CXX_TRACE(iLogger::GetLogger(), "Free memory for parsed data (SC = " << scData.use_count() << "; PD = " << scData->parsed_data << ")");
@@ -691,204 +770,131 @@ void task::FreeScanData(boost::shared_ptr<ScanData> scData)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn db_recordset* task::ToRS( const string& prefix = "" )
+/// @fn db_recordset* task::save_to_db( )
 ///
 /// @brief	Converts this object to an db_recordset. This function realizes alternate serialization
 /// 		mechanism. It generates db_recordset with all necessary data. This
 /// 		representation is used for internal data exchange (for example to store data through
 /// 		iweStorage interface). 
 ///
-/// @param  prefix  - The naming prefix. 
-///
 /// @retval	This object as a std::string. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-db_recordset* task::ToRS( const string& parentID/* = ""*/ )
+bool task::save_to_db( )
 {
-    db_recordset* res = NULL; /* new db_recordset;
-    db_record* rec;
-    db_record* trec;
-    we_option optVal;
-    string strData;
-    string tskId;
-    int optCount;
-    wOptions::iterator it;
+    bool res = false;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::ToRS");
+    if (kernel != NULL && kernel->storage() != NULL)
+    {
+        vector<string> fields = i_storage::get_namespace_struct(weObjTypeTask);
+        db_recordset dbres(fields);
 
-    trec = new db_record;
-    trec->objectID = weObjTypeTask;
-    optVal = Option(weoID);
-    SAFE_GET_OPTION_VAL(optVal, tskId, "");
-    trec->Option(weoID, optVal.Value());
-
-    optVal = Option(weoParentID);
-    SAFE_GET_OPTION_VAL(optVal, strData, "");
-    trec->Option(weoParentID, strData);
-
-    optVal = Option(weoName);
-    trec->Option(weoName, optVal.Value());
-
-    optVal = Option(weoTaskStatus);
-    trec->Option(weoTaskStatus, optVal.Value());
-
-    optVal = Option(weoTaskCompletion);
-    trec->Option(weoTaskCompletion, optVal.Value());
-
-    res->push_back(*trec);
-
-    optCount = 0;
-    for (it = options.begin(); it != options.end(); it++) {
-        strData = it->first;
-        // skip predefined options
-        if (strData == weoID) {
-            continue;
+        db_cursor rec = dbres.push_back();
+        rec[weObjTypeTask "." weoID] = scan_id;
+        rec[weObjTypeTask "." weoProfileID] = profile_id;
+        rec[weObjTypeTask "." weoTaskCompletion] = tsk_completion;
+        rec[weObjTypeTask "." weoTaskStatus] = tsk_status;
+        rec[weObjTypeTask "." "start_time"] = boost::lexical_cast<string>(start_tm);
+        rec[weObjTypeTask "." "finish_time"] = boost::lexical_cast<string>(finish_tm);
+        rec[weObjTypeTask "." "ping_time"] = boost::lexical_cast<string>(ping_tm);
+        string urls = "";
+        BOOST_FOREACH( we_url_map::value_type i, processed_urls ) {
+            urls += i.first;
+            urls += "\t";
+            urls += boost::lexical_cast<string>(i.second);
+            urls += "\x0d";
         }
-        if (strData == weoName) {
-            continue;
-        }
-        if (strData == weoTaskStatus) {
-            continue;
-        }
-        if (strData == weoTaskCompletion) {
-            continue;
-        }
+        rec[weObjTypeTask "." "processed_urls"] = urls;
 
-        strData = it->first;
-        optVal = *(it->second);
-        rec = new db_record;
-        rec->objectID = weObjTypeSysOption;
-        rec->Option(weoName, strData);
-        rec->Option(weoParentID, tskId);
-        rec->Option(weoTypeID, optVal.Which());
-        rec->Option(weoValue, optVal.Value());
+        // save to storage
+        db_query flt;
 
-        strData += parentID;
-        strData += boost::lexical_cast<string>(it->second->Which());
-        boost::hash<string> strHash;
-        size_t hs = strHash(strData);
-        strData = boost::lexical_cast<string>(hs);
-        rec->Option(weoID, strData);
-
-        res->push_back(*rec);
-        optCount++;
+        db_condition icond;
+        icond.field() = weObjTypeTask "." weoID;
+        icond.operation() = db_condition::equal;
+        icond.value() = scan_id;
+        flt.where.set(icond);
+        int r = kernel->storage()->set(flt, dbres);
+        if (r == 1) {
+            // only one record inserted/updated
+            res = true;
+        }
     }
-    trec->Option("options", optCount);*/
-
     return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn void task::FromRS( db_recordset *rs )
+/// @fn void task::load_from_db( string& id )
 ///
 /// @brief  Initializes this object from the given from db_recordset.
 /// 		
-/// @param  rs	 - db_recordset. 
+/// @param  id	 - task identifier in database. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void task::FromRS( db_recordset *rs  )
+bool task::load_from_db( string& id  )
 {
-/*    db_record rec;
-    size_t r;
-    we_variant optVal;
-    we_option opt;
-    string strData, sName;
-    int tp;
-    char c;
-    unsigned char uc;
-    int i;
-    unsigned int ui;
-    long l;
-    unsigned long ul;
-    bool b;
-    double d;
+    bool res = false;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::FromRS");
-
-    for (r = 0; r < rs->size(); r++)
+    if (kernel != NULL && kernel->storage() != NULL)
     {
-        rec = (*rs)[r];
-        if (rec.objectID == weObjTypeTask) {
-            opt = rec.Option(weoID);
-            Option(weoID, opt.Value());
+        db_query flt;
+        db_condition icond;
+        db_recordset dbres;
 
-            opt = rec.Option(weoName);
-            Option(weoName, opt.Value());
+        flt.what = i_storage::get_namespace_struct(weObjTypeTask);
+        icond.field() = weObjTypeTask "." weoID;
+        icond.operation() = db_condition::equal;
+        icond.value() = scan_id;
+        flt.where.set(icond);
 
-            opt = rec.Option(weoTaskStatus);
-            Option(weoTaskStatus, opt.Value());
-
-            opt = rec.Option(weoTaskCompletion);
-            Option(weoTaskCompletion, opt.Value());
-        }
-        if (rec.objectID == weObjTypeSysOption) {
-            opt = rec.Option(weoName);
-            SAFE_GET_OPTION_VAL(opt, sName, "");
-            // type 
-            opt = rec.Option(weoTypeID);
-            SAFE_GET_OPTION_VAL(opt, strData, "8");
-            tp = boost::lexical_cast<int>(strData);
-            // value
-            opt = rec.Option(weoValue);
-            strData = boost::lexical_cast<string>(opt.Value());
-            switch(tp)
-            {
-            case 0:
-                c = boost::lexical_cast<char>(strData);
-                Option(sName, c);
-                break;
-            case 1:
-                uc = boost::lexical_cast<unsigned char>(strData);
-                Option(sName, uc);
-                break;
-            case 2:
-                i = boost::lexical_cast<int>(strData);
-                Option(sName, i);
-                break;
-            case 3:
-                ui = boost::lexical_cast<unsigned int>(strData);
-                Option(sName, ui);
-                break;
-            case 4:
-                l = boost::lexical_cast<long>(strData);
-                Option(sName, l);
-                break;
-            case 5:
-                ul = boost::lexical_cast<unsigned long>(strData);
-                Option(sName, ul);
-                break;
-            case 6:
-                b = boost::lexical_cast<bool>(strData);
-                Option(sName, b);
-                break;
-            case 7:
-                d = boost::lexical_cast<double>(strData);
-                Option(sName, d);
-                break;
-            case 8:
-            default:
-                Option(sName, strData);
-                break;
+        int r = kernel->storage()->set(flt, dbres);
+        if (r > 0) {
+            res = true;
+            db_cursor rec = dbres.begin();
+            string data;
+            try{
+                scan_id = rec[weObjTypeTask "." weoID].get<string>();
+                profile_id = rec[weObjTypeTask "." weoProfileID].get<string>();
+                tsk_completion = rec[weObjTypeTask "." weoTaskCompletion].get<int>();
+                tsk_status = rec[weObjTypeTask "." weoTaskStatus].get<int>();
+                data = rec[weObjTypeTask "." "start_time"].get<string>();
+                start_tm = boost::lexical_cast<boost::posix_time::ptime>(data);
+                data = rec[weObjTypeTask "." "finish_time"].get<string>();
+                finish_tm = boost::lexical_cast<boost::posix_time::ptime>(data);
+                data = rec[weObjTypeTask "." "ping_time"].get<string>();
+                ping_tm = boost::lexical_cast<boost::posix_time::ptime>(data);
+                data = rec[weObjTypeTask "." "processed_urls"].get<string>();
+                vector<string> urls;
+                boost::split(urls, data, is_any_of("\x0d"));
+                processed_urls.clear();
+                for(size_t i = 0; i < urls.size(); i++) {
+                    string u = urls[i];
+                    string n = "0";
+                    size_t pos = u.find('\t');
+                    int nl = 0;
+                    if(pos != string::npos) {
+                        n = u.substr(pos+1);
+                        u = u.substr(0, pos);
+                        nl = boost::lexical_cast<int>(n);
+                    }
+                    processed_urls[u] = nl;
+                } // foreach url
             }
-        }
-    }*/
+            catch (std::exception &e) {
+                LOG4CXX_ERROR(iLogger::GetLogger(), "task::load_from_db exception: " << e.what());
+                // may be out_of_range or bad_cast
+                res = false;
+            } // try/catch
+        } // if data found
+    } // if storage exist
+    return res;
 }
 
 void task::WaitForData()
 {
-    int idata;
-    we_option opt;
-    opt = Option(weoTaskStatus);
-    SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
-
-    {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::WaitForData synch object ready");
-        boost::unique_lock<boost::mutex> lock(tsk_mutex);
-        while((taskList.size() == 0 && taskQueue.size() == 0) || idata == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::WaitForData: go to sleep");
-            tsk_event.wait(lock);
-
-            opt = Option(weoTaskStatus);
-            SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
-        }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::WaitForData synch object ready");
+    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+    while((taskList.size() == 0 && taskQueue.size() == 0) || tsk_status == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::WaitForData: go to sleep");
+        tsk_event.wait(lock);
     }
 }
 
@@ -933,7 +939,7 @@ we_option task::Option( const string& name )
         db_condition p_cond;
         db_condition n_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = profile_id;
 
@@ -994,7 +1000,7 @@ void task::Option( const string& name, we_variant val )
 
     if (kernel != NULL && kernel->storage() != NULL) {
         flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoParentID);
+        flt.what.push_back(weObjTypeProfile "." weoProfileID);
         flt.what.push_back(weObjTypeProfile "." weoName);
         flt.what.push_back(weObjTypeProfile "." weoTypeID);
         flt.what.push_back(weObjTypeProfile "." weoValue);
@@ -1002,7 +1008,7 @@ void task::Option( const string& name, we_variant val )
         db_condition p_cond;
         db_condition n_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = profile_id;
 
@@ -1038,7 +1044,7 @@ bool task::IsSet( const string& name )
         db_condition p_cond;
         db_condition n_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = profile_id;
 
@@ -1080,7 +1086,7 @@ void task::Erase( const string& name )
         db_condition p_cond;
         db_condition n_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = profile_id;
 
@@ -1124,7 +1130,7 @@ string_list task::OptionsList()
         flt.what.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = profile_id;
 
@@ -1155,7 +1161,7 @@ size_t task::OptionSize()
         flt.what.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = profile_id;
 
@@ -1167,15 +1173,15 @@ size_t task::OptionSize()
     return retval;
 }
 
-bool task::is_url_processed( string url )
+bool task::is_url_processed( string& url )
 {
-    boost::unordered_map<string, int >::iterator mit = processed_urls.find(url);
+    we_url_map::iterator mit = processed_urls.find(url);
     return (mit != processed_urls.end());
 }
 
-void task::register_url( string url )
+void task::register_url( string& url )
 {
-    boost::unordered_map<string, int >::iterator mit = processed_urls.find(url);
+    we_url_map::iterator mit = processed_urls.find(url);
 
     if (mit == processed_urls.end()) {
         processed_urls[url] = 1;
@@ -1184,4 +1190,5 @@ void task::register_url( string url )
         processed_urls[url]++;
     }
 }
+
 } // namespace webEngine

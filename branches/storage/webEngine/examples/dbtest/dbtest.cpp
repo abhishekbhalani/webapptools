@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
 
     cout << "Value of [0][0] is " << cursor[0] << endl;
     cout << "Value of [0][name] is " << cursor["name"] << endl;
+    //double dummy = boost::get<double>((we_types)cursor[2]);
 
     cout << "Try to exit out of rage..." << endl;
     cursor++;

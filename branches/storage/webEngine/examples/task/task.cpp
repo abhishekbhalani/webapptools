@@ -27,6 +27,7 @@
 #include <strstream>
 #include "weHelper.h"
 #include "weTask.h"
+#include "weScan.h"
 #include "weDispatch.h"
 
 #include <boost/archive/text_oarchive.hpp>
@@ -228,12 +229,12 @@ int main(int argc, char* argv[])
         db_query flt;
         db_condition p_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::great;
         p_cond.value() = string("");
 
         flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoParentID);
+        flt.what.push_back(weObjTypeProfile "." weoProfileID);
         flt.what.push_back(weObjTypeProfile "." weoName);
         flt.what.push_back(weObjTypeProfile "." weoTypeID);
         flt.what.push_back(weObjTypeProfile "." weoValue);
@@ -252,6 +253,19 @@ int main(int argc, char* argv[])
         }
 
     }
+
+    scan_data_ptr scData = tsk.get_scan_data("http://www.ru");
+    if (scData->data_id == "")
+    {
+        scData->data_id = we_dispatcer.storage()->generate_id(weObjTypeScan);
+        scData->resp_code = 404;
+        scData->download_time = 0;
+        scData->data_size = 0;
+        scData->scan_depth = 0;
+        scData->content_type = "text/html";
+    }
+    tsk.set_scan_data("http://www.ru", scData);
+    tsk.save_to_db();
 
     StringLinks lst;
 

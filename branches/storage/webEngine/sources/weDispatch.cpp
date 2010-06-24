@@ -294,7 +294,7 @@ we_option engine_dispatcher::Option( const string& name )
         db_condition p_cond;
         db_condition n_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 
@@ -356,7 +356,7 @@ void engine_dispatcher::Option( const string& name, we_variant val )
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") set value=" << val);
     if (plg_storage != NULL) {
         flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoParentID);
+        flt.what.push_back(weObjTypeProfile "." weoProfileID);
         flt.what.push_back(weObjTypeProfile "." weoName);
         flt.what.push_back(weObjTypeProfile "." weoTypeID);
         flt.what.push_back(weObjTypeProfile "." weoValue);
@@ -364,7 +364,7 @@ void engine_dispatcher::Option( const string& name, we_variant val )
         db_condition p_cond;
         db_condition n_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 
@@ -402,7 +402,7 @@ bool engine_dispatcher::IsSet( const string& name )
         db_condition p_cond;
         db_condition n_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 
@@ -446,7 +446,7 @@ void engine_dispatcher::Erase( const string& name )
         db_condition p_cond;
         db_condition n_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 
@@ -484,7 +484,7 @@ string_list engine_dispatcher::OptionsList()
         flt.what.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 
@@ -516,7 +516,7 @@ size_t engine_dispatcher::OptionSize()
         flt.what.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
-        p_cond.field() = weObjTypeProfile "." weoParentID;
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 

@@ -134,16 +134,16 @@ namespace webEngine {
         virtual i_response_ptr get_request(i_request_ptr req);
         virtual void get_request_async(i_request_ptr req);
 
-        db_recordset* ToRS( const string& parentID = "" );
-        void FromRS( db_recordset *rs );
+        bool save_to_db( );
+        bool load_from_db( string& id );
 
         void WaitForData();
         void calc_status();
 
-        virtual ScanInfo* GetScan() { return scanInfo; };
-        virtual boost::shared_ptr<ScanData> GetScanData(const string& baseUrl);
-        virtual void SetScanData(const string& baseUrl, boost::shared_ptr<ScanData> scData);
-        virtual void FreeScanData(boost::shared_ptr<ScanData> scData);
+        virtual std::auto_ptr<db_recordset> get_scan();
+        virtual boost::shared_ptr<ScanData> get_scan_data(const string& baseUrl);
+        virtual void set_scan_data(const string& baseUrl, boost::shared_ptr<ScanData> scData);
+        virtual void free_scan_data(boost::shared_ptr<ScanData> scData);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn virtual void AddVulner(const string& vId,
@@ -170,18 +170,32 @@ namespace webEngine {
         virtual int add_thread();
         virtual int remove_thread();
 
-        virtual bool is_url_processed(string url);
-        virtual void register_url(string url);
-        size_t total_requests() { return total_reqs; }
-        size_t total_processed() { return total_done; }
+        virtual bool is_url_processed(string& url);
+        virtual void register_url(string& url);
+        size_t total_requests() const { return total_reqs; }
+        size_t total_processed() const { return total_done; }
 
-        string get_profile_id() { return profile_id; }
-        void set_profile_id(string id) { profile_id = id; }
+        const string& get_profile_id() const { return profile_id; }
+        void set_profile_id(string& id) { profile_id = id; }
+        int status() const { return tsk_status; }
+        int completion() const { return tsk_completion; }
+        const boost::posix_time::ptime& start_time() const { return start_tm; }
+        const boost::posix_time::ptime& finish_time() const { return finish_tm; }
+        const boost::posix_time::ptime& ping_time() const { return ping_tm; }
+        boost::posix_time::ptime& ping() { return ping_tm = boost::posix_time::second_clock::local_time(); }
 
 #ifndef __DOXYGEN__
     protected:
+        typedef map< string, i_request* > WeRequestMap;
+        typedef boost::unordered_map< string, int > we_url_map;
+
+        int tsk_status;
+        int tsk_completion;
         string profile_id;
-        typedef map<string, i_request*> WeRequestMap;
+        string scan_id;
+        boost::posix_time::ptime start_tm;
+        boost::posix_time::ptime finish_tm;
+        boost::posix_time::ptime ping_tm;
         vector<i_parser*> parsers;
         vector<i_transport*> transports;
         vector<i_inventory*> inventories;
@@ -196,12 +210,11 @@ namespace webEngine {
         size_t taskQueueSize;
         vector<i_request_ptr> taskList;
         vector< boost::shared_ptr<i_response> > taskQueue;
-        ScanInfo* scanInfo;
         int thread_count;
         size_t total_reqs;
         size_t total_done;
         engine_dispatcher *kernel;
-        boost::unordered_map<string, int > processed_urls;
+        we_url_map processed_urls;
 #endif //__DOXYGEN__
 
     private:

@@ -336,7 +336,7 @@ void HttpInventory::process( task* tsk, scan_data_ptr scData )
     } // if HTTP code valid
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 400) || htResp->HttpCode() >= 500)
     {
-        parent_task->SetScanData(scData->object_url, scData);
+        parent_task->set_scan_data(scData->object_url, scData);
     }
 }
 
@@ -376,7 +376,7 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_pt
                     allowed = false;
                     LOG4CXX_DEBUG(logger, "HttpInventory::add_http_url: not need to download " << link.tostring());
                     // make the pseudo-response
-                    shared_ptr<ScanData> scn = parent_task->GetScanData(link.tostring());
+                    shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
                     if (scn->data_id == "")
                     {
                         //scData->data_id = ;
@@ -386,7 +386,7 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_pt
                         scn->scan_depth = htResp->depth() + 1;
                         scn->content_type = "application/octet-stream";
                         scn->parsed_data.reset();
-                        parent_task->SetScanData(scn->object_url, scn);
+                        parent_task->set_scan_data(scn->object_url, scn);
                     }
                     break;
                 } // if path == ext_deny[i]

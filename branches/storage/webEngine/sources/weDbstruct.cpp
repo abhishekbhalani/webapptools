@@ -122,18 +122,18 @@ db_cursor::db_cursor( db_recordset* rs, vector<db_record>::iterator it )
     }
 }
 
-db_cursor::db_cursor( const db_cursor& cp )
-{
-    parent = cp.parent;
-    vector<db_record>::iterator::operator=(static_cast< vector<db_record>::iterator >(cp));
-}
-
-db_cursor& db_cursor::operator=( const db_cursor& cp )
-{
-    parent = cp.parent;
-    vector<db_record>::iterator::operator=(static_cast< vector<db_record>::iterator >(cp));
-    return *this;
-}
+// db_cursor::db_cursor( const db_cursor& cp )
+// {
+//     parent = cp.parent;
+//     vector<db_record>::iterator::operator=(static_cast< vector<db_record>::iterator >(cp));
+// }
+// 
+// db_cursor& db_cursor::operator=( const db_cursor& cp )
+// {
+//     parent = cp.parent;
+//     vector<db_record>::iterator::operator=(static_cast< vector<db_record>::iterator >(cp));
+//     return *this;
+// }
 
 we_variant& db_cursor::operator[]( string name )
 {
@@ -153,7 +153,33 @@ we_variant& db_cursor::operator[]( string name )
     if (fn_it == parent->field_names.end())
     {
         // throw exception
-        throw_exception(out_of_range("cursor not dereferencable: field name found"));
+        throw_exception(out_of_range("cursor not dereferencable: field name found - " + name));
+    }
+    if (static_cast< vector<db_record>::iterator >(*this) == parent->records.end()) {
+        throw_exception(out_of_range("cursor not dereferencable"));
+    }
+    return (*operator->())[index];
+}
+
+const we_variant& db_cursor::operator[]( string name ) const
+{
+    int index = 0;
+
+    if (parent == NULL) {
+        // throw exception
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    vector<string>::iterator fn_it;
+    for (fn_it = parent->field_names.begin(); fn_it != parent->field_names.end(); fn_it++) {
+        if (*fn_it == name) {
+            break;
+        }
+        index++;
+    }
+    if (fn_it == parent->field_names.end())
+    {
+        // throw exception
+        throw_exception(out_of_range("cursor not dereferencable: field name found - " + name));
     }
     if (static_cast< vector<db_record>::iterator >(*this) == parent->records.end()) {
         throw_exception(out_of_range("cursor not dereferencable"));
@@ -162,6 +188,17 @@ we_variant& db_cursor::operator[]( string name )
 }
 
 we_variant& db_cursor::operator[]( int index )
+{
+    if (parent == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    if (static_cast< vector<db_record>::iterator >(*this) == parent->records.end()) {
+        throw_exception(out_of_range("cursor not dereferencable"));
+    }
+    return (*operator->())[index];
+}
+
+const we_variant& db_cursor::operator[]( int index ) const
 {
     if (parent == NULL) {
         throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
@@ -395,7 +432,7 @@ void db_condition::get_namespaces( std::set<string>& ns_list )
     ns_list.insert(name);
 }
 
-db_filter_base* db_condition::clone()
+db_condition* db_condition::clone()
 {
     return new db_condition(*this);
 }
@@ -431,49 +468,24 @@ db_filter& db_filter::operator=( const db_filter& cpy )
     return *this;
 }
 
-db_filter& db_filter::set( db_condition& cond )
+db_filter& db_filter::set( db_filter_base& cond )
 {
-    db_condition *elem = new db_condition(cond);
+    db_filter_base *elem = cond.clone();
     condition.clear();
     condition.push_back(element(link_null, elem));
     return *this;
 }
 
-db_filter& db_filter::set( db_filter& cond )
+db_filter& db_filter::or( db_filter_base& cond )
 {
-    db_filter *elem = new db_filter();
-    *elem = cond;
-    condition.clear();
-    condition.push_back(element(link_null, elem));
-    return *this;
-}
-
-db_filter& db_filter::or( db_condition& cond )
-{
-    db_condition *elem = new db_condition(cond);
+    db_filter_base *elem = cond.clone();
     condition.push_back(element(link_or, elem));
     return *this;
 }
 
-db_filter& db_filter::or( db_filter& cond )
+db_filter& db_filter::and( db_filter_base& cond )
 {
-    db_filter *elem = new db_filter();
-    *elem = cond;
-    condition.push_back(element(link_or, elem));
-    return *this;
-}
-
-db_filter& db_filter::and( db_condition& cond )
-{
-    db_condition *elem = new db_condition(cond);
-    condition.push_back(element(link_and, elem));
-    return *this;
-}
-
-db_filter& db_filter::and( db_filter& cond )
-{
-    db_filter *elem = new db_filter();
-    *elem = cond;
+    db_filter_base *elem = cond.clone();
     condition.push_back(element(link_and, elem));
     return *this;
 }
@@ -532,7 +544,7 @@ string db_filter::tostring()
     return res;
 }
 
-db_filter_base* db_filter::clone()
+db_filter* db_filter::clone()
 {
     return new db_filter(*this);
 }

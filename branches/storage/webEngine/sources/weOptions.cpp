@@ -64,7 +64,7 @@ db_recordset* options_provider::ToRS( const string& parentID/* = ""*/ )
     we_variant optVal;
     string strData;
 
-    fnames.push_back(weObjTypeProfile "." weoParentID);
+    fnames.push_back(weObjTypeProfile "." weoProfileID);
     fnames.push_back(weObjTypeProfile "." weoName);
     fnames.push_back(weObjTypeProfile "." weoTypeID);
     fnames.push_back(weObjTypeProfile "." weoValue);

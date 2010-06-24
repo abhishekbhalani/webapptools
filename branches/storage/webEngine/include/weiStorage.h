@@ -103,10 +103,13 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual int del(db_filter& filter) = 0;
 
+    static std::vector<std::string> get_namespace_struct(const std::string& ns);
+
 protected:
     static int last_id;
 };
 
+extern char* idb_struct[];
 } // namespace webEngine
 
 #define weObjTypeTask       "task"
@@ -114,7 +117,7 @@ protected:
 #define weObjTypeDictionary "dict"
 #define weObjTypeAuthInfo   "auth"
 #define weObjTypeScan       "scan"
-#define weObjTypeScanData   "scandata"
+#define weObjTypeScanData   "scan_data"
 #define weObjTypeObject     "object"
 #define weObjTypeProfile    "profile"
 #define weObjTypeVulner     "vulners"
