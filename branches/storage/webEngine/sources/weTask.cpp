@@ -517,6 +517,12 @@ void task::StorePlugins(vector<i_plugin*>& plugins)
 void task::Run(void)
 {
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Run: create WeTaskProcessor");
+    if (kernel != NULL && kernel->storage() != NULL) {
+        scan_id = kernel->storage()->generate_id(weObjTypeScanData);
+    }
+    else {
+        scan_id = "";
+    }
     tsk_status = WI_TSK_PAUSED;
     if (!processThread)
     {
@@ -1143,7 +1149,7 @@ string_list task::OptionsList()
             if (name != "") {
                 retval.push_back(name);
             } // if name present
-            rec++;
+            ++rec;
         } // foreach record
     }
 

@@ -497,7 +497,7 @@ string_list engine_dispatcher::OptionsList()
             if (name != "") {
                 retval.push_back(name);
             } // if name present
-            rec++;
+            ++rec;
         } // foreach record
     } // if plg_storage != NULL
 

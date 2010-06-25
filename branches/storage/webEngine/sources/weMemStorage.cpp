@@ -138,7 +138,7 @@ int mem_storage::get(db_query& query, db_recordset& results)
                         }
                     } // foreach field
                 } // if record in filter
-                cursor++;
+                ++cursor;
             } // foreach record
         } // if namespase exist
         else {
@@ -184,7 +184,7 @@ int mem_storage::set(db_query& query, db_recordset& data)
                         } // foreach field
                     } catch(out_of_range &) {};
                 } // if need to update
-                cursor++;
+                ++cursor;
             } // foreach record
             if (!updated) {
                 // insert new record
@@ -263,7 +263,7 @@ int mem_storage::del(db_filter& filter)
                     retval++;
                 }
                 else {
-                    cursor++;
+                    ++cursor;
                 }
             } // foreach record
         } // if table exist
@@ -318,7 +318,7 @@ void mem_storage::save_db( const string& fname )
                     ofs << s << "</column>" << endl;
                 }
                 ofs << "\t\t\t</record>" << endl;
-                rec++;
+                ++rec;
                 j++;
             }
             ofs << "\t\t</records>" << endl;

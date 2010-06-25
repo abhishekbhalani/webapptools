@@ -158,7 +158,7 @@ void audit_comment::add_url( transport_url link, transport_url *base_url, shared
                     allowed = false;
                     LOG4CXX_DEBUG(logger, "audit_comment::add_http_url: not need to download " << link.tostring());
                     // make the pseudo-response
-                    boost::shared_ptr<ScanData> scn = parent_task->GetScanData(link.tostring());
+                    boost::shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
                     if (scn->data_id == "")
                     {
                         //scData->data_id = ;
@@ -168,7 +168,7 @@ void audit_comment::add_url( transport_url link, transport_url *base_url, shared
                         scn->scan_depth = sc->scan_depth + 1;
                         scn->content_type = "application/octet-stream";
                         scn->parsed_data.reset();
-                        parent_task->SetScanData(scn->object_url, scn);
+                        parent_task->set_scan_data(scn->object_url, scn);
                     }
                     break;
                 } // if path == ext_deny[i]
@@ -249,7 +249,7 @@ void audit_comment::extract_links( string text, webEngine::transport_url *base_u
 void audit_comment::init( task* tsk )
 {
     string text;
-    wOption opt;
+    we_option opt;
 
     parent_task = tsk;
     // 0. check preconditions

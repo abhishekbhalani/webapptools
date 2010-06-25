@@ -25,6 +25,8 @@
 #include <set>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/split_member.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/weak_ptr.hpp>
 
 using namespace std;
 
@@ -49,7 +51,7 @@ namespace webEngine {
 	 * db_recordset to use in various schemes.
 	 */
 
-    class db_cursor;
+    class db_cursor_base;
     class db_recordset;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,7 +71,7 @@ namespace webEngine {
     public:
         // all defaults
     protected:
-        friend class db_cursor;
+        friend class db_cursor_base;
         friend class db_recordset;
 
         we_variant& operator[](size_t n) { return data[n]; }
@@ -87,7 +89,82 @@ namespace webEngine {
         vector< we_variant > data;
     };
 
-    /*///////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @class  db_cursor_base
+    ///
+    /// @brief  Base class for all database cursors.
+    ///
+    /// This class defines iterator-like semantics for access to database recordset.
+    /// It hides direct access to db_record, but allows named or index-based access to record's
+    /// fields. This class provides forward-only access to db-recordset.
+    ///
+    /// @author A. Abramov
+    /// @date   25.06.2010
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    class db_cursor_base
+    {
+    public:
+        typedef std::vector< db_record >::difference_type diff_type;
+        typedef std::vector< db_record >::iterator base_iter;
+
+        /// default constructor
+        db_cursor_base() : iter_(), parent(NULL) {}
+        /// constructor for use inside db_recordset
+        db_cursor_base(db_recordset* rs, base_iter& it) : iter_(it), parent(rs) {}
+        virtual ~db_cursor_base() {}
+
+        /// prefix increment to go through db_recordset
+        db_cursor_base& operator++() { ++iter_; return *this; }
+        /// calculate distance between two cursors
+        const diff_type operator-(const db_cursor_base& rit) const { return (iter_ - rit.iter_); }
+        /// calculate distance between cursor and native iterator
+        const diff_type operator-(const base_iter& brit) const { return (iter_ - brit); }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn we_variant& operator[](string name)
+        ///
+        /// @brief  Access to named field. 
+        ///
+        /// @author A. Abramov
+        /// @date   25.06.2010
+        ///
+        /// @return we_variant - value of fields
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        we_variant& operator[](string name);
+        const we_variant& operator[](string name) const;
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn we_variant& operator[](string name)
+        ///
+        /// @brief  Access to zero-based indexed field. 
+        ///
+        /// @author A. Abramov
+        /// @date   25.06.2010
+        ///
+        /// @return we_variant - value of fields
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        we_variant& operator[](int index);
+        const we_variant& operator[](int index) const;
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn const size_t record_size()
+        ///
+        /// @brief  Record size. 
+        ///
+        /// @author A. Abramov
+        /// @date   25.06.2010
+        ///
+        /// @return size_t - number of fields in the recordset
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        const size_t record_size();
+
+        const bool operator==(const db_cursor_base& rhs);
+        const bool operator!=(const db_cursor_base& rhs) { return !(*this == rhs); }
+
+    protected:
+        base_iter iter_;
+        db_recordset* parent;
+    };
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
     /// @class  db_fw_cursor
     ///
     /// @brief  Provide forward-only, read-only access to records and fields in the recordset.
@@ -95,46 +172,34 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date	09.06.2010
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class db_fw_cursor
+    class db_fw_cursor : public db_cursor_base
     {
-    }; */
+    public:
+        db_fw_cursor() : db_cursor_base() {}
+        db_fw_cursor(db_recordset* rs, db_cursor_base::base_iter& it) : db_cursor_base(rs, it) {}
+        const we_variant& operator[](string name) const { return db_cursor_base::operator[](name); }
+        const we_variant& operator[](int index) const { return db_cursor_base::operator[](index); }
+    protected:
+//         we_variant& operator[](string name) {};
+//         we_variant& operator[](int index) {};
+    };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     /// @class  db_cursor
     ///
-    /// @brief  Provide access to records and fields in the recordset.
-    ///
-    /// Extend the vector::iterator to access record columns by index or by name. db_cursor
-    /// provides the iterator-like access to the db_recordset. This is only correct way to
-    /// access the data stored in the db_recordset.
+    /// @brief  Provide random access to records and fields in the recordset.
     ///
     /// @author A. Abramov
     /// @date	09.06.2010
     /// @example dbtest.cpp
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class db_cursor : public vector<db_record>::iterator {
+    class db_cursor : public db_cursor_base {
     public:
-        /// default constructor
-        db_cursor() : vector<db_record>::iterator(), parent(NULL) {}
-        /// copy constructor
-        //db_cursor(const db_cursor& cp);
-        /// constructor to create cursor for specified db_recordset and vector::iterator
-        db_cursor(db_recordset* rs, vector<db_record>::iterator it);
-
-        /// copy opreator
-        //db_cursor& operator=(const db_cursor& cp);
-        /// access to current record fields by record name
-        we_variant& operator[](string name);
-        const we_variant& operator[](string name) const;
-        /// access to current record fields by record index
-        we_variant& operator[](int index);
-        const we_variant& operator[](int index) const;
-
-        /// get the numbers of columns in the recordset
-        const size_t record_size();
-
-    protected:
-        db_recordset* parent;
+        db_cursor() : db_cursor_base() {}
+        db_cursor(db_recordset* rs, db_cursor_base::base_iter& it) : db_cursor_base(rs, it) {}
+        db_cursor_base& operator+=(size_t num) { iter_ += num; return *this; }
+        /// dereference iterator for recordset manipulation
+        const std::vector< db_record >::iterator& iterator() { return iter_; }
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,7 +215,7 @@ namespace webEngine {
     /// @date	09.06.2010
     /// @example dbtest.cpp
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class db_recordset : public boost::noncopyable
+    class db_recordset
     {
     public:
 
@@ -178,12 +243,16 @@ namespace webEngine {
         /// get the number of columns in the datatset
         const size_t record_size() { return field_names.size(); }
         /// get the db_cursor that points to the first record in the dataset
-        db_cursor begin();
+        db_cursor begin() { return db_cursor(this, records.begin()); }
         /// get the db_cursor that points to beyond the last record
-        db_cursor end();
+        db_cursor end() { return db_cursor(this, records.end()); }
+        /// get the forward-only read-only cursor that points to the first record in the dataset
+        db_fw_cursor fw_begin() { return db_fw_cursor(this, records.begin()); }
+        /// get the forward-only read-only cursor that points to beyond the last record
+        db_fw_cursor fw_end() { return db_fw_cursor(this, records.end()); }
 
     protected:
-        friend class db_cursor;
+        friend class db_cursor_base;
 
         vector<string> field_names;
         vector<db_record> records;

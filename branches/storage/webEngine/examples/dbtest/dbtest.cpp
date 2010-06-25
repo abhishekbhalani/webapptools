@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     //double dummy = boost::get<double>((we_types)cursor[2]);
 
     cout << "Try to exit out of rage..." << endl;
-    cursor++;
+    ++cursor;
     try {
         cout << "Value of [0][0] is " << cursor[0] << endl;
     }
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
         for (size_t i = 0; i < cursor.record_size(); i ++) {
             cout << "\t[" << i << "] = " << cursor[i] << endl;
         }
-        cursor++;
+        ++cursor;
     }
 
     cursor = rs.begin();
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
         for (size_t i = 0; i < cursor.record_size(); i ++) {
             cout << "\t[" << i << "] = " << cursor[i] << endl;
         }
-        cursor++;
+        ++cursor;
     }
 
     cursor = rs.begin();
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
     rec["id"] = 3;
     rec["name"] = string("news");
     rec[2] = 2.17;
-    rec++;
+    ++rec;
     rec["id"] = 4;
 
     cursor = rs.begin();
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
                 cout << "\t[" << i << "] = " << cursor[i] << endl;
             }
         }
-        cursor++;
+        ++cursor;
         r++;
     }
 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
         catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
-        cursor++;
+        ++cursor;
     }
 
     cond.field() = "value";
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
         catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
-        cursor++;
+        ++cursor;
     }
 
     cond.field() = "name";
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
         catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
-        cursor++;
+        ++cursor;
     }
 
     cond.field() = "value";
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
         catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
-        cursor++;
+        ++cursor;
     }
 
     // construct filters
@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
         catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
-        cursor++;
+        ++cursor;
     }
 
     db_filter filter2;
@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
         catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
-        cursor++;
+        ++cursor;
     }
 
     // delete record
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
             cursor += nxt;
         }
         else {
-            cursor++;
+            ++cursor;
         }
     }
     cout << "After deletion " << filter.tostring() << endl << "Size: " << rs.size() << endl;
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
                 cout << "\t[" << i << "] = " << cursor[i] << endl;
             }
         }
-        cursor++;
+        ++cursor;
         r++;
     }
 
@@ -277,20 +277,22 @@ int main(int argc, char* argv[])
         // archive and stream closed when destructor are called
     }
     cout << "Restored recordset - " << "Size: " << rs.size() << endl;
-    cursor = rs.begin();
+    db_fw_cursor fwcur = rs.fw_begin();
+    //fwcur[1] = "lalal";
     r = 0;
-    while (cursor != rs.end())
+    while (fwcur != rs.fw_end())
     {
         cout << "Record [" << r << "] is:" << endl;
-        for (size_t i = 0; i < cursor.record_size(); i ++) {
-            if (cursor[i].empty()) {
+        for (size_t i = 0; i < fwcur.record_size(); i ++) {
+            const we_variant v = fwcur[i];
+            if (fwcur[i].empty()) {
                 cout << "\t[" << i << "] = <empty>" << endl;
             }
             else {
-                cout << "\t[" << i << "] = " << cursor[i] << endl;
+                cout << "\t[" << i << "] = " << fwcur[i] << endl;
             }
         }
-        cursor++;
+        ++fwcur;
         r++;
     }
 

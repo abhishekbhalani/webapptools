@@ -126,7 +126,7 @@ void options_provider::FromRS( db_recordset *rs )
             default:
                 Option(sName, empt);
             }
-            rec++; // next record
+            ++rec; // next record
         } // foreach records
     }
     catch(exception &e) {
