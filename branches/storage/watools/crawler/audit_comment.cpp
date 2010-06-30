@@ -4,6 +4,7 @@
 // for add_http_url
 #include <weHttpInvent.h>
 #include <boost/regex.hpp>
+#include <weDispatch.h>
 
 using namespace webEngine;
 using namespace boost;
@@ -161,7 +162,8 @@ void audit_comment::add_url( transport_url link, transport_url *base_url, shared
                     boost::shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
                     if (scn->data_id == "")
                     {
-                        //scData->data_id = ;
+                        scn->data_id = kernel->storage()->generate_id(weObjTypeScan);
+                        scn->parent_id = sc->data_id;
                         scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
                         scn->download_time = 0;
                         scn->data_size = 0;

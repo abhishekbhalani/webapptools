@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <webEngine.h>
@@ -193,12 +193,12 @@ void HttpInventory::process( task* tsk, scan_data_ptr scData )
     if (scData->data_id == "")
     {
         scData->data_id = kernel->storage()->generate_id(weObjTypeScan);
-        scData->resp_code = htResp->HttpCode();
-        scData->download_time = htResp->DownloadTime();
-        scData->data_size = htResp->Data().size();
-        scData->scan_depth = htResp->depth();
-        scData->content_type = htResp->ContentType();
     }
+    scData->resp_code = htResp->HttpCode();
+    scData->download_time = htResp->DownloadTime();
+    scData->data_size = htResp->Data().size();
+    scData->scan_depth = htResp->depth();
+    scData->content_type = htResp->ContentType();
 
     /// @todo process options
     if (htResp->HttpCode() >= 300 && htResp->HttpCode() < 400) {
@@ -206,7 +206,7 @@ void HttpInventory::process( task* tsk, scan_data_ptr scData )
         LOG4CXX_TRACE(logger, "HttpInventory::process: process redirect");
         string url = htResp->Headers().find_first("Location");
         if (!url.empty()) {
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task_executor: redirected to " << url);
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "HttpInventory::process: redirected to " << url);
             bool to_process = true;
             transport_url baseUrl = htResp->BaseUrl();
             baseUrl.assign_with_referer(url);
@@ -214,7 +214,6 @@ void HttpInventory::process( task* tsk, scan_data_ptr scData )
             add_url(baseUrl, htResp, scData);
         }
     }
-    /// @todo select appropriate parser
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
     {
         shared_ptr<html_document> parser;
@@ -334,13 +333,12 @@ void HttpInventory::process( task* tsk, scan_data_ptr scData )
             // etc ???
         } // if document parsed
     } // if HTTP code valid
-    if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 400) || htResp->HttpCode() >= 500)
-    {
-        parent_task->set_scan_data(scData->object_url, scData);
-    }
+
+    // update scan_data
+    parent_task->set_scan_data(scData->object_url, scData);
 }
 
-void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_ptr<ScanData> scData )
+void HttpInventory::add_url( transport_url link, HttpResponse *htResp, boost::shared_ptr< ScanData > scData )
 {
     bool allowed = true;
     if (!link.is_host_equal(htResp->RealUrl()))
@@ -379,7 +377,8 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, shared_pt
                     shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
                     if (scn->data_id == "")
                     {
-                        //scData->data_id = ;
+                        scn->data_id = kernel->storage()->generate_id(weObjTypeScan);
+                        scn->parent_id = scData->data_id;
                         scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
                         scn->download_time = 0;
                         scn->data_size = 0;

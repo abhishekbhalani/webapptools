@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <webEngine.h>
@@ -192,8 +192,7 @@ i_plugin* http_transport::get_interface( const string& ifName )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn i_response* http_transport::request( i_request* req,
-///     i_response* resp )
+/// @fn i_response_ptr http_transport::request( i_request* req, i_response_ptr resp )
 ///
 /// @brief  Requests.
 ///
@@ -278,8 +277,7 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn i_response* http_transport::request( string url,
-///     i_response* resp )
+/// @fn i_response_ptr http_transport::request( string url, i_response_ptr resp )
 ///
 /// @brief  Requests.
 /// @param	url	 - The url.
@@ -306,8 +304,7 @@ i_response_ptr http_transport::request( string url, i_response_ptr resp /*= i_re
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn i_response* http_transport::request( transport_url& url,
-///     i_response* resp )
+/// @fn i_response_ptr http_transport::request( transport_url& url, i_response_ptr resp )
 ///
 /// @brief  Requests.
 /// @param	url	 - The url.

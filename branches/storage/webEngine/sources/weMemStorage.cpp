@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <webEngine.h>
@@ -37,39 +37,6 @@ using namespace boost;
 namespace bfs = boost::filesystem;
 
 namespace webEngine {
-
-// static void OptionFromString(we_option& opt, const string& str)
-// {
-//     try
-//     {
-//         istrstream is(str.c_str(), str.length());
-//         boost::archive::text_iarchive ia(is);
-//         // read class instance from archive
-//         //ia >> opt;
-//         // archive and stream closed when destructor are called
-//     }
-//     catch (std::exception& e)
-//     {
-//         LOG4CXX_ERROR(iLogger::GetLogger(), "::OptionFromString error: " << e.what());
-//     }
-// }
-// 
-// static void OptionToString(we_option& opt, string& str)
-// {
-//     try
-//     {
-//         ostrstream os;
-//         boost::archive::text_oarchive oa(os);
-//         // read class instance from archive
-//         //oa << opt;
-//         // archive and stream closed when destructor are called
-//         str = string(os.rdbuf()->str(), os.rdbuf()->pcount());
-//     }
-//     catch (std::exception& e)
-//     {
-//         LOG4CXX_ERROR(iLogger::GetLogger(), "::OptionFromString error: " << e.what());
-//     }
-// }
 
 mem_storage::mem_storage( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     i_storage(krnl, handle)
@@ -107,10 +74,12 @@ int mem_storage::get(db_query& query, db_recordset& results)
     std::set<string> ns_list;
     std::set<string>::iterator ns_it;
     vector<string>::iterator rec_it;
-    db_cursor cursor;
+    db_filter_cursor cursor;
     db_cursor record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::get");
+
+    boost::unique_lock<boost::mutex> locker(data_access);
 
     results.clear();
     results.set_names(query.what);
@@ -125,19 +94,17 @@ int mem_storage::get(db_query& query, db_recordset& results)
         mem_tables::iterator mit = name_spaces.find(*ns_it);
         if (mit != name_spaces.end())
         {
-            cursor = mit->second->begin();
-            while (cursor != name_spaces[*ns_it]->end()) {
-                if (query.where.eval(cursor)) {
-                    record = results.push_back();
-                    for(rec_it = query.what.begin(); rec_it != query.what.end(); rec_it++) {
-                        try {
-                            record[*rec_it] = cursor[*rec_it];
-                        }
-                        catch(out_of_range &e) {
-                            LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get - can't get filed " << *rec_it << ": source doesn't contains this field. " << e.what());
-                        }
-                    } // foreach field
-                } // if record in filter
+            cursor = mit->second->filter_begin(query.where);
+            while (cursor != name_spaces[*ns_it]->filter_end(query.where)) {
+                record = results.push_back();
+                for(rec_it = query.what.begin(); rec_it != query.what.end(); rec_it++) {
+                    try {
+                        record[*rec_it] = (*cursor)[*rec_it];
+                    }
+                    catch(out_of_range &e) {
+                        LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get - can't get filed " << *rec_it << ": source doesn't contains this field. " << e.what());
+                    }
+                } // foreach field
                 ++cursor;
             } // foreach record
         } // if namespase exist
@@ -158,6 +125,8 @@ int mem_storage::set(db_query& query, db_recordset& data)
     db_cursor record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(query, db_record)");
+
+    boost::unique_lock<boost::mutex> locker(data_access);
 
     query.where.get_namespaces(ns_list);
     // @todo implement db_recordset.join to perform queries from more than one table
@@ -215,6 +184,9 @@ int mem_storage::set(db_recordset& data)
     db_cursor record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(db_recordset)");
+
+    boost::unique_lock<boost::mutex> locker(data_access);
+
     // get fields and extract namespace
     vector<string> rec_fields = data.get_names();
     if (rec_fields.size() > 0) {
@@ -243,6 +215,8 @@ int mem_storage::set(db_recordset& data)
 int mem_storage::del(db_filter& filter)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::delete");
+
+    boost::unique_lock<boost::mutex> locker(data_access);
 
     int retval = 0;
     std::set<string> ns_list;
@@ -275,6 +249,8 @@ void mem_storage::save_db( const string& fname )
 {
     size_t i, j;
     string s;
+
+    boost::unique_lock<boost::mutex> locker(data_access);
 
     try {
         LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::save_db");
@@ -338,6 +314,8 @@ void mem_storage::save_db( const string& fname )
 void mem_storage::load_db( const string& fname )
 {
     char* buff = NULL;
+
+    boost::unique_lock<boost::mutex> locker(data_access);
 
     try{
         LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::load_db");
@@ -558,6 +536,8 @@ bool mem_storage::init_storage( const string& params )
     size_t i = 0;
     std::vector<std::string> inits;
     std::vector<std::string> fields;
+
+    boost::unique_lock<boost::mutex> locker(data_access);
 
     while (idb_struct[i] != NULL) {
         boost::split(inits, idb_struct[i], boost::is_any_of(":"));

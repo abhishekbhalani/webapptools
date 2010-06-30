@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <webEngine.h>
@@ -27,6 +27,121 @@
 
 using namespace webEngine;
 using namespace boost;
+
+db_record::db_record( db_recordset* parent_, record_* r ) : parent(parent_), rec(r)
+{
+    if (parent != NULL && rec != NULL) {
+        free_ = false;
+        rec->resize(parent->record_size());
+    }
+    else {
+        if (rec == NULL) {
+            rec = new record_;
+        }
+        if (parent != NULL) {
+            rec->resize(parent->record_size());
+        }
+        free_ = true;
+    }
+}
+
+db_record::~db_record()
+{
+    if (rec != NULL && free_) {
+        delete rec;
+    }
+}
+
+db_record& db_record::operator=( const db_record& rhs )
+{
+    if (rhs.rec != NULL)
+    {   // make assign
+        if (rec == NULL) {
+            rec = new record_(*rhs.rec);
+            free_ = true;
+        }
+        else {
+            rec->assign(rhs.rec->begin(), rhs.rec->end());
+        }
+    }
+    parent = rhs.parent;
+    return *this;
+}
+
+we_variant& db_record::operator[]( int index )
+{
+    if (parent == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    if (rec == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable"));
+    }
+    return (*rec)[index];
+}
+
+const we_variant& db_record::operator[]( int index ) const
+{
+    if (parent == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    if (rec == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable"));
+    }
+    return (*rec)[index];
+}
+
+we_variant& db_record::operator[]( const string& name )
+{
+    int index = 0;
+
+    if (parent == NULL) {
+        // throw exception
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    vector<string>::iterator fn_it = std::find(parent->field_names.begin(), parent->field_names.end(), name);
+    if (fn_it == parent->field_names.end())
+    { // throw exception
+        throw_exception(out_of_range("cursor not dereferencable: field name found - " + name));
+    }
+    else {
+        index = std::distance(parent->field_names.begin(), fn_it);
+    }
+    if (rec == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable"));
+    }
+    return (*rec)[index];
+}
+
+const we_variant& db_record::operator[]( const string& name ) const
+{
+    int index = 0;
+
+    if (parent == NULL) {
+        // throw exception
+        throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
+    }
+    vector<string>::iterator fn_it = std::find(parent->field_names.begin(), parent->field_names.end(), name);
+    if (fn_it == parent->field_names.end())
+    { // throw exception
+        throw_exception(out_of_range("cursor not dereferencable: field name found - " + name));
+    }
+    else {
+        index = std::distance(parent->field_names.begin(), fn_it);
+    }
+    if (rec == NULL) {
+        throw_exception(out_of_range("cursor not dereferencable"));
+    }
+    return (*rec)[index];
+}
+
+db_cursor_base::db_cursor_base( db_recordset* rs, base_iter& it ) :
+    parent_(rs), record(parent_, NULL), iter_(it)
+{
+    if (parent_->is_valid_iter(it)) {
+        delete record.rec;
+        update();
+    }
+}
 
 db_recordset::db_recordset(void)
 {
@@ -45,7 +160,7 @@ db_recordset::~db_recordset(void)
 
 void db_recordset::erase(db_cursor& at)
 {
-    records.erase(at.iterator());
+    records.erase(at.iter_);
 }
 
 // db_cursor db_recordset::push_back(db_record& rec)
@@ -67,7 +182,7 @@ db_cursor db_recordset::push_back(size_t num/* = 1*/)
     size_t sz = records.size();
 
     if (num > 0) {
-        db_record rec;
+        record_ rec;
         rec.resize(field_names.size());
         records.insert(records.end(), num, rec);
     }
@@ -77,7 +192,7 @@ db_cursor db_recordset::push_back(size_t num/* = 1*/)
     }
 
     // get the iterator points to the last element
-    vector<db_record>::iterator it = records.begin();
+    recordset_::iterator it = records.begin();
     return db_cursor(this, it + sz);
 }
 
@@ -86,9 +201,9 @@ db_cursor db_recordset::insert(db_cursor& before, size_t num/* = 1*/)
     size_t off = records.size() == 0 ? 0 : before - records.begin();
 
     if (num > 0) {
-        db_record rec;
+        record_ rec;
         rec.resize(field_names.size());
-        records.insert(before.iterator(), num, rec);
+        records.insert(before.iter_, num, rec);
     }
     return db_cursor(this, records.begin() + off);
 }
@@ -107,19 +222,19 @@ we_variant& db_cursor_base::operator[]( string name )
 {
     int index = 0;
 
-    if (parent == NULL) {
+    if (parent_ == NULL) {
         // throw exception
         throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
     }
-    vector<string>::iterator fn_it = std::find(parent->field_names.begin(), parent->field_names.end(), name);
-    if (fn_it == parent->field_names.end())
+    vector<string>::iterator fn_it = std::find(parent_->field_names.begin(), parent_->field_names.end(), name);
+    if (fn_it == parent_->field_names.end())
     { // throw exception
         throw_exception(out_of_range("cursor not dereferencable: field name found - " + name));
     }
     else {
-        index = std::distance(parent->field_names.begin(), fn_it);
+        index = std::distance(parent_->field_names.begin(), fn_it);
     }
-    if (iter_ == parent->records.end()) {
+    if (iter_ == parent_->records.end()) {
         throw_exception(out_of_range("cursor not dereferencable"));
     }
     return (*iter_)[index];
@@ -129,19 +244,19 @@ const we_variant& db_cursor_base::operator[]( string name ) const
 {
     int index = 0;
 
-    if (parent == NULL) {
+    if (parent_ == NULL) {
         // throw exception
         throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
     }
-    vector<string>::iterator fn_it = std::find(parent->field_names.begin(), parent->field_names.end(), name);
-    if (fn_it == parent->field_names.end())
+    vector<string>::iterator fn_it = std::find(parent_->field_names.begin(), parent_->field_names.end(), name);
+    if (fn_it == parent_->field_names.end())
     { // throw exception
         throw_exception(out_of_range("cursor not dereferencable: field name found - " + name));
     }
     else {
-        index = std::distance(parent->field_names.begin(), fn_it);
+        index = std::distance(parent_->field_names.begin(), fn_it);
     }
-    if (iter_ == parent->records.end()) {
+    if (iter_ == parent_->records.end()) {
         throw_exception(out_of_range("cursor not dereferencable"));
     }
     return (*iter_)[index];
@@ -149,10 +264,10 @@ const we_variant& db_cursor_base::operator[]( string name ) const
 
 we_variant& db_cursor_base::operator[]( int index )
 {
-    if (parent == NULL) {
+    if (parent_ == NULL) {
         throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
     }
-    if (iter_ == parent->records.end()) {
+    if (iter_ == parent_->records.end()) {
         throw_exception(out_of_range("cursor not dereferencable"));
     }
     return (*iter_)[index];
@@ -160,10 +275,10 @@ we_variant& db_cursor_base::operator[]( int index )
 
 const we_variant& db_cursor_base::operator[]( int index ) const
 {
-    if (parent == NULL) {
+    if (parent_ == NULL) {
         throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
     }
-    if (iter_ == parent->records.end()) {
+    if (iter_ == parent_->records.end()) {
         throw_exception(out_of_range("cursor not dereferencable"));
     }
     return (*iter_)[index];
@@ -171,15 +286,28 @@ const we_variant& db_cursor_base::operator[]( int index ) const
 
 const size_t db_cursor_base::record_size()
 {
-    if (parent == NULL) {
+    if (parent_ == NULL) {
         throw_exception(out_of_range("cursor not dereferencable: no recordset associated"));
     }
-    return parent->record_size();
+    return parent_->record_size();
 }
 
-const bool db_cursor_base::operator==( const db_cursor_base& rhs )
+void db_cursor_base::clear()
 {
-    if ( parent != rhs.parent ) {
+    if (record.rec != NULL && record.free_) {
+        delete record.rec;
+    }
+    record.rec = new record_;
+    record.parent = parent_;
+    if (parent_ != NULL) {
+        record.rec->resize(parent_->record_size());
+    }
+    record.free_ = true;
+}
+
+const bool db_cursor_base::operator==( const db_cursor_base& rhs ) const
+{
+    if ( parent_ != rhs.parent_ ) {
         return false;
     }
     if (iter_ != rhs.iter_) {
@@ -294,7 +422,7 @@ db_condition::db_condition( string s )
     }
 }
 
-bool db_condition::eval( db_cursor& data )
+bool db_condition::operator()(db_record& data) const
 {
     bool result = false;
     we_variant val;
@@ -347,7 +475,7 @@ bool db_condition::eval( db_cursor& data )
     return result;
 }
 
-string db_condition::tostring( )
+string db_condition::tostring( ) const
 {
     string res, op, val;
 
@@ -461,23 +589,23 @@ db_filter& db_filter::and( db_filter_base& cond )
     return *this;
 }
 
-bool db_filter::eval( db_cursor& data )
+bool db_filter::operator()(db_record& data) const
 {
     bool result = false;
 
     if (condition.size() > 0) {
-        result = condition[0].second->eval(data);
+        result = (*condition[0].second)(data);
         for (size_t i = 1; i < condition.size(); i++) {
             if (condition[i].first == link_or) {
                 if (!result) {
                     // evaluate condition only if need
-                    result = result || condition[i].second->eval(data);
+                    result = result || (*condition[i].second)(data);
                 }
             } // if link_or
             if (condition[i].first == link_and) {
                 if (result) {
                     // evaluate condition only if need
-                    result = result && condition[i].second->eval(data);
+                    result = result && (*condition[i].second)(data);
                 }
             } // if link_and
         } // for all conditions
@@ -486,7 +614,7 @@ bool db_filter::eval( db_cursor& data )
     return result;
 }
 
-string db_filter::tostring()
+string db_filter::tostring() const
 {
     string res = "";
 

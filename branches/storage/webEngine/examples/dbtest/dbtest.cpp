@@ -44,12 +44,14 @@ int main(int argc, char* argv[])
     catch(std::exception &e) {
         cout << "Exception: " << e.what() << endl;
     }
+    cout << endl;
 
     cursor = rs.begin();
 
     cout << "Value of [0][0] is " << cursor[0] << endl;
     cout << "Value of [0][name] is " << cursor["name"] << endl;
     //double dummy = boost::get<double>((we_types)cursor[2]);
+    cout << endl;
 
     cout << "Try to exit out of rage..." << endl;
     ++cursor;
@@ -71,6 +73,7 @@ int main(int argc, char* argv[])
         }
         ++cursor;
     }
+    cout << endl;
 
     cursor = rs.begin();
     rec = rs.insert(cursor);
@@ -88,6 +91,7 @@ int main(int argc, char* argv[])
         }
         ++cursor;
     }
+    cout << endl;
 
     cursor = rs.begin();
     rec = rs.insert(cursor, 2);
@@ -114,6 +118,7 @@ int main(int argc, char* argv[])
         ++cursor;
         r++;
     }
+    cout << endl;
 
     // conditions
     cout << "Test conditions" << endl;
@@ -133,6 +138,7 @@ int main(int argc, char* argv[])
         }
         ++cursor;
     }
+    cout << endl;
 
     cond.field() = "value";
     cond.operation() = db_condition::great;
@@ -149,6 +155,7 @@ int main(int argc, char* argv[])
         }
         ++cursor;
     }
+    cout << endl;
 
     cond.field() = "name";
     cond.operation() = db_condition::like;
@@ -165,6 +172,7 @@ int main(int argc, char* argv[])
         }
         ++cursor;
     }
+    cout << endl;
 
     cond.field() = "value";
     cond.operation() = db_condition::is_null;
@@ -180,6 +188,7 @@ int main(int argc, char* argv[])
         }
         ++cursor;
     }
+    cout << endl;
 
     // construct filters
     db_condition c1("id > 2");
@@ -199,6 +208,7 @@ int main(int argc, char* argv[])
         }
         ++cursor;
     }
+    cout << endl;
 
     db_filter filter2;
     filter2.set(cond).and(filter);
@@ -213,6 +223,21 @@ int main(int argc, char* argv[])
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
         ++cursor;
+    }
+    cout << endl;
+
+    cout << "Use db_filter_cursor with " << filter2.tostring() << endl;
+    db_filter_cursor flt;
+    for (flt = rs.filter_begin(filter), r = 0; flt != rs.filter_end(filter); ++flt, ++r) {
+        cout << "Record [" << r << "] is:" << endl;
+        for (size_t i = 0; i < rs.record_size(); i ++) {
+            if ((*flt)[i].empty()) {
+                cout << "\t[" << i << "] = <empty>" << endl;
+            }
+            else {
+                cout << "\t[" << i << "] = " << (*flt)[i] << endl;
+            }
+        }
     }
 
     // delete record
@@ -247,6 +272,7 @@ int main(int argc, char* argv[])
         ++cursor;
         r++;
     }
+    cout << endl;
 
     // append empty record for serialized data
     rs.push_back();

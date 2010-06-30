@@ -1,6 +1,7 @@
 #include "audit_jscript.h"
 #include <weHelper.h>
 #include <weTask.h>
+#include <weDispatch.h>
 // for add_http_url
 #include <weHttpInvent.h>
 #include <boost/regex.hpp>
@@ -288,7 +289,8 @@ void audit_jscript::add_url( webEngine::transport_url link, boost::shared_ptr<Sc
                     boost::shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
                     if (scn->data_id == "")
                     {
-                        //scData->data_id = ;
+                        scn->data_id = kernel->storage()->generate_id(weObjTypeScan);
+                        scn->parent_id = sc->data_id;
                         scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
                         scn->download_time = 0;
                         scn->data_size = 0;

@@ -241,9 +241,9 @@ int main(int argc, char* argv[])
 
         flt.where.set(p_cond);
         we_dispatcer.storage()->get(flt, recs);
-        db_cursor cursor = recs.begin();
+        db_fw_cursor cursor = recs.fw_begin();
         int r = 0;
-        while (cursor != recs.end()) {
+        while (cursor != recs.fw_end()) {
             cout << "Record " << r << ":" << endl;
             for (size_t i = 0; i < cursor.record_size(); i++) {
                 cout << "\tField[" << i << "] = " << cursor[i] << endl;
