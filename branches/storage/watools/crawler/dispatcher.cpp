@@ -113,11 +113,10 @@ void signal_halt(int sig)
     }
 }
 
-// bool sort_results(const webEngine::db_record& left, const webEngine::db_record& right) {
-//     // object_url is the field with index 3... may be...
-//     return (left[3] < right[3]);
-// }
-// 
+bool sort_results(const webEngine::db_record& left, const webEngine::db_record& right) {
+    return (left[weObjTypeScanData "." "object_url"] < right[weObjTypeScanData "." "object_url"]);
+}
+ 
 void save_results(int format, string fname, webEngine::task* tsk)
 {
     if (tsk != NULL)
@@ -152,9 +151,13 @@ void save_results(int format, string fname, webEngine::task* tsk)
         }
         cout << endl;
 
-        // dirty hack
-        // std::sort(si->begin().iterator(), si->end().iterator(), sort_results);
-        for( webEngine::db_cursor& i = si->begin(); i != si->end(); ++i ) {
+        std::sort(si->begin(), si->end(), sort_results);
+        webEngine::db_fw_cursor i;
+
+        if (format == 2) {
+            cout << "URL\tHTTP code\tDownload time\tSize" << endl;
+        }
+        for( i = si->fw_begin(); i != si->fw_end(); ++i ) {
             try {
                 if (format == 0) {
                     cout << "Requested:     " << i[weObjTypeScanData "." "object_url"] << endl;
@@ -168,35 +171,12 @@ void save_results(int format, string fname, webEngine::task* tsk)
                     cout << i[weObjTypeScanData "." "object_url"] << endl;
                 }
                 else if (format == 2) {
-                    cout << i[weObjTypeScanData "." "object_url"] << " Download state: " << i[weObjTypeScanData "." "resp_code"] << " ( " <<
-                        i[weObjTypeScanData "." "dnld_time"] << " msec.) / " << i[weObjTypeScanData "." "data_size"] << " bytes" << endl;
+                    cout << i[weObjTypeScanData "." "object_url"] << "\t" << i[weObjTypeScanData "." "resp_code"] << "\t" <<
+                        i[weObjTypeScanData "." "dnld_time"] << "\t" << i[weObjTypeScanData "." "data_size"] << endl;
                 }
             }
             catch (out_of_range) {}
         }
-        /*for (ScanRes::iterator i = si->begin(); i != si->end(); i++) {
-            boost::shared_ptr<webEngine::ScanData> dt = i->second;
-            if (dt) {
-                if (format == 0) {
-                    cout << "Requested:     " << dt->object_url << endl;
-                    cout << "Response:      " << dt->resp_code << endl;
-                    cout << "Data size:     " << dt->data_size << endl;
-                    cout << "Download time: " << dt->download_time << endl;
-                    cout << "Tree level:    " << dt->scan_depth << endl;
-                    cout << endl;
-                }
-                else if (format == 1) {
-                    cout << dt->object_url << endl;
-                }
-                else if (format == 2) {
-                    cout << dt->object_url << " Download state: " << dt->resp_code << " ( " <<
-                        dt->download_time << " msec.) / " << dt->data_size << " bytes" << endl;
-                }
-            } // if result valid
-        } // for results
-        if(file) {
-            std::cout.rdbuf(old_buffer);
-        }*/
     }
 }
 
@@ -527,9 +507,70 @@ void dispatcher_routine(po::variables_map& vm)
     }
     while(inLoop);
     tsk->Stop();
+    tsk->save_to_db();
+    cout << endl;
+
+    webEngine::db_filter flt;
+    webEngine::db_condition tc;//("scan_data.resp_code >= 400");
+    webEngine::db_condition lc;//("scan_data.resp_code >= 400");
+    webEngine::db_condition gc;//("scan_data.resp_code < 500");
+    cout << "Remove errors from results... ";
+    tc.field() = "scan_data.task_id";
+    tc.operation() = webEngine::db_condition::equal;
+    tc.value() = tsk->get_scan_id();
+
+    lc.field() = "scan_data.resp_code";
+    lc.operation() = webEngine::db_condition::great_or_equal;
+    lc.value() = 400;
+
+    gc.field() = "scan_data.resp_code";
+    gc.operation() = webEngine::db_condition::less;
+    gc.value() = 500;
+
+    flt.set(tc).and(lc).and(gc);
+    if (we_dispatcer->storage() != NULL) {
+        int r = we_dispatcer->storage()->del(flt);
+        cout << r << " records ";
+    }
+    cout << "done" << endl;
+
+    cout << "Remove redirects from results... ";
+
+    lc.field() = "scan_data.resp_code";
+    lc.operation() = webEngine::db_condition::great_or_equal;
+    lc.value() = 300;
+
+    gc.field() = "scan_data.resp_code";
+    gc.operation() = webEngine::db_condition::less;
+    gc.value() = 400;
+
+    flt.set(tc).and(lc).and(gc);
+    if (we_dispatcer->storage() != NULL) {
+        int r = we_dispatcer->storage()->del(flt);
+        cout << r << " records ";
+    }
+    cout << "done" << endl;
+
+    vector<string> fupd;
+    fupd.push_back("task.processed_urls");
+    webEngine::db_recordset upd(fupd);
+    webEngine::db_cursor rec = upd.push_back();
+    rec[0] = string("");
+    tc.field() = "task.id";
+    tc.operation() = webEngine::db_condition::equal;
+    tc.value() = tsk->get_scan_id();
+    
+    webEngine::db_query query;
+    query.what.push_back("task.processed_urls");
+    query.where.set(tc);
+    cout << "Remove URL's usage... ";
+    if (we_dispatcer->storage() != NULL) {
+        int r = we_dispatcer->storage()->set(query, upd);
+        cout << r << " records ";
+    }
+    cout << "done" << endl;
 
     // print result
-    tsk->save_to_db();
     if (we_dispatcer->storage() != NULL) {
         we_dispatcer->storage()->flush();
     }

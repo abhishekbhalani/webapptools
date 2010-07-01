@@ -70,7 +70,7 @@ void task_processor(task* tsk)
     i_request_ptr curr_url;
 
     tsk->processThread = true;
-    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessor started for task " << ((void*)&tsk));
+    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessor started for task " << tsk);
     while (tsk->IsReady())
     {
         tsk->WaitForData();
@@ -180,8 +180,7 @@ void task_processor(task* tsk)
                         tsk->set_scan_data((*rIt)->BaseUrl().tostring(), scd);
                     }
                     //(*rIt).reset();
-                    tsk->taskQueue.erase(rIt);
-                    rIt = tsk->taskQueue.begin();
+                    rIt = tsk->taskQueue.erase(rIt);
                 }
                 else {
                     rIt++;
@@ -192,7 +191,7 @@ void task_processor(task* tsk)
         tsk->calc_status();
     };
     tsk->processThread = false;
-    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessor finished for task " << ((void*)&tsk));
+    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessor finished for task " << tsk);
 }
 
 void task_data_process(task* tsk)
@@ -227,8 +226,7 @@ void task_data_process(task* tsk)
                 LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->vulners[i]->get_description());
                 tsk->vulners[i]->process(tsk, sc_data);
             }
-            /// @todo: !!! REMOVE THIS!!! It's only debug!
-            /// need to implement clever clean-up scheme
+            /// @todo !!! REMOVE THIS!!! It's only debug! need to implement clever clean-up scheme
             tsk->free_scan_data(sc_data);
         } // if sc_data valid
     } // while sc_process.size > 0
@@ -282,8 +280,9 @@ task::task( task& cpy )
 
 task::~task()
 {
-    /// @todo Cleanup
-    Stop();
+    if (IsReady()) {
+        Stop();
+    }
     size_t i;
     for (i = 0; i < parsers.size(); i++) {
         parsers[i]->release();
@@ -326,12 +325,12 @@ i_response_ptr task::get_request( i_request_ptr req )
 
 void task::get_request_async( i_request_ptr req )
 {
-    /// @todo Implement this!
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async");
     if (!processThread) {
         processThread = true;
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::get_request_async: create WeTaskProcessor");
         boost::thread process(task_processor, this);
+        tsk_status = WI_TSK_RUN;
     }
     // wake-up task_processor
     boost::unique_lock<boost::mutex> lock(tsk_mutex);
@@ -349,8 +348,13 @@ void task::get_request_async( i_request_ptr req )
 
 bool task::IsReady()
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsReady - " << processThread);
-    return (processThread);
+    bool result;
+    int active_threads = LockedGetValue(&thread_count);
+
+    result = !(taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0);
+    result = result || (tsk_status != WI_TSK_IDLE);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsReady - " << result);
+    return result;
 }
 
 void task::AddPlgParser(i_parser* plugin)
@@ -571,19 +575,15 @@ void task::Run(void)
 
 void task::Pause(const bool& state /*= true*/)
 {
-    int idata;
 //    we_option opt;
 //    opt = Option(weoTaskStatus);
 //    SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
-    if (state)
-    {
-        idata = WI_TSK_PAUSED;
+    if (state) {
+        tsk_status = WI_TSK_PAUSED;
     }
-    else
-    {
-        idata = WI_TSK_RUN;
+    else {
+        tsk_status = WI_TSK_RUN;
     }
-    tsk_status = idata;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
     boost::unique_lock<boost::mutex> lock(tsk_mutex);
@@ -627,7 +627,7 @@ void task::Stop()
         boost::this_thread::sleep(boost::posix_time::millisec(100));
         active_threads = LockedGetValue(&thread_count);
     }
-    processThread = false;
+    //processThread = false;
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop notify all about TaskStatus change");
         boost::unique_lock<boost::mutex> lock(tsk_mutex);
@@ -637,7 +637,9 @@ void task::Stop()
     boost::this_thread::sleep(boost::posix_time::millisec(10));
     taskList.clear();
     taskQueue.clear();
-    calc_status();
+    if (tsk_status == WI_TSK_RUN) {
+        calc_status();
+    }
 }
 
 void task::calc_status()
@@ -659,7 +661,7 @@ void task::calc_status()
     // set task status
     if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
-        processThread = false;
+        //processThread = false;
         finish_tm = btm::second_clock::local_time();
         tsk_status = WI_TSK_IDLE;
         save_to_db();
@@ -899,7 +901,7 @@ void task::WaitForData()
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::WaitForData synch object ready");
     boost::unique_lock<boost::mutex> lock(tsk_mutex);
-    while((taskList.size() == 0 && taskQueue.size() == 0) || tsk_status == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
+    while((taskList.size() == 0 && taskQueue.size() == 0 && tsk_status == WI_TSK_RUN) || tsk_status == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::WaitForData: go to sleep");
         tsk_event.wait(lock);
     }

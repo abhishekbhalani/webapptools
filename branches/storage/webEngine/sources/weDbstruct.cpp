@@ -49,6 +49,7 @@ db_record::~db_record()
 {
     if (rec != NULL && free_) {
         delete rec;
+        rec = NULL;
     }
 }
 
@@ -138,7 +139,10 @@ db_cursor_base::db_cursor_base( db_recordset* rs, base_iter& it ) :
     parent_(rs), record(parent_, NULL), iter_(it)
 {
     if (parent_->is_valid_iter(it)) {
-        delete record.rec;
+        if (record.rec != NULL && record.free_) {
+            delete record.rec;
+            record.rec = NULL;
+        }
         update();
     }
 }
@@ -158,9 +162,9 @@ db_recordset::~db_recordset(void)
 
 }
 
-void db_recordset::erase(db_cursor& at)
+db_cursor db_recordset::erase(db_cursor& at)
 {
-    records.erase(at.iter_);
+    return db_cursor(this, records.erase(at.iter_));
 }
 
 // db_cursor db_recordset::push_back(db_record& rec)
@@ -292,11 +296,26 @@ const size_t db_cursor_base::record_size()
     return parent_->record_size();
 }
 
+void db_cursor_base::update()
+{
+    if (parent_->is_valid_iter(iter_)) {
+        if (record.rec != NULL && record.free_) {
+            delete record.rec;
+            record.rec = NULL;
+        }
+        // else - just drop pointer to existing vector element
+        record.rec = &(*iter_);
+        record.free_ = false;
+    }
+}
+
 void db_cursor_base::clear()
 {
     if (record.rec != NULL && record.free_) {
         delete record.rec;
+        record.rec = NULL;
     }
+    // else - just drop pointer to existing vector element
     record.rec = new record_;
     record.parent = parent_;
     if (parent_ != NULL) {
@@ -323,20 +342,12 @@ db_condition::db_condition()
     test_value.clear();
 }
 
-db_condition::db_condition( string s )
+db_condition& db_condition::operator=( const string& s )
 {
     string tmp;
     // ([^=\<\>!\s]+)\s+([\S]+)\s+(.*?)\s*$
     boost::regex re("([^=\\<\\>!\\s]+)\\s+([\\S]+)\\s+(.*?)\\s*$");
     boost::smatch mres;
-    /*char cv;
-    unsigned char ucv;
-    int iv;
-    unsigned int uiv;
-    long lv;
-    unsigned long ulv;
-    bool bv;
-    double dv;*/
 
     if (regex_match(s, mres, re, match_default)) {
         field_name = mres[1];
@@ -420,6 +431,8 @@ db_condition::db_condition( string s )
         tmp = "db_condition: can't parse string - " + s;
         throw_exception(bad_cast(tmp.c_str()));
     }
+
+    return *this;
 }
 
 bool db_condition::operator()(db_record& data) const
@@ -451,7 +464,7 @@ bool db_condition::operator()(db_record& data) const
             result = (val <= test_value);
             break;
         case db_condition::great_or_equal:
-            result = (val <= test_value);
+            result = (val >= test_value);
             break;
         case db_condition::like:
             if (val.type() != typeid(string) || test_value.type() != typeid(string)) {
@@ -536,13 +549,13 @@ db_condition* db_condition::clone()
     return new db_condition(*this);
 }
 
-db_filter::db_filter( const db_filter& filt )
-{
-    db_filter *elem = new db_filter();
-    *elem = filt;
-    condition.clear();
-    condition.push_back(element(link_null, elem));
-}
+// db_filter::db_filter( const db_filter& filt )
+// {
+//     db_filter *elem = new db_filter();
+//     *elem = filt;
+//     condition.clear();
+//     condition.push_back(element(link_null, elem));
+// }
 
 db_filter::db_filter( const db_condition& cond )
 {

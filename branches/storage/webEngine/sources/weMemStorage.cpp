@@ -151,6 +151,7 @@ int mem_storage::set(db_query& query, db_recordset& data)
                         for (size_t i = 0; i < rec_fields.size(); i++) {
                             cursor[rec_fields[i]] = record[rec_fields[i]];
                         } // foreach field
+                        retval++;
                     } catch(out_of_range &) {};
                 } // if need to update
                 ++cursor;
@@ -164,6 +165,7 @@ int mem_storage::set(db_query& query, db_recordset& data)
                     for (size_t i = 0; i < rec_fields.size(); i++) {
                         cursor[rec_fields[i]] = record[rec_fields[i]];
                     } // foreach field
+                    retval++;
                 } catch(out_of_range &) {};
             } // if not updated
         }
@@ -204,6 +206,7 @@ int mem_storage::set(db_recordset& data)
                     for (size_t i = 0; i < rec_fields.size(); i++) {
                         cursor[rec_fields[i]] = record[rec_fields[i]];
                     } // foreach field
+                    retval++;
                 } catch(out_of_range &) {};
             }
         } // namespace name found
@@ -228,12 +231,8 @@ int mem_storage::del(db_filter& filter)
         if (name_spaces.find(*ns_it) != name_spaces.end()) {
             cursor = name_spaces[*ns_it]->begin();
             while (cursor != name_spaces[*ns_it]->end()) {
-                size_t nxt = cursor - name_spaces[*ns_it]->begin();
-                nxt++;
                 if (filter.eval(cursor)) {
-                    name_spaces[*ns_it]->erase(cursor);
-                    cursor = name_spaces[*ns_it]->begin();
-                    cursor += nxt;
+                    cursor = name_spaces[*ns_it]->erase(cursor);
                     retval++;
                 }
                 else {

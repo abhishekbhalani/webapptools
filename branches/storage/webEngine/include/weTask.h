@@ -176,6 +176,7 @@ namespace webEngine {
         size_t total_processed() const { return total_done; }
 
         const string& get_profile_id() const { return profile_id; }
+        const string& get_scan_id() const { return scan_id; }
         void set_profile_id(string& id) { profile_id = id; }
         int status() const { return tsk_status; }
         int completion() const { return tsk_completion; }

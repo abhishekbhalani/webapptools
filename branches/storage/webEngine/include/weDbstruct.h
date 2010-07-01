@@ -155,7 +155,7 @@ namespace webEngine {
         virtual db_record& dereference() const { return *(const_cast<db_record*>(&record)); }
 
     protected:
-        void update() { record.rec = &(*iter_); record.free_ = false; }
+        void update();
         void clear();
 
         db_recordset* parent_;
@@ -235,13 +235,15 @@ namespace webEngine {
             not_null
         } opcode;
         db_condition();
-        explicit db_condition(string s);
+        explicit db_condition(const string& s) { *this = s; }
         ~db_condition() {}
 
         string& field() { return field_name; }
         opcode& operation() { return op_code; }
         we_variant& value() { return test_value; }
 
+        db_condition& operator=(const db_condition& cpy) { field_name = cpy.field_name; op_code = cpy.op_code; test_value = cpy.test_value; return *this; }
+        db_condition& operator=(const string& s);
         virtual bool operator()(db_record& data) const;
         virtual string tostring() const;
         virtual void get_namespaces(std::set<string>& ns_list);
@@ -266,7 +268,8 @@ namespace webEngine {
     {
     public:
         db_filter() {}
-        explicit db_filter(const db_filter& filt);
+        db_filter(const db_filter& filt) { *this = filt; }
+//        explicit db_filter(const db_filter& filt);
         explicit db_filter(const db_condition& cond);
         ~db_filter();
 
@@ -385,7 +388,7 @@ namespace webEngine {
 	};
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @typedef    boost::filter_iterator<db_filter_base, db_fw_cursor> db_filter_cursor
+    /// @typedef    boost::filter_iterator<db_filter, db_fw_cursor> db_filter_cursor
     ///
     /// @brief  Defines the forward-only read-only cursor with filter abilities.
     /// 
@@ -397,7 +400,7 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date	30.06.2010
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    typedef boost::filter_iterator<db_filter_base, db_fw_cursor> db_filter_cursor;
+    typedef boost::filter_iterator<db_filter, db_fw_cursor> db_filter_cursor;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @class  db_recordset
@@ -422,7 +425,7 @@ namespace webEngine {
         ~db_recordset();
 
         /// remove record from specified position
-        void erase(db_cursor& at);
+        db_cursor erase(db_cursor& at);
         /// clear all records and fields names
         void clear() { records.clear(); field_names.clear(); }
         /// replace fields names with new set
