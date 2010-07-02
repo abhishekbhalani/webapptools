@@ -41,6 +41,7 @@ public:
     // i_storage functions
     virtual bool init_storage(const string& params);
 	virtual void flush(const string& params = "") {};
+    virtual string generate_id(const string& objType = "");
     virtual int get(db_query& query, db_recordset& results);
     virtual int set(db_query& query, db_recordset& data);
     virtual int set(db_recordset& data);

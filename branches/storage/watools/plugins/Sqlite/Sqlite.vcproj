@@ -65,7 +65,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib"
+				AdditionalDependencies="log4cxx.lib webEngine.lib libboost_regex-vc90-mt-gd-1_38.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\webEngine\libs\debug"
@@ -130,7 +130,7 @@
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -144,7 +144,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib curllib-s.lib libboost_regex-vc80-mt-1_38.lib"
+				AdditionalDependencies="log4cxx.lib curllib.lib webEngine.lib libboost_regex-vc90-mt-1_38.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\webEngine\libs\release"
@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sqlite3.c"
+				>
+			</File>
+			<File
 				RelativePath=".\storageSqlite.cpp"
 				>
 			</File>
@@ -207,6 +211,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\sqlite3.h"
+				>
+			</File>
 			<File
 				RelativePath=".\storageSqlite.h"
 				>
