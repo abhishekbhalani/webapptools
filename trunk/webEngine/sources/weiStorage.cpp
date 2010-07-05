@@ -51,6 +51,8 @@ char* webEngine::idb_struct[] =
     "profile:profile_id INT:name TEXT:type INT:value VARIANT",
     "scan_data:id INT:task_id INT:parent_id INT:object_url TEXT:scan_depth INT:resp_code INT:data_size INT:dnld_time INT:content_type TEXT",
     "task:id INT:profile_id INT:status INT:completion INT:start_time TEXT:finish_time TEXT:ping_time TEXT:processed_urls BLOB",
+    "vulners:id INT NOT NULL:task_id INT NOT NULL:object_id INT:plugin_id TEXT:severity INT DEFAULT 0:vulner_id INT:params TEXT",
+    "vulner_desc:pligin_id TEXT NOT NULL:id INT NOT NULL:severity INT NOT NULL:title TEXT:short TEXT:desc TEXT:locale TEXT",
     NULL
 };
 

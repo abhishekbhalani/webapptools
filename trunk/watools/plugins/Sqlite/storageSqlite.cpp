@@ -491,9 +491,9 @@ bool sqlite_storage::init_storage( const string& params )
         rc = sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
 
         // create indexes
-        tbl_query = "CREATE UNIQUE INDEX IF NOT EXESTS [scan_data_index] ON [scan_data] ([id] ASC, [task_id] ASC)";
+        tbl_query = "CREATE UNIQUE INDEX IF NOT EXISTS [scan_data_index] ON [scan_data] ([id] ASC, [task_id] ASC)";
         rc = sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
-        tbl_query = "CREATE UNIQUE INDEX IF NOT EXESTS [task_index] ON [task] ([id] ASC, [profile_id] ASC)";
+        tbl_query = "CREATE UNIQUE INDEX IF NOT EXISTS [task_index] ON [task] ([id] ASC, [profile_id] ASC)";
         rc = sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
 
         names.clear();

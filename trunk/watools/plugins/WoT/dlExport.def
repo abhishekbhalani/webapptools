@@ -1,0 +1,2 @@
+LIBRARY	"wot.plg"
+EXPORTS WePluginFactory

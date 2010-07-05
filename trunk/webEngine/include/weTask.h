@@ -146,7 +146,7 @@ namespace webEngine {
         virtual void free_scan_data(boost::shared_ptr<ScanData> scData);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn virtual void AddVulner(const string& vId,
+        /// @fn virtual void add_vulner(const string& vId,
         /// 	const string& params,
         /// 	const string& parentId, int vLevel = -1)
         ///
@@ -165,7 +165,7 @@ namespace webEngine {
         /// @param  parentId - Identifier of the parent object (ScanData). 
         /// @param  vLevel   - Control the vulnerability level. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        virtual void AddVulner(const string& vId, const string& params, const string& parentId, int vLevel = -1);
+        virtual void add_vulner(const string& vId, const string& params, const string& parentId, int vLevel = -1);
 
         virtual int add_thread();
         virtual int remove_thread();

@@ -27,10 +27,21 @@ namespace webEngine {
 i_vulner::i_vulner(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     i_plugin(krnl, handle)
 {
+    pluginInfo.interface_name = "i_vulner";
+    pluginInfo.interface_list.push_back("i_vulner");
+    pluginInfo.plugin_desc = "Abstract vulnerability detector interface";
+    pluginInfo.plugin_id = "4890FF417662"; //{AE859EC2-1A94-4787-BF3F-4890FF417662}
 }
 
 i_vulner::~i_vulner(void)
 {
+}
+
+void i_vulner::response_dispatcher( i_response_ptr resp, void* context )
+{
+    i_vulner* object = (i_vulner*)context;
+    LOG4CXX_TRACE(object->logger, "i_audit::response_dispatcher");
+    object->process_response(resp);
 }
 
 } // namespace webEngine
