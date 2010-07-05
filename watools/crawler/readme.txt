@@ -6,11 +6,8 @@ NOTES:
 boost - directory contains some boost extensions.
 		Need to upgrade used library to version 1.42 and remove this dirty-hack
 
-Google V8 javascript engine need to buil project. Two libraries are used:
-v8.lib for Release build
-	and
-v8_d.lib for the Debug build
-
+Google V8 javascript engine need to buil project. v8.lib must be placed in the
+webEngine\libs\(Configuration) directory
 
 USAGE:
 

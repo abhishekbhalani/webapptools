@@ -6,7 +6,7 @@
 #include <boost/scoped_ptr.hpp>
 
 /**
-	\mainpage
+	\page shared_object Shared Objects
 
 	Libdyn is a C++ utility for loading dynamically linked libraries. It
 	is a wrapper to platform specific dll loading functions, UNIX's dlopen,

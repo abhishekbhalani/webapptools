@@ -167,6 +167,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sources\weDbstruct.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sources\weDiffLib.cpp"
 				>
 			</File>
@@ -271,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sources\weVariant.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sources\weVulners.cpp"
 				>
 			</File>
@@ -290,6 +298,10 @@
 			</File>
 			<File
 				RelativePath=".\include\weBlob.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\weDbstruct.h"
 				>
 			</File>
 			<File
@@ -381,6 +393,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\weVariant.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\weVulners.h"
 				>
 			</File>
@@ -391,10 +407,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\WebEngineStructure.cd"
-			>
-		</File>
 	</Files>
 	<Globals>
 		<Global

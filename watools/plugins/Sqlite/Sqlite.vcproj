@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9,00"
 	Name="Sqlite"
 	ProjectGUID="{B1593D85-7C51-466A-BFC2-674356981B2A}"
 	RootNamespace="Sqlite"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -17,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -26,6 +27,7 @@
 				Name="VCPreBuildEventTool"
 				Description="Increase builds count"
 				CommandLine="perl autoversion.pl"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -49,7 +51,7 @@
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -63,7 +65,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib curllib-s.lib libboost_regex-vc80-mt-gd-1_38.lib"
+				AdditionalDependencies="log4cxx.lib webEngine.lib libboost_regex-vc90-mt-gd-1_38.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\webEngine\libs\debug"
@@ -71,6 +73,8 @@
 				ModuleDefinitionFile="dlExport.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -93,15 +97,12 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -129,7 +130,7 @@
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -143,7 +144,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib curllib-s.lib libboost_regex-vc80-mt-1_38.lib"
+				AdditionalDependencies="log4cxx.lib curllib.lib webEngine.lib libboost_regex-vc90-mt-1_38.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\webEngine\libs\release"
@@ -153,6 +154,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -172,9 +175,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sqlite3.c"
+				>
+			</File>
+			<File
 				RelativePath=".\storageSqlite.cpp"
 				>
 			</File>
@@ -208,7 +212,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\sqlite3.h"
+				>
+			</File>
+			<File
 				RelativePath=".\storageSqlite.h"
+				>
+			</File>
+			<File
+				RelativePath=".\version.h"
 				>
 			</File>
 		</Filter>

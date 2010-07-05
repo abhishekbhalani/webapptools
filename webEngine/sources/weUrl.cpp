@@ -135,7 +135,7 @@ void transport_url::assign(const string& url )
     }
 
     temp = temp.substr(2);      // We use parsed out the ("http://"), leaving: "user:pass@host:port/request/dir/file.ext"
-    pos = temp.find('/');
+    pos = temp.find_first_of("/?");
     if (pos == string::npos) {
         request = "/";             // Default root path is "/"
         temp = temp.substr(0, pos);            // leaving: "user:pass@host:port"
@@ -143,6 +143,9 @@ void transport_url::assign(const string& url )
     else {
         request = temp.substr(pos);        // parsed out: "/request/dir/file.ext"
         temp = temp.substr(0, pos);            // leaving: "user:pass@host:port"
+    }
+    if (request[0] != '/') {
+        request.insert(0, "/");
     }
 
     if (pos == 0) {

@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <webEngine.h>
@@ -740,7 +740,7 @@ const string html_document::OuterText(void)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn bool html_document::ParseData(i_response* resp, i_transport* processor = NULL )
+/// @fn bool html_document::ParseData(boost::shared_ptr<i_response> resp, i_transport* processor = NULL )
 ///
 /// @brief  Parse data stored inside WeHttpResponce.
 ///
@@ -1037,7 +1037,7 @@ i_plugin* html_parser::get_interface( const string& ifName )
 
 void html_parser::init(task* tsk)
 {
-    wOption opt;
+    we_option opt;
 
     opt = tsk->Option("httpInventory/AllowedCType");
     SAFE_GET_OPTION_VAL(opt, opt_ctype_method, 0); // default - any type

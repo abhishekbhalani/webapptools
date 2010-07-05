@@ -59,7 +59,7 @@ public:
     virtual void init(task* tsk) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void process(task* tsk, ScanData* scData)
+    /// @fn void process(task* tsk, boost::shared_ptr<ScanData> scData)
     ///
     /// @brief  Starts the audit process for given ScanData object. 
     ///
@@ -71,7 +71,7 @@ public:
     virtual void stop(task* tsk) {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void process_response(i_response *resp)
+    /// @fn void process_response(i_response_ptr resp)
     ///
     /// @brief  Process the transport response described by resp.
     /// 		
@@ -80,7 +80,7 @@ public:
     virtual void process_response(i_response_ptr resp) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn static void response_dispatcher(i_response *resp, void* context)
+    /// @fn static void response_dispatcher(i_response_ptr resp, void* context)
     ///
     /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
     ///         by the context

@@ -23,10 +23,12 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/variant.hpp>
+#include <boost/blank.hpp>
 #include <boost/serialization/variant.hpp>
 #include <boost/lexical_cast.hpp>
 #include "weTagScanner.h"
 #include "weStrings.h"
+#include "weVariant.h"
 
 using namespace std;
 
@@ -35,30 +37,22 @@ namespace webEngine {
 
     class db_recordset;
 
-    typedef ::boost::variant< char,
-        unsigned char,
-        int,
-        unsigned int,
-        long,
-        unsigned long,
-        bool,
-        double,
-        string> wOptionVal;
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  wOption
+    /// @class  we_option
     ///
     /// @brief  Options for the WeTask and whole process
     ///
     /// @author A. Abramov
     /// @date   09.06.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class wOption
+    class we_option
     {
     public:
-        wOption() { val = 0; empty = true; };
-        wOption(string nm) { oname = nm; empty = true; };
-        ~wOption() {};
+        we_option() { val = boost::blank(); }
+        we_option(const we_option& c) { oname = c.oname; val = c.val; }
+        we_option(string n) { oname = n; val = boost::blank(); }
+        we_option(string n, we_variant v) { oname = n; val = v; }
+        ~we_option() {};
 
         //@{
         /// @brief  Access the name property
@@ -71,45 +65,42 @@ namespace webEngine {
         // const type_info &Value(void) const     { return(tpId);     };
         template <typename T>
         void GetValue(T& dt)
-        {   string tmp;
-            tmp = boost::lexical_cast<string>(val);
-            dt = boost::lexical_cast<T>(tmp);
-        };
+        { dt = val.get<T>(); }
+
         template <typename T>
         void SetValue(T dt)
-        { val = dt; empty = false; };
+        { val = dt; }
         //@}
-        wOptionVal Value() { return val; };
+        we_variant& Value() { return val; }
 
-        bool IsEmpty(void)                          { return empty;   };            ///< Is the value empty
-        string GetTypeName(void)                    { return val.type().name();};   ///< Gets the value type name
-        const ::std::type_info& GetType(void) const { return val.type();  };        ///< Gets the value type
-        const int Which(void) const                 { return val.which();  };       ///< Gets the internal type
+        bool IsEmpty(void)                          { return val.empty(); }         ///< Is the value empty
+        string GetTypeName(void)                    { return val.type().name(); }   ///< Gets the value type name
+        const std::type_info& GetType(void) const   { return val.type();  }         ///< Gets the value type
 
         /// @brief Assignment operator
-        wOption& operator=(wOption& cpy)
+        we_option& operator=(we_option& cpy)
         {   oname = cpy.oname;
-        val = cpy.val;
-        empty = cpy.empty;
-        return *this; };
+            val = cpy.val;
+            return *this;
+        }
 
-        bool operator==(wOption& cpy)
-        {   oname = cpy.oname;
-        val = cpy.val;
-        empty = cpy.empty;
-        return (oname == cpy.oname && val == cpy.val); };
+        bool operator==(we_option& cpy)
+        {
+            bool result = (oname == cpy.oname);
+            result = result && (val == cpy.val);
+            return result;
+        }
 
 #ifndef __DOXYGEN__
     protected:
         string      oname;
-        wOptionVal  val;
-        bool        empty;
+        we_variant  val;
 #endif //__DOXYGEN__
     };
 
-    typedef map<string, wOption> wOptions;
+    typedef map<string, we_option> wOptions;
 
-#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (...) { (var) = (def); };
+#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (boost::bad_get &) { (var) = (def); };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  i_options_provider
 ///
@@ -124,9 +115,9 @@ public:
     i_options_provider() {};
     virtual ~i_options_provider() {};
 
-    virtual wOption Option(const string& name) = 0;
+    virtual we_option Option(const string& name) = 0;
     virtual bool IsSet(const string& name) = 0;
-    virtual void Option(const string& name, wOptionVal val) = 0;
+    virtual void Option(const string& name, we_variant val) = 0;
     virtual void Erase(const string& name) = 0;
     virtual void Clear() = 0;
 
@@ -134,7 +125,7 @@ public:
     virtual string_list OptionsList() = 0;
     virtual size_t OptionSize() = 0;
 
-    static wOption empty_option;
+    static we_option empty_option;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,9 +142,9 @@ public:
     options_provider() {};
     virtual ~options_provider();
 
-    virtual wOption Option(const string& name);
+    virtual we_option Option(const string& name);
     virtual bool IsSet(const string& name);
-    virtual void Option(const string& name, wOptionVal val);
+    virtual void Option(const string& name, we_variant val);
     virtual void Erase(const string& name)
     {
         wOptions::iterator it;
@@ -181,7 +172,7 @@ protected:
 };
 
 } // namespace webEngine
-BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
+BOOST_CLASS_TRACKING(webEngine::we_option, boost::serialization::track_never)
 
 //////////////////////////////////////////////////////////////////////////
 // Define options names
@@ -198,48 +189,48 @@ BOOST_CLASS_TRACKING(webEngine::wOption, boost::serialization::track_never)
 #define weoTaskStatus        "status"
 /// task completion (percents) (integer)
 #define weoTaskCompletion    "completion"
-#define weoTransport         "TransportName"
-#define weoParser            "ParserName"
+#define weoTransport         "transport_name"
+#define weoParser            "parser_name"
 /// put all founded links into the processing queue (bool)
-#define weoFollowLinks       "FollowLinks"
+#define weoFollowLinks       "follow_links"
 /// automatically load images as WeRefrenceObject (bool)
-#define weoLoadImages        "LoadImages"
+#define weoLoadImages        "load_images"
 /// automatically load scripts as WeRefrenceObject (bool)
-#define weoLoadScripts       "LoadScripts"
+#define weoLoadScripts       "load_scripts"
 /// automatically load frames as WeRefrenceObject (bool)
-#define weoLoadFrames        "LoadFrames"
+#define weoLoadFrames        "load_frames"
 /// automatically load iframes as WeRefrenceObject (bool)
-#define weoLoadIframes       "LoadIframes"
+#define weoLoadIframes       "load_iframes"
 /// collapse multiple spaces into one then HTML parse (bool)
-#define weoCollapseSpaces    "CollapseSpaces"
+#define weoCollapseSpaces    "collapse_spaces"
 /// do not leave domain of the request (second-level or higher) (bool)
-#define weoStayInDomain      "StayInDomain"
+#define weoStayInDomain      "stay_in_domain"
 /// includes weoStayInDomain (bool)
-#define weoStayInHost        "StayInHost"
+#define weoStayInHost        "stay_in_host"
 /// includes woeStayInHost & weoStayInDomain (bool)
-#define weoStayInDir         "StayInDir"
+#define weoStayInDir         "stay_in_dir"
 /// start response processing automatically (bool)
-#define weoAutoProcess       "AutoProcess"
+#define weoAutoProcess       "auto_process"
 /// controls the relocation loops and duplicates (bool)
-#define weoCheckForLoops     "CheckForLoops"
+#define weoCheckForLoops     "check_for_loops"
 /// base URL for processing (bool)
-#define weoBaseURL           "BaseURL"
+#define weoBaseURL           "base_url"
 /// links following depth (integer)
-#define weoScanDepth         "ScanDepth"
+#define weoScanDepth         "scan_depth"
 /// logging level (integer)
-#define weoLogLevel          "LogLevel"
+#define weoLogLevel          "log_level"
 /// number of parallel requests to transport (integer)
-#define weoParallelReq       "ParallelReq"
+#define weoParallelReq       "parallel_req"
 /// semicolon separated list of the denied file types (by extensions)
-#define weoDeniedFileTypes   "DeniedFileTypes"
+#define weoDeniedFileTypes   "denied_file_types"
 /// semicolon separated list of the allowed sub-domains
-#define weoDomainsAllow      "DomainsAllow"
+#define weoDomainsAllow      "domains_allow"
 /// ignore URL parameters (bool)
-#define weoIgnoreUrlParam    "noParamUrl"
+#define weoIgnoreUrlParam    "no_param_url"
 /// identifiers of the parent object (string)
-#define weoParentID          "ParentId"
+#define weoParentID          "parent_id"
 /// identifiers of the profile object (string)
-#define weoProfileID         "ProfileId"
+#define weoProfileID         "profile_id"
 /// signal to the task (int)
 #define weoTaskSignal        "signal"
 //////////////////////////////////////////////////////////////////////////

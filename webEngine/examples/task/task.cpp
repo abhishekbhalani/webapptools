@@ -27,6 +27,8 @@
 #include <strstream>
 #include "weHelper.h"
 #include "weTask.h"
+#include "weScan.h"
+#include "weDispatch.h"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -38,13 +40,22 @@ using namespace webEngine;
 
 int main(int argc, char* argv[])
 {
-    wOption     opt1, opt2, opt3;
+    we_option   opt1, opt2, opt3, opt4, opt5;
     string      str("sample");
     string      st2;
     int         iVal;
     char        cVal;
 
     LibInit(); // for initialize logging
+
+    engine_dispatcher we_dispatcer;
+    i_plugin* plg = we_dispatcer.load_plugin("mem_storage");
+    if (plg != NULL)
+    {
+        i_storage* storage = (i_storage*)plg->get_interface("i_storage");
+        storage->init_storage("task_db.txt");
+        we_dispatcer.storage(storage);
+    }
 
     opt1.name("testStr");
     opt1.SetValue(str);
@@ -54,6 +65,12 @@ int main(int argc, char* argv[])
 
     opt3.name("testChar");
     opt3.SetValue(char(2));
+
+    opt4.name("testInt");
+    opt4.SetValue(2);
+
+    opt5.name("testInt");
+    opt5.SetValue(char(2));
 
     cout << "Opt1 type = " << opt1.GetTypeName() << endl;
     cout << "Opt2 type = " << opt2.GetTypeName() << endl;
@@ -102,6 +119,32 @@ int main(int argc, char* argv[])
         cout << "Exception!!!" << endl;
     }
 
+    try
+    {
+        if (opt2 == opt4) {
+            cout << "opt2 == opt4" << endl;
+        }
+        else {
+            cout << "opt2 != opt4" << endl;
+        }
+        if (opt1 == opt4) {
+            cout << "opt1 == opt4" << endl;
+        }
+        else {
+            cout << "opt1 != opt4" << endl;
+        }
+        if (opt2 == opt5) {
+            cout << "opt2 == opt5" << endl;
+        }
+        else {
+            cout << "opt2 != opt5" << endl;
+        }
+    }
+    catch (std::exception &ex)
+    {
+        cout << "Exception!!! " << ex.what() << endl;
+    }
+
     std::ofstream ofs("options");
 
     // save data to archive
@@ -114,7 +157,7 @@ int main(int argc, char* argv[])
         // archive and stream closed when destructor are called
     }
 
-    task tsk;
+    task tsk(&we_dispatcer);
 
     try
     {
@@ -154,6 +197,18 @@ int main(int argc, char* argv[])
     }
     cout << endl;
 
+    tsk.Option(testOpt, 20);
+
+    cout << "Read \"test\" option: " << tsk.Option("test").name() << " (" << tsk.Option("test").GetTypeName() << ") -> ";
+    if (!tsk.Option("test").IsEmpty()) {
+        tsk.Option("test").GetValue(iVal);
+        cout << iVal;
+    }
+    else {
+        cout << "{empty}";
+    }
+    cout << endl;
+
     cout << "Read \"fakename\" option: " << tsk.Option("fakename").name() << " (" << tsk.Option("fakename").GetTypeName() << ") -> ";
     if (!tsk.Option("fakename").IsEmpty()) {
         tsk.Option("fakename").GetValue(iVal);
@@ -164,48 +219,53 @@ int main(int argc, char* argv[])
     }
     cout << endl;
 
-
-    // save data to archive
-    {
-        std::ofstream tfs("task");
-        boost::archive::xml_oarchive oa(tfs);
-        // write class instance to archive
-        // oa << BOOST_SERIALIZATION_NVP(tsk);
-        // archive and stream closed when destructor are called
-    }
-
     // save data to simple XML
     tsk.Option(weoName, string("<test task>"));
     tsk.Option(weoID, string("&24'u\"3ou"));
-    {
-        std::ofstream tfs("task.xml");
-        std::string xml = ""; //tsk.ToXml();
-        // write class instance to archive
-        tfs << xml;
-        // archive and stream closed when destructor are called
-    }
-    // restore data from simple XML
-    {
-        std::ifstream tfs("task.xml");
-        std::string xml;
-        // read class instance from archive
-        if (!tfs.bad())
-        {
-            ostrstream oss;
-            oss << tfs.rdbuf();
-            xml = string(oss.str(), oss.rdbuf()->pcount());
+
+    // direct access to DB
+    if (we_dispatcer.storage() != NULL) {
+        db_recordset recs;
+        db_query flt;
+        db_condition p_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
+        p_cond.operation() = db_condition::great;
+        p_cond.value() = string("");
+
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoProfileID);
+        flt.what.push_back(weObjTypeProfile "." weoName);
+        flt.what.push_back(weObjTypeProfile "." weoTypeID);
+        flt.what.push_back(weObjTypeProfile "." weoValue);
+
+        flt.where.set(p_cond);
+        we_dispatcer.storage()->get(flt, recs);
+        db_fw_cursor cursor = recs.fw_begin();
+        int r = 0;
+        while (cursor != recs.fw_end()) {
+            cout << "Record " << r << ":" << endl;
+            for (size_t i = 0; i < cursor.record_size(); i++) {
+                cout << "\tField[" << i << "] = " << cursor[i] << endl;
+            }
+            cursor++;
+            r++;
         }
-        //tsk.FromXml(xml);
-        // archive and stream closed when destructor are called
+
     }
-    // save data to archive
+
+    scan_data_ptr scData = tsk.get_scan_data("http://www.ru");
+    if (scData->data_id == "")
     {
-        std::ofstream tfs("task2");
-        boost::archive::xml_oarchive oa(tfs);
-        // write class instance to archive
-        // oa << BOOST_SERIALIZATION_NVP(tsk);
-        // archive and stream closed when destructor are called
+        scData->data_id = we_dispatcer.storage()->generate_id(weObjTypeScan);
+        scData->resp_code = 404;
+        scData->download_time = 0;
+        scData->data_size = 0;
+        scData->scan_depth = 0;
+        scData->content_type = "text/html";
     }
+    tsk.set_scan_data("http://www.ru", scData);
+    tsk.save_to_db();
 
     StringLinks lst;
 
@@ -238,6 +298,9 @@ int main(int argc, char* argv[])
         // archive and stream closed when destructor are called
     }
 
+    if (we_dispatcer.storage() != NULL) {
+        we_dispatcer.storage()->flush();
+    }
     LibClose();
 
     return 0;
