@@ -22,6 +22,7 @@
 #define __WEIVULNER_H__
 
 #include <weiPlugin.h>
+#include <weScan.h>
 
 namespace webEngine {
 
@@ -40,9 +41,49 @@ public:
     i_vulner(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~i_vulner(void);
 
-    virtual void process(task* tsk, scan_data_ptr scData) {}
-    virtual void pause(task* tsk, bool paused = true) {}
-    virtual void stop(task* tsk) {}
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void init(task* tsk)
+    ///
+    /// @brief  Initialize plugin for given task. 
+    ///
+    /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void init(task* tsk) = 0;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void process(task* tsk, boost::shared_ptr<ScanData> scData)
+    ///
+    /// @brief  Starts the audit process for given ScanData object. 
+    ///
+    /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
+    /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void process(task* tsk, scan_data_ptr scData) = 0;
+    virtual void pause(task* tsk, bool paused = true) = 0;
+    virtual void stop(task* tsk) = 0;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void process_response(i_response_ptr resp)
+    ///
+    /// @brief  Process the transport response described by resp.
+    /// 		
+    /// @param  resp - If non-null, the resp. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void process_response(i_response_ptr resp) = 0;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn static void response_dispatcher(i_response_ptr resp, void* context)
+    ///
+    /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
+    ///         by the context
+    ///
+    /// @param  resp	 - If non-null, the resp. 
+    /// @param  context	 - If non-null, the context. 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    static void response_dispatcher(i_response_ptr resp, void* context);
+
+protected:
+    task* parent_task;
 };
 
 } // namespace webEngine

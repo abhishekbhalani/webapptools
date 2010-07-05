@@ -121,6 +121,6 @@ extern char* idb_struct[];
 #define weObjTypeObject     "object"
 #define weObjTypeProfile    "profile"
 #define weObjTypeVulner     "vulners"
-#define weObjTypeVulnerDesc "vilndesc"
+#define weObjTypeVulnerDesc "vulner_desc"
 
 #endif //__IWESTORAGE_H__

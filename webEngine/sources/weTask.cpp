@@ -907,10 +907,55 @@ void task::WaitForData()
     }
 }
 
-void task::AddVulner( const string& vId, const string& params, const string& parentId, int vLevel/* = -1*/ )
+void task::add_vulner( const string& vId, const string& params, const string& parentId, int vLevel/* = -1*/ )
 {
-    LOG4CXX_INFO(iLogger::GetLogger(), "task::AddVulner add vulner ID=" << vId << "; ParentID=" << parentId);
-    LOG4CXX_INFO(iLogger::GetLogger(), "task::AddVulner data: " << params);
+    LOG4CXX_INFO(iLogger::GetLogger(), "task::add_vulner add vulner ID=" << vId << "; ParentID=" << parentId);
+    LOG4CXX_INFO(iLogger::GetLogger(), "task::add_vulner data: " << params);
+    string plg_id, v_id, id;
+    size_t pos;
+
+    plg_id = "";
+    pos = vId.find('/');
+    if (pos != string::npos) {
+        plg_id = vId.substr(0, pos);
+        v_id = vId.substr(pos + 1);
+    }
+    else {
+        v_id = vId;
+    }
+    if (kernel != NULL && kernel->storage() != NULL) {
+        id = kernel->storage()->generate_id(weObjTypeVulner);
+
+        vector<string> fields = i_storage::get_namespace_struct(weObjTypeVulner);
+        db_recordset dbres(fields);
+
+        db_cursor rec = dbres.push_back();
+        rec[weObjTypeVulner "." "id"] = id;
+        rec[weObjTypeVulner "." "task_id"] = scan_id;
+        rec[weObjTypeVulner "." "object_id"] = parentId;
+        rec[weObjTypeVulner "." "plugin_id"] = plg_id;
+        rec[weObjTypeVulner "." "severity"] = vLevel;
+        rec[weObjTypeVulner "." "vulner_id"] = v_id;
+        rec[weObjTypeVulner "." "params"] = params;
+
+        db_query flt;
+        db_condition icond;
+        db_condition tcond;
+
+        icond.field() = weObjTypeVulner "." "id";
+        icond.operation() = db_condition::equal;
+        icond.value() = id;
+
+        tcond.field() = weObjTypeVulner "." "task_id";
+        tcond.operation() = db_condition::equal;
+        tcond.value() = scan_id;
+
+        flt.what = fields;
+        flt.where.set(icond).and(tcond);
+
+        kernel->storage()->set(flt, dbres);
+    }
+
 }
 
 int task::add_thread()
