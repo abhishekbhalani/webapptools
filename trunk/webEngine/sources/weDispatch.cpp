@@ -30,7 +30,7 @@ using namespace boost::filesystem;
 using namespace webEngine;
 
 #ifndef __DOXYGEN__
-static const wOption empty_option("_empty_");
+static const we_option empty_option("_empty_");
 #endif //__DOXYGEN_ _
 
 static string_list find_files ( path baseDir)
@@ -87,12 +87,12 @@ i_plugin* null_storage::get_interface( const string& ifName )
     return i_storage::get_interface(ifName);
 }
 
-int null_storage::get(db_record& filter, db_record& respFilter, db_recordset& results)
+int null_storage::get(db_query& query, db_recordset& results)
 {
     return 0;
 }
 
-int null_storage::set(db_record& filter, db_record& data)
+int null_storage::set(db_query& query, db_recordset& data)
 {
     return 0;
 }
@@ -102,7 +102,7 @@ int null_storage::set(db_recordset& data)
     return 0;
 }
 
-int null_storage::del(db_record& filter)
+int null_storage::del(db_filter& filter)
 {
     return 0;
 }
@@ -253,17 +253,10 @@ void engine_dispatcher::storage( const i_storage* store )
         plg_storage = new null_storage(this);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::SetStorage - plugin: " << plg_storage->get_description());
-    db_recordset res;
-    db_record filter;
-    filter.Clear();
-    filter.objectID = weObjTypeSysOption;
-    filter.Option(weoParentID, string("0"));
-    plg_storage->get(filter, filter, res);
-    /*i_options_provider::FromRS(&res);*/
 }
 
 
-void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFactory func )
+void engine_dispatcher::add_plugin_class( string name, fnWePluginFactory func )
 {
     size_t i;
     i_plugin* plg = (i_plugin*)func(this, NULL);
@@ -278,118 +271,196 @@ void webEngine::engine_dispatcher::add_plugin_class( string name, fnWePluginFact
     delete plg;
 }
 
-wOption engine_dispatcher::Option( const string& name )
+we_option engine_dispatcher::Option( const string& name )
 {
     db_recordset res;
-    db_record filter;
-    db_record rec;
-    wOption retval;
-    wOption opt;
+    db_query flt;
+    we_option opt;
+    char c;
+    int i;
+    bool b;
+    double d;
+    string s;
     string parentID = "0";
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ")");
 
-    retval = i_options_provider::empty_option;
-
+    opt = i_options_provider::empty_option;
     if (plg_storage != NULL) {
-        filter.Clear();
-        filter.objectID = weObjTypeSysOption;
-        filter.Option(weoParentID, parentID);
-        filter.Option(weoName, name);
-        rec.Clear();
-        plg_storage->get(filter, rec, res);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoTypeID);
+        flt.what.push_back(weObjTypeProfile "." weoValue);
+
+        db_condition p_cond;
+        db_condition n_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = parentID;
+
+        n_cond.field() = weObjTypeProfile "." weoName;
+        n_cond.operation() = db_condition::equal;
+        n_cond.value() = name;
+
+        flt.where.set(p_cond).and(n_cond);
+        plg_storage->get(flt, res);
 
         if (res.size() > 0) {
-            if (res[0].objectID == weObjTypeSysOption) {
-                opt = res[0].Option(weoValue);
-                retval = opt;
-                retval.name(name);
+            db_cursor rec = res.begin();
+            try{
+                if (!rec[1].empty()) {
+                    int tp = boost::lexical_cast<int>(rec[0]);
+                    opt.name(name);
+                    switch(tp)
+                    {
+                    case 0: // char
+                        c = rec[weObjTypeProfile "." weoValue].get<char>();
+                        opt.SetValue(c);
+                        break;
+                    case 1: // int
+                        i = rec[weObjTypeProfile "." weoValue].get<int>();
+                        opt.SetValue(i);
+                        break;
+                    case 2: // bool
+                        b = rec[weObjTypeProfile "." weoValue].get<bool>();
+                        opt.SetValue(b);
+                        break;
+                    case 3: // double
+                        d = rec[weObjTypeProfile "." weoValue].get<double>();
+                        opt.SetValue(d);
+                        break;
+                    case 4: // string
+                        s = rec[weObjTypeProfile "." weoValue].get<string>();
+                        opt.SetValue(s);
+                        break;
+                    default:
+                        opt.SetValue(boost::blank());
+                    }
+                } // if result not <empty>
+            }
+            catch(std::exception &e) {
+                opt = i_options_provider::empty_option;
+                LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") can't get option value: " << e.what());
             }
         }
     }
 
-    return retval;
+    return opt;
 }
 
-void engine_dispatcher::Option( const string& name, wOptionVal val )
+void engine_dispatcher::Option( const string& name, we_variant val )
 {
-    string strData;
-    db_record rec;
-    db_record flt;
+    db_query flt;
     string parentID = "0";
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") set value=" << val);
     if (plg_storage != NULL) {
-        rec.objectID = weObjTypeSysOption;
-        rec.Option(weoName, name);
-        flt.Option(weoName, name);
-        rec.Option(weoParentID, parentID);
-        flt.Option(weoParentID, parentID);
-        rec.Option(weoTypeID, val.which());
-        rec.Option(weoValue, val);
-        strData = name;
-        strData += parentID;
-        strData += boost::lexical_cast<string>(val.which());
-        boost::hash<string> strHash;
-        size_t hs = strHash(strData);
-        strData = boost::lexical_cast<string>(hs);
-        rec.Option(weoID, strData);
-        flt.Option(weoID, strData);
-        plg_storage->set(flt, rec);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoProfileID);
+        flt.what.push_back(weObjTypeProfile "." weoName);
+        flt.what.push_back(weObjTypeProfile "." weoTypeID);
+        flt.what.push_back(weObjTypeProfile "." weoValue);
+
+        db_condition p_cond;
+        db_condition n_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = parentID;
+
+        n_cond.field() = weObjTypeProfile "." weoName;
+        n_cond.operation() = db_condition::equal;
+        n_cond.value() = name;
+
+        flt.where.set(p_cond).and(n_cond);
+
+        db_recordset data(flt.what);
+        db_cursor rec = data.push_back();
+
+        rec[0] = parentID;
+        rec[1] = name;
+        rec[2] = val.which();
+        rec[3] = val;
+
+        plg_storage->set(flt, data);
     }
 }
 
-bool webEngine::engine_dispatcher::IsSet( const string& name )
+bool engine_dispatcher::IsSet( const string& name )
 {
     bool retval;
     db_recordset res;
-    db_record filter;
-    db_record rec;
-    wOption opt;
+    db_query flt;
     string parentID = "0";
 
     retval = false;
     if (plg_storage != NULL) {
-        filter.Clear();
-        filter.objectID = weObjTypeSysOption;
-        filter.Option(weoParentID, parentID);
-        filter.Option(weoName, name);
-        rec.Clear();
-        plg_storage->get(filter, rec, res);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoTypeID);
+        flt.what.push_back(weObjTypeProfile "." weoValue);
+
+        db_condition p_cond;
+        db_condition n_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = parentID;
+
+        n_cond.field() = weObjTypeProfile "." weoName;
+        n_cond.operation() = db_condition::equal;
+        n_cond.value() = name;
+
+        flt.where.set(p_cond).and(n_cond);
+        plg_storage->get(flt, res);
 
         if (res.size() > 0) {
-            if (res[0].objectID == weObjTypeSysOption) {
-                opt = res[0].Option(weoValue);
-                try
-                {
-                    opt.GetValue(retval);
-                }
-                catch (...)
-                {
-                    retval = false;
-                }
+            db_cursor rec = res.begin();
+            try{
+                if (!rec[1].empty()) {
+                    int tp = boost::lexical_cast<int>(rec[0]);
+                    if ( tp == 2) {
+                        // we_variant::which(bool)
+                        retval = boost::lexical_cast<bool>(rec[1]);
+                    }
+                    else {
+                        retval = true;
+                    }
+                } // if result not <empty>
             }
-        }
-    }
+            catch(bad_cast &e) {
+                retval = false;
+                LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") can't get option value: " << e.what());
+            }
+        } // if result size > 0
+    } // if plg_storage != NULL
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") value=" << retval);
     return retval;
 }
 
-void webEngine::engine_dispatcher::Erase( const string& name )
+void engine_dispatcher::Erase( const string& name )
 {
-    db_record filter;
+    db_filter filter;
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        filter.Clear();
-        filter.objectID = weObjTypeSysOption;
-        filter.Option(weoParentID, parentID);
-        filter.Option(weoName, name);
+        db_condition p_cond;
+        db_condition n_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = parentID;
+
+        n_cond.field() = weObjTypeProfile "." weoName;
+        n_cond.operation() = db_condition::equal;
+        n_cond.value() = name;
+
+        filter.set(p_cond).and(n_cond);
+        LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Erase - " << filter.tostring());
         plg_storage->del(filter);
     }
 }
 
-void webEngine::engine_dispatcher::Clear()
+void engine_dispatcher::Clear()
 {
     string_list opt_names;
 
@@ -400,49 +471,60 @@ void webEngine::engine_dispatcher::Clear()
     }
 }
 
-webEngine::string_list webEngine::engine_dispatcher::OptionsList()
+string_list engine_dispatcher::OptionsList()
 {
     string_list retval;
     db_recordset res;
-    db_record filter;
-    db_record rec;
-    wOption opt;
+    db_query flt;
     string name;
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        filter.Clear();
-        filter.objectID = weObjTypeSysOption;
-        filter.Option(weoParentID, parentID);
-        plg_storage->get(filter, filter, res);
-        for(size_t i = 0; i < res.size(); i++) {
-            rec = res[i];
-            opt = rec.Option(weoName);
-            SAFE_GET_OPTION_VAL(opt, name, "");
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoName);
+        db_condition p_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = parentID;
+
+        flt.where.set(p_cond);
+        plg_storage->get(flt, res);
+
+        db_cursor rec = res.begin();
+        while(rec != res.end()) {
+            name = rec[0].get<string>();
             if (name != "") {
                 retval.push_back(name);
             } // if name present
-        } // result loop
+            ++rec;
+        } // foreach record
     } // if plg_storage != NULL
 
     return retval;
 }
 
-size_t webEngine::engine_dispatcher::OptionSize()
+size_t engine_dispatcher::OptionSize()
 {
     int retval = 0;
     db_recordset res;
-    db_record filter;
+    db_query flt;
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        filter.Clear();
-        filter.objectID = weObjTypeSysOption;
-        filter.Option(weoParentID, parentID);
-        plg_storage->get(filter, filter, res);
+        flt.what.clear();
+        flt.what.push_back(weObjTypeProfile "." weoName);
+        db_condition p_cond;
+
+        p_cond.field() = weObjTypeProfile "." weoProfileID;
+        p_cond.operation() = db_condition::equal;
+        p_cond.value() = parentID;
+
+        flt.where.set(p_cond);
+        plg_storage->get(flt, res);
         retval = res.size();
     }
-    return 0;
+    return retval;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn void engine_dispatcher::get_interface( string iface )

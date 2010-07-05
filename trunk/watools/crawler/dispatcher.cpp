@@ -8,6 +8,7 @@
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/foreach.hpp>
 #ifdef WIN32
 #include <errno.h>
 #include <winsock2.h>
@@ -112,10 +113,15 @@ void signal_halt(int sig)
     }
 }
 
-void save_results(ScanRes *si, int format, string fname, size_t reqs = 0)
+bool sort_results(const webEngine::db_record& left, const webEngine::db_record& right) {
+    return (left[weObjTypeScanData "." "object_url"] < right[weObjTypeScanData "." "object_url"]);
+}
+ 
+void save_results(int format, string fname, webEngine::task* tsk)
 {
-    if (si != NULL)
+    if (tsk != NULL)
     {
+        std::auto_ptr<webEngine::db_recordset> si = tsk->get_scan();
         ofstream out;
         bool file = false;
         std::streambuf *old_buffer;
@@ -131,41 +137,45 @@ void save_results(ScanRes *si, int format, string fname, size_t reqs = 0)
             }
         }
         cout << endl;
-        cout << "Scan start:    " << si->startTime << endl;
-        cout << "Scan finish:   " << si->finishTime << endl;
-        btm::time_period scan_elapsed(si->startTime, si->finishTime);
+        cout << "Scan start:    " << tsk->start_time() << endl;
+        cout << "Scan finish:   " << tsk->finish_time() << endl;
+        btm::time_period scan_elapsed(tsk->start_time(), tsk->finish_time());
         cout << "Scan duration: " << btm::to_simple_string(scan_elapsed.length()) << endl;
-        cout << "Scan size:     " << si->GetScanSize() << endl;
-        if (reqs > 0) {
-            double rps = (double)reqs / scan_elapsed.length().total_seconds();
+        cout << "Scan size:     " << si->size() << endl;
+        if (tsk->total_requests() > 0) {
+            double rps = (double)tsk->total_requests()  / scan_elapsed.length().total_seconds();
             cout.setf(ios::fixed,ios::floatfield);
             cout.precision(3);
-            cout << "Scan speed:    " << reqs << " requests; " << rps << " requests per second" << endl;
+            cout << "Scan speed:    " << tsk->total_requests()  << " requests; " << rps << " requests per second" << endl;
             cout.precision(3);
         }
         cout << endl;
-        for (ScanRes::iterator i = si->begin(); i != si->end(); i++) {
-            boost::shared_ptr<webEngine::ScanData> dt = i->second;
-            if (dt) {
+
+        std::sort(si->begin(), si->end(), sort_results);
+        webEngine::db_fw_cursor i;
+
+        if (format == 2) {
+            cout << "URL\tHTTP code\tDownload time\tSize" << endl;
+        }
+        for( i = si->fw_begin(); i != si->fw_end(); ++i ) {
+            try {
                 if (format == 0) {
-                    cout << "Requested:     " << dt->object_url << endl;
-                    cout << "Response:      " << dt->resp_code << endl;
-                    cout << "Data size:     " << dt->data_size << endl;
-                    cout << "Download time: " << dt->download_time << endl;
-                    cout << "Tree level:    " << dt->scan_depth << endl;
+                    cout << "Requested:     " << i[weObjTypeScanData "." "object_url"] << endl;
+                    cout << "Response:      " << i[weObjTypeScanData "." "resp_code"] << endl;
+                    cout << "Data size:     " << i[weObjTypeScanData "." "data_size"] << endl;
+                    cout << "Download time: " << i[weObjTypeScanData "." "dnld_time"] << endl;
+                    cout << "Tree level:    " << i[weObjTypeScanData "." "scan_depth"] << endl;
                     cout << endl;
                 }
                 else if (format == 1) {
-                    cout << dt->object_url << endl;
+                    cout << i[weObjTypeScanData "." "object_url"] << endl;
                 }
                 else if (format == 2) {
-                    cout << dt->object_url << " Download state: " << dt->resp_code << " ( " <<
-                        dt->download_time << " msec.) / " << dt->data_size << " bytes" << endl;
+                    cout << i[weObjTypeScanData "." "object_url"] << "\t" << i[weObjTypeScanData "." "resp_code"] << "\t" <<
+                        i[weObjTypeScanData "." "dnld_time"] << "\t" << i[weObjTypeScanData "." "data_size"] << endl;
                 }
-            } // if result valid
-        } // for results
-        if(file) {
-            std::cout.rdbuf(old_buffer);
+            }
+            catch (out_of_range) {}
         }
     }
 }
@@ -343,10 +353,15 @@ void dispatcher_routine(po::variables_map& vm)
         LOG4CXX_DEBUG(scan_logger, "JavaScript will not used");
     }
 
+    // create task executor
+    webEngine::task* tsk = new webEngine::task(we_dispatcer);
+    tsk->StorePlugins(scan_plugins);
+    tsk->set_profile_id(string("0")); // todo - take it from params
+
     // set scanning options
     if (vm.count("depth")) {
         int val = vm["depth"].as<int>();
-        we_dispatcer->Option("httpInventory/"weoScanDepth, val);
+        tsk->Option("httpInventory/"weoScanDepth, val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoScanDepth" to " << val);
     }
     if (vm.count("dir")) {
@@ -354,7 +369,7 @@ void dispatcher_routine(po::variables_map& vm)
         try {
             val = vm["dir"].as<bool>();
         } catch (...) { } // just skip
-        we_dispatcer->Option("httpInventory/"weoStayInDir, val);
+        tsk->Option("httpInventory/"weoStayInDir, val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoStayInDir" to " << val);
     }
     if (vm.count("host")) {
@@ -362,7 +377,7 @@ void dispatcher_routine(po::variables_map& vm)
         try {
             val = vm["host"].as<bool>();
         } catch (...) { } // just skip
-        we_dispatcer->Option("httpInventory/"weoStayInHost, val);
+        tsk->Option("httpInventory/"weoStayInHost, val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoStayInHost" to " << val);
     }
     if (vm.count("domain")) {
@@ -370,7 +385,7 @@ void dispatcher_routine(po::variables_map& vm)
         try {
             val = vm["domain"].as<bool>();
         } catch (...) { } // just skip
-        we_dispatcer->Option("httpInventory/"weoStayInDomain, val);
+        tsk->Option("httpInventory/"weoStayInDomain, val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoStayInDomain" to " << val);
     }
     if (vm.count("dlist")) {
@@ -378,7 +393,7 @@ void dispatcher_routine(po::variables_map& vm)
         try {
             val = vm["dlist"].as<bool>();
         } catch (...) { } // just skip
-        we_dispatcer->Option("httpInventory/StayInDomainList", val);
+        tsk->Option("httpInventory/StayInDomainList", val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/StayInDomainList to " << val);
     }
     if (vm.count("ip")) {
@@ -386,7 +401,7 @@ void dispatcher_routine(po::variables_map& vm)
         try {
             val = vm["ip"].as<bool>();
         } catch (...) { } // just skip
-        we_dispatcer->Option("httpInventory/StayInIP", val);
+        tsk->Option("httpInventory/StayInIP", val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/StayInIP to " << val);
     }
     if (vm.count("url_param")) {
@@ -394,22 +409,22 @@ void dispatcher_routine(po::variables_map& vm)
         try {
             val = vm["url_param"].as<bool>();
         } catch (...) { } // just skip
-        we_dispatcer->Option("httpInventory/"weoIgnoreUrlParam, val);
+        tsk->Option("httpInventory/"weoIgnoreUrlParam, val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoIgnoreUrlParam" to " << val);
     }
     if (vm.count("content")) {
         int val = vm["content"].as<int>();
-        we_dispatcer->Option("httpInventory/AllowedCType", val);
+        tsk->Option("httpInventory/AllowedCType", val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/AllowedCType to " << val);
     }
     if (vm.count("parallel")) {
         int val = vm["parallel"].as<int>();
-        we_dispatcer->Option("httpInventory/"weoParallelReq, val);
+        tsk->Option("httpInventory/"weoParallelReq, val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoParallelReq" to " << val);
     }
     if (vm.count("ext_deny")) {
         string val = vm["ext_deny"].as<string>();
-        we_dispatcer->Option("httpInventory/"weoDeniedFileTypes, val);
+        tsk->Option("httpInventory/"weoDeniedFileTypes, val);
         LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoDeniedFileTypes" to " << val);
     }
     
@@ -420,12 +435,8 @@ void dispatcher_routine(po::variables_map& vm)
     }
     webEngine::transport_url t_url(url);
     LOG4CXX_INFO(scan_logger, "Start scanning for: " << t_url.tostring());
-    we_dispatcer->Option("scan_host", t_url.host);
-    we_dispatcer->Option("httpInventory/BaseURL",  t_url.request);
-
-    // create task executor
-    webEngine::task* tsk = new webEngine::task(we_dispatcer);
-    tsk->StorePlugins(scan_plugins);
+    tsk->Option("scan_host", t_url.host);
+    tsk->Option("httpInventory/BaseURL",  t_url.request);
 
     // run endless loop for the task
     tsk->Run();
@@ -433,7 +444,7 @@ void dispatcher_routine(po::variables_map& vm)
     // init scan-time vars
     inLoop = true;
     char ch;
-    ScanRes *si;
+    std::auto_ptr<webEngine::db_recordset> si;
     size_t sz, dn;
     double rps;
     string fname = "";
@@ -444,6 +455,7 @@ void dispatcher_routine(po::variables_map& vm)
 
     btm::ptime scan_start = btm::second_clock::local_time();
     btm::ptime scan_curr;
+    int kp_tm = 0;
     cout << "Scanning... 0 objects found... 0% complete\r";
     do
     {
@@ -451,13 +463,11 @@ void dispatcher_routine(po::variables_map& vm)
             inLoop = false;
         }
         boost::this_thread::sleep(boost::posix_time::seconds(1));
-        si = (ScanRes*)tsk->GetScan();
-        webEngine::wOption opt = tsk->Option("completion");
-        int compl;
-        SAFE_GET_OPTION_VAL(opt, compl, 0);
+        si = tsk->get_scan();
+        int compl = tsk->completion();
         scan_curr = btm::second_clock::local_time();
         btm::time_period scan_elapsed(scan_start, scan_curr);
-        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << si->GetScanSize() << " objects found... " << compl << "% complete\r";
+        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << si->size() << " objects found... " << compl << "% complete\r";
         LOG4CXX_TRACE(scan_logger, "Memory information: " << sys_meminfo());
         if (kbhit()) {
             ch = getch();
@@ -481,27 +491,95 @@ void dispatcher_routine(po::variables_map& vm)
                 } 
                 else {
                     cout << endl << "Saving intermediate information ...";
-                    save_results(si, format, fname);
+                    //save_results(format, fname, tsk);
                     cout << " done!" << endl;
                 }
             }
         }
         tsk->calc_status();
-        //if (time_to_save) {
-        //    save_results(si, format, fname);
-        //}
+        kp_tm++;
+        if (kp_tm > keep_alive_timeout) {
+            tsk->save_to_db();
+            if (we_dispatcer->storage() != NULL) {
+                we_dispatcer->storage()->flush();
+            }
+        }
     }
     while(inLoop);
     tsk->Stop();
+    tsk->save_to_db();
+    cout << endl;
+
+    webEngine::db_filter flt;
+    webEngine::db_condition tc;//("scan_data.resp_code >= 400");
+    webEngine::db_condition lc;//("scan_data.resp_code >= 400");
+    webEngine::db_condition gc;//("scan_data.resp_code < 500");
+    cout << "Remove errors from results... ";
+    tc.field() = "scan_data.task_id";
+    tc.operation() = webEngine::db_condition::equal;
+    tc.value() = tsk->get_scan_id();
+
+    lc.field() = "scan_data.resp_code";
+    lc.operation() = webEngine::db_condition::great_or_equal;
+    lc.value() = 400;
+
+    gc.field() = "scan_data.resp_code";
+    gc.operation() = webEngine::db_condition::less;
+    gc.value() = 500;
+
+    flt.set(tc).and(lc).and(gc);
+    if (we_dispatcer->storage() != NULL) {
+        int r = we_dispatcer->storage()->del(flt);
+        cout << r << " records ";
+    }
+    cout << "done" << endl;
+
+    cout << "Remove redirects from results... ";
+
+    lc.field() = "scan_data.resp_code";
+    lc.operation() = webEngine::db_condition::great_or_equal;
+    lc.value() = 300;
+
+    gc.field() = "scan_data.resp_code";
+    gc.operation() = webEngine::db_condition::less;
+    gc.value() = 400;
+
+    flt.set(tc).and(lc).and(gc);
+    if (we_dispatcer->storage() != NULL) {
+        int r = we_dispatcer->storage()->del(flt);
+        cout << r << " records ";
+    }
+    cout << "done" << endl;
+
+    vector<string> fupd;
+    fupd.push_back("task.processed_urls");
+    webEngine::db_recordset upd(fupd);
+    webEngine::db_cursor rec = upd.push_back();
+    rec[0] = string("");
+    tc.field() = "task.id";
+    tc.operation() = webEngine::db_condition::equal;
+    tc.value() = tsk->get_scan_id();
+    
+    webEngine::db_query query;
+    query.what.push_back("task.processed_urls");
+    query.where.set(tc);
+    cout << "Remove URL's usage... ";
+    if (we_dispatcer->storage() != NULL) {
+        int r = we_dispatcer->storage()->set(query, upd);
+        cout << r << " records ";
+    }
+    cout << "done" << endl;
 
     // print result
-    si = (ScanRes*)tsk->GetScan();
+    if (we_dispatcer->storage() != NULL) {
+        we_dispatcer->storage()->flush();
+    }
     fname = "";
     if (vm.count("result")) {
         fname = vm["result"].as<string>();
     }
     format = vm["output"].as<int>();
-    save_results(si, format, fname, tsk->total_requests());
+    save_results(format, fname, tsk);
 
     for (size_t i = 0; i < scan_plugins.size(); i++) {
         scan_plugins[i]->release();

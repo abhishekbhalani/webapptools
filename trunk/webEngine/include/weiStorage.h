@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef __IWESTORAGE_H__
@@ -23,45 +23,16 @@
 #pragma once
 #include "weiPlugin.h"
 #include "weOptions.h"
+#include "weDbstruct.h"
 
 namespace webEngine {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  db_record
-///
-/// @brief  set of fields (individual data) as name-value pairs.
-///
-/// @author A. Abramov
-/// @date	03.09.2009
-////////////////////////////////////////////////////////////////////////////////////////////////////
-class db_record : public options_provider
-{
-public:
-    /// namespace of the object
-    string objectID;
-    // nothing special
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @class  db_recordset
-///
-/// @brief  set of records of class db_record.
-///
-/// @author A. Abramov
-/// @date	03.09.2009
-////////////////////////////////////////////////////////////////////////////////////////////////////
-class db_recordset : public vector<db_record>
-{
-    // nothing special
-    /// @todo: add logical operators to build complex queries from separate db_record's
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  i_storage
 ///
 /// @brief  Interface for storage subsystem.
 ///
-/// @author A. Abramov, A. Yudin
+/// @author A. Abramov
 /// @date	14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class i_storage :
@@ -77,45 +48,37 @@ public:
     virtual void pause(task* tsk, bool paused = true) {}
     virtual void stop(task* tsk) {}
 
-    // i_storage functions
-    typedef enum { mask = 0xff} Operation;
-    static const Operation insert = (Operation)0x01;
-    static const Operation update = (Operation)0x02;
-    static const Operation remove = (Operation)0x03;
-    static const Operation autoop = (Operation)0xff;
-
     virtual bool init_storage(const string& params) {return false;};
     virtual void flush(const string& params = "") {};
     virtual string generate_id(const string& objType = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int get( db_record& filter, db_record& respFilter, db_recordset& results)
+    /// @fn int get( db_query& query, db_recordset& results)
     ///
     /// @brief  Gets the db_recordset from given namespace (objType). The response filtered to
     ///         equality of the selected field to the given values. The response will contains only
     ///         the fields included into the given @b respFilter structure.
     ///
-    /// @param  filter          - the db_record to filter the request 
-    /// @param  respFilter      - set of field to be placed into result. If empty - all data will be retrieved
+    /// @param  query           - the db_query to perform request 
     /// @param  [out] results   - the db_recordset to fill it with results 
     ///
     /// @retval number of records in the response. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results) = 0;
+    virtual int get(db_query& query, db_recordset& results) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int set(db_record& filter, db_record& data)
+    /// @fn int set(db_query& query, db_recordset& data)
     ///
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object), and non-empty @b filters may be used to
     ///         update selected object(s).
     ///
-    /// @param  filter  - the db_record to select object(s) for update 
-    /// @param  data    - the db_record to be stored 
+    /// @param  query   - the db_query to select object(s) for update 
+    /// @param  data    - the db_recordset to be stored 
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int set(db_record& filter, db_record& data) = 0;
+    virtual int set(db_query& query, db_recordset& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn int set(db_recordset& data)
@@ -130,20 +93,23 @@ public:
     virtual int set(db_recordset& data) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int del(db_record& filter)
+    /// @fn int del(db_filter& filter)
     ///
     /// @brief	Deletes the filtered object(s). 
     ///
-    /// @param  filter - the db_record to select object(s) for deletion 
+    /// @param  filter - the db_filter to select object(s) for deletion 
     ///
     /// @retval	Number of deleted records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int del(db_record& filter) = 0;
+    virtual int del(db_filter& filter) = 0;
+
+    static std::vector<std::string> get_namespace_struct(const std::string& ns);
 
 protected:
-    static int last_id;
+    int last_id;
 };
 
+extern char* idb_struct[];
 } // namespace webEngine
 
 #define weObjTypeTask       "task"
@@ -151,7 +117,7 @@ protected:
 #define weObjTypeDictionary "dict"
 #define weObjTypeAuthInfo   "auth"
 #define weObjTypeScan       "scan"
-#define weObjTypeScanData   "scandata"
+#define weObjTypeScanData   "scan_data"
 #define weObjTypeObject     "object"
 #define weObjTypeProfile    "profile"
 #define weObjTypeVulner     "vulners"

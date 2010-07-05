@@ -1,6 +1,7 @@
 #include "audit_jscript.h"
 #include <weHelper.h>
 #include <weTask.h>
+#include <weDispatch.h>
 // for add_http_url
 #include <weHttpInvent.h>
 #include <boost/regex.hpp>
@@ -50,7 +51,7 @@ i_plugin* audit_jscript::get_interface( const string& ifName )
 void audit_jscript::init( task* tsk )
 {
     string text;
-    wOption opt;
+    we_option opt;
 
     // create list of the blocked extension
     parent_task = tsk;
@@ -285,17 +286,18 @@ void audit_jscript::add_url( webEngine::transport_url link, boost::shared_ptr<Sc
                     allowed = false;
                     LOG4CXX_DEBUG(logger, "audit_jscript::add_http_url: not need to download " << link.tostring());
                     // make the pseudo-response
-                    boost::shared_ptr<ScanData> scn = parent_task->GetScanData(link.tostring());
+                    boost::shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
                     if (scn->data_id == "")
                     {
-                        //scData->data_id = ;
+                        scn->data_id = kernel->storage()->generate_id(weObjTypeScan);
+                        scn->parent_id = sc->data_id;
                         scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
                         scn->download_time = 0;
                         scn->data_size = 0;
                         scn->scan_depth = sc->scan_depth + 1;
                         scn->content_type = "application/octet-stream";
                         scn->parsed_data.reset();
-                        parent_task->SetScanData(scn->object_url, scn);
+                        parent_task->set_scan_data(scn->object_url, scn);
                     }
                     break;
                 } // if path == ext_deny[i]

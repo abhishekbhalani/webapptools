@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,103 +14,42 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef __SQLITESTORAGE_H__
+#define __SQLITESTORAGE_H__
+
 #pragma once
 #include <weiStorage.h>
+#include <boost/thread.hpp>
 
 using namespace webEngine;
 
-class SqliteStorage :
-    public iStorage
+struct sqlite_handle;
+
+class sqlite_storage :
+    public i_storage
 {
 public:
-    SqliteStorage(Dispatch* krnl, void* handle = NULL);
-    virtual ~SqliteStorage(void);
+    sqlite_storage(engine_dispatcher* krnl, void* handle = NULL);
+    virtual ~sqlite_storage(void);
 
     // iwePlugin functions
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void* GetInterface(const string& ifName)
-    ///
-    /// @brief  Gets an interface.
-    ///
-    /// Returns abstracted pointer to the requested interface, or NULL if the requested interface isn't
-    /// provided by this object. The interface name depends on the plugin implementation.
-    ///
-    /// @param  ifName - Name of the interface.
-    ///
-    /// @retval	null if it fails, else the interface.
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void* GetInterface(const string& ifName);
+    virtual i_plugin* get_interface(const string& ifName);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual const string GetSetupUI( void )
-    ///
-    /// @brief  Gets the user interface for the setup dialog.
-    ///
-    /// @retval The user interface in the XRC format (wxWidgets) or empty string if no setup dialog.
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string GetSetupUI( void );
+    // i_storage functions
+    virtual bool init_storage(const string& params);
+	virtual void flush(const string& params = "") {};
+    virtual string generate_id(const string& objType = "");
+    virtual int get(db_query& query, db_recordset& results);
+    virtual int set(db_query& query, db_recordset& data);
+    virtual int set(db_recordset& data);
+    virtual int del(db_filter& filter);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void ApplySettings( const string& xmlData )
-    ///
-    /// @brief  Applies the settings described by xmlData.
-    ///
-    /// @param  xmlData	 - Plugin settings describing the XML.
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void ApplySettings( const string& xmlData );
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Get( Record& filters, Record& respFilter, RecordSet& results)
-    ///
-    /// @brief  Gets the RecordSet from given namespace (objType). The response filtered to
-    ///         equality of the selected field to the given values. The response will contains only
-    ///         the fields included into the given @b respFilter structure.
-    ///
-    /// @param  filter          - the Record to filter the request 
-    /// @param  respFilter      - Set of field to be placed into result. If empty - all data will be retrieved
-    /// @param  [out] results   - the RecordSet to fill it with results 
-    ///
-    /// @retval number of records in the response. 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Get(Record& filter, Record& respFilter, RecordSet& results);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Set(Record& filters, Record& data)
-    ///
-    /// @brief	Stores (updates) the data. @b data may contain subset of fields
-    ///         (not the full description of the object), and non-empty @b filters may be used to
-    ///         update selected object(s).
-    ///
-    /// @param  filter  - the Record to select object(s) for update 
-    /// @param  data    - the Record to be stored 
-    ///
-    /// @retval	Number of affected records. 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Set(Record& filter, Record& data);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Set(RecordSet& data)
-    ///
-    /// @brief	Stores (updates) the data. @b data may contain subset of fields
-    ///         (not the full description of the object).
-    ///
-    /// @param  data - the RecordSet to be stored 
-    ///
-    /// @retval	Number of affected records. 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Set(RecordSet& data);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int Delete(Record& filters)
-    ///
-    /// @brief	Deletes the filtered object(s). 
-    ///
-    /// @param  filter - the Record to select object(s) for deletion 
-    ///
-    /// @retval	Number of deleted records. 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int Delete(Record& filter);
+protected:
+	sqlite_handle*	db_handle;
+    boost::mutex data_access;
 };
+
+#endif //__SQLITESTORAGE_H__

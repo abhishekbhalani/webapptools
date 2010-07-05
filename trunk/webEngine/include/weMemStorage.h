@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,14 +14,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef __WEMEMSTORAGE_H__
 #define __WEMEMSTORAGE_H__
 
 #pragma once
-#include "weiStorage.h"
+#include <weiStorage.h>
+#include <boost/thread.hpp>
 
 namespace webEngine {
 
@@ -47,33 +48,21 @@ public:
     // i_storage functions
     virtual bool init_storage(const string& params);
     virtual void flush(const string& params = "");
-    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results);
-    virtual int set(db_record& filter, db_record& data);
+    virtual int get(db_query& query, db_recordset& results);
+    virtual int set(db_query& query, db_recordset& data);
     virtual int set(db_recordset& data);
-    virtual int del(db_record& filter);
+    virtual int del(db_filter& filter);
 
     // mem_storage functions
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn string_list* search_db(db_record& filter)
-    ///
-    /// @brief  Searches database for objects. 
-    ///
-    /// @param  filter - the db_record to filter the request 
-    ///
-    /// @retval List of object ID's 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    string_list* search_db(db_record& filter);
-    string_list* get_namespace_idxs(const string& objType);
-    void set_namespace_idxs(const string& objType, string_list* lst);
-    void fix_namespace_struct(db_record& filter);
-    string_list* get_namespace_struct(db_record& filter);
     void save_db(const string& fname);
     void load_db(const string& fname);
 
 protected:
+    typedef map<string, db_recordset*> mem_tables;
+
+    boost::mutex data_access;
     string file_name;
-    StringMap storage_db;
+    mem_tables name_spaces;
 };
 
 } // namespace webEngine

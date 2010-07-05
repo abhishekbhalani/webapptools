@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"
@@ -64,7 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Psapi.lib log4cxx.lib ws2_32.lib libboost_regex-vc90-mt-gd-1_38.lib webEngine.lib curllib.lib ssleay32.lib libeay32.lib v8_d.lib winmm.lib"
+				AdditionalDependencies="Psapi.lib log4cxx.lib ws2_32.lib libboost_regex-vc90-mt-gd-1_38.lib webEngine.lib curllib.lib ssleay32.lib libeay32.lib v8.lib winmm.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\webEngine\libs\Debug"
 				EnableUAC="true"
@@ -98,7 +98,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"

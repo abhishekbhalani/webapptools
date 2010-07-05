@@ -58,16 +58,17 @@ public:
     virtual void init(task* tsk) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn void process(i_response *resp)
+    /// @fn void process(task* tsk, scan_data_ptr scData)
     ///
     /// @brief  Process the transport response described by resp.
     /// 		
-    /// @param  resp - If non-null, the resp. 
+    /// @param  tsk     - parent task object. 
+    /// @param  scData  - data to process. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void process(task* tsk, scan_data_ptr scData) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn static void response_dispatcher(i_response *resp, void* context)
+    /// @fn static void response_dispatcher(boost::shared_ptr<i_response> resp, void* context)
     ///
     /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
     ///         by the context

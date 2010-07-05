@@ -5,8 +5,8 @@
     This file is part of webEngine
 
     webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     webEngine is distributed in the hope that it will be useful,
@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef __WEDISPATCH_H__
@@ -49,10 +49,10 @@ public:
     // i_storage functions
     virtual bool init_storage(const string& params) { return true; };
     virtual void flush(const string& params = "") { return; };
-    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results);
-    virtual int set(db_record& filter, db_record& data);
+    virtual int get(db_query& query, db_recordset& results);
+    virtual int set(db_query& query, db_recordset& data);
     virtual int set(db_recordset& data);
-    virtual int del(db_record& filter);
+    virtual int del(db_filter& filter);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,8 +111,8 @@ public:
     void add_plugin_class(string name, fnWePluginFactory func);
 
     // 
-    virtual wOption Option(const string& name);
-    virtual void Option(const string& name, wOptionVal val);
+    virtual we_option Option(const string& name);
+    virtual void Option(const string& name, we_variant val);
     virtual bool IsSet(const string& name);
     virtual void Erase(const string& name);
     virtual void Clear();
