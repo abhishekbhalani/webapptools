@@ -26,8 +26,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increase builds count"
-				CommandLine="perl autoversion.pl"
-				ExcludedFromBuild="true"
+				CommandLine="..\..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t600"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -110,6 +109,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				Description="Increment build number"
+				CommandLine="..\..\verbuild.exe version.h *.*.+.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t120"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

@@ -169,18 +169,14 @@ static int sqlite_query_from_rs(sqlite_handle* handle, const string& query, db_r
 
 static string sqlite_fix_filter(const string& filter)
 {
-    string result;
-//     // \s[\w\d_]+\.([\w\d_]+)(\s+[^\)]) => \s[$1]$2
-//     boost::regex srch1("\\s[\\w\\d_]+\\.([\\w\\d_]+)(\\s+[^\\)])");
-//     string repl1 = " [$1]$2";
-//     result = boost::regex_replace(filter, srch1, repl1, boost::match_default | boost::format_all);
+    string result = filter;
 
     // fix string values
-    /// @todo implement smart screening (select between " and ')
+    boost::replace_all(result, "'", "''");
     // ([=><]\s+)([\S]+[^\d\s][\S]+)\s+ => $1"$2" )
     boost::regex srch1("([=><]\\s+)([\\S]+[^\\d\\s][\\S]+)\\s+");
-    string repl1 = "$1\"$2\" ";
-    result = boost::regex_replace(filter, srch1, repl1, boost::match_default | boost::format_all);
+    string repl1 = "$1'$2' ";
+    result = boost::regex_replace(result, srch1, repl1, boost::match_default | boost::format_all);
 
     // fix "like" statement
     // like\s+([^\)]+)\s+\) => like '%$1%' )
@@ -196,7 +192,8 @@ sqlite_storage::sqlite_storage( engine_dispatcher* krnl, void* handle /*= NULL*/
 {
     pluginInfo.interface_name = "sqlite_storage";
     pluginInfo.interface_list.push_back("sqlite_storage");
-    pluginInfo.plugin_desc = "Sqlite3 storage";
+    pluginInfo.plugin_desc = "Sqlite3 storage ";
+    pluginInfo.plugin_desc += AutoVersion::FULLVERSION_STRING;
     pluginInfo.plugin_id = "9FBCC44C52A1";
     pluginInfo.plugin_icon = WeXpmToStringList(sqliteStorage_xpm, sizeof(sqliteStorage_xpm) / sizeof(char*) );
     // initialize internal data
@@ -270,7 +267,7 @@ int sqlite_storage::get(db_query& query, db_recordset& results)
             retval = sqlite_query_to_rs(db_handle, qstr, results);
         }
         else {
-            LOG4CXX_ERROR(iLogger::GetLogger(), "sqlite_storage::get can't determine tables for query");
+            LOG4CXX_ERROR(logger, "sqlite_storage::get can't determine tables for query");
         }
     }
     return retval;
@@ -286,7 +283,7 @@ int sqlite_storage::set(db_query& query, db_recordset& data)
     string qstr_upd, qstr_ins, binder;
 
     // UPDATE [profile] SET type=1, value=11 WHERE (profile.profile_id == 0 AND name=="test_param" )
-    LOG4CXX_TRACE(iLogger::GetLogger(), "sqlite_storage::set(db_query, db_recordset)");
+    LOG4CXX_TRACE(logger, "sqlite_storage::set(db_query, db_recordset)");
     boost::unique_lock<boost::mutex> locker(data_access);
     if (db_handle->db != NULL) {
         rec_fields = data.get_names();
@@ -341,7 +338,7 @@ int sqlite_storage::set(db_recordset& data)
     vector<string> rec_fields;
     string qstr, binder;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "sqlite_storage::set(db_recordset)");
+    LOG4CXX_TRACE(logger, "sqlite_storage::set(db_recordset)");
     boost::unique_lock<boost::mutex> locker(data_access);
     if (db_handle->db != NULL) {
         rec_fields = data.get_names();
@@ -387,13 +384,13 @@ int sqlite_storage::del(db_filter& filter)
     std::set<string> ns_list;
     std::set<string>::iterator ns_it;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "sqlite_storage::del");
+    LOG4CXX_TRACE(logger, "sqlite_storage::del");
     boost::unique_lock<boost::mutex> locker(data_access);
     if (db_handle->db != NULL) {
         filter.get_namespaces(ns_list);
         for (ns_it = ns_list.begin(); ns_it != ns_list.end(); ns_it++) {
             query = "DELETE FROM [" + *ns_it + "] WHERE " + sqlite_fix_filter(filter.tostring());
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "sqlite_storage::del execute: " << query);
+            LOG4CXX_DEBUG(logger, "sqlite_storage::del execute: " << query);
             db_handle->resp_size = 0;
             rc = sqlite3_exec(db_handle->db, query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
             if (rc != SQLITE_OK) {
@@ -421,10 +418,10 @@ bool sqlite_storage::init_storage( const string& params )
     string sval;
 
     boost::unique_lock<boost::mutex> locker(data_access);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "sqlite_storage::init_storage");
+    LOG4CXX_TRACE(logger, "sqlite_storage::init_storage");
     rc = sqlite3_open(params.c_str(), &(db_handle->db));
     if ( rc ) {
-        LOG4CXX_FATAL(iLogger::GetLogger(), "sqlite_storage::init_storage can't open database: " << sqlite3_errmsg(db_handle->db));
+        LOG4CXX_FATAL(logger, "sqlite_storage::init_storage can't open database: " << sqlite3_errmsg(db_handle->db));
         sqlite3_close(db_handle->db);
         db_handle->db = NULL;
     }
@@ -521,6 +518,7 @@ string sqlite_storage::generate_id( const string& objType /*= ""*/ )
     vector<string> names;
     string tbl_query;
     char *err_msg;
+    db_cursor cur;
 
     names.clear();
     names.push_back("value");
@@ -529,21 +527,20 @@ string sqlite_storage::generate_id( const string& objType /*= ""*/ )
     tbl_query = "SELECT [value] FROM [_internals_] WHERE [name] == 'last_id'";
     sqlite_query_to_rs(db_handle, tbl_query, rs);
     if (rs.size() < 1) {
-        // must never happens
-        last_id = 0;
-        tbl_query = "INSERT INTO _internals_ ([name], [value]) VALUES ('last_id', 0)";
-        sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
+        // this must never happens
+        cur = rs.push_back();
+        cur[0] = ++last_id;
+        sqlite3_exec(db_handle->db, "INSERT INTO _internals_ ([name], [value]) VALUES ('last_id', 0)", sqlite_callback, (void*)db_handle, &err_msg);
     }
     else {
-        db_cursor cur = rs.begin();
-        last_id = boost::lexical_cast<int>(cur[0]);
-        last_id++;
+        last_id = cur[0].get<int>() + 1;
         cur[0] = last_id;
         tbl_query = "UPDATE [_internals_] SET [value]=? WHERE [name] == 'last_id'";
         sqlite_query_from_rs(db_handle, tbl_query, *cur, cur.record_size());
     }
-    return boost::lexical_cast<string>(last_id);
+    return boost::lexical_cast<string>(cur[0]);
 }
+
 //void sqlite_storage::flush( const string& params /*= ""*/)
 //{
 //}

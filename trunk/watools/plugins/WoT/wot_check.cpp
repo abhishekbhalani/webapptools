@@ -118,7 +118,7 @@ void wot_check::process_response( webEngine::i_response_ptr resp )
         req_list[domain] = true; // prevent sending requests
         string url = ht_resp->Headers().find_first("Location");
         if (!url.empty()) {
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "wot_check::process_response redirected to " << url);
+            LOG4CXX_DEBUG(logger, "wot_check::process_response redirected to " << url);
             bool to_process = true;
             transport_url baseUrl = ht_resp->BaseUrl();
             baseUrl.assign_with_referer(url);
