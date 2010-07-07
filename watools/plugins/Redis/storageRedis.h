@@ -44,25 +44,7 @@ public:
     ///
     /// @retval	null if it fails, else the interface.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void* get_interface(const string& ifName);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual const string get_setup_ui( void )
-    ///
-    /// @brief  Gets the user interface for the setup dialog.
-    ///
-    /// @retval The user interface in the XRC format (wxWidgets) or empty string if no setup dialog.
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string get_setup_ui( void );
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn virtual void apply_settings( const string& xmlData )
-    ///
-    /// @brief  Applies the settings described by xmlData.
-    ///
-    /// @param  xmlData	 - Plugin settings described by the XML.
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual void apply_settings( const string& xmlData );
+    virtual i_plugin* get_interface(const string& ifName);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual bool init_storage( const string& params )
@@ -92,19 +74,18 @@ public:
     virtual string generate_id(const string& objType = "");
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int get( Record& filters, Record& respFilter, RecordSet& results)
+    /// @fn int get(db_query& query, db_recordset& results)
     ///
     /// @brief  Gets the RecordSet from given namespace (objType). The response filtered to
     ///         equality of the selected field to the given values. The response will contains only
     ///         the fields included into the given @b respFilter structure.
     ///
-    /// @param  filter          - the Record to filter the request 
-    /// @param  respFilter      - set of field to be placed into result. If empty - all data will be retrieved
-    /// @param  [out] results   - the RecordSet to fill it with results 
+    /// @param  query           - the database query 
+    /// @param  results         - result of the query
     ///
     /// @retval number of records in the response. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int get(db_record& filter, db_record& respFilter, db_recordset& results);
+    virtual int get(db_query& query, db_recordset& results);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn int set(Record& filters, Record& data)
@@ -113,20 +94,20 @@ public:
     ///         (not the full description of the object), and non-empty @b filters may be used to
     ///         update selected object(s).
     ///
-    /// @param  filter  - the Record to select object(s) for update 
-    /// @param  data    - the Record to be stored 
+    /// @param  query   - the filter for update 
+    /// @param  data    - the db_recordset to be stored 
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int set(db_record& filter, db_record& data);
+    virtual int set(db_query& query, db_recordset& data);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int set(RecordSet& data)
+    /// @fn int set(db_recordset& data)
     ///
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object).
     ///
-    /// @param  data - the RecordSet to be stored 
+    /// @param  data - the db_recordset to be stored 
     ///
     /// @retval	Number of affected records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,13 +122,10 @@ public:
     ///
     /// @retval	Number of deleted records. 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int del(db_record& filter);
+    virtual int del(db_filter& filter);
 
 protected:
-    string_list* search_db(db_record& filter, bool all = false);
-    string_list* get_struct(const string& nspace);
-    void fix_struct(db_record& strt);
-    string_list* get_namespace_idxs(const string& objType);
+    int insert(string ns, vector<string> fields, db_record& rec);
 
     string plugin_version;
     string db_host;

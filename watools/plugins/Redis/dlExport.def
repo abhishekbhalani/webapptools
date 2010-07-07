@@ -1,2 +1,2 @@
-LIBRARY	"Redis.plg"
+LIBRARY	"storageRedis.plg"
 EXPORTS WePluginFactory

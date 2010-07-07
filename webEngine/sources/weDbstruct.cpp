@@ -304,6 +304,7 @@ void db_cursor_base::update()
             record.rec = NULL;
         }
         // else - just drop pointer to existing vector element
+        record.parent = parent_;
         record.rec = &(*iter_);
         record.free_ = false;
     }
