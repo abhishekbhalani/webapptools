@@ -31,15 +31,15 @@ else {
     $lang = '.' . $lang;
 }
 
-$gRedisHost = $_POST['redis_host'];
-$gRedisPort = $_POST['redis_port'];
-$gRedisAuth = $_POST['redis_pass'];
+//$gRedisHost = $_POST['redis_host'];
+//$gRedisPort = $_POST['redis_port'];
+//$gRedisAuth = $_POST['redis_pass'];
 $adminUser  = $_POST['user'];
 $adminGroup = $_POST['group'];
 $adminPswd  = $_POST['pass'];
 
 CreateGroup($adminGroup, 'System Administrators');
-CreateUser($adminUser, 'System Administrator');
+CreateUser($adminUser, 'System Administrator', $adminPswd);
 AddUserToGroup($adminUser, $adminGroup);
 
 // add default themes

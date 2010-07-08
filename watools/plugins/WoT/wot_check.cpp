@@ -134,7 +134,8 @@ void wot_check::process_response( webEngine::i_response_ptr resp )
     else {
         // normal response
         req_list[domain] = true;
-        string wparam(resp->Data().begin(), resp->Data().end());
+        string wparam;
+        wparam = (char*)&(*resp->Data().begin());
         string v_id = pluginInfo.plugin_id + "/0";
         parent_task->add_vulner(v_id, wparam, "0", 0);
     } // if normal response

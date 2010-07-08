@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\webEngine\include;..\..\common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DEMO_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_DEBUG;_WINDOWS;_USRDLL;DEMO_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -110,7 +110,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increment build number"
-				CommandLine="..\..\verbuild.exe version.h *.*.+.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t120"
+				CommandLine="..\..\..\verbuild.exe version.h *.*.+.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t120"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -239,6 +239,10 @@
 			</File>
 			<File
 				RelativePath=".\storageRedis.h"
+				>
+			</File>
+			<File
+				RelativePath=".\version.h"
 				>
 			</File>
 		</Filter>

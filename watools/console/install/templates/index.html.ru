@@ -1,21 +1,35 @@
-<html>
+п»ї<html>
 <head>
-    <title>Установка Web "A" Tools</title>
+    <title>РЈСЃС‚Р°РЅРѕРІРєР° Web "A" Tools</title>
+	<link type="text/css" href="/theme/wat.css" rel="stylesheet" />	
+	<script type="text/javascript" src="/scripts/jquery.js"></script>
+	<script type="text/javascript" src="/scripts/jquery-ui.js"></script>
+	<script type="text/javascript">
+    $(function(){
+        // Dialog
+        $('#dialog').dialog({
+            autoOpen: true,
+            draggable: false,
+            resizable: false,
+            closeOnEscape:false,
+            modal: false,
+            width: 350,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+            buttons: {
+                "Р”Р°Р»РµРµ >": function() {
+					$('#form1').submit();
+                }
+            }
+        });
+        $('#tips').hide();
+    });
+	</script>
 </head>
-<body>
-    <h1>Добро пожаловать</h1>
-    <div>Этот мастер проведет Вас через процесс установки.</div>
-    <form action="stage1.php" method="POST">
-        <table border="0">
-            <tr>
-                <td>Выберите язык </td>
-                <td><select name="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select></td>
-            </tr>
-            <tr>
-                <td>&nbsp;</td>
-                <td><input type="submit" value="Далее >"></td>
-            </tr>
-        </table>
+<body background="/theme/images/ui-bg_diagonals-thick_90_eeeeee_40x40.png">
+<div id="dialog" title="Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ">
+    <div>Р­С‚РѕС‚ РјР°СЃС‚РµСЂ РїСЂРѕРІРµРґРµС‚ Р’Р°СЃ С‡РµСЂРµР· РїСЂРѕС†РµСЃСЃ СѓСЃС‚Р°РЅРѕРІРєРё.</div>
+    <form action="stage1.php" method="POST" id="form1">
+	Р’С‹Р±РµСЂРёС‚Рµ СЏР·С‹Рє <select name="lang">[{html_options values=$langs output=$lnNames selected=$defLang}]</select>
     </form>
 </body>
 </html>

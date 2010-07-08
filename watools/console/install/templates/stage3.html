@@ -17,7 +17,7 @@
             width: 350,
             open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
             buttons: {
-                "Next >": function() {
+                "Done": function() {
 					$('#form1').submit();
                 }
             }
@@ -28,11 +28,11 @@
 </head>
 <html>
 <body background="/theme/images/ui-bg_diagonals-thick_90_eeeeee_40x40.png">
-	<div id="dialog" title="Step 2. GUI Andminstrative account.">
-	<table border="0"><tr><td valign="middle"><img src="img/stage2.png"></td><td>
+	<div id="dialog" title="Step 2. Save settings.">
+	<table border="0"><tr><td valign="middle"><img src="img/stage3.png"></td><td>
     <form action="stage3.php" method="POST" id="form1">
         <fieldset width="0">
-            <legend><b>GUI Administrative account</b></legend>
+            <legend><b>Save these settings</b></legend>
             <table border="0">
                 <tr><td>Group:</td><td><input type="text" name="group" value="Administrators"></td></tr>
                 <tr><td>User:</td><td><input type="text" name="user" value="Administrator"></td></tr>
