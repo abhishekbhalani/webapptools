@@ -193,7 +193,7 @@ sqlite_storage::sqlite_storage( engine_dispatcher* krnl, void* handle /*= NULL*/
     pluginInfo.interface_name = "sqlite_storage";
     pluginInfo.interface_list.push_back("sqlite_storage");
     pluginInfo.plugin_desc = "Sqlite3 storage ";
-    pluginInfo.plugin_desc += AutoVersion::FULLVERSION_STRING;
+    pluginInfo.plugin_desc += VERSION_PRODUCTSTR;
     pluginInfo.plugin_id = "9FBCC44C52A1";
     pluginInfo.plugin_icon = WeXpmToStringList(sqliteStorage_xpm, sizeof(sqliteStorage_xpm) / sizeof(char*) );
     // initialize internal data
@@ -206,7 +206,7 @@ sqlite_storage::sqlite_storage( engine_dispatcher* krnl, void* handle /*= NULL*/
     else {
         boost::throw_exception(bad_alloc("sqlite_storage: can't create internal storage"));
     }
-    LOG4CXX_TRACE(logger, "sqlite_storage plugin created; version " << AutoVersion::FULLVERSION_STRING);
+    LOG4CXX_TRACE(logger, "sqlite_storage plugin created; version " << VERSION_PRODUCTSTR);
 }
 
 sqlite_storage::~sqlite_storage(void)
@@ -533,6 +533,7 @@ string sqlite_storage::generate_id( const string& objType /*= ""*/ )
         sqlite3_exec(db_handle->db, "INSERT INTO _internals_ ([name], [value]) VALUES ('last_id', 0)", sqlite_callback, (void*)db_handle, &err_msg);
     }
     else {
+        cur = rs.begin();
         last_id = cur[0].get<int>() + 1;
         cur[0] = last_id;
         tbl_query = "UPDATE [_internals_] SET [value]=? WHERE [name] == 'last_id'";

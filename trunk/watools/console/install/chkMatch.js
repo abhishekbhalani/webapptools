@@ -1,30 +1,26 @@
 function chkMatch(txt1, txt2, msg1, msg2, place)
 {
-    var el1 = document.getElementById(txt1);
-    var el2 = document.getElementById(txt2);
-    var el3 = document.getElementById(place);
-    if(el1 != undefined && el2 != undefined) {
-        var st1 = el1.value;
-        var st2 = el2.value;
-        if (st1 != "" && st2 != "") {
-            el3.style.display="inline";
-            if (st1 == st2) {
-                //alert(msg1);
-                el3.innerHTML = msg1;
-                return true;
-            }
-            else {
-                //alert(msg2);
-                el3.innerHTML = msg2;
-                return true;
-            }
-        }
-        else {
-            //alert('All blank!');
-            el3.style.display = 'none';
-        }
-    }
-    else {
-        //alert('Some shit!');
-    }
+	var st1 = $(txt1).val();
+	var st2 = $(txt2).val();
+	if (st1 != "" && st2 != "") {
+		$(place).css('display', 'block');
+		if (st1 == st2) {
+			//alert(msg1);
+			$(place).text(msg1);
+			$(place).removeClass('ui-state-error');
+			$(place).addClass('ui-state-highlight');
+			return true;
+		}
+		else {
+			//alert(msg2);
+			$(place).text(msg2);
+			$(place).removeClass('ui-state-highlight');
+			$(place).addClass('ui-state-error');
+			return true;
+		}
+	}
+	else {
+		//alert('All blank!');
+		$(place).css('display', 'none');
+	}
 }

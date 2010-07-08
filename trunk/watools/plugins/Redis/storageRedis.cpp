@@ -199,7 +199,7 @@ bool redis_storage::init_storage(const string& params)
                         if (pos != string::npos) {
                             fld = fld.substr(0, pos);
                         }
-                        db_cli->sadd(inits[0] + ".struct", fld);
+                        db_cli->rpush(inits[0] + ".struct", fld);
                     }
                 }
                 else {
@@ -208,7 +208,9 @@ bool redis_storage::init_storage(const string& params)
             } // if inits.size() > 0
             ++i;
         } // idb_struct[i] != NULL
-        db_cli->set("index", "0");
+        if (! db_cli->exists("index")) {
+            db_cli->set("index", "0");
+        }
     }
 
     return retval;
@@ -272,6 +274,7 @@ int redis_storage::get(db_query& query, db_recordset& results)
     db_cursor record;
     redis_cursor db_view;
 
+    query.where.get_namespaces(ns_list);
     // @todo implement db_recordset.join to perform queries from more than one table
     if (ns_list.size() != 1) {
         LOG4CXX_ERROR(logger, "redis_storage::get - query wants data from " << ns_list.size() << " tables; Only one table supported.");
@@ -335,6 +338,7 @@ int redis_storage::set(db_query& query, db_recordset& data)
                     } // foreach field
                     retval++;
                 } catch(out_of_range &) {};
+                cursor.commit();
                 retval++;
             } // if need to update
             ++cursor;
@@ -388,6 +392,23 @@ int redis_storage::del(db_filter& filter)
     boost::lock_guard<boost::mutex> lock(db_lock);
 
     int retval = 0;
+    std::set<string> ns_list;
+    std::set<string>::iterator ns_it;
+    redis_cursor cursor;
+
+    filter.get_namespaces(ns_list);
+    for (ns_it = ns_list.begin(); ns_it != ns_list.end(); ns_it++) {
+        cursor = redis_cursor::begin(db_cli, *ns_it);
+        vector<string> fields = cursor.field_names();
+        while (cursor != redis_cursor::end(db_cli, *ns_it)) {
+            if (filter.eval(cursor)) {
+                string rowid = *ns_it + "." + boost::lexical_cast<string>(cursor.row_id());
+                db_cli->del(rowid);
+                retval++;
+            } // if applied filter
+            ++cursor;
+        } // foreach record
+    } // foreach table
     return retval;
 }
 
@@ -396,22 +417,19 @@ int redis_storage::insert( string ns, vector<string> fields, db_record& rec )
     int retval = 1;
     int id = db_cli->incr(ns + ".rowid");
     string row_id = boost::lexical_cast<string>(id);
-    row_id = "." + row_id + ".";
+    string key = ns + "." + row_id;
     for (size_t i = 0; i < fields.size(); i++) {
         try {
-            string key = fields[i];
-            boost::replace_first(key, ".", row_id);
             string val = boost::lexical_cast<string>(rec[fields[i]].which()) + ":" + boost::lexical_cast<string>(rec[fields[i]]);
             try {
-                db_cli->set(key, val);
+                db_cli->rpush(key, val);
             }
             catch(redis::redis_error& e) {
                 retval = 0;
                 LOG4CXX_ERROR(logger, "RedisDB can't save " << fields[i] << " for RowID = " << row_id << " - " << (string)e);
             }
         } catch(out_of_range &) {
-            retval = 0;
-            LOG4CXX_ERROR(logger, "RedisDB can't find " << fields[i] << " in given db_record");
+            db_cli->rpush(key, "5:");
         };
     } // foreach field
 

@@ -1,33 +1,21 @@
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef VERSIONNO__H
+#define VERSIONNO__H
 
-namespace AutoVersion{
-	
-	//Date Version Types
-	static const char DATE[] = "01";
-	static const char MONTH[] = "07";
-	static const char YEAR[] = "2010";
-	static const double UBUNTU_VERSION_STYLE = 10.07;
-	
-	//Software Status
-	static const char STATUS[] = "Alpha";
-	static const char STATUS_SHORT[] = "a";
-	
-	//Standard Version Type
-	static const long MAJOR = 0;
-	static const long MINOR = 2;
-	static const long BUILD = 1;
-	static const long REVISION = 5;
-	
-	//Miscellaneous Version Types
-	static const long BUILDS_COUNT = 184;
-	#define RC_FILEVERSION 0,2,1,5
-	#define RC_FILEVERSION_STRING "0,2,1,5\0"
-	static const char FULLVERSION_STRING[] = "0.2.1.5";
-	
-	//These values are to keep track of your versioning state, don't modify them.
-	static const long BUILD_HISTORY = 0;
-	
+#define VERSION_FULL           0.2.2.6
 
-}
-#endif //VERSION_h
+#define VERSION_BASEYEAR       0
+#define VERSION_DATE           "2010-07-08"
+#define VERSION_TIME           "15:21:14"
+
+#define VERSION_MAJOR          0
+#define VERSION_MINOR          2
+#define VERSION_BUILDNO        2
+#define VERSION_EXTEND         6
+
+#define VERSION_FILE           0,2,2,6
+#define VERSION_PRODUCT        0,2,2,6
+#define VERSION_FILESTR        "0,2,2,6"
+#define VERSION_PRODUCTSTR     "0,2,2,6"
+
+#define VERSION_SVN            "SVN $Revision: 280 $"
+#endif

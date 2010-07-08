@@ -1,3 +1,13 @@
+function db_change(block) {
+	$('fieldset').each( function(index) {
+		//$(this).addClass('ui-state-disabled');
+		$(this).children('table').addClass('ui-state-disabled');
+		$(this).children('table').find('*').attr('disabled', true);
+	});
+	$(block).children('table').removeClass('ui-state-disabled');
+	$(block).children('table').find('*').removeAttr('disabled');
+}
+
 function doStage1()
 {
     var block = document.getElementById("checkResults");
