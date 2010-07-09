@@ -29,12 +29,8 @@ else {
     $lang = '.' . $lang;
 }
 
-$redisHost = $_POST['redis_host'];
-$redisPort = $_POST['redis_port'];
-$redisPass = $_POST['redis_pass'];
-
-$smarty->assign('redisHost', $redisHost);
-$smarty->assign('redisPort', $redisPort);
-$smarty->assign('redisPass', $redisPass);
+$smarty->assign('db_dsn', $_POST['db_dsn']);
+$smarty->assign('db_usr', $_POST['db_usr']);
+$smarty->assign('db_usr', $_POST['db_usr']);
 $smarty->display('stage2.html' . $lang);
 ?>

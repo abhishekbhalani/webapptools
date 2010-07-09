@@ -31,9 +31,9 @@ else {
     $lang = '.' . $lang;
 }
 
-//$gRedisHost = $_POST['redis_host'];
-//$gRedisPort = $_POST['redis_port'];
-//$gRedisAuth = $_POST['redis_pass'];
+$gDbDsn = $_POST['db_dsn'];
+$gDbUsr = $_POST['db_usr'];
+$gDbPwd = $_POST['db_pwd'];
 $adminUser  = $_POST['user'];
 $adminGroup = $_POST['group'];
 $adminPswd  = $_POST['pass'];
@@ -42,49 +42,19 @@ CreateGroup($adminGroup, 'System Administrators');
 CreateUser($adminUser, 'System Administrator', $adminPswd);
 AddUserToGroup($adminUser, $adminGroup);
 
-// add default themes
-$r = GetRedisConnection();
-if (!is_null($r))
-{
-    // search for themes
-    $dirs = glob('../*', GLOB_ONLYDIR);
-    if ($dirs) {
-        foreach ($dirs as $dir) {
-            $files = glob($dir . '/theme.txt');
-            if ($files) {
-                $tname = substr($dir, 3);
-                $handle = @fopen($files[0], "r");
-                if ($handle) {
-                    $locstr = fgets($handle);
-                    $locstr = rtrim($locstr);
-                    $data = "";
-                    while (!feof($handle)) {
-                        $data .= fgets($handle);
-                    }
-                    fclose($handle);
-                    $locales = explode('|', $locstr);
-                    if ($r->exists("ThemeName:$tname") == 0) {
-                        $tid = $r->incr('Global:ThemeID');
-                        SetValue($r, "ThemeName:$tname", $tid);
-                        $r->delete("Theme:$tid");
-                        $r->rpush("Theme:$tid", $tname);
-                        $r->rpush("Theme:$tid", $data);
-                        $r->delete("Theme:$tid:Locales");
-                        foreach ($locales as $loc) {
-                            $r->sadd("Theme:$tid:Locales", $loc);    
-                        }
-                    }
-                } // file handle opened
-            } // any files found
-        } // foraech dirs
-    } // any dirs found
-    // ... and set the defaults!
-    $r->set("Global:DefaultTheme", 'sandbox');
-    $r->set("Global:DefaultLang", 'en');
-}
+$path = realpath("..");
+$npath = preg_replace('/\\\\/','\\\\\\\\',$path);
+$code = "<?\n";
+$code .= "\$gBaseDir = '$npath\\\\';\n";
+$code .= "\$gDefaultTheme = 'sandbox';\n";
+$code .= "\$gDbDsn = '$gDbDsn';\n";
+$code .= "\$gDbUsr = '$gDbUsr';\n";
+$code .= "\$gDbPwd = '$gDbPwd';\n";
+$code .= "?>\n";
 
-$smarty->assign('redisHost', $redisHost);
-$smarty->assign('redisPort', $redisPort);
-$smarty->assign('redisPass', $redisPass);
+$code = highlight_string ($code, TRUE);
+
+$smarty->assign('srvpath', $path);
+$smarty->assign('code', $code);
 $smarty->display('stage3.html' . $lang);
 ?>

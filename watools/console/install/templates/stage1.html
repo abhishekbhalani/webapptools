@@ -18,7 +18,9 @@
             open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
             buttons: {
                 "Next >": function() {
-					$('#form1').submit();
+					if (doStage1()) {
+						$('#form1').submit();
+					}
                 }
             }
         });
@@ -32,35 +34,64 @@
 <div id="dialog" title="Step 1. Database connection.">
 	<table border="0"><tr><td valign="middle"><img src="img/stage1.png"></td><td>
     <p>Set up database connection for this server</p>
-    <form action="stage2.php" method="POST" onsubmit="return doStage1();" id="form1">
-        <fieldset width="0" id="redis">
-            <legend><b><input type="radio" name="db_type" id="db_redis" value="redis" checked onchange="db_change('#redis');">REDIS DB configuration</b></legend>
+    <form action="stage2.php" method="POST" id="form1">
+		Database driver <select id="db_drv" name="db_drv" onchange="db_change();"><option selected>SQlite3</option><option>MySQL</option><option>MS-SQL<option>Oracle</option></select>
+		<br/>
+        <fieldset width="0" id="SQlite3" style="display:none">
+            <legend><b>Sqlite3 configuration</b></legend>
             <table border="0">
-                <tr><td>Host:</td><td><input type="text" name="redis_host" value="127.0.0.1"></td></tr>
-                <tr><td>Port:</td><td><input type="text" name="redis_port" value="6379"></td></tr>
-                <tr><td>Authentication:</td><td><input id="redis_pass" type="password" name="redis_pass" value=""></td></tr>
-                <tr><td>Database:</td><td><input type="text" name="redis_db" value="0"></td></tr>
-                <tr><td>Clear DB:</td><td><input type="checkbox" name="redis_clear" id="redis_clear" value="0">
-                                            <label for="redis_clear">Yes</label></td></tr>
+                <tr><td>Path:</td><td><input type="text" name="sqlite_path" id="sqlite_path" value="/tmp/watools.sqlite"></td></tr>
+                <tr><td>Username:</td><td><input type="text" name="sqlite_uname" id="sqlite_uname" value=""></td></tr>
+                <tr><td>Password:</td><td><input type="text" name="sqlite_passwd" id="sqlite_passwd" value=""></td></tr>
             </table>
         </fieldset>
-        <fieldset width="0" id="sqlite">
-            <legend><b><input type="radio" name="db_type" id="db_sqlite" value="sqlite" onchange="db_change('#sqlite');">Sqlite3 configuration</b></legend>
+        <fieldset width="0" id="MySQL" style="display:none">
+            <legend><b>MySQL configuration</b></legend>
             <table border="0">
-                <tr><td>Path:</td><td><input type="text" name="sqlite_path" value="/tmp/watools.sqlite"></td></tr>
-                <tr><td>Clear DB:</td><td><input type="checkbox" name="redis_clear" id="redis_clear" value="0">
-                                            <label for="sqlite_clear">Yes</label></td></tr>
+                <tr><td>Host:</td><td><input type="text" name="mysql_host" id="mysql_host" value="127.0.0.1"></td></tr>
+                <tr><td>Port:</td><td><input type="text" name="mysql_port" id="mysql_port" value="3369"></td></tr>
+                <tr><td>Username:</td><td><input type="text" name="mysql_uname" id="mysql_uname" value=""></td></tr>
+                <tr><td>Password:</td><td><input type="password" name="mysql_passwd" id="mysql_passwd" value=""></td></tr>
+                <tr><td>Database:</td><td><input type="text" name="mysql_db" id="mysql_db" value="watools"></td></tr>
+                <tr><td></td></tr>
             </table>
         </fieldset>
+        <fieldset width="0" id="MS-SQL" style="display:none">
+            <legend><b>MS-SQL configuration</b></legend>
+            <table border="0">
+                <tr><td>Host:</td><td><input type="text" name="mssql_host" id="mssql_host" value="127.0.0.1"></td></tr>
+                <tr><td>Port:</td><td><input type="text" name="mssql_port" id="mssql_port" value="1433"></td></tr>
+                <tr><td>Username:</td><td><input type="text" name="mssql_port" id="mssql_uname" value=""></td></tr>
+                <tr><td>Password:</td><td><input type="password" name="mssql_passwd" id="mssql_passwd" value=""></td></tr>
+                <tr><td>Database:</td><td><input type="text" name="mssql_db" id="mssql_db" value="watools"></td></tr>
+                <tr><td></td></tr>
+            </table>
+        </fieldset>
+        <fieldset width="0" id="Oracle" style="display:none">
+            <legend><b>Oracle configuration</b></legend>
+            <table border="0">
+                <tr><td>Host:</td><td><input type="text" name="oracle_host" id="oracle_host" value="127.0.0.1"></td></tr>
+                <tr><td>Port:</td><td><input type="text" name="oracle_port" id="oracle_port" value="1521"></td></tr>
+                <tr><td>Username:</td><td><input type="text" name="oracle_uname" id="oracle_uname" value=""></td></tr>
+                <tr><td>Password:</td><td><input type="password" name="oracle_passwd" id="oracle_passwd" value=""></td></tr>
+                <tr><td>Database:</td><td><input type="text" name="oracle_db" id="oracle_db" value="watools"></td></tr>
+                <tr><td></td></tr>
+            </table>
+        </fieldset>
+		<br/>
+		Clear DB:<input type="checkbox" name="db_clear" id="db_clear" value="0"><label for="redis_clear">Yes</label>
+		<input type="hidden" name="db_dsn" id="db_dsn" value="" />
+		<input type="hidden" name="db_usr" id="db_usr" value="" />
+		<input type="hidden" name="db_pwd" id="db_pwd" value="" />
         <br/>
-        <div id="checkResults" style="display:none">
-            <fieldset width="0">
+        <div id="checkResults" style="display:none" class="ui-state-error">
+            <fieldset width="0" id="checkResultsFS">
                 <legend><b>Configuration errors</b></legend>
                 <ul>
-                <li id="srv" class="error">Server host must not be empty!</li>
-                <li id="port" class="error">Server port is not valid!</li>
-                <li id="dbnum" class="error">Database number is not valid!</li>
-                <li id="redis" class="error">Redis error: <span id="redis_err"></span>!</li>
+                <li id="dbsrv" class="error" style="display:none">Server host must not be empty!</li>
+                <li id="dbport" class="error" style="display:none">Server port is not valid!</li>
+                <li id="dbname" class="error" style="display:none">Database name must not be empty!</li>
+                <li id="dberr" class="error" style="display:none">Database error: <span id="dberr_msg"></span>!</li>
                 </ul>
             </fieldset>
             <br/>

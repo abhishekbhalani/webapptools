@@ -1,13 +1,7 @@
 <?
-
-// global variables for the project
-$gBaseDir = 'c:\\Tools\\Abyss Web Server\\htdocs\\';
+$gBaseDir = 'C:\\Work\\Projects\\WAT\\trunk\\watools\\console\\';
 $gDefaultTheme = 'sandbox';
-
-//redis DB connection
-$gRedisHost = '127.0.0.1';
-$gRedisPort = '6379';
-$gRedisAuth = '';
-$gRedisDB = 0;
-
+$gDbDsn = 'sqlite:c:/Work/Projects/WAT/watools.sqlite';
+$gDbUsr = '';
+$gDbPwd = '';
 ?>
