@@ -1,29 +1,40 @@
 <?
 require_once('globals.php');
-require_once('redisDB.php');
+require_once('db.php');
 
 function CreateGroup($groupName, $groupDesc)
 {
     $gid = -1;
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("GroupName:$groupName") == 0) {
-            // create group
-            $gid = $r->incr('Global:GroupID');
-            SetValue($r, "GroupName:$groupName", $gid);
-            $r->delete("Group:$gid");
-            $msg = $r->rpush("Group:$gid", $groupName);
-            if ($msg != "OK") {
-                trigger_error(gettext("Can't save") . " Group:$gid => $msg.", E_USER_ERROR);
-            }
-            $msg = $r->rpush("Group:$gid", $groupDesc);
-            if ($msg != "OK") {
-                trigger_error(gettext("Can't save") . " Group:$gid => $msg.", E_USER_ERROR);
-            }
-        }
-        else {
-            $gid = -2;
-        }
+		// check existense
+		$q = GetSingleRow($r, "SELECT * FROM gui_groups WHERE name='$groupName'");
+		if (is_null($q)) {
+			// create group
+			$q = GetSingleRow($r, "SELECT max(rowid) FROM gui_groups");
+			$id = $q[0];
+			if (is_null($id)) { $id = 0; }
+			$s = $r->prepare("INSERT INTO gui_groups (id, name, desc) VALUES (?, ?, ?)");
+			if ($s == false) {
+				echo $r->errorInfo();
+			}
+			else {
+				$s->bindParam(1, $id);
+				$s->bindParam(2, $groupName);
+				$s->bindParam(3, $groupDesc);
+				if ( ! $s->execute()) {
+					$e = $r->errorInfo();
+					echo $e[2]. "\n";
+				}
+				$q = GetSingleRow($r, "SELECT id FROM gui_groups WHERE name='$groupName'");
+				if (!is_null($q)) {
+					$gid = $q[0];
+				}
+			}
+		}
+		else {
+			$gid = -2;
+		}
     }
     return $gid;
 }
@@ -32,56 +43,47 @@ function DeleteGroup($gid)
 {
     $result = NULL;
     
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("Group:$gid") == 1) {
-            $nm = $r->lrange("Group:$gid", 0, 1);
-            $mems = $r->smembers("Group:$gid:Members");
-            foreach ($mems as $m) {
-                RemoveUserGroup($m, $gid);
-            }
-            $r->delete("Group:$gid:Members");
-            $r->delete("Group:$gid");
-            $r->delete("GroupName:". $nm[0]);
-            $result = true;
-        }
+		$r->exec("DELETE FROM gui_groups WHERE id=$gid");
+		$r->exec("DELETE FROM gui_membership WHERE group_id=$gid");
     }
     return $result;
 }
+
 function CreateUser($userName, $userDesc, $userPwd)
 {
     $uid = -1;
     
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("Login:$userName") == 0) {
-            // create user
-            $uid = $r->incr('Global:UserID');
-            SetValue($r, "Login:$userName", $uid);
-            $r->delete("User:$uid");
-            $msg = $r->rpush("User:$uid", $userName);
-            if ($msg != "OK") {
-                trigger_error(gettext("Can't save") . " User:$uid => $msg.", E_USER_ERROR);
-            }
-            $msg = $r->rpush("User:$uid", $userDesc);
-            if ($msg != "OK") {
-                trigger_error(gettext("Can't save") . " User:$uid => $msg.", E_USER_ERROR);
-            }
-            $pwd = md5($userPwd);
-            $msg = $r->rpush("User:$uid", $pwd);
-            if ($msg != "OK") {
-                trigger_error(gettext("Can't save") . " User:$uid => $msg.", E_USER_ERROR);
-            }
-            $id = $r->get("Global:DefaultTheme");
-            $msg = $r->rpush("User:$uid", $id);
-            if ($msg != "OK") {
-                trigger_error(gettext("Can't save") . " User:$uid => $msg.", E_USER_ERROR);
-            }
-            $id = $r->get("Global:DefaultLang");
-            $msg = $r->rpush("User:$uid", $id);
-            if ($msg != "OK") {
-                trigger_error(gettext("Can't save") . " User:$uid => $msg.", E_USER_ERROR);
-            }
+		// check existense
+		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+		if (is_null($q)) {
+		// create user
+			$q = GetSingleRow($r, "SELECT max(rowid) FROM gui_users");
+			$id = $q[0];
+			if (is_null($id)) { $id = 0; }
+			$s = $r->prepare("INSERT INTO gui_users (id, login, desc, password) VALUES (?, ?, ?, ?)");
+			$pwd = md5($userPwd);
+			if ($s == false) {
+				$e = $r->errorInfo();
+				echo $e[2];
+			}
+			else {
+				$s->bindParam(1, $id);
+				$s->bindParam(2, $userName);
+				$s->bindParam(3, $userDesc);
+				$s->bindParam(4, $pwd);
+				if ( ! $s->execute()) {
+					$e = $r->errorInfo();
+					echo $e[2]. "\n";
+				}
+				$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+				if (!is_null($q)) {
+					$uid = $q[0];
+				}
+			}
         }
         else {
             $uid = -2;
@@ -92,120 +94,86 @@ function CreateUser($userName, $userDesc, $userPwd)
 
 function DeleteUser($uid)
 {
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("User:$uid") == 1) {
-            $data = $r->lrange("User:$uid", 0, 1);
-            $r->delete("Login:" . $data[0]);
-            $mems = $r->smembers("User:$uid:Groups");
-            foreach($mems as $m) {
-                if ($r->exists("Group:$m:Members") == 1) {
-                     $r->srem("Group:$m:Members", $uid);
-                }
-            }
-            $r->delete("User:$uid");
-            $r->delete("User:$uid:Groups");
-        }
+		$r->exec("DELETE FROM gui_users WHERE id=$uid");
+		$r->exec("DELETE FROM gui_membership WHERE user_id=$uid");
     }    
 }
 
 function ModifyUser($uid, $userName, $userDesc, $userPwd)
 {
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        $data = $r->lrange("User:$uid", 0, 1);
-        $r->delete("Login:" . $data[0]);
-        $r->set("Login:" . $userName, $uid);
-        $r->lset("User:$uid", $userName, 0);
-        $r->lset("User:$uid", $userDesc, 1);
-        if ($userPwd != "") {
-            $pwd = md5($userPwd);
-            $r->lset("User:$uid", $pwd, 2);
-        }
+		$s = $r->prepare("UPDATE gui_users SET login=?, desc=?, password=? WHERE id=$uid");
+		$pwd = md5($userPwd);
+		$s->bindParam(1, $userName);
+		$s->bindParam(3, $userDesc);
+		$s->bindParam(3, $pwd);
+		$s->execute();
     }
     return true;
 }
+
 function AddUserToGroup($userName, $groupName)
 {
-    global $RedisError;
+    global $gDbError;
     $result = false;
 
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
         $uid = -1;
         $gid = -1;
-        if ($r->exists("Login:$userName") == 1) {
-            $uid = $r->get("Login:$userName");
-        }
-        if ($r->exists("GroupName:$groupName") == 1) {
-            $gid = $r->get("GroupName:$groupName");
-        }
+		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+		if (!is_null($q)) {
+			$uid = $q['id'];
+		}
+		$q = GetSingleRow($r, "SELECT * FROM gui_groups WHERE name='$groupName'");
+		if (!is_null($q)) {
+			$gid = $q['id'];
+		}
         if ($uid > -1 && $gid > -1) {
             // add user to group
-            if ($r->sismember("User:$uid:Groups", $gid) == 0) {
-                $msg = $r->sadd("User:$uid:Groups", $gid);
-                if ($msg == 0) {
-                    $RedisError = gettext("Can't save") . " User:$uid:Groups => $msg.";
-                    return $result;
-                }
-            }
-            if ($r->sismember("Group:$gid:Members", $uid) == 0) {
-                $msg = $r->sadd("Group:$gid:Members", $uid);
-                if ($msg == 0) {
-                    $RedisError = gettext("Can't save") . " Group:$gid:Members => $msg.";
-                    return $result;
-                }
-            }
-            $RedisError = "";
+			$q = GetSingleRow($r, "SELECT * FROM gui_membership WHERE user_id=$uid AND group_id=$gid");
+			if (is_null($q)) {
+				$r->exec("INSERT INTO gui_membership (user_id, group_id) VALUES ($uid, $gid)");
+			}
             $result = true;
         }
         else {
-            $RedisError = gettext("Can't find User or Group!");
+            $gDbError = gettext("Can't find User or Group!");
         }
     }
-    
     return $refult;
 }
 
 function AddUserToGroupID($userName, $groupID)
 {
-    global $RedisError;
+    global $gDbError;
     $result = false;
 
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
         $uid = -1;
         $gid = -1;
-        if ($r->exists("Login:$userName") == 1) {
-            $uid = $r->get("Login:$userName");
-        }
-        if ($r->exists("Group:$groupID") == 1) {
-            $gid = $groupID;
-        }
+		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+		if (!is_null($q)) {
+			$uid = $q['id'];
+		}
+		$gid = $groupID;
+		
         if ($uid > -1 && $gid > -1) {
             // add user to group
-            if ($r->sismember("User:$uid:Groups", $gid) == 0) {
-                $msg = $r->sadd("User:$uid:Groups", $gid);
-                if ($msg == 0) {
-                    $RedisError = gettext("Can't save") . " User:$uid:Groups => $msg.";
-                    return $result;
-                }
-            }
-            if ($r->sismember("Group:$gid:Members", $uid) == 0) {
-                $msg = $r->sadd("Group:$gid:Members", $uid);
-                if ($msg == 0) {
-                    $RedisError = gettext("Can't save") . " Group:$gid:Members => $msg.";
-                    return $result;
-                }
-            }
-            $RedisError = "";
+			$q = GetSingleRow($r, "SELECT * FROM gui_membership WHERE user_id=$uid AND group_id=$gid");
+			if (is_null($q)) {
+				$r->exec("INSERT INTO gui_membership (user_id, group_id) VALUES ($uid, $gid)");
+			}
             $result = true;
         }
         else {
-            $RedisError = gettext("Can't find User or Group!");
+            $gDbError = gettext("Can't find User or Group!");
         }
     }
-    
     return $refult;
 }
 
@@ -213,14 +181,13 @@ function GetGroupByName($groupName)
 {
     $result = NULL;
     
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("GroupName:$groupName") == 1) {
-            $gid = $r->get("GroupName:$groupName");
-            $result = $r->lrange("Group:$gid", 0, 1);
-            $result['id'] = $gid;
-            $mems = $r->smembers("Group:$gid:Members");
-            $result['members'] = $mems;
+		$q = GetSingleRow($r, "SELECT * FROM gui_groups WHERE name='$groupName'");
+        if (!is_null($r)) {
+			$result = $r;
+			// add query for members
+			// $grp['members']
         }
     }
     return $result;
@@ -228,26 +195,22 @@ function GetGroupByName($groupName)
 
 function RemoveUserGroup($uid, $gid)
 {
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("User:$uid") == 1) {
-            if ($r->exists("User:$uid:Groups") == 1) {
-                 $r->srem("User:$uid:Groups", $gid);
-            }
-        }
+		$r->exec("DELETE FROM gui_membership WHERE user_id=$uid AND group_id=$gid");
     }
 }
 function GetGroupByID($gid)
 {
     $result = NULL;
     
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("Group:$gid") == 1) {
-            $result = $r->lrange("Group:$gid", 0, 1);
-            $result['id'] = $gid;
-            $mems = $r->smembers("Group:$gid:Members");
-            $result['members'] = $mems;
+		$q = GetSingleRow($r, "SELECT * FROM gui_groups WHERE id='$gid'");
+        if (!is_null($r)) {
+			$result = $r;
+			// add query for members
+			// $grp['members']
         }
     }
     return $result;
@@ -257,14 +220,13 @@ function GetUserByName($userName)
 {
     $result = NULL;
     
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("Login:$userName") == 1) {
-            $uid = $r->get("Login:$userName");
-            $result = $r->lrange("User:$uid", 0, 5);
-            $result['id'] = $uid;
-            $mems = $r->smembers("User:$uid:Groups");
-            $result['groups'] = $mems;
+		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+        if (!is_null($r)) {
+			$result = $r;
+			// add query for membership
+			// $usr['groups']
         }
     }
     return $result;
@@ -274,13 +236,13 @@ function GetUserByID($uid)
 {
     $result = NULL;
     
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        if ($r->exists("User:$uid") == 1) {
-            $result = $r->lrange("User:$uid", 0, 5);
-            $result['id'] = $uid;
-            $mems = $r->smembers("User:$uid:Groups");
-            $result['groups'] = $mems;
+		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE id='$uid'");
+        if (!is_null($r)) {
+			$result = $r;
+			// add query for membership
+			// $usr['groups']
         }
     }
     return $result;
