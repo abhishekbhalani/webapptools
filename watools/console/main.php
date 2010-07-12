@@ -10,5 +10,5 @@ if (! CheckACL('main')) {
 }
 
 $smarty->assign('UserName', $gUser['login']);
-DisplayThemePage('main.html');
+DisplayThemePage('main.html';
 ?>

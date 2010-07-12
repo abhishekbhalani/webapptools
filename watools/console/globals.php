@@ -1,7 +1,7 @@
 <?
-$gBaseDir = 'C:\\Work\\Projects\\WAT\\trunk\\watools\\console\\';
+$gBaseDir = 'E:\\Work\\WAT\\trunk\\watools\\console\\';
 $gDefaultTheme = 'sandbox';
-$gDbDsn = 'sqlite:c:/Work/Projects/WAT/watools.sqlite';
+$gDbDsn = 'sqlite:e:/work/watools.sqlite';
 $gDbUsr = '';
 $gDbPwd = '';
 ?>

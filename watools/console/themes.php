@@ -18,7 +18,7 @@ $themeName = $gSession['theme'];
 $themeLang = $gSession['lang'];
 $themeDir = $gBaseDir . '/' . $themeName;
 // set language translation
-setlocale( LC_MESSAGES, $themeLang);
+setlocale( LC_ALL, $themeLang);
 putenv("LANG=".$themeLang);
 bindtextdomain('watconsole', $themeDir);
 textdomain('watconsole');
@@ -47,7 +47,7 @@ function PrintNoAccess()
     DisplayThemePage('messageBox.html');
 }
 
-function DisplayThemePage($page, $lang)
+function DisplayThemePage($page)
 {
     global $smarty, $themeName, $themeLangExt, $themeDir, $gBaseDir;
     
