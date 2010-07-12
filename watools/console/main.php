@@ -9,6 +9,6 @@ if (! CheckACL('main')) {
     header('Location: /');
 }
 
-$smarty->assign('UserName', $gUser[0]);
+$smarty->assign('UserName', $gUser['login']);
 DisplayThemePage('main.html');
 ?>

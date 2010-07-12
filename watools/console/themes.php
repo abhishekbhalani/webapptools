@@ -5,7 +5,7 @@ require_once('./sessions.php');
 require_once('./smarty/Smarty.class.php');
 $smarty = new Smarty();
 
-$r = GetRedisConnection();
+$r = GetDbConnection();
 
 if (is_null($r) || is_null($gSession)) {
     header("HTTP/1.0 302 Found");
@@ -14,8 +14,8 @@ if (is_null($r) || is_null($gSession)) {
 }
 
 
-$themeName = $gSession[3];
-$themeLang = $gSession[4];
+$themeName = $gSession['theme'];
+$themeLang = $gSession['lang'];
 $themeDir = $gBaseDir . '/' . $themeName;
 // set language translation
 setlocale( LC_MESSAGES, $themeLang);
@@ -39,9 +39,9 @@ function PrintNoAccess()
 {
     global $smarty, $gUser, $themeName, $themeLangExt;
     
-    $smarty->assign('UserName', $gUser[0]);
+    $smarty->assign('UserName', $gUser['login']);
     $smarty->assign('messageTitle', gettext('Access Denied'));
-    $smarty->assign('messageText', gettext('Access denied for user ') . $gUser[0] . gettext('!<br>Contact your system administrator!'));
+    $smarty->assign('messageText', gettext('Access denied for user ') . $gUser['login'] . gettext('!<br>Contact your system administrator!'));
     $smarty->assign('messageIcon', 'warning.png');
     $smarty->assign('messageButton', 'OK');
     DisplayThemePage('messageBox.html');

@@ -7,14 +7,15 @@ function CreateGroup($groupName, $groupDesc)
     $gid = -1;
     $r = GetDbConnection();
     if (!is_null($r)) {
+		$table = GetTableName("groups");
 		// check existense
-		$q = GetSingleRow($r, "SELECT * FROM gui_groups WHERE name='$groupName'");
+		$q = GetSingleRow($r, "SELECT * FROM $table WHERE name='$groupName'");
 		if (is_null($q)) {
 			// create group
-			$q = GetSingleRow($r, "SELECT max(rowid) FROM gui_groups");
+			$q = GetSingleRow($r, "SELECT max(rowid) FROM $table");
 			$id = $q[0];
 			if (is_null($id)) { $id = 0; }
-			$s = $r->prepare("INSERT INTO gui_groups (id, name, desc) VALUES (?, ?, ?)");
+			$s = $r->prepare("INSERT INTO $table (id, name, desc) VALUES (?, ?, ?)");
 			if ($s == false) {
 				echo $r->errorInfo();
 			}
@@ -26,7 +27,7 @@ function CreateGroup($groupName, $groupDesc)
 					$e = $r->errorInfo();
 					echo $e[2]. "\n";
 				}
-				$q = GetSingleRow($r, "SELECT id FROM gui_groups WHERE name='$groupName'");
+				$q = GetSingleRow($r, "SELECT id FROM $table WHERE name='$groupName'");
 				if (!is_null($q)) {
 					$gid = $q[0];
 				}
@@ -45,8 +46,10 @@ function DeleteGroup($gid)
     
     $r = GetDbConnection();
     if (!is_null($r)) {
-		$r->exec("DELETE FROM gui_groups WHERE id=$gid");
-		$r->exec("DELETE FROM gui_membership WHERE group_id=$gid");
+		$table = GetTableName("groups");
+		$r->exec("DELETE FROM $table WHERE id=$gid");
+		$table = GetTableName("membership");
+		$r->exec("DELETE FROM $table WHERE group_id=$gid");
     }
     return $result;
 }
@@ -58,13 +61,14 @@ function CreateUser($userName, $userDesc, $userPwd)
     $r = GetDbConnection();
     if (!is_null($r)) {
 		// check existense
-		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+		$table = GetTableName("users");
+		$q = GetSingleRow($r, "SELECT * FROM $table WHERE login='$userName'");
 		if (is_null($q)) {
 		// create user
-			$q = GetSingleRow($r, "SELECT max(rowid) FROM gui_users");
+			$q = GetSingleRow($r, "SELECT max(rowid) FROM $table");
 			$id = $q[0];
 			if (is_null($id)) { $id = 0; }
-			$s = $r->prepare("INSERT INTO gui_users (id, login, desc, password) VALUES (?, ?, ?, ?)");
+			$s = $r->prepare("INSERT INTO $table (id, login, desc, password) VALUES (?, ?, ?, ?)");
 			$pwd = md5($userPwd);
 			if ($s == false) {
 				$e = $r->errorInfo();
@@ -79,7 +83,7 @@ function CreateUser($userName, $userDesc, $userPwd)
 					$e = $r->errorInfo();
 					echo $e[2]. "\n";
 				}
-				$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+				$q = GetSingleRow($r, "SELECT * FROM $table WHERE login='$userName'");
 				if (!is_null($q)) {
 					$uid = $q[0];
 				}
@@ -96,8 +100,10 @@ function DeleteUser($uid)
 {
     $r = GetDbConnection();
     if (!is_null($r)) {
-		$r->exec("DELETE FROM gui_users WHERE id=$uid");
-		$r->exec("DELETE FROM gui_membership WHERE user_id=$uid");
+		$table = GetTableName("users");
+		$r->exec("DELETE FROM $table WHERE id=$uid");
+		$table = GetTableName("membership");
+		$r->exec("DELETE FROM $table WHERE user_id=$uid");
     }    
 }
 
@@ -105,7 +111,8 @@ function ModifyUser($uid, $userName, $userDesc, $userPwd)
 {
     $r = GetDbConnection();
     if (!is_null($r)) {
-		$s = $r->prepare("UPDATE gui_users SET login=?, desc=?, password=? WHERE id=$uid");
+		$table = GetTableName("users");
+		$s = $r->prepare("UPDATE $table SET login=?, desc=?, password=? WHERE id=$uid");
 		$pwd = md5($userPwd);
 		$s->bindParam(1, $userName);
 		$s->bindParam(3, $userDesc);
@@ -122,21 +129,24 @@ function AddUserToGroup($userName, $groupName)
 
     $r = GetDbConnection();
     if (!is_null($r)) {
+		$tuser = GetTableName("users");
+		$tgroup = GetTableName("groups");
+		$tmems = GetTableName("membership");
         $uid = -1;
         $gid = -1;
-		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+		$q = GetSingleRow($r, "SELECT * FROM $tuser WHERE login='$userName'");
 		if (!is_null($q)) {
 			$uid = $q['id'];
 		}
-		$q = GetSingleRow($r, "SELECT * FROM gui_groups WHERE name='$groupName'");
+		$q = GetSingleRow($r, "SELECT * FROM $tgroup WHERE name='$groupName'");
 		if (!is_null($q)) {
 			$gid = $q['id'];
 		}
         if ($uid > -1 && $gid > -1) {
             // add user to group
-			$q = GetSingleRow($r, "SELECT * FROM gui_membership WHERE user_id=$uid AND group_id=$gid");
+			$q = GetSingleRow($r, "SELECT * FROM $tmems WHERE user_id=$uid AND group_id=$gid");
 			if (is_null($q)) {
-				$r->exec("INSERT INTO gui_membership (user_id, group_id) VALUES ($uid, $gid)");
+				$r->exec("INSERT INTO $tmems (user_id, group_id) VALUES ($uid, $gid)");
 			}
             $result = true;
         }
@@ -154,9 +164,11 @@ function AddUserToGroupID($userName, $groupID)
 
     $r = GetDbConnection();
     if (!is_null($r)) {
+		$tuser = GetTableName("users");
+		$tmems = GetTableName("membership");
         $uid = -1;
         $gid = -1;
-		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
+		$q = GetSingleRow($r, "SELECT * FROM $tuser WHERE login='$userName'");
 		if (!is_null($q)) {
 			$uid = $q['id'];
 		}
@@ -164,9 +176,9 @@ function AddUserToGroupID($userName, $groupID)
 		
         if ($uid > -1 && $gid > -1) {
             // add user to group
-			$q = GetSingleRow($r, "SELECT * FROM gui_membership WHERE user_id=$uid AND group_id=$gid");
+			$q = GetSingleRow($r, "SELECT * FROM $tmems WHERE user_id=$uid AND group_id=$gid");
 			if (is_null($q)) {
-				$r->exec("INSERT INTO gui_membership (user_id, group_id) VALUES ($uid, $gid)");
+				$r->exec("INSERT INTO $tmems (user_id, group_id) VALUES ($uid, $gid)");
 			}
             $result = true;
         }
@@ -183,11 +195,15 @@ function GetGroupByName($groupName)
     
     $r = GetDbConnection();
     if (!is_null($r)) {
-		$q = GetSingleRow($r, "SELECT * FROM gui_groups WHERE name='$groupName'");
-        if (!is_null($r)) {
-			$result = $r;
-			// add query for members
-			// $grp['members']
+		$tgroup = GetTableName("groups");
+		$q = GetSingleRow($r, "SELECT * FROM $tgroup WHERE name='$groupName'");
+        if (!is_null($q[0])) {
+			$result = $q;
+			// query the membership
+			$tuser = GetTableName("membership");
+			$gid = $result['id'];
+			$s = $r->query("SELECT user_id FROM $tuser WHERE group_id=$gid")->fetchAll(PDO::FETCH_COLUMN);
+			$result ['members'] = $s;
         }
     }
     return $result;
@@ -197,7 +213,8 @@ function RemoveUserGroup($uid, $gid)
 {
     $r = GetDbConnection();
     if (!is_null($r)) {
-		$r->exec("DELETE FROM gui_membership WHERE user_id=$uid AND group_id=$gid");
+		$tmems = GetTableName("membership");
+		$r->exec("DELETE FROM $tmems WHERE user_id=$uid AND group_id=$gid");
     }
 }
 function GetGroupByID($gid)
@@ -206,11 +223,14 @@ function GetGroupByID($gid)
     
     $r = GetDbConnection();
     if (!is_null($r)) {
-		$q = GetSingleRow($r, "SELECT * FROM gui_groups WHERE id='$gid'");
-        if (!is_null($r)) {
-			$result = $r;
-			// add query for members
-			// $grp['members']
+		$tgroup = GetTableName("groups");
+		$q = GetSingleRow($r, "SELECT * FROM $tgroup WHERE id='$gid'");
+        if (!is_null($q[0])) {
+			$result = $q;
+			// query the membership
+			$tuser = GetTableName("membership");
+			$s = $r->query("SELECT user_id FROM $tuser WHERE group_id=$gid")->fetchAll(PDO::FETCH_COLUMN);
+			$result ['members'] = $s;
         }
     }
     return $result;
@@ -220,15 +240,27 @@ function GetUserByName($userName)
 {
     $result = NULL;
     
-    $r = GetDbConnection();
-    if (!is_null($r)) {
-		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE login='$userName'");
-        if (!is_null($r)) {
-			$result = $r;
-			// add query for membership
-			// $usr['groups']
-        }
-    }
+	$r = GetDbConnection();
+	if (!is_null($r)) {
+		$tuser = GetTableName("users");
+		$s = $r->prepare("SELECT * FROM $tuser WHERE login=?");
+		if ($s != false) {
+			$s->bindParam(1, $userName);
+			$s->execute();
+			if ($s) {
+				$d = $s->fetchAll();
+				$q = $d[0];
+				if (!is_null($q)) {
+					$result = $q;
+					// query the membership
+					$tuser = GetTableName("membership");
+					$uid = $q['id'];
+					$s = $r->query("SELECT group_id FROM $tuser WHERE user_id=$uid")->fetchAll(PDO::FETCH_COLUMN);
+					$result ['groups'] = $s;
+				}
+			}
+		}
+	}
     return $result;
 }
 
@@ -238,11 +270,14 @@ function GetUserByID($uid)
     
     $r = GetDbConnection();
     if (!is_null($r)) {
-		$q = GetSingleRow($r, "SELECT * FROM gui_users WHERE id='$uid'");
-        if (!is_null($r)) {
-			$result = $r;
-			// add query for membership
-			// $usr['groups']
+		$tuser = GetTableName("users");
+		$q = GetSingleRow($r, "SELECT * FROM $tuser WHERE id=$uid");
+        if (!is_null($q[0])) {
+			$result = $q;
+			// query the membership
+			$tuser = GetTableName("membership");
+			$s = $r->query("SELECT group_id FROM $tuser WHERE user_id=$uid")->fetchAll(PDO::FETCH_COLUMN);
+			$result ['groups'] = $s;
         }
     }
     return $result;
@@ -288,13 +323,13 @@ function GetACL($object)
     if (!is_null($gUser)) {
         // authenticated session
         $result[] = 'read';
-        if ($gUser['id'] == 1) {
+        if ($gUser['id'] == 0) {
             $result[] = 'write';
             $result[] = 'delete';
             $result[] = 'execute';
             $result[] = 'system';
         }
-        if (in_array(1, $gUser['groups']) && !in_array('system', $result)) {
+        if (in_array(0, $gUser['groups']) && !in_array('system', $result)) {
             $result[] = 'system';
         }
     }
@@ -309,7 +344,7 @@ function CheckUserPassword($pwd)
     if(is_null($gUser)) {
         return false;
     }
-    if ($code != $gUser[2]) {
+    if ($code != $gUser['password']) {
         return false;
     }
     return true;

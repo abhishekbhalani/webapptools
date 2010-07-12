@@ -4,32 +4,38 @@ require_once('./themes.php');
 require_once('./usermgmt.php');
 
 // todo check ACL for access
-if (!CheckACL('dashboard')) {
-    PrintNoAccess();
-    exit(0);
-}
-$r = GetRedisConnection();
+//if (!CheckACL('dashboard')) {
+//    PrintNoAccess();
+//    exit(0);
+//}
+$db = GetDbConnection();
 $isSystem = false;
 if (!is_null($r)) {
     // check for admin group
-    if (in_array(1, $gUser['groups']) || $gUser['id'] == 1) {
+    if (in_array(0, $gUser['groups']) || $gUser['id'] == 0) {
         $isSystem = true;
         // put system information to dashboard
-        $rInfo = $r->info();
+/*        $rInfo = $r->info();
         $smarty->assign('redisVersion', $rInfo['redis_version']);
         $smarty->assign('redisUptime', $rInfo['uptime_in_days']);
         $smarty->assign('redisRole', $rInfo['role']);
         $smarty->assign('redisMemory', $rInfo['used_memory']);
-        $smarty->assign('redisKeys', $rInfo['db' . $gRedisDB]);
+        $smarty->assign('redisKeys', $rInfo['db' . $gRedisDB]);*/
+		$dbdrv = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+		$dbver = $db->getAttribute(PDO::ATTR_CLIENT_VERSION);
+		$smarty->assign('sqlDriver', $dbdrv);
+        $smarty->assign('sqlVersion', $dbver);
     }
 }
 
-$users = $r->keys("Login:*");
-$smarty->assign('sysUsers', sizeof($users));
-$usersOnline = GetLoggedUsers();
-$smarty->assign('sysUsersOnline', sizeof($usersOnline)); // . ' ' . print_r($usersOnline, true));
-$sess = $r->keys("Session:*");
-$smarty->assign('sysSessions', sizeof($sess));
+$table = GetTableName("users");
+$users = GetSingleRow($db, "SELECT count(id) FROM $table");
+$smarty->assign('sysUsers', $users[0]);
+$table = GetTableName("sessions");
+$usersOnline = GetSingleRow($db, "SELECT count(id) FROM $table WHERE client_id>-1");
+$smarty->assign('sysUsersOnline', $usersOnline[0]); // . ' ' . print_r($usersOnline, true));
+$sess = $users = GetSingleRow($db, "SELECT count(id) FROM $table");
+$smarty->assign('sysSessions', $sess[0]);
 
 $smarty->assign('osName', php_uname());
 $cpuStat = gettext('Unknown');

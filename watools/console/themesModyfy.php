@@ -10,7 +10,7 @@ if (!CheckACL('usermanagament')) {
     exit(0);
 }
 
-$r = GetRedisConnection();
+$r = GetDbConnection();
 if (is_null($r)) {
     echo gettext('Database access error!');
     exit(0);
@@ -51,26 +51,22 @@ else if ($action == 'themeusr') {
     $msg = "OK";
     $thID = $_POST['theme'];
     $lnID = $_POST['lang'];
-    $thID *= 2;
-    $thID /= 2;
     
-    if ($thID > 0) {
-        if ($r->exists("Theme:$thID") == 1) {
-            $th = $r->lrange("Theme:$thID", 0, 1);
-            $uid = $gUser['id'];
-            $r->lset("User:$uid", $th[0], 3);
-            //! TODO: check language
-            $lnID = strtolower($lnID);
-            if ($lnID == 'en' || $lnID == 'ru') {
-                $r->lset("User:$uid", $lnID, 4);
-            }
-            else {
-                $msg = gettext("Unknown language!");
-            }
-        }
-        else {
-            $msg = gettext("Theme doesn't exist!");
-        }
+    if ($thID != "") {
+		$gSession['theme'] = $thID;
+		$gSession['lang'] = $lnID;
+		SaveSession();
+		$table = GetTableName("users");
+		$q = $r->prepare("UPDATE $table SET theme=?, lang=? WHERE id=?");
+		if ($q) {
+			$q->bindParam(1, $thID);
+			$q->bindParam(2, $lnID);
+			$q->bindParam(3, $gUser['id']);
+			$q->execute();
+		}
+		else {
+			PrintDbError($r);
+		}
     }
     else {
         $msg = gettext('Invalid request!');

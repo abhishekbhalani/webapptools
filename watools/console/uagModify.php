@@ -10,7 +10,7 @@ if (!CheckACL('usermanagament')) {
     exit(0);
 }
 
-$r = GetRedisConnection();
+$r = GetDbConnection();
 if (is_null($r)) {
     echo gettext('Database access error!');
     exit(0);

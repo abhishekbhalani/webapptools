@@ -25,8 +25,7 @@
             }
         });
         $('#tips').hide();
-		$('#db_redis').attr('checked', 'checked');
-		db_change('#redis');
+		db_change();
     });
 	</script>
 </head>
@@ -79,7 +78,7 @@
             </table>
         </fieldset>
 		<br/>
-		Clear DB:<input type="checkbox" name="db_clear" id="db_clear" value="0"><label for="redis_clear">Yes</label>
+		Clear DB:<input type="checkbox" name="db_clear" id="db_clear" value="0"><label for="db_clear">Yes</label>
 		<input type="hidden" name="db_dsn" id="db_dsn" value="" />
 		<input type="hidden" name="db_usr" id="db_usr" value="" />
 		<input type="hidden" name="db_pwd" id="db_pwd" value="" />
@@ -91,7 +90,7 @@
                 <li id="dbsrv" class="error" style="display:none">Server host must not be empty!</li>
                 <li id="dbport" class="error" style="display:none">Server port is not valid!</li>
                 <li id="dbname" class="error" style="display:none">Database name must not be empty!</li>
-                <li id="dberr" class="error" style="display:none">Database error: <span id="dberr_msg"></span>!</li>
+                <li id="dberr" class="error" style="display:none">Database error: <span id="dberr_msg"></span></li>
                 </ul>
             </fieldset>
             <br/>
