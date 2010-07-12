@@ -9,7 +9,7 @@ if (!CheckACL('settings/modules')) {
     exit(0);
 }
 
-$r = GetRedisConnection();
+$r = GetDbConnection();
 $scanners = $r->keys("ScanModule:Instance:*");
 
 $acl = GetACL('settings/modules/scanners');

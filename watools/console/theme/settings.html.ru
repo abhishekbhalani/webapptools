@@ -18,7 +18,7 @@
         <li><a href="setsSystem.php">Системные настройки</a></li>
         <li><a href="setsUsers.php">Пользователи и группы</a></li>
         <li><a href="setsACL.php">Контроль доступа</a></li>
-        <li><a href="setsDatabase.php">Базы данных</a></li>
+        <!-- li><a href="setsDatabase.php">Базы данных</a></li -->
 [{/if}]
     </ul>
 </div>

@@ -22,7 +22,7 @@
                     var name = $("#uname").attr('value');
                     var pwd = $("#paswd").attr('value');
                     var resp = CheckUser(name, pwd);
-                    if (resp == 'SUCCESS') {
+                    if (resp == "SUCCESS") {
                         $('#tips')
                             .text('')
                             .hide();

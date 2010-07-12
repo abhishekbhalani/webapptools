@@ -30,7 +30,7 @@
                     }
                     else {
                         $('#tips')
-                            .html('<span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>--' + resp + '--')
+                            .html('<span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>' + resp)
                             .show();
                         setTimeout(function() {
                             $('#tips').fadeOut("slow");

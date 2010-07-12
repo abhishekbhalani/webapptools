@@ -8,7 +8,7 @@
 <script language="JavaScript">
     var prevButton = "";
     var prevIndex = -1;
-    var methods = Array('tasks.php','profiles.php','auths.php','reports.php','dicts.php','settings.php');
+    var methods = Array('tasks.php','profiles.php','reports.php','dicts.php','settings.php');
 
     $(function() {
         $("#selectable").selectable({
@@ -41,18 +41,16 @@
 <body>
 <div id="content">
 <table width="100%" border="0"><tr>
-    <td class="button-panel" valign="top" width="200px">
+    <td class="button-panel" valign="top" width="150px">
         <button id="btnTestRefresh" onClick="document.location='/';">Пользователь [{$UserName}]</button>
         <script>
-        $("#btnTestRefresh").button({icons: {primary: 'ui-icon-refresh'}}).width("200px");
+        $("#btnTestRefresh").button({icons: {primary: 'ui-icon-refresh'}}).width("150px");
         </script>
         <ol id="selectable" class="leftMenu">
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/task.png" border="0" align="middle"/>Задачи</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/scanner.png" border="0" align="middle" />Профили сканирования</li>
-            <li class="ui-widget-content ui-state-default ui-corner-all">
-                <img src="/[{$theme}]/images/auth.png" border="0" align="middle" />Профили авторизации</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/report.png" border="0" align="middle" />Отчеты</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
