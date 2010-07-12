@@ -15,19 +15,11 @@
 [{/if}]
 [{if $SysUser}]
 <fieldset class="ui-widget ui-corner-all">
-<legend class="ui-widget">Redis Database</legend>
+<legend class="ui-widget">Database Server</legend>
 <table border='0'>
-<tr><td><span class="ui-icon ui-icon-computer ui-icon-btn"></span><b> Server version:</b></td><td>[{$redisVersion}]</td></tr>
-<tr><td><span class="ui-icon ui-icon-help ui-icon-btn"></span><b> Server role:</b></td><td>[{$redisRole}]</td></tr>
-<tr><td><span class="ui-icon ui-icon-clock ui-icon-btn"></span><b> Server uptime:</b></td><td>[{$redisUptime}] day(s)</td></tr>
-<tr><td><span class="ui-icon ui-icon-compress ui-icon-btn"></span><b> Memory usage:</b></td><td>[{$redisMemory}]</td></tr>
-<tr><td><span class="ui-icon ui-icon-key ui-icon-btn"></span><b> Keys in DB:</b></td><td>[{$redisKeys}]</td></tr>
+<tr><td><span class="ui-icon ui-icon-computer ui-icon-btn"></span><b> Database driver:</b></td><td>[{$sqlDriver}]</td></tr>
+<tr><td><span class="ui-icon ui-icon-info ui-icon-btn"></span><b> Server version:</b></td><td>[{$sqlVersion}]</td></tr>
 </table>
-</fieldset>
-<br/>
-<fieldset class="ui-widget ui-corner-all">
-<legend class="ui-widget">SQL Database</legend>
-<div class="data"><span class="ui-icon ui-icon-alert ui-icon-btn"></span><b>Haven't any information</b></div>
 </fieldset>
 <br/>
 <fieldset class="ui-widget ui-corner-all">

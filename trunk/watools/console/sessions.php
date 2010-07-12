@@ -1,11 +1,12 @@
 <?
-require_once('redisDB.php');
+header("HTTP/1.0 200 OK");
+require_once('db.php');
 require_once('usermgmt.php');
 
 $gSession = NULL;
 $gUser = NULL;
 
-$r = GetRedisConnection();
+$r = GetDbConnection();
 
 if (is_null($r)) {
     header("HTTP/1.0 302 Found");
@@ -13,17 +14,27 @@ if (is_null($r)) {
     exit(0);
 }
 
+$tsess = GetTableName("sessions");
+$tint = GetTableName("_internals_");
+$ttheme = GetTableName("themes");
+
 // detect theme settings
 $theme = '';
 if (isset($_COOKIE['WATTHEME'])) {
     $theme = $_COOKIE['WATTHEME'];
 }
 if ($theme == '') {
-    $theme = $r->get('Global:DefaultTheme');
+	$q = GetSingleRow($r, "SELECT value FROM $tsess WHERE name='DefaultTheme'");
+	if (!is_null($q)) {
+		$theme = $q[0];
+	}
 }
 
 // detect language settings
-$lang = $r->get('Global:DefaultLang');;
+$q = GetSingleRow($r, "SELECT value FROM $tsess WHERE name='DefaultLang'");
+if (!is_null($q)) {
+	$lang = $q[0];
+}
 if (isset($_COOKIE['WATLANG'])) {
     $lang = $_COOKIE['WATLANG'];
 }
@@ -40,116 +51,124 @@ if ($lang == '') {
 
 if (isset($_COOKIE['WATSESSION'])) {
     $sid = $_COOKIE['WATSESSION'];
-    if ($r->sismember("Sessions", $sid) == 0) {
-        $r->delete("Session:$sid");
-        // fall throught to the new session creation
-    }
-    else {
-        $gSession = $r->lrange("Session:$sid", 0, 5);
-        $gSession['id'] = $sid;
+	$sess = GetSingleRow($r, "SELECT * FROM $tsess WHERE id='$sid'");
+    if (!is_null($sess) && $sess['id'] == $sid) {
+        $gSession = $sess;
         // check for timeout
-        $stm = $gSession[0];
+        $stm = $gSession['timeout'];
         $ltm = time();
         if ($stm < $ltm) {
             // 5 minutes timeout expired
-            $r->delete("Session:$sid");
-            $r->srem("Sessions", $sid);
+			DbExec($r, "DELETE FROM $tsess WHERE id='$sid'");
             $gSession = NULL;
         }
         else {
             // update timeout value
-            $gSession[0] = $ltm + 300;
-            $r->lset("Session:$sid", $gSession[0], 0);
+			$ltm += 300;
+            $gSession['timeout'] = $ltm;
+			DbExec($r, "UPDATE $tsess SET timeout=$ltm WHERE id='$sid'");
         }
         // check session hijacking attempt
         if (!is_null($gSession)) {
-            if ($gSession[2] != $_SERVER['REMOTE_ADDR']) {
+			$client = md5($_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
+            if ($gSession['connection_id'] != $client) {
                 // atatat!!!
-                $r->delete("Session:$sid");
-                $r->srem("Sessions", $sid);
-                $gSession = NULL;
+                DbExec($r, "DELETE FROM $tsess WHERE id='$sid'");
+				$gSession = NULL;
             }
         }
     }
 }
 
 // check for cleanup
-$stm = $r->get('Global:SessionCheck');
+$stm = GetSingleRow($r, "SELECT value FROM $tint WHERE name='SessionCheck'");
 $ltm = time();
-if ($stm < $ltm) {
+if (is_null($stm[0])) {
+	$stm = array($ltm);
+	DbExec($r, "INSERT INTO $tint (name, value) VALUES('SessionCheck', $ltm)");
+}
+if ($stm[0] < $ltm) {
     CleanUpSessions();
-    $stm = $ltm + 600; // 10 minutes;
-    $r->set('Global:SessionCheck', $stm);
+    $stm[0] = $ltm + 300; // 5 minutes;
+	DbExec($r, "UPDATE $tint SET value=$stm[0] WHERE name='SessionCheck'");
 }
 
 if (is_null($gSession)) {
     // create new session
     $ltm = time();
     $sid = md5($ltm . $_SERVER['HTTP_USER_AGENT'] . $_SERVER['REMOTE_ADDR']);
-    while ($r->sismember("Sessions", $sid) == 1) {
+	$sess = GetSingleRow($r, "SELECT * FROM $tsess WHERE id='$sid'");
+    while (!is_null($sess[0])) {
         $sid .=  $_SERVER['REMOTE_ADDR'] . rand(0, 9);
         $sid = md5($sid);
+		//$sess = GetSingleRow($r, "SELECT * FROM $tsess WHERE id=$sid");
     }
-    $r->sadd("Sessions", $sid);
-    $ltm += 300;
-    $r->rpush("Session:$sid", $ltm);             // timeout 0
-    $r->rpush("Session:$sid", -1);               // ClientID 1
-    $addr = $_SERVER['REMOTE_ADDR'];
-    $r->rpush("Session:$sid", $addr);            // ConnectionID 2
+    $ltm += 300;								 // timeout 0
+    $cli_id = -1;				                 // ClientID 1
+    $addr = $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT'];
+    $conn_id = md5($addr);                       // ConnectionID 2
     // get theme
-    $theme = $r->get('Global:DefaultTheme');
+	$q = GetSingleRow($r, "SELECT value FROM $tint WHERE name='DefaultTheme'");
+	if (is_null($q)) {
+		$theme = 0;
+	}
+	else {
+		$theme = $q[0];
+	}
     if (isset($_COOKIE['WATTHEME'])) {
         $theme = $_COOKIE['WATTHEME'];
-    }
-    $r->rpush("Session:$sid", $theme);           // Theme 3
-    $r->rpush("Session:$sid", $lang);            // Language 4
-    // return session
-    $gSession = $r->lrange("Session:$sid", 0, 5);
-    $gSession['id'] = $sid;
-    $r->sadd("Sessions", $sid);
+    }											 // Theme 3
+    //$lang							             // Language 4
+    // Create session
+	$s = $r->prepare("INSERT INTO $tsess (id, timeout, client_id, connection_id, theme, lang) VALUES (?, ?, ?, ?, ?, ?)");
+	if ($s == false) {
+		PrintDbError($r);
+	}
+	$s->bindParam(1, $sid);
+	$s->bindParam(2, $ltm);
+	$s->bindParam(3, $cli_id);
+	$s->bindParam(4, $conn_id);
+	$s->bindParam(5, $theme);
+	$s->bindParam(6, $lang);
+	if ( ! $s->execute()) {
+		PrintDbError($s);
+	}
+    $gSession = GetSingleRow($r, "SELECT * FROM $tsess WHERE id='$sid'");
 }
 
 if (!is_null($gSession)) {
     // check for authentication mode
-    $gUser = GetUserByID($gSession[1]);
+    $gUser = GetUserByID($gSession['client_id']);
+	$sid = $gSession['id'];
     // overwrite user defined parameters
     if (!is_null($gUser)) {
-        $inf = $gUser[3];
+        $inf = $gUser['theme'];
         if (!is_null($inf) && $inf != "") {
             $theme = $inf;
-            $r->lset("Session:$sid", $theme, 3);
+			DbExec($r, "UPDATE $tsess SET theme=$theme WHERE id=$sid");
         }
-        $inf = $gUser[4];
+        $inf = $gUser['lang'];
         if (!is_null($inf) && $inf != "") {
             $lang = $inf;
-            $r->lset("Session:$sid", $lang, 4);
+			DbExec($r, "UPDATE $tsess SET lang='$lang' WHERE id='$sid'");
         }
     }
     // save session
-    setcookie('WATSESSION', $gSession['id'], $gSession[0]);
+    setcookie('WATSESSION', $gSession['id'], $gSession['timeout']);
     setcookie('WATTHEME', $theme);
     setcookie('WATLANG', $lang);
-
 }
 
 // functions for extarnal use
 function CleanUpSessions() {
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
+	$tsess = GetTableName("sessions");
     if (!is_null($r)) {
-        $alls = $r->keys("Session:*");
-        $ltm = time();
+		$ltm = time();
+		$alls = $r->query("SELECT id FROM $tsess WHERE timeout <= $ltm");
         foreach ($alls as $sess) {
-            $sid = substr($sess,8);
-            if ($r->sismember("Sessions", $sid) == 0) {
-                // delete broken session
-                DeleteSession($r, $sid);
-            }
-            else {
-                $s = $r->lrange("Session:$sid", 0, 5);
-                if ($s[0] < $ltm) {
-                    DeleteSession($r, $sid);
-                }
-            }
+            $sid = $sess['id'];
+			DbExec($r, "DELETE FROM $tsess WHERE id='$sid'");
         }
     }
     return true;
@@ -158,16 +177,17 @@ function CleanUpSessions() {
 function GetLoggedUsers()
 {
     $res = array();
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
     if (!is_null($r)) {
-        $alls = $r->keys("Session:*");
+        $alls = $r->query("SELECT client_id FROM $tsess");
         foreach ($alls as $sess) {
-            $sid = substr($sess,8);
-            $s = $r->lrange("Session:$sid", 0, 5);
-            $u = GetUserByID($s[1]);
-            if (!is_null($u)) {
-                $res[] = $u[0];
-            }
+			$uid = $sess['client_id'];
+            if ($uid > -1) {
+				$u = GetUserByID($uid);
+				if (!is_null($u)) {
+					$res[] = $u[0];
+				}
+			}
         }
     }
     return $res;
@@ -176,33 +196,38 @@ function GetLoggedUsers()
 function SaveSession() {
     global $gSession;
     
-    $r = GetRedisConnection();
+    $r = GetDbConnection();
+	$tsess = GetTableName("sessions");
     if (!is_null($r)) {
         $ltm = time();
-        if ($gSession[0] < $ltm) {
-            DeleteSession($r, $gSession['id']);
-            $gSession = NULL;
-            return;
-        }
-        if ($r->sismember("Sessions", $gSession['id']) == 0) {
-            // delete broken session
+        if ($gSession['timeout'] < $ltm) {
             DeleteSession($r, $gSession['id']);
             $gSession = NULL;
             return;
         }
         // fall throught to the new session creation
-        $key = "Session:" . $gSession['id'];
-        $r->lset($key, $gSession[0], 0);
-        $r->lset($key, $gSession[1], 1);
-        $r->lset($key, $gSession[2], 2);
-        $r->lset($key, $gSession[3], 3);
-        $r->lset($key, $gSession[4], 4);
+    // Create session
+		$s = $r->prepare("REPLACE INTO $tsess (id, timeout, client_id, connection_id, theme, lang) VALUES (?, ?, ?, ?, ?, ?)");
+		if ($s == false) {
+			PrintDbError($r);
+		}
+		$s->bindParam(1, $gSession['id']);
+		$s->bindParam(2, $gSession['timeout']);
+		$s->bindParam(3, $gSession['client_id']);
+		$s->bindParam(4, $gSession['connection_id']);
+		$s->bindParam(5, $gSession['theme']);
+		$s->bindParam(6, $gSession['lang']);
+		if ( ! $s->execute()) {
+			PrintDbError($s);
+		}
+		$gSession = GetSingleRow($r, "SELECT * FROM $tsess WHERE id='$sid'");
     }
 }
 
-function DeleteSession($redis, $sid) {
-    $redis->srem("Sessions", $sid);
-    $redis->delete("Session:$sid");
+function DeleteSession($dbh, $sid) {
+	$tsess = GetTableName("sessions");
+	DbExec($dbh, "DELETE FROM $tsess WHERE id='$sid'");
     return true;
 }
+
 ?>

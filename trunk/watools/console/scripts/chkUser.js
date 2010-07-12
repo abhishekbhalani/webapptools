@@ -21,6 +21,7 @@ function CheckUser(usr, pwd) {
     oRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     oRequest.send(params);
     
-    msg = oRequest.responseText;
+	msg = oRequest.responseText;
+	msg = jQuery.trim(msg);
     return msg;
 }

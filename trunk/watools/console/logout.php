@@ -3,7 +3,7 @@ require_once('./sessions.php');
 require_once('./themes.php');
 require_once('./usermgmt.php');
 
-$r = GetRedisConnection();
+$r = GetDbConnection();
 
 if (!is_null($gSession) && !is_null($r)) {
     DeleteSession($r, $gSession['id']);

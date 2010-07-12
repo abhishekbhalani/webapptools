@@ -9,20 +9,21 @@ if (!CheckACL('settings/personal')) {
     exit(0);
 }
 
-$r = GetRedisConnection();
+$r = GetDbConnection();
 $thIDs = array();
 $thNms = array();
 $thDsc = array();
 $thLng = array();
 $thDef = -1;
 if (!is_null($r)) {
-    $thDef = $gUser[3];
-    $thDef = $r->get("ThemeName:$thDef");
-    $keys = $r->keys("ThemeName:*");
+    $thDef = $gUser['theme'];
+    //$thDef = $r->get("ThemeName:$thDef");
+	$table = GetTableName("themes");
+	$keys = $r->query("SELECT name FROM $table")->fetchAll(PDO::FETCH_COLUMN);
     foreach ($keys as $k) {
-        $u = $r->get($k);
-        $k = substr($k, 10);
-        $thIDs[] = $u;
+        //$u = $r->get($k);
+        //$k = substr($k, 10);
+        $thIDs[] = $k;
         $thNms[] = $k;
         $handle = @fopen($k . '/theme.txt', "r");
         $data = gettext("No description provided");
@@ -64,7 +65,7 @@ $smarty->assign('langs', $lgIDs);
 $smarty->assign('lnNames', $lgNms);
 $smarty->assign('defLang', $lgDef);
 
-$smarty->assign('UserName', $gUser[0]);
-$smarty->assign('userName', $gUser[1]);
+$smarty->assign('UserName', $gUser['login']);
+$smarty->assign('userName', $gUser['desc']);
 DisplayThemePage('settings/personal.html');
 ?>

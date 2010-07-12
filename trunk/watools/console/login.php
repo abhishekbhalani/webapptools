@@ -34,7 +34,7 @@ if (!is_null($gSession) && !is_null($gUser)) {
     }
 }
 // try to find user
-$r = GetRedisConnection();
+$r = GetDbConnection();
 if (is_null($r)) {
     if ($isAjax == 'true') {
         echo gettext("Database connection error! " .$gRedisError);
@@ -51,11 +51,11 @@ if (is_null($user)) {
 }
 
 $pwd = md5($paswd);
-if ($user[2] != $pwd) {
+if ($user['password'] != $pwd) {
     AuthError();
 }
 // set authentication to the session
-$gSession[1] = $user['id'];
+$gSession['client_id'] = $user['id'];
 SaveSession();
 $gUser = $user;
 
