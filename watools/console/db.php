@@ -11,6 +11,12 @@ $dbStruct = array (
 	array("users", "(id INT NOT NULL UNIQUE, login TEXT UNIQUE, desc TEXT, password TEXT, theme INT, lang TEXT)"),
 	array("groups", "(id INT NOT NULL UNIQUE, name TEXT UNIQUE, desc TEXT)"),
 	array("membership", "(user_id INT NOT NULL, group_id INT NOT NULL)"),
+	array("modules", "(id TEXT NOT NULL, instance INT NOT NULL, class INT NOT NULL, version TEXT, ipaddr TEXT, name TEXT, timeout INT, onrun INT, status TEXT)"),
+	array("task", "(id INT, profile_id INT, status INT, completion INT, start_time TEXT, finish_time TEXT, ping_time TEXT, processed_urls BLOB)"),
+	array("profile", "(profile_id INT, name TEXT, type INT, value VARIANT)"),
+	array("scan_data", "(id INT, task_id INT, parent_id INT, object_url TEXT, scan_depth INT, resp_code INT, data_size INT, dnld_time INT, content_type TEXT)"),
+	array("vulners", "(id INT NOT NULL, task_id INT NOT NULL, object_id INT, plugin_id TEXT, severity INT DEFAULT 0, vulner_id INT, params TEXT)"),
+	array("vulner_desc", "(plugin_id TEXT NOT NULL, id INT NOT NULL, severity INT NOT NULL, title TEXT, short TEXT, desc BLOB, locale TEXT)"),
 	array("themes", "(id INT NOT NULL UNIQUE, name TEXT UNIQUE, desc TEXT)")
 );
 
@@ -37,7 +43,7 @@ function GetDbConnection()
 
 function PrintDbError($dbh)
 {
-	$err = $err = $dbh->errorInfo();
+	$err = $dbh->errorInfo();
 	$gDbError .= $err[0] . ": " . $err[2] . "<br/>\n";
 	echo $gDbError;
 	exit(0);

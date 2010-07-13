@@ -380,15 +380,15 @@ function deleteGroupMsg(uid, uname) {
         <table width="100%" id='userstable'>
         <tr class="ui-widget-header"><th class="grid">Login</th><th class="grid">Full Name</th><th class="grid">Groups</th><th class="grid">Actions</th></tr>
         [{section name=user loop=$userList}]
-        <tr><td class="grid"><input type="checkbox" name="uid[{$userList[user][9]}]" id="uid[{$userList[user][9]}]">[{$userList[user][0]}]</td><td class="grid">[{$userList[user][1]}]</td>
+        <tr><td class="grid"><input type="checkbox" name="uid[{$userList[user][0]}]" id="uid[{$userList[user][0]}]">[{$userList[user][1]}]</td><td class="grid">[{$userList[user][2]}]</td>
                 <td class="grid">[{section name=grpN loop=$userList[user][10]}]
                     [{$userList[user][10][grpN]}][{if not $smarty.section.grpN.last}], [{/if}]
                 [{/section}]</td><td class="grid">
-                                <a href="#" onclick="return deleteUserMsg('[{$userList[user][9]}]', '[{$userList[user][0]}]');">
+                                <a href="#" onclick="return deleteUserMsg('[{$userList[user][0]}]', '[{$userList[user][1]}]');">
                                     <span class="ui-icon ui-icon-closethick ui-icon-btn" title="Delete user"></span></a>&nbsp;
-                                <a href="#" onclick="return userEdit('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
+                                <a href="#" onclick="return userEdit('[{$userList[user][1]}]', '[{$userList[user][2]}]', '[{$userList[user][0]}]');">
                                     <span class="ui-icon ui-icon-clipboard ui-icon-btn" title="Edit user"></span></a>&nbsp;
-                                <a href="#" onclick="return userPwd('[{$userList[user][0]}]', '[{$userList[user][1]}]', '[{$userList[user][9]}]');">
+                                <a href="#" onclick="return userPwd('[{$userList[user][1]}]', '[{$userList[user][2]}]', '[{$userList[user][0]}]');">
                                     <span class="ui-icon ui-icon-key-export ui-icon-btn" title="Reset password"></span></a>&nbsp;
                                 <a href="#" onclick="return false;">
                                     <span class="ui-icon ui-icon-group ui-icon-btn" title="Define groups membership"></span></a></td></tr>
@@ -407,10 +407,10 @@ function deleteGroupMsg(uid, uname) {
         <table width="100%" id='groupstable'>
         <tr class="ui-widget-header"><th class="grid">Name</th><th class="grid">Description</th><th class="grid">Actions</th></tr>
         [{section name=group loop=$groupList}]
-        <tr><td class="grid"><input type="checkbox" name="gid[{$groupList[group][9]}]" id="gid[{$groupList[group][9]}]">[{$groupList[group][0]}]</td><td class="grid">[{$groupList[group][1]}]</td><td class="grid">
-                                <a href="#" onclick="return deleteGroupMsg('[{$groupList[group][9]}]', '[{$groupList[group][0]}]');">
+        <tr><td class="grid"><input type="checkbox" name="gid[{$groupList[group][0]}]" id="gid[{$groupList[group][0]}]">[{$groupList[group][1]}]</td><td class="grid">[{$groupList[group][2]}]</td><td class="grid">
+                                <a href="#" onclick="return deleteGroupMsg('[{$groupList[group][0]}]', '[{$groupList[group][1]}]');">
                                     <span class="ui-icon ui-icon-closethick ui-icon-btn" title="Delete group"></span></a>&nbsp;
-                                <a href="#" onclick="return groupEdit('[{$groupList[group][0]}]', '[{$groupList[group][1]}]', '[{$groupList[group][9]}]')">
+                                <a href="#" onclick="return groupEdit('[{$groupList[group][1]}]', '[{$groupList[group][2]}]', '[{$groupList[group][0]}]')">
                                     <span class="ui-icon ui-icon-clipboard ui-icon-btn" title="Edit group"></span></a></td></tr>
         [{/section}]
         </td></tr>
@@ -425,8 +425,8 @@ function deleteGroupMsg(uid, uname) {
 <!-- group edit -->
 <div id="groupEdit" title="Edit Group" style="display: none;">
     <table width="100%">
-        <tr><td><b>Group Name</b></td><td><input type="text" id="gName" value="" class="text"></td></tr>
-        <tr><td><b>Group Description</b></td><td><input type="text" id="gDesc" value="" class="text"></td></tr>
+        <tr><td><b>Group Name</b></td><td><input type="text" id="gName" value="" class="text" onchange="group.name=this.value; return false;"></td></tr>
+        <tr><td><b>Group Description</b></td><td><input type="text" id="gDesc" value="" class="text" onchange="group.desc=this.value; return false;"></td></tr>
     </table>
     <input type="hidden" id="gID" name="gID" value="">
 </div>

@@ -24,14 +24,14 @@ if (isset($_COOKIE['WATTHEME'])) {
     $theme = $_COOKIE['WATTHEME'];
 }
 if ($theme == '') {
-	$q = GetSingleRow($r, "SELECT value FROM $tsess WHERE name='DefaultTheme'");
+	$q = GetSingleRow($r, "SELECT value FROM $tint WHERE name='DefaultTheme'");
 	if (!is_null($q)) {
 		$theme = $q[0];
 	}
 }
 
 // detect language settings
-$q = GetSingleRow($r, "SELECT value FROM $tsess WHERE name='DefaultLang'");
+$q = GetSingleRow($r, "SELECT value FROM $tint WHERE name='DefaultLang'");
 if (!is_null($q)) {
 	$lang = $q[0];
 }
@@ -110,14 +110,17 @@ if (is_null($gSession)) {
     // get theme
 	$q = GetSingleRow($r, "SELECT value FROM $tint WHERE name='DefaultTheme'");
 	if (is_null($q)) {
-		$theme = 0;
+		// Theme 3
+		if (isset($_COOKIE['WATTHEME'])) {
+			$theme = $_COOKIE['WATTHEME'];
+		}
+		else {
+			$theme = $gDefaultTheme;
+		}
 	}
 	else {
 		$theme = $q[0];
 	}
-    if (isset($_COOKIE['WATTHEME'])) {
-        $theme = $_COOKIE['WATTHEME'];
-    }											 // Theme 3
     //$lang							             // Language 4
     // Create session
 	$s = $r->prepare("INSERT INTO $tsess (id, timeout, client_id, connection_id, theme, lang) VALUES (?, ?, ?, ?, ?, ?)");
@@ -145,18 +148,21 @@ if (!is_null($gSession)) {
         $inf = $gUser['theme'];
         if (!is_null($inf) && $inf != "") {
             $theme = $inf;
+			$gSession['theme'] = $theme;
 			DbExec($r, "UPDATE $tsess SET theme=$theme WHERE id=$sid");
         }
         $inf = $gUser['lang'];
         if (!is_null($inf) && $inf != "") {
             $lang = $inf;
+			$gSession['lang'] = $lang;
 			DbExec($r, "UPDATE $tsess SET lang='$lang' WHERE id='$sid'");
         }
+		SaveSession();
     }
     // save session
     setcookie('WATSESSION', $gSession['id'], $gSession['timeout']);
-    setcookie('WATTHEME', $theme);
-    setcookie('WATLANG', $lang);
+    setcookie('WATTHEME', $gSession['theme']);
+    setcookie('WATLANG', $gSession['lang']);
 }
 
 // functions for extarnal use
@@ -207,20 +213,21 @@ function SaveSession() {
         }
         // fall throught to the new session creation
     // Create session
-		$s = $r->prepare("REPLACE INTO $tsess (id, timeout, client_id, connection_id, theme, lang) VALUES (?, ?, ?, ?, ?, ?)");
-		if ($s == false) {
-			PrintDbError($r);
-		}
-		$s->bindParam(1, $gSession['id']);
-		$s->bindParam(2, $gSession['timeout']);
-		$s->bindParam(3, $gSession['client_id']);
-		$s->bindParam(4, $gSession['connection_id']);
-		$s->bindParam(5, $gSession['theme']);
-		$s->bindParam(6, $gSession['lang']);
-		if ( ! $s->execute()) {
-			PrintDbError($s);
-		}
-		$gSession = GetSingleRow($r, "SELECT * FROM $tsess WHERE id='$sid'");
+	$s = $r->prepare("REPLACE INTO $tsess (id, timeout, client_id, connection_id, theme, lang) VALUES (?, ?, ?, ?, ?, ?)");
+	if ($s == false) {
+		PrintDbError($r);
+	}
+	$s->bindParam(1, $gSession['id']);
+	$s->bindParam(2, $gSession['timeout']);
+	$s->bindParam(3, $gSession['client_id']);
+	$s->bindParam(4, $gSession['connection_id']);
+	$s->bindParam(5, $gSession['theme']);
+	$s->bindParam(6, $gSession['lang']);
+	if ( ! $s->execute()) {
+		PrintDbError($s);
+	}
+	$sid = $gSession['id'];
+	$gSession = GetSingleRow($r, "SELECT * FROM $tsess WHERE id='$sid'");
     }
 }
 

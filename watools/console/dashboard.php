@@ -4,10 +4,10 @@ require_once('./themes.php');
 require_once('./usermgmt.php');
 
 // todo check ACL for access
-//if (!CheckACL('dashboard')) {
-//    PrintNoAccess();
-//    exit(0);
-//}
+if (!CheckACL('dashboard')) {
+    PrintNoAccess();
+    exit(0);
+}
 $db = GetDbConnection();
 $isSystem = false;
 if (!is_null($r)) {
@@ -69,6 +69,26 @@ else {
         }
     }
 }
+
+// activity stats
+$table = GetTableName("task");
+$tsks = GetSingleRow($db, "SELECT count(id) FROM $table WHERE completion<100");
+if ($tsks) {
+	$tsks = $tsks[0];
+}
+else {
+	$tsks = 0;
+}
+$tsk2 = GetSingleRow($db, "SELECT count(id) FROM $table WHERE completion=100");
+if ($tsk2) {
+	$tsk2 = $tsk2[0];
+}
+else {
+	$tsk2 = 0;
+}
+
+$smarty->assign('actTasks', $tsks);
+$smarty->assign('complTasks', $tsk2);
 
 $smarty->assign('cpuStat', $cpuStat);
 $smarty->assign('ramStat', $ramStat);

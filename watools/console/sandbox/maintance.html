@@ -1,0 +1,35 @@
+<html>
+<head>
+<title>Web "A" Tools - Error</title>
+<link rel="stylesheet" type="text/css" href="/[{$theme}]/wat.css" />
+<script language="JavaScript" src="scripts/jquery.js"></script>
+<script type="text/javascript" src="/scripts/jquery-ui.js"></script>
+</head>
+<body>
+<div id="content">
+<div id="warning" title="Server maintance">
+<table><tr><td><img src="/[{$theme}]/images/warning.png"></td><td>
+Server temporary down for maintaince issues. Please, come back later. We'll try to fix this as soon as possible.
+</td></tr></table>
+</div>
+</div>
+<script language="JavaScript">
+$(document).ready(function() {
+    $('#warning').dialog({
+            autoOpen: true,
+            draggable: false,
+            resizable: false,
+            closeOnEscape:false,
+            modal: true,
+            width: 350,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+            buttons: {
+                "Ok": function() {
+                    document.location = "index.php";
+                }
+            }
+        });
+});
+</script>
+</body>
+</html>
