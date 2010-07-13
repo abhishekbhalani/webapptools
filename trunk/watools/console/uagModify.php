@@ -49,6 +49,7 @@ if ($action == 'user') {
     else {
         // edit user
         $res = ModifyUser($uid, $uname, $udesc, $pwd);
+		AddUserToGroupID($uname, $grp);
 /*        RemoveUserGroup($uid, $grp);
         if ($r->sismember("User:$uid:Groups", $grp) == 0) {
             $res = $r->sadd("User:$uid:Groups", $grp);
@@ -69,7 +70,7 @@ else if ($action == 'group') {
     $gid *= 2;
     $gid /= 2;
 
-    if ($gid <= 0) {
+    if ($gid < 0) {
         // add new group
         $res = CreateGroup($gname, $gdesc);
         if ($res == -2) {
@@ -81,11 +82,16 @@ else if ($action == 'group') {
     }
     else {
         // modify existing group
-        $data = $r->lrange("Group:$gid", 0, 1);
-        $r->delete("GroupName:" . $data[0]);
-        $r->set("GroupName:" . $gname, $gid);
-        $r->lset("Group:$gid", $gname, 0);
-        $r->lset("Group:$gid", $gdesc, 1);
+		$table = GetTableName("groups");
+		$s = $r->prepare("UPDATE $table SET name=?,desc=? WHERE id=$gid");
+		if ($s) {
+			$s->bindParam(1, $gname);
+			$s->bindParam(2, $gdesc);
+			$s->execute();
+		}
+		else {
+			PrintDbError($r);
+		}
     }
     echo $msg;
     exit(0);
@@ -140,14 +146,14 @@ else if ($action == 'userself') {
     if (!is_null($gUser)) {
         $uid = $gUser['id'];
         if ($opwd == "") {
-            $gUser[1] = $desc;
-            $r->lset("User:$uid", $desc, 1);
+            $gUser['desc'] = $desc;
+			$res = ModifyUser($uid, $gUser['login'], $gUser['desc'], "");
             $msg = "OK";
         }
         else {
             if (CheckUserPassword($opwd)) {
                 if ($pwd1 == $pwd2) {
-                    $res = ModifyUser($uid, $gUser[0], $desc, $pwd1);
+                    $res = ModifyUser($uid, $gUser['login'], $desc, $pwd1);
                     $msg = "OK";
                 }
                 else {

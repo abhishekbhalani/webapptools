@@ -1,4 +1,4 @@
-<?
+ï»¿<?
 require_once('./sessions.php');
 require_once('./themes.php');
 require_once('./usermgmt.php');
@@ -9,75 +9,84 @@ if (!CheckACL('settings/system')) {
     exit(0);
 }
 
-$r = GetRedisConnection();
+$db = GetDbConnection();
 $thIDs = array();
 $thNms = array();
 $thDsc = array();
 $thLng = array();
 $thDef = -1;
-if (!is_null($r)) {
-    $thDef = $r->get("Global:DefaultTheme");
-    $thDef = $r->get("ThemeName:$thDef");
-    $keys = $r->keys("ThemeName:*");
-    foreach ($keys as $k) {
-        $u = $r->get($k);
-        $k = substr($k, 10);
-        $thIDs[] = $u;
-        $thNms[] = $k;
-        $handle = @fopen($k . '/theme.txt', "r");
-        $data = gettext("No description provided");
-        $lng = array();
-        if ($handle) {
-            $data = fgets($handle);
-            $data = rtrim($data);
-            $locales = explode('|', $data);
-            foreach($locales as $l) {
-                $ln = explode(';', $l, 2);
-                $lng[] = $ln;
-            }
-            $data = "";
-            while (!feof($handle)) {
-                $data .= fgets($handle);
-            }
-            fclose($handle);
-        }
-        $thDsc[] = $data;
-        $thLng[] = $lng;
-    }
+if (!is_null($db)) {
+	$table = GetTableName("_internals_");
+    $thDef = GetSingleRow($db, "SELECT value FROM $table WHERE name='DefaultTheme'");
+	$thDef = $thDef[0];
+	$table = GetTableName("themes");
+	$q = $db->query("SELECT id,name FROM $table");
+	foreach ($q as $k) {
+		$thIDs[] = $k[0];
+		$thNms[] = $k[1];
+		if ($thDef == $k[1]) {
+			$thDef = $k[0];
+		}
+		$handle = @fopen($k[1] . '/theme.txt', "r");
+		$data = gettext("No description provided");
+		$lng = array();
+		if ($handle) {
+			$data = fgets($handle);
+			$data = rtrim($data);
+			$locales = explode('|', $data);
+			foreach($locales as $l) {
+				$ln = explode(';', $l, 2);
+				$lng[] = $ln;
+			}
+			$data = "";
+			while (!feof($handle)) {
+				$data .= fgets($handle);
+			}
+			fclose($handle);
+		}
+		$thDsc[] = $data;
+		$thLng[] = $lng;
+	}
 }
 // search for not installed themes
 $dirs = glob('*', GLOB_ONLYDIR);
 if ($dirs) {
+	$table = GetTableName("themes");
     foreach ($dirs as $dir) {
         $files = glob($dir . '/theme.txt');
         if ($files) {
             $tname = $dir;
-            if ($r->exists("ThemeName:$tname") == 0) {
-                $handle = @fopen($files[0], "r");
-                if ($handle) {
-                    $locstr = fgets($handle);
-                    $locstr = rtrim($locstr);
-                    $locales = explode('|', $locstr);
-                    $lng = array();
-                    foreach($locales as $l) {
-                        $ln = explode(';', $l, 2);
-                        $lng[] = $ln;
-                    }
-                    $data = "";
-                    while (!feof($handle)) {
-                        $data .= fgets($handle);
-                    }
-                    fclose($handle);
-                    $thIDs[] = 0;
-                    $thNms[] = $tname;
-                    $thDsc[] = $data;
-                    $thLng[] = $lng;
-                } // file handle opened
-            } // theme not installed
+			$q = $db->prepare("SELECT id FROM $table WHERE name=?");
+			if ($q) {
+				$q->bindParam(2, $tname);
+				$q->execute();
+				$d = $q->fetchAll(PDO::FETCH_COLUMN);
+				if (! is_null($d[0]) ) {
+					$handle = @fopen($files[0], "r");
+					if ($handle) {
+						$locstr = fgets($handle);
+						$locstr = rtrim($locstr);
+						$locales = explode('|', $locstr);
+						$lng = array();
+						foreach($locales as $l) {
+							$ln = explode(';', $l, 2);
+							$lng[] = $ln;
+						}
+						$data = "";
+						while (!feof($handle)) {
+							$data .= fgets($handle);
+						}
+						fclose($handle);
+						$thIDs[] = -1;
+						$thNms[] = $tname;
+						$thDsc[] = $data;
+						$thLng[] = $lng;
+					} // file handle opened
+				} // theme not installed
+			} // query prepared
         } // any files found
     } // foraech dirs
 } // any dirs found
-
 
 $lgIDs = array();
 $lgNms = array();
@@ -86,7 +95,7 @@ $lgDef = 'en';
 $lgIDs[] = 'en';
 $lgNms[] = 'English';
 $lgIDs[] = 'ru';
-$lgNms[] = 'Ðóññêèé';
+$lgNms[] = 'Ð ÑƒÑÑÐºÐ¸Ð¹';
 
 $smarty->assign('themes', $thIDs);
 $smarty->assign('thNames', $thNms);

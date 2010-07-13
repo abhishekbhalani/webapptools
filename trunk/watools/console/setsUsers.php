@@ -4,35 +4,38 @@ require_once('./themes.php');
 require_once('./usermgmt.php');
 
 // todo check ACL for access
-if (!CheckACL('settings/usersgrops')) {
-    PrintNoAccess();
-    exit(0);
-}
+//if (!CheckACL('settings/usersgrops')) {
+//    PrintNoAccess();
+//    exit(0);
+//}
 
-$r = GetRedisConnection();
+$db = GetDbConnection();
 $users = array();
-if (!is_null($r)) {
-    $logins = $r->keys("Login:*");
+if (!is_null($db)) {
+	$table = GetTableName("users");
+    $logins = $db->query("SELECT login FROM $table")->fetchAll(PDO::FETCH_COLUMN);
     foreach ($logins as $l) {
-        $l = substr($l, 6);
         $u = GetUserByName($l);
-        $u[9] = $u['id'];
-        $u[10] = GetUserGroups($u['id']);
+        $grp = GetUserGroups($u['id']);
+		$u[9] = $grp[0]; // "primary group"
+		foreach ($grp as $g) {
+			$gd = GetGroupByID($g);
+			$u[10][] = $gd['name'];
+		}
         $users[] = $u;
     }
 }
 $groups = array();
 $grpIds = array();
 $grpNames = array();
-if (!is_null($r)) {
-    $grpnm = $r->keys("GroupName:*");
+if (!is_null($db)) {
+	$table = GetTableName("groups");
+    $grpnm = $db->query("SELECT name FROM $table")->fetchAll(PDO::FETCH_COLUMN);
     foreach ($grpnm as $l) {
-        $l = substr($l, 10);
         $u = GetGroupByName($l);
-        $u[9] = $u['id'];
         $groups[] = $u;
         $grpIds[] = $u['id'];
-        $grpNames[] = $u[0];
+        $grpNames[] = $u['name'];
     }
 }
 

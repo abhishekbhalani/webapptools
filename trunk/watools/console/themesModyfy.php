@@ -10,8 +10,8 @@ if (!CheckACL('usermanagament')) {
     exit(0);
 }
 
-$r = GetDbConnection();
-if (is_null($r)) {
+$db = GetDbConnection();
+if (is_null($db)) {
     echo gettext('Database access error!');
     exit(0);
 }
@@ -24,14 +24,32 @@ if ($action == 'themeset') {
     $thID *= 2;
     $thID /= 2;
     
-    if ($thID > 0) {
-        if ($r->exists("Theme:$thID") == 1) {
-            $th = $r->lrange("Theme:$thID", 0, 1);
-            $r->set("Global:DefaultTheme", $th[0]);
+    if ($thID >= 0) {
+		$table = GetTableName("themes");
+		$q = GetSingleRow($db, "SELECT id, name FROM $table WHERE id=$thID");
+        if ($q[0] == $thID) {
+			$table = GetTableName("_internals_");
+			$s = $db->prepare("UPDATE $table SET value=? WHERE name='DefaultTheme'");
+			if ($s) {
+				$s->bindParam(1, $q[1]);
+				$s->execute();
+				$msg = $thID . "," . $q[1];
+			}
+			else {
+				PrintDbError($db);
+			}
             //! TODO: check language
             $lnID = strtolower($lnID);
             if ($lnID == 'en' || $lnID == 'ru') {
-                $r->set("Global:DefaultLang", $lnID);
+				$s = $db->prepare("UPDATE $table SET value=? WHERE name='DefaultLang'");
+				if ($s) {
+					$s->bindParam(1, $lnID);
+					$s->execute();
+					$msg .= ", " . $lnID;
+				}
+				else {
+					PrintDbError($db);
+				}
             }
             else {
                 $msg = gettext("Unknown language!");
@@ -57,7 +75,7 @@ else if ($action == 'themeusr') {
 		$gSession['lang'] = $lnID;
 		SaveSession();
 		$table = GetTableName("users");
-		$q = $r->prepare("UPDATE $table SET theme=?, lang=? WHERE id=?");
+		$q = $db->prepare("UPDATE $table SET theme=?, lang=? WHERE id=?");
 		if ($q) {
 			$q->bindParam(1, $thID);
 			$q->bindParam(2, $lnID);
@@ -65,7 +83,7 @@ else if ($action == 'themeusr') {
 			$q->execute();
 		}
 		else {
-			PrintDbError($r);
+			PrintDbError($db);
 		}
     }
     else {
@@ -88,15 +106,15 @@ else if ($action == 'themeinst') {
         }
         fclose($handle);
         $locales = explode('|', $locstr);
-        if ($r->exists("ThemeName:$tname") == 0) {
-            $tid = $r->incr('Global:ThemeID');
-            SetValue($r, "ThemeName:$tname", $tid);
-            $r->delete("Theme:$tid");
-            $r->rpush("Theme:$tid", $tname);
-            $r->rpush("Theme:$tid", $data);
-            $r->delete("Theme:$tid:Locales");
+        if ($db->exists("ThemeName:$tname") == 0) {
+            $tid = $db->incr('Global:ThemeID');
+            SetValue($db, "ThemeName:$tname", $tid);
+            $db->delete("Theme:$tid");
+            $db->rpush("Theme:$tid", $tname);
+            $db->rpush("Theme:$tid", $data);
+            $db->delete("Theme:$tid:Locales");
             foreach ($locales as $loc) {
-                $r->sadd("Theme:$tid:Locales", $loc);
+                $db->sadd("Theme:$tid:Locales", $loc);
             }
             $msg = "OK";
         }

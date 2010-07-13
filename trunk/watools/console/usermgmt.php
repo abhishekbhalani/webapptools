@@ -112,11 +112,16 @@ function ModifyUser($uid, $userName, $userDesc, $userPwd)
     $r = GetDbConnection();
     if (!is_null($r)) {
 		$table = GetTableName("users");
-		$s = $r->prepare("UPDATE $table SET login=?, desc=?, password=? WHERE id=$uid");
-		$pwd = md5($userPwd);
+		if ($userPwd == "") {
+			$s = $r->prepare("UPDATE $table SET login=?, desc=? WHERE id=$uid");
+		}
+		else {
+			$s = $r->prepare("UPDATE $table SET login=?, desc=?, password=? WHERE id=$uid");
+			$pwd = md5($userPwd);
+			$s->bindParam(3, $pwd);
+		}
 		$s->bindParam(1, $userName);
-		$s->bindParam(3, $userDesc);
-		$s->bindParam(3, $pwd);
+		$s->bindParam(2, $userDesc);
 		$s->execute();
     }
     return true;
