@@ -1,0 +1,86 @@
+<script language="javascript">
+function showInfo(tsk_id)
+{
+	$("#mainView").load('/taskInfo.php', {'tsk_id': tsk_id});
+}
+function RefreshList() {
+	$("#mainView").load('/tasks.php');
+}
+</script>
+<h3 class="ui-widget-header-h3">Tasks</h3>
+<div style="margin: 20;">
+<div style="width: 100%; text-align: left;"><button id="btn_top" onclick="RefreshList();">Refresh</button></div>
+[{if $TaskNum > 0}]
+	<table width="100%" id='userstable'>
+		<tr class="ui-widget-header">
+			<th style="width: auto;">Profile</th>
+			<th style="width: auto;">Name</th>
+			<th style="width: 5%;">Status</th>
+			<th style="width: 5%;">Completion</th>
+			<th style="width: auto;">Start Time</th>
+			<th style="width: auto;">Finish Time</th>
+			<th style="width: auto;">Last Activity</th>
+			<th style="width: auto;">Actions</th>
+		</tr>
+[{section name=task loop=$TaskList}]<tr>
+			<td style="white-space: nowrap; text-align: center;">[{$TaskList[task][1]}]</td>
+			<td style="width: auto; text-align: center;">[{$TaskList[task][2]}]</td>
+			<td style="width: 5%; white-space: nowrap; text-align: center;">
+			[{assign var=st_ico value='ui-icon-help'}]
+			[{if $TaskList[task][3] == 0}]
+			[{assign var=st_ico value='ui-icon-eject'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 1}]
+			[{assign var=st_ico value='ui-icon-play'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 2}]
+			[{assign var=st_ico value='ui-icon-pause'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 3}]
+			[{assign var=st_ico value='ui-icon-check'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 4}]
+			[{assign var=st_ico value='ui-icon-stop'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 5}]
+			[{assign var=st_ico value='ui-icon-alert'}]
+			[{/if}]
+			<span class="ui-icon [{$st_ico}] ui-icon-btn" title="[{$TaskList[task][8]}]"></span>
+			[{$TaskList[task][8]}]</td>
+			<td style="width: 5%; text-align: center;">[{$TaskList[task][4]}]%</td>
+			<td style="width: auto; text-align: center;">[{$TaskList[task][5]}]</td>
+			<td style="width: auto; text-align: center;">[{$TaskList[task][6]}]</td>
+			<td style="width: auto; text-align: center;">[{$TaskList[task][7]}]</td>
+			<td style="white-space: nowrap; text-align: center;">
+				<a href="#" onclick="return showInfo('[{$TaskList[task][0]}]');">
+					<span class="ui-icon ui-icon-document ui-icon-btn" title="Task Details"></span></a>
+[{if $TaskACL == 1}]
+				<a href="#" onclick="return stopTask('[{$TaskList[task][0]}]');">
+					<span class="ui-icon ui-icon-circle-close ui-icon-btn" title="Stop Task"></span></a>
+				<a href="#" onclick="return deleteTask('[{$TaskList[task][0]}]');">
+					<span class="ui-icon ui-icon-closethick ui-icon-btn" title="Delete Task"></span></a>
+[{/if}]
+                </td>
+		</tr>
+            [{/section}]
+	</table>
+[{else}]
+	<div class="ui-state-error ui-corner-all" width="100%" style="padding: 5px;">
+		<span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>
+		No tasks found!
+	</div>
+[{/if}]
+<div style="width: 100%; text-align: left;"><button id="btn_bottom" onclick="RefreshList();">Refresh</button></div>
+</div>
+<script language="javascript">
+$('#btn_top').button({
+		icons: {
+			primary: 'ui-icon-refresh'
+		}
+	});
+$('#btn_bottom').button({
+		icons: {
+			primary: 'ui-icon-refresh'
+		}
+	});
+</script>

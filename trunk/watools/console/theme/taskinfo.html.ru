@@ -25,6 +25,18 @@ function toggleView(view)
 <h3 class="ui-widget-header-h3">Task - [{$target}] (started at [{$startTime}])</h3>
 <div style="margin: 20;">
 <a href="#" onclick="return goBack();"><span class="ui-icon ui-icon-circle-arrow-n ui-icon-btn" title="к списку задач"></span>Вернуться к списку задач</a><br/>
+<h4 class="ui-widget-header"><a href="#" onclick="return toggleView('summary');">
+	<span class="ui-icon ui-icon-minus ui-icon-btn" id="summary_btn" title="Objects"></span></a>Summary</h4>
+	<table width="100%" id='summary' visible="1">
+	<tr><td style="white-space: nowrap; text-align: left;width: 50;"><b>Начало сканирования:</b></td><td>[{$scanStart}]</td></tr>
+	<tr><td style="white-space: nowrap; text-align: left;width: 50;"><b>Завершение сканирования:</b></td><td>[{$scanStop}]</td></tr>
+	<tr><td style="white-space: nowrap; text-align: left;width: 50;"><b>Активность:</b></td><td>[{$scanPing}]</td></tr>
+	<tr><td style="white-space: nowrap; text-align: left;width: 50;"><b>Продолжительность:</b></td><td>[{$scanLen}]</td></tr>
+	<tr><td style="white-space: nowrap; text-align: left;width: 50;"><b>Найдено объектов:</b></td><td>[{$scCount}]</td></tr>
+	<tr><td style="white-space: nowrap; text-align: left;width: 50;"><b>Найдено уязвимостей:</b></td><td>[{$vlCount}]</td></tr>
+	<tr><td style="white-space: nowrap; text-align: left;width: 50;"><b>Скорость сканирования:</b></td><td>[{$scanSpeed}]</td></tr>
+	</table>
+<br/>
 <h4 class="ui-widget-header"><a href="#" onclick="return toggleView('objects');">
 	<span class="ui-icon ui-icon-plus ui-icon-btn" id="objects_btn" title="Объекты"></span></a>Найденные объекты ([{$scCount}])</h4>
 [{if $scCount > 0}]

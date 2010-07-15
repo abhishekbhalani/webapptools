@@ -25,7 +25,28 @@ function RefreshList() {
 [{section name=task loop=$TaskList}]<tr>
 			<td style="white-space: nowrap; text-align: center;">[{$TaskList[task][1]}]</td>
 			<td style="width: auto; text-align: center;">[{$TaskList[task][2]}]</td>
-			<td style="width: 5%; text-align: center;">[{$TaskList[task][8]}]</td>
+			<td style="width: 5%; white-space: nowrap; text-align: center;">
+			[{assign var=st_ico value='ui-icon-help'}]
+			[{if $TaskList[task][3] == 0}]
+			[{assign var=st_ico value='ui-icon-eject'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 1}]
+			[{assign var=st_ico value='ui-icon-play'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 2}]
+			[{assign var=st_ico value='ui-icon-pause'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 3}]
+			[{assign var=st_ico value='ui-icon-check'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 4}]
+			[{assign var=st_ico value='ui-icon-stop'}]
+			[{/if}]
+			[{if $TaskList[task][3] == 5}]
+			[{assign var=st_ico value='ui-icon-alert'}]
+			[{/if}]
+			<span class="ui-icon [{$st_ico}] ui-icon-btn" title="[{$TaskList[task][8]}]"></span>
+			[{$TaskList[task][8]}]</td>
 			<td style="width: 5%; text-align: center;">[{$TaskList[task][4]}]%</td>
 			<td style="width: auto; text-align: center;">[{$TaskList[task][5]}]</td>
 			<td style="width: auto; text-align: center;">[{$TaskList[task][6]}]</td>
@@ -39,14 +60,14 @@ function RefreshList() {
 				<a href="#" onclick="return deleteTask('[{$TaskList[task][0]}]');">
 					<span class="ui-icon ui-icon-closethick ui-icon-btn" title="Удалить задачу"></span></a>
 [{/if}]
-            </td>
+			</td>
 		</tr>
             [{/section}]
 	</table>
 [{else}]
 	<div class="ui-state-error ui-corner-all" width="100%" style="padding: 5px;">
 		<span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>
-		Не найдено задач!
+		No tasks found!
 	</div>
 [{/if}]
 <div style="width: 100%; text-align: left;"><button id="btn_bottom" onclick="RefreshList();">Обновить</button></div>

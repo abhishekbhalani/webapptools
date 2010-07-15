@@ -372,7 +372,7 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
         extract_links(res, sc);
     }
     parent_task->remove_thread();
-    LOG4CXX_INFO(logger, "TRACE: audit_jscript::parse_scripts finished");
+    LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts finished");
 }
 
 void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
@@ -530,7 +530,7 @@ void parser_thread( audit_jscript* object )
             }
             object->jscript_tasks.clean_done();
         } // wait scope - auto release mutex
-        LOG4CXX_INFO(js_logger, "DEBUG: audit_jscript::parser_thread: to download: " << object->jscript_tasks.task_list.size() <<
+        LOG4CXX_DEBUG(js_logger, "audit_jscript::parser_thread: to download: " << object->jscript_tasks.task_list.size() <<
             "; documents: " << object->jscript_tasks.process_list.size() );
 
         if (local_list.size() > 0)
@@ -545,7 +545,7 @@ void parser_thread( audit_jscript* object )
             // we don't found any documents to process
             boost::unique_lock<boost::mutex> lock(object->data_access);
             task_list = object->jscript_tasks.task_list.size() + object->jscript_tasks.process_list.size();
-            LOG4CXX_INFO(js_logger, "DEBUG: audit_jscript::parser_thread waiting for data: " << object->jscript_tasks.task_list.size() <<
+            LOG4CXX_DEBUG(js_logger, "audit_jscript::parser_thread waiting for data: " << object->jscript_tasks.task_list.size() <<
                 " to download and " << object->jscript_tasks.process_list.size() << " documents still in the list");
             in_loop = false;
         }

@@ -147,11 +147,11 @@ static int sqlite_query_from_rs(sqlite_handle* handle, const string& query, db_r
                 break;
             }
             if ( rc != SQLITE_OK ) {
-                LOG4CXX_ERROR(handle->logger, "sqlite_query_from_rs sqlite3_step error: " << rc << "; " << sqlite3_errmsg(handle->db));
+                LOG4CXX_ERROR(handle->logger, "sqlite_query_from_rs sqlite3_bind_* error: " << rc << "; " << sqlite3_errmsg(handle->db));
             }
         } // foreach field
         rc = sqlite3_step(pStmt);
-        if ( rc != SQLITE_OK ) {
+        if ( rc != SQLITE_OK && rc != SQLITE_DONE ) {
             LOG4CXX_ERROR(handle->logger, "sqlite_query_from_rs sqlite3_step error: " << rc << "; " << sqlite3_errmsg(handle->db));
         }
         // finalize query
@@ -524,6 +524,8 @@ string sqlite_storage::generate_id( const string& objType /*= ""*/ )
     names.push_back("value");
     rs.clear();
     rs.set_names(names);
+    sqlite3_exec(db_handle->db, "BEGIN EXCLUSIVE TRANSACTION", sqlite_callback, (void*)db_handle, &err_msg);
+    sqlite3_exec(db_handle->db, "UPDATE _internals_ SET value=value+1 WHERE name == 'last_id'", sqlite_callback, (void*)db_handle, &err_msg);
     tbl_query = "SELECT [value] FROM [_internals_] WHERE [name] == 'last_id'";
     sqlite_query_to_rs(db_handle, tbl_query, rs);
     if (rs.size() < 1) {
@@ -534,11 +536,9 @@ string sqlite_storage::generate_id( const string& objType /*= ""*/ )
     }
     else {
         cur = rs.begin();
-        last_id = cur[0].get<int>() + 1;
-        cur[0] = last_id;
-        tbl_query = "UPDATE [_internals_] SET [value]=? WHERE [name] == 'last_id'";
-        sqlite_query_from_rs(db_handle, tbl_query, *cur, cur.record_size());
+        last_id = cur[0].get<int>();
     }
+    sqlite3_exec(db_handle->db, "COMMIT TRANSACTION", sqlite_callback, (void*)db_handle, &err_msg);
     return boost::lexical_cast<string>(cur[0]);
 }
 

@@ -239,24 +239,33 @@ bool ScanData::to_dataset( db_cursor& dataset )
 bool ScanData::from_dataset( const db_cursor& dataset )
 {
     bool retval = true;
+    int id = 0;
 
     try {
         parsed_data.reset();
         response.reset();
 
         data_id = dataset[weObjTypeScanData "." weoID].get<string>();
+        id++;
         scan_id = dataset[weObjTypeScanData "." "task_id"].get<string>();
+        id++;
         parent_id = dataset[weObjTypeScanData "." weoParentID].get<string>();
+        id++;
         object_url = dataset[weObjTypeScanData "." "object_url"].get<string>();
+        id++;
         scan_depth = dataset[weObjTypeScanData "." "scan_depth"].get<int>();
+        id++;
         resp_code = dataset[weObjTypeScanData "." "resp_code"].get<int>();
+        id++;
         data_size = dataset[weObjTypeScanData "." "data_size"].get<int>();
+        id++;
         download_time = dataset[weObjTypeScanData "." "dnld_time"].get<int>();
+        id++;
         content_type = dataset[weObjTypeScanData "." "content_type"].get<string>();
     }
     catch (std::exception &e) {
         // may be out_of_range or bad_cast
-        LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::from_dataset exception: " << e.what());
+        LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::from_dataset exception at " << id <<": " << e.what());
         retval = false;
     }
     return retval;

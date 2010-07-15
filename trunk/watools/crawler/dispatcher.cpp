@@ -433,6 +433,7 @@ void dispatcher_routine(po::variables_map& vm)
     if (! boost::algorithm::starts_with(url, "http://")) {
         url = "http://" + url;
     }
+    tsk->set_name("Crawling " + url);
     webEngine::transport_url t_url(url);
     LOG4CXX_INFO(scan_logger, "Start scanning for: " << t_url.tostring());
     tsk->Option("scan_host", t_url.host);
