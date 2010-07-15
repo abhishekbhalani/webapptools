@@ -1,0 +1,27 @@
+<script language="javascript" src="/scripts/profileEdit.js"></script>
+<div class="ui-widget-content" width="100%">
+<table>
+<tr><td><b>Profile name: </b></td><td><input type="text" value="[{$profile_name}]" id="profile_name"></td></tr>
+<tr valign="top"><td><b>Available plugins:</b></td><td>[{section name=plg loop=$pluginsList}]
+<input type="checkbox" id="plg_[{$pluginsList[plg][0]}]" [{if $pluginsList[plg][2]}]checked[{/if}]><label for="plg_[{$pluginsList[plg][0]}]">[{$pluginsList[plg][1]}]</label><br/>
+[{/section}]</td></tr></table>
+[{section name=plg loop=$pluginsList}]
+<div class="ui-widget-header">
+	<a href="#" onclick="return toggleShow('[{$pluginsList[plg][0]}]');">
+	<span class="ui-icon ui-icon-btn [{if $pluginsList[plg][2]}]ui-icon-minus[{else}]ui-icon-plus[{/if}]" id="btn_[{$pluginsList[plg][0]}]" title="Toggle view"></span>
+	</a>[{$pluginsList[plg][1]}]</div>
+<div id="ui_[{$pluginsList[plg][0]}]" [{if $pluginsList[plg][2]}]visible="1"[{else}]visible="0" style="display: none;"[{/if}]>
+	[{$pluginsList[plg][4]}]
+</div>
+<br/>
+[{/section}]
+<div style="text-align: center;"><button id="prf_apply" onclick="saveProfile();"> Apply</button></div>
+<br/>
+</div>
+<script language="javascript">
+$('#prf_apply').button({
+		icons: {
+			primary: 'ui-icon-check'
+		}
+	});
+</script>

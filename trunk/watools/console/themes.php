@@ -43,7 +43,7 @@ function PrintNoAccess()
     global $smarty, $gUser, $themeName, $themeLangExt;
     
     $smarty->assign('UserName', $gUser['login']);
-    $smarty->assign('messageTitle', gettext('Access Denied'));
+    $smarty->assign('messageTitle', gettext('Access denied!'));
     $smarty->assign('messageText', gettext('Access denied for user ') . $gUser['login'] . gettext('!<br>Contact your system administrator!'));
     $smarty->assign('messageIcon', 'warning.png');
     $smarty->assign('messageButton', 'OK');
@@ -100,4 +100,44 @@ function DisplayThemePage($page)
     $smarty->assign('messageButton', 'OK');
     $smarty->display('messageBox.html');
 }
+
+function GetThemeFile($page)
+{
+    global $smarty, $themeName, $themeLangExt, $themeDir, $gBaseDir;
+
+    $ext = $themeLangExt;
+	$fname = $themeDir . '/' . $page . '.' . $themeLangExt;
+    if ($ext != "") {
+        if (file_exists($fname)) {
+            return $fname;
+        }
+        else {
+            $ext = "";
+        }
+    }
+    if ($ext == "") {
+		$fname = $themeDir . '/' . $page;
+        if (file_exists($fname)) {
+            return $fname;
+        }
+    }
+    $ext = $themeLangExt;
+	$fname = $gBaseDir . '/theme/' . $page . '.' . $themeLangExt;
+    if ($ext != "") {
+        if (file_exists($fname)) {
+            return $fname;
+        }
+        else {
+            $ext = "";
+        }
+    }
+    if ($ext == "") {
+		$fname = $gBaseDir . '/theme/' . $page;
+        if (file_exists($fname)) {
+            return $fname;
+        }
+    }
+	return "";
+}
+
 ?>
