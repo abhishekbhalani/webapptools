@@ -6,7 +6,7 @@ require_once('./usermgmt.php');
 
 // todo check ACL for access
 if (!CheckACL('usermanagament')) {
-    echo gettext('Access denied');
+    echo gettext('Access denied!');
     exit(0);
 }
 

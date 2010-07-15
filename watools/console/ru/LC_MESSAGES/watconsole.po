@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WATools\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-14 17:44+0300\n"
+"POT-Creation-Date: 2010-07-15 12:07+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Andrew Abramov <stinger911@gmail.com>\n"
 "Language-Team: Lab18 <team@lab18.net>\n"
@@ -33,6 +33,18 @@ msgstr "Ошибка соединения с базой даных!"
 msgid "<unknown>"
 msgstr "<не определено>"
 
+#: c:\Work\Projects\WAT\trunk\watools\console/profEdit.php:9
+msgid "Access denied!"
+msgstr "Доступ запрещен!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/profEdit.php:15
+msgid "Database access error!"
+msgstr "Ошибка доступа к БД!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/profEdit.php:19
+msgid "Invalid request!"
+msgstr "Ошибочный запрос!"
+
 #: c:\Work\Projects\WAT\trunk\watools\console/setsPersonal.php:29
 #: c:\Work\Projects\WAT\trunk\watools\console/setsSystem.php:31
 msgid "No description provided"
@@ -40,7 +52,7 @@ msgstr "Нет описания"
 
 #: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:54
 msgid "day(s)"
-msgstr "дней"
+msgstr "дн."
 
 #: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:61
 #: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:64
@@ -88,41 +100,26 @@ msgstr "ЗАВИСАНИЕ"
 msgid "UNDEFINED"
 msgstr "НЕИЗВЕСТНО"
 
-#: c:\Work\Projects\WAT\trunk\watools\console/test.php:20
-#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:45
-msgid "Access Denied"
-msgstr "Доступ запрещен"
-
-#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:46
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:47
 msgid "Access denied for user "
 msgstr "Доступ запрещен для пользователя"
 
-#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:46
-#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:97
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:47
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:98
 msgid "!<br>Contact your system administrator!"
 msgstr "!<br>Обратитесь к администратору системы!"
 
-#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:95
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:96
 msgid "Visualisation broken"
 msgstr "Проблемы визуализации"
 
-#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:96
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:97
 msgid "Can't display page "
 msgstr "Нет возможности отобразить страницу "
 
-#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:96
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:97
 msgid " in theme "
 msgstr " в теме "
-
-#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:9
-#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:9
-msgid "Access denied"
-msgstr "Доступ запрещен"
-
-#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:15
-#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:15
-msgid "Database access error!"
-msgstr "Ошибка доступа к БД!"
 
 #: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:55
 msgid "Unknown language!"
@@ -132,20 +129,7 @@ msgstr "Неизвестный язык!"
 msgid "Theme doesn't exist!"
 msgstr "Тема не существует!"
 
-#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:63
-#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:90
-#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:96
-#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:132
-#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:46
-#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:114
-#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:134
-#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:140
-#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:173
-msgid "Invalid request!"
-msgstr "Ошибочный запрос!"
-
 #: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:122
-#, fuzzy
 msgid "Theme already installed!"
 msgstr "Тема уже установлена!"
 
@@ -189,4 +173,13 @@ msgstr "Неправильный пароль!"
 #: c:\Work\Projects\WAT\trunk\watools\console/usermgmt.php:191
 msgid "Can't find User or Group!"
 msgstr "Не удалось найти пользователя или группу!"
+
+#~ msgid "Access Denied"
+#~ msgstr "Доступ запрещен"
+#~ msgid "Access denied"
+#~ msgstr "Доступ запрещен"
+
+#, fuzzy
+#~ msgid "Invalid request"
+#~ msgstr "Ошибочный запрос!"
 
