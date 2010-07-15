@@ -2,13 +2,9 @@
 <head>
 <title>Web "A" Tools</title>
 <link rel="stylesheet" type="text/css" href="/[{$theme}]/wat.css" />
-<script language="JavaScript" src="scripts/jquery.js"></script>
+<script type="text/javascript" src="scripts/jquery.js"></script>
 <script type="text/javascript" src="/scripts/jquery-ui.js"></script>
 <script language="JavaScript">
-    var prevButton = "";
-    var prevIndex = -1;
-    var methods = Array('tasks.php','profiles.php','reports.php','dicts.php','settings.php');
-
     function showDate() {
         today = new Date();
         var hours=today.getHours();
@@ -26,33 +22,6 @@
         $("#liveclock").html(today.toLocaleDateString() + " " + myclock);
         setTimeout("showDate()",1000);
     }
-    
-    $(function() {
-        $("#main-menu").selectable({
-                stop: function(){
-                    var sz = $(".ui-selected", this).size();
-                    var newPrev = -1;
-                    $(".ui-selected", this).each(function(){
-                        var index = $("#main-menu li").index(this);
-                        if (index == prevIndex) {
-                            if (sz > 1) {
-                                $(this).toggleClass("ui-selected");
-                            }
-                        }
-                        else {
-                            newPrev = index;
-                            if (newPrev == 5) {
-                                document.location = "/logout.php";
-                                return;
-                            }
-                            $("#mainView").load(methods[newPrev]);
-                        }
-                    });
-                    prevIndex = newPrev;
-                }
-            });
-    });
-
 </script>
 </head>
 <body onload="showDate();">
@@ -76,6 +45,8 @@
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/dictionary.png" border="0" align="middle"/>Dictionaries</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
+                <img src="/[{$theme}]/images/bug.png" border="0" align="middle"/>Vulnerabilities</li>
+            <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/settings.png" border="0" align="middle" />Settings</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/exit.png" border="0" align="middle" />Logout</li>
@@ -92,5 +63,6 @@ $(document).ready(function() {
     $("#mainView").load("dashboard.php");
 });
 </script>
+<script type="text/javascript" src="/scripts/mainmenu.js"></script>
 </body>
 </html>

@@ -70,7 +70,7 @@ void task_processor(task* tsk)
     i_request_ptr curr_url;
 
     tsk->processThread = true;
-    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessor started for task " << tsk);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor started for task " << tsk);
     while (tsk->IsReady())
     {
         tsk->WaitForData();
@@ -191,14 +191,14 @@ void task_processor(task* tsk)
         tsk->calc_status();
     };
     tsk->processThread = false;
-    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessor finished for task " << tsk);
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor finished for task " << tsk);
 }
 
 void task_data_process(task* tsk)
 {
     scan_data_ptr sc_data;
 
-    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessData started for task " << ((void*)&tsk));
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessData started for task " << ((void*)&tsk));
     tsk->add_thread();
     while (tsk->sc_process.size() > 0) {
         {
@@ -230,9 +230,10 @@ void task_data_process(task* tsk)
             tsk->free_scan_data(sc_data);
         } // if sc_data valid
     } // while sc_process.size > 0
+    tsk->ping_tm = btm::second_clock::local_time();
     tsk->remove_thread();
     tsk->dataThread = false;
-    LOG4CXX_INFO(iLogger::GetLogger(), "TRACE: WeTaskProcessData finished for task " << ((void*)&tsk));
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessData finished for task " << ((void*)&tsk));
 }
 
 task::task(engine_dispatcher *krnl /*= NULL*/)
@@ -568,7 +569,7 @@ void task::Run(void)
         inventories[i]->init(this);
     }
     tsk_status = WI_TSK_RUN;
-
+    save_to_db();
     boost::unique_lock<boost::mutex> lock(tsk_mutex);
     tsk_event.notify_all();
 }
@@ -800,11 +801,13 @@ bool task::save_to_db( )
         db_cursor rec = dbres.push_back();
         rec[weObjTypeTask "." weoID] = scan_id;
         rec[weObjTypeTask "." weoProfileID] = profile_id;
+        rec[weObjTypeTask "." "name"] = task_name;
         rec[weObjTypeTask "." weoTaskCompletion] = tsk_completion;
         rec[weObjTypeTask "." weoTaskStatus] = tsk_status;
         rec[weObjTypeTask "." "start_time"] = boost::lexical_cast<string>(start_tm);
         rec[weObjTypeTask "." "finish_time"] = boost::lexical_cast<string>(finish_tm);
         rec[weObjTypeTask "." "ping_time"] = boost::lexical_cast<string>(ping_tm);
+        rec[weObjTypeTask "." "requests"] = (int)total_reqs;
         string urls = "";
         BOOST_FOREACH( we_url_map::value_type i, processed_urls ) {
             urls += i.first;
@@ -862,6 +865,7 @@ bool task::load_from_db( string& id  )
             try{
                 scan_id = rec[weObjTypeTask "." weoID].get<string>();
                 profile_id = rec[weObjTypeTask "." weoProfileID].get<string>();
+                task_name = rec[weObjTypeTask "." "name"].get<string>();
                 tsk_completion = rec[weObjTypeTask "." weoTaskCompletion].get<int>();
                 tsk_status = rec[weObjTypeTask "." weoTaskStatus].get<int>();
                 data = rec[weObjTypeTask "." "start_time"].get<string>();
@@ -870,6 +874,7 @@ bool task::load_from_db( string& id  )
                 finish_tm = boost::lexical_cast<boost::posix_time::ptime>(data);
                 data = rec[weObjTypeTask "." "ping_time"].get<string>();
                 ping_tm = boost::lexical_cast<boost::posix_time::ptime>(data);
+                total_reqs = rec[weObjTypeTask "." "requests"].get<int>();
                 data = rec[weObjTypeTask "." "processed_urls"].get<string>();
                 vector<string> urls;
                 boost::split(urls, data, is_any_of("\x0d"));
@@ -910,7 +915,7 @@ void task::WaitForData()
 void task::add_vulner( const string& vId, const string& params, const string& parentId, int vLevel/* = -1*/ )
 {
     LOG4CXX_INFO(iLogger::GetLogger(), "task::add_vulner add vulner ID=" << vId << "; ParentID=" << parentId);
-    LOG4CXX_INFO(iLogger::GetLogger(), "task::add_vulner data: " << params);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_vulner data: " << params);
     string plg_id, v_id, id;
     size_t pos;
 

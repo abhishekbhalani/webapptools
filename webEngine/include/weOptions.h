@@ -100,7 +100,7 @@ namespace webEngine {
 
     typedef map<string, we_option> wOptions;
 
-#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (boost::bad_get &) { (var) = (def); };
+#define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (boost::bad_lexical_cast &) { (var) = (def); };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  i_options_provider
 ///

@@ -96,7 +96,7 @@ function InstallTheme(name) {
         <td>[{$thDesc[thm]}]<br/><p><b>Поддерживаемые языки:</b></p>
         [{section name=thl loop=$thLangs[thm]}]
         <ul id="thl[{$thm}]">
-            <li><img src='/[{$theme}]/images/flag_[{$thLangs[thm][thl][0]}]'>[{$thLangs[thm][thl][1]}]</li>
+            <li><img src='/[{$theme}]/images/flag_[{$thLangs[thm][thl][0]}].png'>[{$thLangs[thm][thl][1]}]</li>
         </ul>
         [{/section}]
         </td>

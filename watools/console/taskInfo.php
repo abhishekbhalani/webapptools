@@ -42,15 +42,42 @@ if ($t) {
 	if ($tinfo) {
 		$tinfo = $tinfo[0];
 		$tid = $tinfo['id'];
+		$start_tm = $tinfo['start_time'];
+		$finish_tm = $tinfo['finish_time'];
+		$ping_tm = $tinfo['ping_time'];
+		$stm = get_timestamp($start_tm);
+		$ftm = get_timestamp($finish_tm);
+		if ($stm > 0 && ($ftm > $stm)) {
+			$dur = $ftm - $stm;
+			$dur_tm = "";
+			if ($dur > 86400) { // 86400 = 24 * 60 * 60 - one day
+				$dur_tm = int($dur / 86400) . gettext("day(s)") . " ";
+				$dur  = $dur % 86400;
+			}
+			date_default_timezone_set('GMT');
+			$dur_tm .= date("H:i:s", $dur);
+		}
+		else {
+			$dur_tm = gettext("Undefined");
+		}
+		// scan speed
+		$speed = gettext("Undefined");
+		if ($tinfo['requests'] && $tinfo['requests'] > 0) {
+			$sp = $tinfo['requests'] / ($ftm - $stm);
+			$sp = number_format($sp, 3);
+			$speed = $tinfo['requests'] . " " . gettext("request(s);") . " " . $sp . " ". gettext("requests per second");
+		}
 		// get task target
 		// SELECT object_url FROM $tscan WHERE task_id=$tid ORDER BY id ASC LIMIT 1
-		$q = $db->query("SELECT object_url FROM $tscan WHERE task_id=$tid ORDER BY id ASC LIMIT 1");
-		$target = "Unknown";
-		if ($q) {
-			$url = $q->fetchAll(PDO::FETCH_COLUMN);
-			if ($url) {
-				$target = $url[0];
-				$target = preg_replace("/[^:\\/]+:\\/\\/([^\\/]+)\\/.*/", "$1", $target);
+		$target = $tinfo['name'];
+		if (!$target || $target == "") {
+			$q = $db->query("SELECT object_url FROM $tscan WHERE task_id=$tid ORDER BY id ASC LIMIT 1");
+			if ($q) {
+				$url = $q->fetchAll(PDO::FETCH_COLUMN);
+				if ($url) {
+					$target = $url[0];
+					$target = preg_replace("/[^:\\/]+:\\/\\/([^\\/]+)\\/.*/", "$1", $target);
+				}
 			}
 		}
 		// get scan_data
@@ -83,6 +110,12 @@ if ($t) {
 		}
 		
 		$smarty->assign('target', $target);
+		$smarty->assign('scanStart', $start_tm);
+		$smarty->assign('scanStop', $finish_tm);
+		$smarty->assign('scanPing', $ping_tm);
+		$smarty->assign('scanLen', $dur_tm);
+		$smarty->assign('scanSpeed', $speed);
+
 		$smarty->assign('scCount', count($scList));
 		$smarty->assign('scdata', $scList);
 		$smarty->assign('vlCount', count($vlList));
@@ -97,5 +130,13 @@ if ($t) {
 else {
 	PrintDbError($db);
 }
-
+/// functions
+function get_timestamp($src)
+{
+	$dat = strtotime($src);
+	if (!$dat) {
+		$dat = 0;
+	}
+	return $dat;
+}
 ?>

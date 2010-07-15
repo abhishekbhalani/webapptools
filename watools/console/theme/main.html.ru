@@ -5,38 +5,6 @@
 <link rel="stylesheet" type="text/css" href="/[{$theme}]/wat.css" />
 <script language="JavaScript" src="scripts/jquery.js"></script>
 <script type="text/javascript" src="/scripts/jquery-ui.js"></script>
-<script language="JavaScript">
-    var prevButton = "";
-    var prevIndex = -1;
-    var methods = Array('tasks.php','profiles.php','reports.php','dicts.php','settings.php');
-
-    $(function() {
-        $("#selectable").selectable({
-                stop: function(){
-                    var sz = $(".ui-selected", this).size();
-                    var newPrev = -1;
-                    $(".ui-selected", this).each(function(){
-                        var index = $("#selectable li").index(this);
-                        if (index == prevIndex) {
-                            if (sz > 1) {
-                                $(this).toggleClass("ui-selected");
-                            }
-                        }
-                        else {
-                            newPrev = index;
-                            if (newPrev == 6) {
-                                document.location = "/logout.php";
-                                return;
-                            }
-                            $("#mainView").load(methods[newPrev]);
-                        }
-                    });
-                    prevIndex = newPrev;
-                }
-            });
-    });
-
-</script>
 </head>
 <body>
 <div id="content">
@@ -46,7 +14,7 @@
         <script>
         $("#btnTestRefresh").button({icons: {primary: 'ui-icon-refresh'}}).width("150px");
         </script>
-        <ol id="selectable" class="leftMenu">
+        <ol id="main-menu" class="leftMenu">
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/task.png" border="0" align="middle"/>Задачи</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
@@ -55,6 +23,8 @@
                 <img src="/[{$theme}]/images/report.png" border="0" align="middle" />Отчеты</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/dictionary.png" border="0" align="middle"/>Справочники</li>
+            <li class="ui-widget-content ui-state-default ui-corner-all">
+                <img src="/[{$theme}]/images/bug.png" border="0" align="middle"/>Уязвимости</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
                 <img src="/[{$theme}]/images/settings.png" border="0" align="middle" />Настройки</li>
             <li class="ui-widget-content ui-state-default ui-corner-all">
@@ -72,5 +42,6 @@ $(document).ready(function() {
     $("#mainView").load("dashboard.php");
 });
 </script>
+<script language="JavaScript" src="/scripts/mainmenu.js"></script>
 </body>
 </html>

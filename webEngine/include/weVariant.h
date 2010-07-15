@@ -47,7 +47,7 @@ namespace webEngine {
         template<typename U> void operator==(const U &rhl) const  {}
         friend bool operator<(const we_variant& lhs, const we_variant& rhs);
 
-        template<typename T> T get() const { return boost::get<T>(wvalue); }
+        template<typename T> T get() const { return boost::lexical_cast<T>(wvalue); }
         const bool empty() const { return wvalue.type() == typeid(boost::blank); }
         void clear() { wvalue = boost::blank(); }
         int which() const { return wvalue.which(); }

@@ -177,7 +177,9 @@ namespace webEngine {
 
         const string& get_profile_id() const { return profile_id; }
         const string& get_scan_id() const { return scan_id; }
-        void set_profile_id(string& id) { profile_id = id; }
+        void set_profile_id(const string& id) { profile_id = id; }
+        const string& get_name() const { return task_name; }
+        void set_name(const string& name) { task_name = name; }
         int status() const { return tsk_status; }
         int completion() const { return tsk_completion; }
         const boost::posix_time::ptime& start_time() const { return start_tm; }
@@ -194,6 +196,7 @@ namespace webEngine {
         int tsk_completion;
         string profile_id;
         string scan_id;
+        string task_name;
         boost::posix_time::ptime start_tm;
         boost::posix_time::ptime finish_tm;
         boost::posix_time::ptime ping_tm;

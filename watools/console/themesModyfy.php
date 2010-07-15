@@ -119,7 +119,7 @@ else if ($action == 'themeinst') {
             $msg = "OK";
         }
         else {
-            $msg = gettext('Theme already onstalled!');
+            $msg = gettext('Theme already installed!');
         }
     } // file handle opened
     else {

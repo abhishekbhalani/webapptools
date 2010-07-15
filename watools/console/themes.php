@@ -18,11 +18,14 @@ $themeName = $gSession['theme'];
 $themeLang = $gSession['lang'];
 $themeDir = $gBaseDir . '/' . $themeName;
 // set language translation
-setlocale( LC_ALL, $themeLang);
-putenv("LANG=".$themeLang);
-bindtextdomain('watconsole', $themeDir);
-textdomain('watconsole');
-bind_textdomain_codeset('watconsole', 'UTF-8');
+$codeset = "UTF8";
+if ($themeLang != 'en') {
+	putenv('LANG='.$themeLang.'.'.$codeset); 
+	putenv('LANGUAGE='.$themeLang.'.'.$codeset); 
+	putenv('LC_ALL='.$themeLang.'.'.$codeset); 
+	bindtextdomain('watconsole', ".");
+	textdomain('watconsole');
+}
 $themeLangExt = $themeLang;
 if ($themeLangExt == 'en') {
     $themeLangExt = '';
