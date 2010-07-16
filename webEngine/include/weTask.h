@@ -230,4 +230,11 @@ namespace webEngine {
 
 BOOST_CLASS_TRACKING(webEngine::task, boost::serialization::track_never)
 
+/// base URL for processing
+#define weoBaseURL           "base_url"
+/// number of parallel requests to transport (integer)
+#define weoParallelReq       "parallel_req"
+/// hostname for scanning
+#define weoScanHost          "scan_host"
+
 #endif //__WETASK_H__

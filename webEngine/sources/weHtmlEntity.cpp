@@ -28,6 +28,8 @@
 #include <weHelper.h>
 #include <weHtmlEntity.h>
 #include <weTask.h>
+// for options: 
+#include <weHttpInvent.h>
 
 using namespace boost;
 using namespace boost::algorithm;
@@ -1039,7 +1041,7 @@ void html_parser::init(task* tsk)
 {
     we_option opt;
 
-    opt = tsk->Option("httpInventory/AllowedCType");
+    opt = tsk->Option(weoAllowedCTypes);
     SAFE_GET_OPTION_VAL(opt, opt_ctype_method, 0); // default - any type
 }
 

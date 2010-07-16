@@ -24,6 +24,8 @@
 #include <weUrl.h>
 #include <weTask.h>
 #include <weScan.h>
+// for options: 
+#include <weHttpInvent.h>
 
 #include "../common/sysinfo.h"
 #include "version.h"
@@ -361,71 +363,71 @@ void dispatcher_routine(po::variables_map& vm)
     // set scanning options
     if (vm.count("depth")) {
         int val = vm["depth"].as<int>();
-        tsk->Option("httpInventory/"weoScanDepth, val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoScanDepth" to " << val);
+        tsk->Option(weoScanDepth, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoScanDepth" to " << val);
     }
     if (vm.count("dir")) {
         bool val = true;
         try {
             val = vm["dir"].as<bool>();
         } catch (...) { } // just skip
-        tsk->Option("httpInventory/"weoStayInDir, val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoStayInDir" to " << val);
+        tsk->Option(weoStayInDir, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDir" to " << val);
     }
     if (vm.count("host")) {
         bool val = true;
         try {
             val = vm["host"].as<bool>();
         } catch (...) { } // just skip
-        tsk->Option("httpInventory/"weoStayInHost, val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoStayInHost" to " << val);
+        tsk->Option(weoStayInHost, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInHost" to " << val);
     }
     if (vm.count("domain")) {
         bool val = true;
         try {
             val = vm["domain"].as<bool>();
         } catch (...) { } // just skip
-        tsk->Option("httpInventory/"weoStayInDomain, val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoStayInDomain" to " << val);
+        tsk->Option(weoStayInDomain, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDomain" to " << val);
     }
     if (vm.count("dlist")) {
         bool val = true;
         try {
             val = vm["dlist"].as<bool>();
         } catch (...) { } // just skip
-        tsk->Option("httpInventory/StayInDomainList", val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/StayInDomainList to " << val);
+        tsk->Option(weoStayInDomainList, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDomainList" to " << val);
     }
     if (vm.count("ip")) {
         bool val = true;
         try {
             val = vm["ip"].as<bool>();
         } catch (...) { } // just skip
-        tsk->Option("httpInventory/StayInIP", val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/StayInIP to " << val);
+        tsk->Option(weoStayInIP, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInIP" to " << val);
     }
     if (vm.count("url_param")) {
         bool val = true;
         try {
             val = vm["url_param"].as<bool>();
         } catch (...) { } // just skip
-        tsk->Option("httpInventory/"weoIgnoreUrlParam, val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoIgnoreUrlParam" to " << val);
+        tsk->Option(weoIgnoreUrlParam, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoIgnoreUrlParam" to " << val);
     }
     if (vm.count("content")) {
         int val = vm["content"].as<int>();
-        tsk->Option("httpInventory/AllowedCType", val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/AllowedCType to " << val);
+        tsk->Option(weoAllowedCTypes, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoAllowedCTypes" to " << val);
     }
     if (vm.count("parallel")) {
         int val = vm["parallel"].as<int>();
-        tsk->Option("httpInventory/"weoParallelReq, val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoParallelReq" to " << val);
+        tsk->Option(weoParallelReq, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoParallelReq" to " << val);
     }
     if (vm.count("ext_deny")) {
         string val = vm["ext_deny"].as<string>();
-        tsk->Option("httpInventory/"weoDeniedFileTypes, val);
-        LOG4CXX_DEBUG(scan_logger, "Set httpInventory/"weoDeniedFileTypes" to " << val);
+        tsk->Option(weoDeniedFileTypes, val);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoDeniedFileTypes" to " << val);
     }
     
     // reconstruct URL to scan
@@ -436,8 +438,8 @@ void dispatcher_routine(po::variables_map& vm)
     tsk->set_name("Crawling " + url);
     webEngine::transport_url t_url(url);
     LOG4CXX_INFO(scan_logger, "Start scanning for: " << t_url.tostring());
-    tsk->Option("scan_host", t_url.host);
-    tsk->Option("httpInventory/BaseURL",  t_url.request);
+    tsk->Option(weoScanHost, t_url.host);
+    tsk->Option(weoBaseURL,  t_url.request);
 
     // run endless loop for the task
     tsk->Run();

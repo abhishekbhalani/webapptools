@@ -30,12 +30,6 @@ db_recordset* VulnerDesc::ToRS( const string& parentID /*= ""*/ )
     db_recordset* retval = new db_recordset;
     db_record* rec = new db_record;
 
-/*    rec->Option(weoID, id);
-    rec->Option(weoName, title);
-    rec->Option("severity", severity);
-    rec->Option("short_desc", shortDesc);
-    rec->Option("description", longDesc);
-    retval->push_back(*rec);*/
     return retval;
 }
 

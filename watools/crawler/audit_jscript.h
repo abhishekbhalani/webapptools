@@ -126,6 +126,6 @@ protected:
     // processing options
     bool opt_in_host;
     bool opt_in_domain;
-    bool opt_ignore_param;
+    int  opt_ignore_param;
     int  opt_max_depth;
 };
