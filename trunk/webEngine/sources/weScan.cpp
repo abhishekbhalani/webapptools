@@ -56,94 +56,11 @@ db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
     //db_recordset* rsData;
     db_record* rec = new db_record;
 
-/*    rec->objectID = weObjTypeScan;
-    rec->Option(weoID, scanID);
-    rec->Option(weoParentID, objectID);
-    rec->Option(weoProfileID, profileID);
-    rec->Option("starttime", btm::to_simple_string(startTime));
-    rec->Option("finishtime", btm::to_simple_string(finishTime));
-    rec->Option("pingtime", btm::to_simple_string(pingTime));
-    rec->Option(weoTaskStatus, status);
-    rec->Option("scansize", boost::lexical_cast<string>(scan_data.size()));
-
-    res->push_back(*rec);
-
-/*    for (size_t i = 0; i < scan_data.size(); i++) {
-        rsData = scan_data[i]->to_dataset(scanID);
-        for (size_t j = 0; j < rsData->size(); j++)
-        {
-            res->push_back((*rsData)[j]);
-        }
-        delete rsData;
-    }*/
     return res;
 }
 
 void ScanInfo::FromRS( db_recordset* rs )
 {
-/*    db_record rec;
-    size_t r;
-    we_variant optVal;
-    we_option opt;
-    string strData;
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "ScanInfo::from_dataset");
-
-    for (r = 0; r < rs->size(); r++)
-    {
-        rec = (*rs)[r];
-        if (rec.objectID == weObjTypeScan) {
-            opt = rec.Option(weoID);
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            scanID = strData;
-
-            opt = rec.Option(weoParentID);
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            objectID = strData;
-
-            opt = rec.Option(weoProfileID);
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            profileID = strData;
-
-            opt = rec.Option("starttime");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            try {
-                startTime = btm::time_from_string(strData);
-            } catch (std::exception&) {
-                startTime = btm::not_a_date_time;
-            }
-
-            opt = rec.Option("finishtime");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            try {
-                finishTime = btm::time_from_string(strData);
-            } catch (std::exception&) {
-                finishTime = btm::not_a_date_time;
-            }
-
-            opt = rec.Option("pingtime");
-            SAFE_GET_OPTION_VAL(opt, strData, "");
-            try {
-                pingTime = btm::time_from_string(strData);
-            } catch (std::exception&) {
-                pingTime = btm::not_a_date_time;
-            }
-
-            opt = rec.Option(weoTaskStatus);
-            try {
-                status = (weScanStatus) boost::lexical_cast<int>(opt.Value());
-            }
-            catch(std::exception&) {
-                status = weScanIdle;
-            }
-
-//             opt = rec.Option("scansize");
-//             SAFE_GET_OPTION_VAL(opt, strData, "");
-//             scan_id = strData;
-
-            break;
-        }
-    }*/
 }
 
 shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )

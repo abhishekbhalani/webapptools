@@ -24,21 +24,39 @@
 #include <weHttpInvent.h>
 #include <weScan.h>
 
-static string xrc = "<plugin><category label='Basic settings' name='generic'>\
- <option name='httpInventory/BaseURL' label='init transport_url' type='8' control='string' mode='window'>/</option>\
- <category label='Crawler' name='crawler'>\
-  <option name='' label='Crawling mode'>&lt;composed&gt;\
-   <option name='httpInventory/StayInDir' label='Stay in directory' type='6' control='bool' chkbox='1'>1</option>\
-   <option name='httpInventory/StayInHost' label='Stay in host' type='6' control='bool' chkbox='1'>0</option>\
-   <option name='httpInventory/StayInIP' label='Stay in domain and IP' type='6' control='bool' chkbox='1'>0</option>\
-   <option name='httpInventory/StayInDomain' label='Stay in domain' type='6' control='bool' chkbox='1'>0</option>\
-  </option>\
-  <option name='httpInventory/ScanDepth' label='Scan depth' type='2' control='int'>-1</option>\
-  <option name='httpInventory/noParamUrl' label='Ignore transport_url parameters' type='6' control='bool' chkbox='1'>0</option>\
- </category>\
- <option name='httpInventory/ParallelReq' label='Number of downloaders' type='2' control='int' min='1' max='100'>10</option>\
- <option name='httpInventory/AllowedCType' label='Allowed content-type' type='2' control='enum'>Any;empty and \"text/*\";only \"text/*\";empty and \"text/html\";only \"text/html\"</option>\
- <option name='httpInventory/Subdomains' label='Allowed subdomains list' type='8' control='string' mode='window'></option>\
+static string xrc = "<plugin id='httpInventory'>\
+<category name='crawl' label='Crawling mode'>\
+<option name='httpInventory/stay_in_dir' label='Stay in directory' type='2' control='checkbox'>1</option>\
+<option name='httpInventory/stay_in_host' label='Stay in host' type='2'  control='checkbox'>0</option>\
+<option name='httpInventory/stay_in_ip' label='Stay in domain and IP' type='2'  control='checkbox'>0</option>\
+<option name='httpInventory/stay_in_domain' label='Stay in domain' type='2'  control='checkbox'>0</option>\
+<option name='httpInventory/stay_in_domain_list' label='Stay in the list of domains' type='2'  control='checkbox'>0</option>\
+<option name='httpInventory/domains_allow' label='List of allowed domains' type='4'  control='textarea'>*</option>\
+</category>\
+<option name='httpInventory/scan_depth' label='Scan depth' type='1' control='text'>-1</option>\
+<option name='httpInventory/url_param' label='Ignore url parameters' type='1' composed='true'>\
+<option name='0' label='None' control='radio'>1</option>\
+<option name='1' label='Ignore all' control='radio'>0</option>\
+<option name='2' label='Ignore values' control='radio'>0</option>\
+</option>\
+<option name='httpInventory/denied_file_types' label='Denied file types' type='4' control='text'></option>\
+<option name='httpInventory/AllowedCType' label='Allowed content-type' type='2' control='select'>\
+<select_option value='0'>Any</select_option>\
+<select_option value='1'>empty and \"text/*\"</select_option>\
+<select_option value='2'>only \"text/*\"</select_option>\
+<select_option value='3' selected='true'>empty and \"text/html\"</select_option>\
+<select_option value='4'>only \"text/html\"</select_option>\
+</option>\
+<category label='Authentication' name='auth'>\
+<option name='' label='Authentication methods' composed='true'>\
+<option name='httpInventory/Auth/Base' label='Basic HTTP' type='2' control='checkbox'>0</option>\
+<option name='httpInventory/Auth/NTLM' label='NTLM' type='2' control='checkbox'>0</option>\
+<option name='httpInventory/Auth/Forms' label='Form-based' type='2' control='checkbox'>0</option>\
+</option>\
+<option name='httpInventory/Auth/domain' label='Domain' type='4' control='text'></option>\
+<option name='httpInventory/Auth/username' label='Username' type='4' control='text'></option>\
+<option name='httpInventory/Auth/password' label='Password' type='4' control='password'></option>\
+<option name='httpInventory/Auth/form-list' label='Forms identities' type='4' control='textarea'></option>\
 </category></plugin>";
 
 using namespace boost;
@@ -85,13 +103,13 @@ void HttpInventory::init( task* tsk )
         if (kernel)
         {
             string host;
-            we_option opt = tsk->Option("scan_host");
+            we_option opt = tsk->Option(weoScanHost);
             SAFE_GET_OPTION_VAL(opt, host, "");
             if (host != "")
             {
                 string path;
                 // create list of the blocked extension
-                opt = tsk->Option("httpInventory/"weoDeniedFileTypes);
+                opt = tsk->Option(weoDeniedFileTypes);
                 SAFE_GET_OPTION_VAL(opt, path, 1);
                 if (path != "")
                 {
@@ -112,7 +130,7 @@ void HttpInventory::init( task* tsk )
                 }
 
                 // create list of allowed sub-domains
-                opt = tsk->Option("httpInventory/"weoDomainsAllow);
+                opt = tsk->Option(weoDomainsAllow);
                 SAFE_GET_OPTION_VAL(opt, path, 1);
                 if (path != "")
                 {
@@ -133,16 +151,17 @@ void HttpInventory::init( task* tsk )
                 }
 
                 // processing options
-                opt_in_host = parent_task->IsSet("httpInventory/"weoStayInHost);
-                opt_in_domain = parent_task->IsSet("httpInventory/"weoStayInDomain);
-                opt_ignore_param = parent_task->IsSet("httpInventory/"weoIgnoreUrlParam);
-                opt = parent_task->Option("httpInventory/"weoScanDepth);
+                opt_in_host = parent_task->IsSet(weoStayInHost);
+                opt_in_domain = parent_task->IsSet(weoStayInDomain);
+                opt = parent_task->Option(weoIgnoreUrlParam);
+                SAFE_GET_OPTION_VAL(opt, opt_ignore_param, 0);
+                opt = parent_task->Option(weoScanDepth);
                 SAFE_GET_OPTION_VAL(opt, opt_max_depth, 0);
-                opt = parent_task->Option("httpInventory/AllowedCType");
+                opt = parent_task->Option(weoAllowedCTypes);
                 SAFE_GET_OPTION_VAL(opt, opt_ctype_method, 0); // default - any type
 
 
-                opt = tsk->Option("httpInventory/BaseURL");
+                opt = tsk->Option(weoBaseURL);
                 SAFE_GET_OPTION_VAL(opt, path, "");
                 start_url.host = host;
                 start_url.request = path;

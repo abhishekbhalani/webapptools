@@ -25,27 +25,26 @@
 #include "weHelper.h"
 #include "weHTTP.h"
 
-static string xrc = "<plugin><category label='Basic settings' name='generic'>\
- <option name='httpTransport/Port' label='Port number' type='2' control='int'>80</option>\
- <option name='httpTransport/SizeLimit' label='Document size limit' type='2' control='int'>-1</option>\
- <category label='Authentication' name='auth'>\
-  <option name='' label='Authentication methods'>&lt;composed&gt;\
-   <option name='httpTransport/Auth/Base' label='Basic HTTP' type='6' control='bool' chkbox='1'>0</option>\
-   <option name='httpTransport/Auth/NTLM' label='NTLM' type='6' control='bool' chkbox='1'>0</option>\
-  </option>\
-  <option name='httpTransport/Auth/Username' label='Username' type='8' control='string'></option>\
-  <option name='httpTransport/Auth/Password' label='Password' type='8' control='string' mode='password'></option>\
- </category>\
- <category label='Proxy' name='proxy'>\
-  <option name='' label='Proxy type'>&lt;composed&gt;\
-   <option name='httpTransport/Proxy/HTTP' label='HTTP' type='6' control='bool' chkbox='1'>0</option>\
-   <option name='httpTransport/Proxy/Socks' label='Socks' type='6' control='bool' chkbox='1'>0</option>\
-  </option>\
-  <option name='httpTransport/Proxy/Host' label='Proxy host' type='8' control='string'></option>\
-  <option name='httpTransport/Proxy/Port' label='Proxy port' type='2' control='int'>8080</option>\
-  <option name='httpTransport/Proxy/Username' label='Username' type='8' control='string'></option>\
-  <option name='httpTransport/Proxy/Password' label='Password' type='8' control='string' mode='password'></option>\
- </category>\
+static string xrc = "<plugin id='httpTransport'>\
+<option name='httpTransport/port' label='Port number' type='1' control='text'>80</option>\
+<option name='httpTransport/protocol' label='Protocol' type='4' control='text'>http</option>\
+<option name='httpTransport/timeout' label='Timeout (sec.)' type='1' control='text'>10</option>\
+<option name='httpTransport/size_Limit' label='Document size limit' type='1' control='text'>-1</option>\
+<option name='httpTransport/cookies' type='1' label='Accept cookies' composed='true'>\
+<option name='0' label='No' control='radio'>1</option>\
+<option name='1' label='Yes' control='radio'>0</option>\
+</option>\
+<category label='Proxy' name='proxy'>\
+<option name='httpTransport/Proxy' type='1' label='Proxy type' composed='true'>\
+<option name='0' label='None' control='radio'>1</option>\
+<option name='1' label='HTTP' control='radio'>0</option>\
+<option name='2' label='Socks' control='radio'>0</option>\
+</option>\
+<option name='httpTransport/Proxy/host' label='Proxy host' type='4' control='text'></option>\
+<option name='httpTransport/Proxy/port' label='Proxy port' type='1' control='text'>8080</option>\
+<option name='httpTransport/Proxy/domain' label='Domain' type='4' control='text'></option>\
+<option name='httpTransport/Proxy/username' label='Username' type='4' control='text'></option>\
+<option name='httpTransport/Proxy/password' label='Password' type='4' control='password'></option>\
 </category></plugin>";
 
 

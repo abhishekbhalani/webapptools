@@ -13,6 +13,12 @@
 
 using namespace webEngine;
 
+static string xrc = "<plugin id='audit_jscript'>\
+<option name='audit_jscript/enable_jscript' label='Enable JavaScript processing' type='2' control='checkbox'>0</option>\
+<option name='audit_jscript/preload' label='Preload JavaScript code' type='4' control='text'>./dom.js</option>\
+<option name='' label='This plugin depends on HTTP Inventory and uses some it&apos;s settings' control='none'></option>\
+</plugin>";
+
 jsExecutor* audit_jscript::js_exec = NULL;
 static log4cxx::LoggerPtr js_logger;
 
@@ -55,7 +61,7 @@ void audit_jscript::init( task* tsk )
 
     // create list of the blocked extension
     parent_task = tsk;
-    opt = tsk->Option("httpInventory/"weoDeniedFileTypes);
+    opt = tsk->Option(weoDeniedFileTypes);
     SAFE_GET_OPTION_VAL(opt, text, 1);
     if (text != "")
     {
@@ -75,10 +81,11 @@ void audit_jscript::init( task* tsk )
         }
     }
     // processing options
-    opt_in_host = parent_task->IsSet("httpInventory/"weoStayInHost);
-    opt_in_domain = parent_task->IsSet("httpInventory/"weoStayInDomain);
-    opt_ignore_param = parent_task->IsSet("httpInventory/"weoIgnoreUrlParam);
-    opt = parent_task->Option("httpInventory/"weoScanDepth);
+    opt_in_host = parent_task->IsSet(weoStayInHost);
+    opt_in_domain = parent_task->IsSet(weoStayInDomain);
+    opt = parent_task->Option(weoIgnoreUrlParam);
+    SAFE_GET_OPTION_VAL(opt, opt_ignore_param, 0);
+    opt = parent_task->Option(weoScanDepth);
     SAFE_GET_OPTION_VAL(opt, opt_max_depth, 0);
 }
 

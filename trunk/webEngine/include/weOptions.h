@@ -203,30 +203,12 @@ BOOST_CLASS_TRACKING(webEngine::we_option, boost::serialization::track_never)
 #define weoLoadIframes       "load_iframes"
 /// collapse multiple spaces into one then HTML parse (bool)
 #define weoCollapseSpaces    "collapse_spaces"
-/// do not leave domain of the request (second-level or higher) (bool)
-#define weoStayInDomain      "stay_in_domain"
-/// includes weoStayInDomain (bool)
-#define weoStayInHost        "stay_in_host"
-/// includes woeStayInHost & weoStayInDomain (bool)
-#define weoStayInDir         "stay_in_dir"
 /// start response processing automatically (bool)
 #define weoAutoProcess       "auto_process"
 /// controls the relocation loops and duplicates (bool)
 #define weoCheckForLoops     "check_for_loops"
-/// base URL for processing (bool)
-#define weoBaseURL           "base_url"
-/// links following depth (integer)
-#define weoScanDepth         "scan_depth"
 /// logging level (integer)
 #define weoLogLevel          "log_level"
-/// number of parallel requests to transport (integer)
-#define weoParallelReq       "parallel_req"
-/// semicolon separated list of the denied file types (by extensions)
-#define weoDeniedFileTypes   "denied_file_types"
-/// semicolon separated list of the allowed sub-domains
-#define weoDomainsAllow      "domains_allow"
-/// ignore URL parameters (bool)
-#define weoIgnoreUrlParam    "no_param_url"
 /// identifiers of the parent object (string)
 #define weoParentID          "parent_id"
 /// identifiers of the profile object (string)
@@ -234,12 +216,13 @@ BOOST_CLASS_TRACKING(webEngine::we_option, boost::serialization::track_never)
 /// signal to the task (int)
 #define weoTaskSignal        "signal"
 //////////////////////////////////////////////////////////////////////////
-// Define options typenames
+// Define options data_types
 //////////////////////////////////////////////////////////////////////////
-#define weoTypeInt           "2"
-#define weoTypeUInt          "3"
-#define weoTypeBool          "6"
-#define weoTypeString        "8"
+#define weoTypeChar          "0"
+#define weoTypeInt           "1"
+#define weoTypeBool          "2"
+#define weoTypeDouble        "3"
+#define weoTypeString        "4"
 //////////////////////////////////////////////////////////////////////////
 // Define task statuses
 //////////////////////////////////////////////////////////////////////////

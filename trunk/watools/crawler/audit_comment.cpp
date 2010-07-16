@@ -6,6 +6,10 @@
 #include <boost/regex.hpp>
 #include <weDispatch.h>
 
+static string xrc = "<plugin id='audit_comment'>\
+<option name='' label='This plugin depends on HTTP Inventory and uses some it&apos;s settings' control='none'></option>\
+</plugin>";
+
 using namespace webEngine;
 using namespace boost;
 
@@ -256,7 +260,7 @@ void audit_comment::init( task* tsk )
     parent_task = tsk;
     // 0. check preconditions
     // create list of the blocked extension
-    opt = tsk->Option("httpInventory/"weoDeniedFileTypes);
+    opt = tsk->Option(weoDeniedFileTypes);
     SAFE_GET_OPTION_VAL(opt, text, 1);
     if (text != "")
     {
@@ -277,13 +281,14 @@ void audit_comment::init( task* tsk )
     }
 
     // check data type
-    opt = parent_task->Option("httpInventory/AllowedCType");
+    opt = parent_task->Option(weoAllowedCTypes);
     SAFE_GET_OPTION_VAL(opt, ctype_method, 0); // default - any type
     LOG4CXX_TRACE(logger, "audit_comment::init: content-type analyze method = " << ctype_method);
     // processing options
-    opt_in_host = parent_task->IsSet("httpInventory/"weoStayInHost);
-    opt_in_domain = parent_task->IsSet("httpInventory/"weoStayInDomain);
-    opt_ignore_param = parent_task->IsSet("httpInventory/"weoIgnoreUrlParam);
-    opt = parent_task->Option("httpInventory/"weoScanDepth);
+    opt_in_host = parent_task->IsSet(weoStayInHost);
+    opt_in_domain = parent_task->IsSet(weoStayInDomain);
+    opt = parent_task->Option(weoIgnoreUrlParam);
+    SAFE_GET_OPTION_VAL(opt, opt_ignore_param, 0);
+    opt = parent_task->Option(weoScanDepth);
     SAFE_GET_OPTION_VAL(opt, opt_max_depth, 0);
 }

@@ -29,16 +29,21 @@ if ($action == "load") {
 	$plg_list = "";
 	if ($q) {
 		$prof_values = $q->fetchAll(PDO::FETCH_ASSOC);
-		$prof_vars = array();
+		// generate javascript to set values
+		$prof_vars = "";
 		foreach ($prof_values as $val) {
-			$prof_vars[$val['name']] =  $val['value'];
+			$objName = preg_replace("/\\//", "_", $val['name']);
+			$prof_vars .= "$('#" . $objName . "').val('" . $val['value'] . "');\n";
 			if ($val['name'] == 'plugin_list') {
 				$plg_list = $val['value'];
+			}
+			if ($val['name'] == 'profile_name') {
+				$profile = $val['value'];
 			}
 		}
 		// get plugins UI
 		$ui_list = array();
-		$loc = 'ru'; //$gSession['lang'];
+		$loc = $gSession['lang'];
 		if ($loc != 'en') {
 			$pq = $db->query("SELECT plugin_id,plugin_name,ui_settings FROM $tui WHERE locale='$loc'");
 			$prof_ui = $pq->fetchAll();
@@ -68,51 +73,55 @@ if ($action == "load") {
 		$active_plg = explode(';', $plg_list);
 		$plglist = array();
 		foreach($ui_list as $ui) {
-			$plg = array();
-			$plg[0] = $ui['plugin_id'];
-			$plg[1] = $ui['plugin_name'];
-			if (in_array($plg[0], $active_plg)) {
-				$plg[2] = true;
-			}
-			else {
-				$plg[2] = false;
-			}
-			// make UI
-			$xslt = GetThemeFile('ui_transform.xslt');
-			if ($xslt == "") {
-				$ui_text = gettext("Can't build UI for plugin!");
-			}
-			else {
-				$ui_src = $ui['ui_settings'];
-				if ($ui_src == "") {
-					$ui_text = gettext("Plugin doesn't provide settings.");
+			if ($ui != "") {
+				$plg = array();
+				$plg[0] = $ui['plugin_id'];
+				$plg[1] = $ui['plugin_name'];
+				if (in_array($plg[0], $active_plg)) {
+					$plg[2] = true;
 				}
 				else {
-					$XML = new DOMDocument(); 
-					$XML->loadXML( $ui_src ); 
-					# START XSLT 
-					$xsl_t = new XSLTProcessor(); 
-					$XSL = new DOMDocument(); 
-					$XSL->load( $xslt , LIBXML_NOCDATA); 
-					$xsl_t->importStylesheet( $XSL ); 
-					#PRINT 
-					$ui_text = $xsl_t->transformToXML( $XML );
+					$plg[2] = false;
 				}
-				if ($ui_text == "") {
-					$ui_text = gettext("Generation failed.");
+				// make UI
+				$xslt = GetThemeFile('ui_transform.xslt');
+				if ($xslt == "") {
+					$ui_text = gettext("Can't build UI for plugin!");
 				}
+				else {
+					$ui_src = $ui['ui_settings'];
+					if ($ui_src == "") {
+						$ui_text = gettext("Plugin doesn't provide settings.");
+					}
+					else {
+						$XML = new DOMDocument(); 
+						$XML->loadXML( $ui_src ); 
+						# START XSLT 
+						$xsl_t = new XSLTProcessor(); 
+						$XSL = new DOMDocument(); 
+						$XSL->load( $xslt , LIBXML_NOCDATA); 
+						$xsl_t->importStylesheet( $XSL ); 
+						#PRINT 
+						$ui_text = $xsl_t->transformToXML( $XML );
+					}
+					if ($ui_text == "") {
+						$ui_text = gettext("Generation failed.");
+					}
+				}
+				// save
+				$plg[4] = $ui_text;
+				$plglist[] = $plg;
 			}
-			// save
-			$plg[4] = $ui_text;
-			$plglist[] = $plg;
 		}
 
-		$smarty->assign('profileName', $profile);
+		$smarty->assign('profile_id', $pid);
+		$smarty->assign('profile_name', $profile);
 		$smarty->assign('pluginsList', $plglist);
+		$smarty->assign('settingsScript', $prof_vars);
 		DisplayThemePage('profileEditor.html');
-//		print "<pre>";
-//		print_r($prof_vars);
-//		print "</pre>";
+		//print "<pre>";
+		//print_r($active_plg);
+		//print "</pre>";
 	}
 	else {
 		$e = $db->errorInfo();
@@ -220,6 +229,44 @@ else if ($action == "clone") {
 			PrintDbError($db);
 		}
 	}
+}
+else if ($action == "save") {
+    $pid = $_POST['prof_id'];
+    $pid *= 2;
+    $pid /= 2;
+	
+	$dtp = $_POST['data_types'];
+	$dtp = explode(';', $dtp);
+	$types = array();
+	foreach($dtp as $dt) {
+		$dt = explode('=', $dt);
+		$types[$dt[0]] = $dt[1];
+	}
+	$upd = $db->prepare("REPLACE INTO $table (profile_id,name,value,type) VALUES($pid,?,?,?)");
+	if ($upd) {
+		foreach($_POST as $key => $value) {
+			if ($key != 'action' && $key != 'prof_id' && $key != 'data_types') {
+				// update value
+				$tp = $types[$key];
+				if (!$tp || $tp == '') {
+					$tp = 4;
+				}
+				$upd->bindParam(1, $key);
+				$upd->bindParam(2, $value);
+				$upd->bindParam(3, $tp);
+				$r = $upd->execute();
+				if (! $r) {
+					$msg = "";
+					PrintDbError($upd);
+				}
+			}
+		}
+	}
+	else {
+		$msg = "";
+		PrintDbError($db);
+	}
+	$msg = "OK";
 }
 echo $msg;
 ?>
