@@ -28,6 +28,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 //#include <boost/any.hpp>
 #include <weiBase.h>
 #include <weOptions.h>
+#include <weiTransport.h>
 
 //using boost::any_cast;
 //using namespace boost;
@@ -41,6 +42,7 @@ namespace webEngine {
     class i_audit;
     class i_vulner;
     class i_request;
+    class i_parser;
     class ScanData;
     class ScanInfo;
     class engine_dispatcher;

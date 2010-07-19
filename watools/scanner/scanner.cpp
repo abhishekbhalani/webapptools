@@ -23,7 +23,6 @@
 #include <log4cxx/consoleappender.h>
 #include <log4cxx/patternlayout.h>
 #include <log4cxx/appender.h>
-#include "../common/redisclient.h"
 // webEngine
 #include <weHelper.h>
 
@@ -52,10 +51,7 @@ LoggerPtr scan_logger = Logger::getLogger("watScanner");
 string scaner_uuid = "";
 string scaner_version = "";
 int scaner_instance = 0;
-redis::client* db1_client;
-boost::mutex db1_lock;
 bool daemonize = false;
-string db1_instance_name = "";
 
 // dispatcher prototype
 extern void dispatcher_routine(po::variables_map& vm);
@@ -185,10 +181,6 @@ int main(int argc, char* argv[])
     cfg_file.add_options()
         ("identity", po::value<string>(), "instalation identificator")
         ("instances",  po::value<int>()->default_value(int(1)), "number of instances")
-        ("redis_host",  po::value<string>()->default_value(string("127.0.0.1")), "host of the Redis database")
-        ("redis_port",  po::value<int>()->default_value(int(6379)), "port of the Redis database")
-		("redis_auth",  po::value<string>(), "authentication to redis database")
-		("redis_db",  po::value<int>()->default_value(int(0)), "redis database index (0-16)")
 		("keepalive_timeout", po::value<int>()->default_value(int(5)), "keep-alive timeout in seconds")
 		("sysinfo_timeout", po::value<int>()->default_value(int(60)), "system information timeout in seconds")
 		("scanner_name", po::value<string>()->default_value(string("default scanner")), "human-readable identificator of the scanner instalation")
@@ -196,8 +188,8 @@ int main(int argc, char* argv[])
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
         ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
         ("plugin_dir",  po::value<string>()->default_value(string("./")), "directory, where plug-ins are placed")
-        ("db2_interface",  po::value<string>()->default_value(string("sqlite")), "plug-in identifier to connect to Storage DB")
-        ("db2_parameters",  po::value<string>(), "plug-in configuration to connect to Storage DB")
+        ("db_interface",  po::value<string>()->default_value(string("sqlite")), "plug-in identifier to connect to Storage DB")
+        ("db_parameters",  po::value<string>(), "plug-in configuration to connect to Storage DB")
 		("daemonize",  po::value<string>(), "run program as daemon (yes|no or true|false)")
     ;
 
@@ -456,59 +448,12 @@ int main(int argc, char* argv[])
         }
 	}
 
-    // create connection to Redis server
-    db1_stage = "connection creation";
-    db1_client = NULL;
-    try {
-        db1_client = new redis::client(vm["redis_host"].as<string>(), vm["redis_port"].as<int>());
-        if (vm.count("redis_auth")) {
-            string db_auth = vm["redis_auth"].as<string>();
-            if (db_auth != "")
-            {
-                db1_stage = "authentication";
-                db1_client->auth(db_auth);
-            }
-        }
-        int db_index = vm["redis_db"].as<int>();
-        db1_stage = "select DB";
-        db1_client->select(db_index);
-    }
-    catch (redis::redis_error& re) {
-    	LOG4CXX_FATAL(scan_logger, "Command DB connection error (" << db1_stage << "): " << (string)re);
-        if (db1_client != NULL) {
-            delete db1_client;
-        }
-        db1_client = NULL;
-    }
-    if (db1_client == NULL) {
-        LOG4CXX_TRACE(scan_logger, "Command DB connection error - exit");
-        goto finish;
-    }
-    LOG4CXX_INFO(scan_logger, "Command DB connection established");
-
-    // verify instance id
-    scaner_instance = db1_client->keys("ScanModule:Instance:" + scaner_uuid + "*", redis_out);
-    LOG4CXX_TRACE(scan_logger, "DB1 returns " << scaner_instance << " as number of instances");
-    scaner_instance++;
-    max_inst = vm["instances"].as<int>();
-    if (scaner_instance > max_inst) {
-        LOG4CXX_FATAL(scan_logger, "Can't run instance " << scaner_instance << " 'cause the limit is " << max_inst);
-        goto finish;
-    }
-    LOG4CXX_DEBUG(scan_logger, "Register instance #" << scaner_instance);
-    db1_instance_name = "ScanModule:Instance:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
-    db1_client->set(db1_instance_name, "0");
-    db1_client->expire(db1_instance_name, 10);
-
     // run dispatcher
     dispatcher_routine(vm);
     
 
 finish:
     // cleanup
-    if (db1_client != NULL) {
-        delete db1_client;
-    }
     webEngine::LibClose();
 
     LOG4CXX_INFO(scan_logger, "WAT Scanner stopped");
