@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
@@ -13,8 +14,10 @@
 
 #include <log4cxx/logger.h>
 #include <weDispatch.h>
+#include <weiPlugin.h>
+#include <weUrl.h>
+#include <weTask.h>
 
-#include "../common/redisclient.h"
 #include "../common/sysinfo.h"
 #include "version.h"
 
@@ -58,12 +61,9 @@ enum _sys_info_fields {
 string sys_info_packet[last_sys_info_field];
 
 extern LoggerPtr scan_logger;
-extern redis::client* db1_client;
-extern boost::mutex db1_lock;
 extern string scaner_uuid;
 extern string scaner_version;
 extern int scaner_instance;
-extern string db1_instance_name;
 
 void signal_halt(int sig)
 {
@@ -93,100 +93,68 @@ void save_plugin_ui(string args)
         args = args.substr(0, pos);
     }
     webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
-    try {
-        for (int i = 0; i < plgs.size(); i++)
-        {
-            if (boost::iequals(plgs[i].plugin_id, args) == 0) {
-                // save plugin icon
-                db_key = "Plugin:Scanner:" + plgs[i].plugin_id + ":Icon";
-                db_data = "";
-                for (int j = 0; j < plgs[i].plugin_icon.size(); j++)
-                {
-                    db_data += plgs[i].plugin_icon[j];
-                    db_data += "\n";
-                }
-                db1_client->set(db_key, db_data);
-                webEngine::i_plugin* plg = we_dispatcer->load_plugin(args);
-                if (plg != NULL) {
-                    db_key = "Plugin:Scanner:" + plgs[i].plugin_id + ":UI";
-                    db_data = plg->get_setup_ui();
-                    db1_client->set(db_key, db_data);
-                    plg->release();
-                }
-                else {
-                    LOG4CXX_ERROR(scan_logger, "Can't load plugin " << plgs[i].plugin_id << "; " << plgs[i].plugin_desc);
-                }
-            }// if (plugin_id == args)
-        }
-    } catch(redis::redis_error& re) {
-        LOG4CXX_FATAL(scan_logger, "Can't save plugin UI. Redis error: " << (string)re);
+    for (int i = 0; i < plgs.size(); i++)
+    {
+        if (boost::iequals(plgs[i].plugin_id, args) == 0) {
+            // save plugin icon
+            db_key = "Plugin:Scanner:" + plgs[i].plugin_id + ":Icon";
+            db_data = "";
+            for (int j = 0; j < plgs[i].plugin_icon.size(); j++)
+            {
+                db_data += plgs[i].plugin_icon[j];
+                db_data += "\n";
+            }
+			// save icon
+            webEngine::i_plugin* plg = we_dispatcer->load_plugin(args);
+            if (plg != NULL) {
+                db_key = "Plugin:Scanner:" + plgs[i].plugin_id + ":UI";
+                db_data = plg->get_setup_ui();
+				// save UI
+                plg->release();
+            }
+            else {
+                LOG4CXX_ERROR(scan_logger, "Can't load plugin " << plgs[i].plugin_id << "; " << plgs[i].plugin_desc);
+            }
+        }// if (plugin_id == args)
     }
 }
 
 void send_keepalive(int timeout) {
     LOG4CXX_TRACE(scan_logger, "Send keep-alive signal");
-    try {
-		keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
-        if (db1_client->exists(db1_instance_name)) {
-            db1_client->del(db1_instance_name);
-        }
-        for (int i = 0; i < last_keep_alive_field; i++) {
-            db1_client->rpush(db1_instance_name, keep_alive_packet[i]);
-        }
-        db1_client->expire(db1_instance_name, timeout);
-    } catch(redis::redis_error& re) {
-        LOG4CXX_FATAL(scan_logger, "Can't save keep-alive information. Redis error: " << (string)re);
-    }
+	keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
 }
 
 void send_plugins_list(int timeout) {
     LOG4CXX_TRACE(scan_logger, "Save plugins list");
     string db_key = "ScanModule:PlugIns:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
-    try {
-        webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
-        if (db1_client->exists(db_key)) {
-            db1_client->del(db_key);
-        }
-        for (int i = 0; i < plgs.size(); i++)
-        {
-            string info = plgs[i].interface_name + "|";
-            info += plgs[i].interface_list[1] + "|";
-            info += plgs[i].plugin_id + "|";
-            info += plgs[i].plugin_desc;
-            LOG4CXX_TRACE(scan_logger, "Save info [" << i << "]: " << info);
-            db1_client->rpush(db_key, info);
-        }
-    } catch(redis::redis_error& re) {
-        LOG4CXX_ERROR(scan_logger, "Can't save plugins list. Redis error: " << (string)re);
+    webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
+    for (int i = 0; i < plgs.size(); i++)
+    {
+        string info = plgs[i].interface_name + "|";
+        info += plgs[i].interface_list[1] + "|";
+        info += plgs[i].plugin_id + "|";
+        info += plgs[i].plugin_desc;
+        LOG4CXX_TRACE(scan_logger, "Save info [" << i << "]: " << info);
+		// save info
     }
-
 }
 
 void send_sysinfo(int timeout) {
     LOG4CXX_TRACE(scan_logger, "Send system information");
 	// not divide to instances - whole system information
 	string db_key =  "ScanModule:SysInfo:" + scaner_uuid;
-    try {
-        LOG4CXX_TRACE(scan_logger, "Get memory information");
-        sys_info_packet[memory_size] = sys_meminfo();
-        LOG4CXX_TRACE(scan_logger, "Get CPU information");
-        sys_info_packet[cpu_usage] = sys_cpu();
-        LOG4CXX_TRACE(scan_logger, "Get disk information");
-        sys_info_packet[disk_size] = sys_disk();
-        sys_info_packet[max_tasks] = boost::lexical_cast<string>(max_tasks_count);
-        if (db1_client->exists(db_key)) {
-            db1_client->del(db_key);
-        }
-        for (int i = 0; i < last_sys_info_field; i++) {
-            db1_client->rpush(db_key, sys_info_packet[i]);
-        }
-        db1_client->expire(db_key, timeout);
 
-        // save to DB1 information about plugins.
-        send_plugins_list(timeout);
-    } catch(redis::redis_error& re) {
-        LOG4CXX_ERROR(scan_logger, "Can't save system information. Redis error: " << (string)re);
-    }
+	LOG4CXX_TRACE(scan_logger, "Get memory information");
+    sys_info_packet[memory_size] = sys_meminfo();
+    LOG4CXX_TRACE(scan_logger, "Get CPU information");
+    sys_info_packet[cpu_usage] = sys_cpu();
+    LOG4CXX_TRACE(scan_logger, "Get disk information");
+    sys_info_packet[disk_size] = sys_disk();
+    sys_info_packet[max_tasks] = boost::lexical_cast<string>(max_tasks_count);
+	// save info
+
+    // save to DB1 information about plugins.
+    send_plugins_list(timeout);
 }
 
 void dispatcher_routine(po::variables_map& vm)
@@ -199,10 +167,6 @@ void dispatcher_routine(po::variables_map& vm)
     char        ac[80] = {0};
     string      queue_key;
 
-    if (db1_client == NULL) {
-        LOG4CXX_FATAL(scan_logger, "Redis client seems to be uninitialized! Exiting...");
-        return;
-    }
     // set signal processor
     signal(SIGINT, signal_halt);
 
@@ -214,7 +178,7 @@ void dispatcher_routine(po::variables_map& vm)
     // refresh plugins information
     bfs::path plg_path = vm["plugin_dir"].as<string>();
     we_dispatcer->refresh_plugin_list(plg_path);
-    webEngine::i_plugin* plg = we_dispatcer->load_plugin(vm["db2_interface"].as<string>());
+    webEngine::i_plugin* plg = we_dispatcer->load_plugin(vm["db_interface"].as<string>());
     if (plg == NULL) {
         LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db2_interface"].as<string>());
         return;
@@ -228,12 +192,27 @@ void dispatcher_routine(po::variables_map& vm)
         return;
     }
     string params = "";
-    if (vm.count("db2_parameters")) {
-        params = vm["db2_parameters"].as<string>();
+    if (vm.count("db_parameters")) {
+        params = vm["db_parameters"].as<string>();
     }
     storage->init_storage(params);
     we_dispatcer->storage(storage);
     LOG4CXX_INFO(scan_logger, "Storage initialised");
+
+    // verify instance id
+	
+    /*scaner_instance = db1_client->keys("ScanModule:Instance:" + scaner_uuid + "*", redis_out);
+    LOG4CXX_TRACE(scan_logger, "DB1 returns " << scaner_instance << " as number of instances");
+    scaner_instance++;
+    max_inst = vm["instances"].as<int>();
+    if (scaner_instance > max_inst) {
+        LOG4CXX_FATAL(scan_logger, "Can't run instance " << scaner_instance << " 'cause the limit is " << max_inst);
+        goto finish;
+    }
+    LOG4CXX_DEBUG(scan_logger, "Register instance #" << scaner_instance);
+    db1_instance_name = "ScanModule:Instance:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
+    db1_client->set(db1_instance_name, "0");
+    db1_client->expire(db1_instance_name, 10);*/
 
     // init values 
     sys_cpu();
@@ -309,55 +288,50 @@ void dispatcher_routine(po::variables_map& vm)
             send_sysinfo(sys_info_timeout);
         }
         // check commands
-        try {
-            string cmd;
-            string args;
-            int pos;
-            cmd = db1_client->lpop(queue_key);
-            while (cmd != redis::client::missing_value) {
-                LOG4CXX_DEBUG(scan_logger, "Process command: " << cmd);
-                // separate command from argumenets
-                pos = cmd.find(' ');
-                if (pos == string::npos) {
-                    pos = cmd.find('\t');
-                }
-                if (pos != string::npos) {
-                    args = cmd.substr(pos + 1);
-                    cmd = cmd.substr(0, pos);
-                }
-                else {
-                    args = "";
-                }
-                boost::to_upper(cmd);
-
-                // process commands
-                if (cmd == "EXIT") {
-                    signal_halt(0);
-                    // need to exit and save other commands in the queue
-                    break;
-                }
-                else if (cmd == "RESTART") {
-                    // need to exit this copy and run new instance
-                    signal_halt(0);
-                    LOG4CXX_INFO(scan_logger, "Restart request recieved");
-                    break;
-                }
-                else if (cmd == "PLUGINS") {
-                    // refresh plugins list
-                    send_plugins_list(sys_info_timeout);
-                }
-                else if (cmd == "SAVE_PLUGIN_UI") {
-                    // refresh plugins list
-                    save_plugin_ui(args);
-                }
-                else if (cmd == "") {
-                    // other cmd's
-                }
-                cmd = db1_client->lpop(queue_key);
+        string cmd;
+        string args;
+        int pos;
+        //cmd = db1_client->lpop(queue_key);
+        while (cmd != "") {
+            LOG4CXX_DEBUG(scan_logger, "Process command: " << cmd);
+            // separate command from argumenets
+            pos = cmd.find(' ');
+            if (pos == string::npos) {
+                pos = cmd.find('\t');
             }
-        } catch(redis::redis_error& re) {
-            LOG4CXX_FATAL(scan_logger, "Can't get commands queue " << (string)re);
-            signal_halt(0); 
+            if (pos != string::npos) {
+                args = cmd.substr(pos + 1);
+                cmd = cmd.substr(0, pos);
+            }
+            else {
+                args = "";
+            }
+            boost::to_upper(cmd);
+
+            // process commands
+            if (cmd == "EXIT") {
+                signal_halt(0);
+                // need to exit and save other commands in the queue
+                break;
+            }
+            else if (cmd == "RESTART") {
+                // need to exit this copy and run new instance
+                signal_halt(0);
+                LOG4CXX_INFO(scan_logger, "Restart request recieved");
+                break;
+            }
+            else if (cmd == "PLUGINS") {
+                // refresh plugins list
+                send_plugins_list(sys_info_timeout);
+            }
+            else if (cmd == "SAVE_PLUGIN_UI") {
+                // refresh plugins list
+                save_plugin_ui(args);
+            }
+            else if (cmd == "") {
+                // other cmd's
+            }
+            //cmd = db1_client->lpop(queue_key);
         }
     }
     // finalize...
