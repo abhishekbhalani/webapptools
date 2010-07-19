@@ -19,8 +19,10 @@
 */
 #include <webEngine.h>
 
-#include "weStrings.h"
-#include "boost/regex.hpp"
+#include <weStrings.h>
+#include <boost/regex.hpp>
+#include <boost/regex.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 using namespace boost;
 
@@ -103,11 +105,24 @@ string StringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
 
 std::string StringLinks::find_first(const string& name)
 {
-	for (data_list::const_iterator it = data_.begin(); it != data_.end(); ++it)
-		if (it->first == name)
-			return it->second;
+	for (data_list::iterator it = data_.begin(); it != data_.end(); ++it) {
+        if (it->first == name) {
+            return it->second;
+        }
+    }
 
 	return std::string();
+}
+
+std::string StringLinks::ifind_first( const string& name )
+{
+    for (data_list::iterator it = data_.begin(); it != data_.end(); ++it) {
+        if (iequals(it->first, name)) {
+            return it->second;
+        }
+    }
+
+    return std::string();
 }
 
 void StringLinks::append( std::string key, std::string val )
@@ -121,6 +136,32 @@ void StringLinks::append( std::string key, std::string val )
     // if not found
     data_.push_back(std::pair<std::string, std::string>(key, val));
 
+}
+
+void StringLinks::erase( std::string name )
+{
+    for (data_list::iterator it = data_.begin(); it != data_.end();) {
+        if (it->first == name) {
+            data_.erase(it);
+            it = data_.begin();
+        }
+        else {
+            ++it;
+        }
+    }
+}
+
+void StringLinks::ierase( std::string name )
+{
+    for (data_list::iterator it = data_.begin(); it != data_.end();) {
+        if (iequals(it->first, name)) {
+            data_.erase(it);
+            it = data_.begin();
+        }
+        else {
+            ++it;
+        }
+    }
 }
 
 string SListToString(string_list& lst)

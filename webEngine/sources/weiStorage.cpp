@@ -56,6 +56,7 @@ char* webEngine::idb_struct[] =
     "vulners:id INT NOT NULL:task_id INT NOT NULL:object_id INT:plugin_id TEXT:severity INT DEFAULT 0:vulner_id INT:params TEXT",
     "vulner_desc:plugin_id TEXT NOT NULL:id INT NOT NULL:severity INT NOT NULL:title TEXT:short TEXT:desc BLOB:locale TEXT",
     "modules:id TEXT NOT NULL:instance INT NOT NULL:class INT NOT NULL:version TEXT:ipaddr TEXT:name TEXT:timeout INT:onrun INT:status TEXT",
+    "auth_data:task_id INT NOT NULL:data_type INT NOT NULL:name TEXT NOT NULL:value TEXT:timeout INT:path TEXT:domain TEXT",
     NULL
 };
 

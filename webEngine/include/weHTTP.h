@@ -35,21 +35,6 @@ namespace webEngine {
     class HttpRequest;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  WeProxy
-    ///
-    /// @brief  Proxy definition for HttpRequest.
-    ///
-    /// @author A. Abramov
-    /// @date   01.06.2009
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class WeProxy
-    {
-    public:
-        transport_url   proxyAddr;
-        curl_proxytype type;
-    };
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @class  HttpResponse
     ///
     /// @brief  HTTP response.
@@ -182,10 +167,6 @@ namespace webEngine {
         void Method(const weHttpMethod &meth)   { method = meth;    };
         //@}
 
-        // Access the Proxy
-        WeProxy *Proxy(void) const  { return(proxy);    };
-        void Proxy(WeProxy *prx)    { proxy = prx;      };
-
         virtual i_response_ptr abort_request();
 
 #ifndef __DOXYGEN__
@@ -194,7 +175,6 @@ namespace webEngine {
         transport_url   reqUrl;
         blob            data;
         StringLinks     postData;
-        WeProxy         *proxy;
 #endif //__DOXYGEN__
     };
 
@@ -238,15 +218,54 @@ namespace webEngine {
 
 #ifndef __DOXYGEN__
     protected:
-        CURLM*          transferHandle;
-        CURLMcode       lastError;
-        int             default_port;
-        int             default_timeout;
-        string          proto_name;
-        map<string, bool> options;
+        CURLM*      transferHandle;
+        CURLMcode   lastError;
+        int         default_port;
+        int         default_timeout;
+        string      proto_name;
+        int         max_doc_size;
+        bool        use_localport;
+        int         local_port;
+        int         local_range;
+        int         use_proxy; /// one of weoHttpProxyType* constant
+        int         proxy_auth_type;  /// 0 - none, 1 - basic, 2 - digest, 3 - NTLM
+        string      proxy_host;
+        int         proxy_port;
+        string      proxy_domain;
+        string      proxy_username;
+        string      proxy_password;
+        map<string, bool>   options;
 #endif //__DOXYGEN__
     };
 
 } // namespace webEngine
+
+#define weoHttpProxyTypeNone 0
+#define weoHttpProxyTypeHTTP 1
+#define weoHttpProxyTypeSocks4 2
+#define weoHttpProxyTypeSocks4a 3
+#define weoHttpProxyTypeSocks5 4
+
+#define weoHttpProxyAuthNone 0
+#define weoHttpProxyAuthBasic 1
+#define weoHttpProxyAuthDigest 2
+#define weoHttpProxyAuthNTLM 3
+
+// HttpTransport options
+#define weoHttpPort "httpTransport/port"
+#define weoHttpProto "httpTransport/protocol"
+#define weoHttpTimeout "httpTransport/timeout"
+#define weoHttpSizeLimit "httpTransport/size_Limit"
+#define weoHttpAcceptCookies "httpTransport/cookies"
+#define weoHttpUseLocalPort "httpTransport/use_localport"
+#define weoHttpLocalPort "httpTransport/local_port"
+#define weoHttpLocalRange "httpTransport/local_range"
+#define weoHttpProxy "httpTransport/Proxy"
+#define weoHttpProxyAuth "httpTransport/ProxyAuth"
+#define weoHttpProxyHost "httpTransport/Proxy/host"
+#define weoHttpProxyPort "httpTransport/Proxy/port"
+#define weoHttpProxyDomain "httpTransport/Proxy/domain"
+#define weoHttpProxyUname "httpTransport/Proxy/username"
+#define weoHttpProxyPswd "httpTransport/Proxy/password"
 
 #endif //__WEHTTP_H__

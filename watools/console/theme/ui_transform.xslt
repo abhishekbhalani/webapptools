@@ -69,9 +69,19 @@
 			<xsl:when test="@control = 'radio'">
 				<xsl:variable name="ui_id2"><xsl:value-of select="translate(../@name, '/', '_')" /></xsl:variable>
 				<input type="radio">
-					<xsl:attribute name="id"><xsl:value-of select="$ui_id2" /></xsl:attribute>
+					<xsl:attribute name="data_type"><xsl:value-of select="../@type" /></xsl:attribute>
+					<!-- xsl:attribute name="id"><xsl:value-of select="$ui_id2" /></xsl:attribute -->
 					<xsl:attribute name="name"><xsl:value-of select="../@name" /></xsl:attribute>
 					<xsl:attribute name="value"><xsl:value-of select="@name" /></xsl:attribute>
+					<xsl:if test="text() != '0'">
+						<xsl:attribute name="checked"></xsl:attribute>
+					</xsl:if>
+				</input>
+			</xsl:when>
+			<xsl:when test="@control = 'checkbox'">
+				<input type='checkbox'><xsl:attribute name="id"><xsl:value-of select="$ui_id" /></xsl:attribute>
+					<xsl:attribute name="name"><xsl:value-of select="@name" /></xsl:attribute>
+					<xsl:attribute name="data_type"><xsl:value-of select="@type" /></xsl:attribute>
 					<xsl:if test="text() != '0'">
 						<xsl:attribute name="checked"></xsl:attribute>
 					</xsl:if>

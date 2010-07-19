@@ -541,6 +541,11 @@ void task::Run(void)
     total_reqs = 0;
     total_done = 0;
     processThread = true;
+    for (size_t i = 0; i < transports.size(); i++)
+    {
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << transports[i]->get_description());
+        transports[i]->load_settings(this);
+    }
     // init parsers first
     for (size_t i = 0; i < parsers.size(); i++)
     {

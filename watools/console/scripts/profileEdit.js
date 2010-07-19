@@ -40,9 +40,8 @@ function saveProfile()
 	$("#plugin_list").val(plg_txt);
 	plg_txt = "";
 	$("[data_type]").each(function (idx, domElem) {
-		id = domElem.id;
 		idn = domElem.name;
-		idt = $("#"+id).attr('data_type');
+		idt = $("input:[name="+idn+"]").attr('data_type');
 		if (idt == '') {
 			idt = 4;
 		}
@@ -76,4 +75,23 @@ function saveProfile()
 			}
 		});
 	return false;
+}
+
+function setControlValue(nm, val) {
+	var type = $('input:[name='+nm+']').attr('type');
+	var value = unescape(val);
+	if (type != undefined) {
+		if (type == 'checkbox') {
+			if (val != '' && val != '0') {
+				$("input:[name="+nm+"]").attr('checked', 'checked');
+			}
+		}
+		else if (type == 'radio') {
+			var $radios = $('input:radio[name='+nm+']');
+			$radios.filter('[value='+value+']').attr('checked', true);
+		}
+		else {
+			$("input:[name="+nm+"]").val(value);
+		}
+	}
 }

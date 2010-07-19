@@ -30,10 +30,11 @@ if ($action == "load") {
 	if ($q) {
 		$prof_values = $q->fetchAll(PDO::FETCH_ASSOC);
 		// generate javascript to set values
-		$prof_vars = "";
+		$prof_vars = "function SetValues() {\n";
 		foreach ($prof_values as $val) {
-			$objName = preg_replace("/\\//", "_", $val['name']);
-			$prof_vars .= "$('#" . $objName . "').val('" . $val['value'] . "');\n";
+			$objName = htmlentities($val['name']); //preg_replace("/\\//", "_", $val['name']);
+			$objVal = htmlentities($val['value']);
+			$prof_vars .= "setControlValue('" . $objName . "', '" . $objVal . "');\n";
 			if ($val['name'] == 'plugin_list') {
 				$plg_list = $val['value'];
 			}
@@ -41,6 +42,7 @@ if ($action == "load") {
 				$profile = $val['value'];
 			}
 		}
+		$prof_vars .= "}\n";
 		// get plugins UI
 		$ui_list = array();
 		$loc = $gSession['lang'];
@@ -54,19 +56,21 @@ if ($action == "load") {
 		}
 		// fix missing data from english (default) locale
 		$pq = $db->query("SELECT plugin_id,plugin_name,ui_settings FROM $tui WHERE locale='en'");
-		$prof_en = $pq->fetchAll();
-		foreach ($prof_en as $en) {
-			$pl_id = $en['plugin_id'];
-			if ($ui_list[$pl_id]) {
-				if ($ui_list[$pl_id]['plugin_name'] == "") {
-					$ui_list[$pl_id]['plugin_name'] = $en['plugin_name'];
+		if ($pq) {
+			$prof_en = $pq->fetchAll();
+			foreach ($prof_en as $en) {
+				$pl_id = $en['plugin_id'];
+				if ($ui_list[$pl_id]) {
+					if ($ui_list[$pl_id]['plugin_name'] == "") {
+						$ui_list[$pl_id]['plugin_name'] = $en['plugin_name'];
+					}
+					if ($ui_list[$pl_id]['ui_settings'] == "") {
+						$ui_list[$pl_id]['ui_settings'] = $en['ui_settings'];
+					}
 				}
-				if ($ui_list[$pl_id]['ui_settings'] == "") {
-					$ui_list[$pl_id]['ui_settings'] = $en['ui_settings'];
+				else {
+					$ui_list[$pl_id] = $en;
 				}
-			}
-			else {
-				$ui_list[$pl_id] = $en;
 			}
 		}
 		// make plugin list
@@ -114,13 +118,14 @@ if ($action == "load") {
 			}
 		}
 
+		$prof_vars .="SetValues();";
 		$smarty->assign('profile_id', $pid);
 		$smarty->assign('profile_name', $profile);
 		$smarty->assign('pluginsList', $plglist);
 		$smarty->assign('settingsScript', $prof_vars);
 		DisplayThemePage('profileEditor.html');
 		//print "<pre>";
-		//print_r($active_plg);
+		//print_r($prof_vars);
 		//print "</pre>";
 	}
 	else {
