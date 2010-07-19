@@ -173,8 +173,8 @@ static string sqlite_fix_filter(const string& filter)
 
     // fix string values
     boost::replace_all(result, "'", "''");
-    // ([=><]\s+)([\S]+[^\d\s][\S]+)\s+ => $1"$2" )
-    boost::regex srch1("([=><]\\s+)([\\S]+[^\\d\\s][\\S]+)\\s+");
+    // ([=><]\s+)(([\S]+[^\d\s][\S]*)|([^\d]))\s+ => $1"$2" )
+    boost::regex srch1("([=><]\\s+)(([\\S]+[^\\d\\s][\\S]*)|([^\\d]))\\s+");
     string repl1 = "$1'$2' ";
     result = boost::regex_replace(result, srch1, repl1, boost::match_default | boost::format_all);
 

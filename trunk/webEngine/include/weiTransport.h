@@ -37,6 +37,7 @@ namespace webEngine {
     extern int LockedIncrement(int *val);
     extern int LockedDecrement(int *val);
 
+    class i_storage;
     class i_transport;
 
     class i_operation;
@@ -269,6 +270,7 @@ namespace webEngine {
 
         virtual string& get_name() = 0;
         virtual bool is_own_protocol(string& proto) = 0;
+        virtual i_storage* storage();
 
 #ifndef __DOXYGEN__
     protected:

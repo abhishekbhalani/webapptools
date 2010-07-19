@@ -19,8 +19,10 @@
 */
 #include <webEngine.h>
 
-#include "weiTransport.h"
-#include "weHelper.h"
+#include <weHelper.h>
+#include <weiTransport.h>
+#include <weDispatch.h>
+
 #include "iweTransport.xpm"
 
 using namespace webEngine;
@@ -53,6 +55,11 @@ i_plugin* i_transport::get_interface( const string& ifName )
         return this;
     }
     return i_plugin::get_interface(ifName);
+}
+
+i_storage* webEngine::i_transport::storage()
+{
+    return kernel->storage();
 }
 
 //////////////////////////////////////////////////////////////////////////

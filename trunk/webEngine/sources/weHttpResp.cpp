@@ -20,11 +20,15 @@
 #include <webEngine.h>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <algorithm>
-#include "weHelper.h"
-#include "weHTTP.h"
-#include "weOptions.h"
+#include <weHelper.h>
+#include <weHTTP.h>
+#include <weDbstruct.h>
+#include <weiStorage.h>
+#include <weOptions.h>
 
+using namespace std;
 namespace webEngine {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,7 +98,7 @@ bool HttpResponse::CurlInit( void )
     return true;
 }
 
-void HttpResponse::CurlSetOpts(HttpRequest* req /*= NULL*/)
+void HttpResponse::CurlSetOpts( HttpRequest* req /*= NULL*/ )
 {
     if (req != NULL) {
         /// @todo Sets the request options
@@ -112,16 +116,15 @@ void HttpResponse::CurlSetOpts(HttpRequest* req /*= NULL*/)
             curl_easy_setopt(curlHandle, CURLOPT_READDATA, &(req->Data()[0]));
             curl_easy_setopt(curlHandle, CURLOPT_INFILESIZE, req->Data().size());
         }
-        WeProxy* prx = req->Proxy();
-        if (prx && prx->proxyAddr.is_valid()) {
-            curl_easy_setopt(curlHandle, CURLOPT_PROXYTYPE, prx->type);
-            curl_easy_setopt(curlHandle, CURLOPT_PROXY, prx->proxyAddr.tostring().c_str());
-        }
     }
 }
 
-void HttpResponse::Process(i_transport* proc)
+void HttpResponse::Process(i_transport* trans)
 {
+    string c_value;
+    string dom;
+    string pth;
+    string expr;
     char *st;
     double tminf;
 
@@ -144,9 +147,77 @@ void HttpResponse::Process(i_transport* proc)
     data.push_back(0);
     headData.push_back(0);
     headers.Parse((char*)&headData[0]);
-    if (proc != NULL) {
+    if (trans != NULL) {
         /// @todo Process options
-        if (httpCode >= 300 && httpCode < 400 && proc->is_set(weoFollowLinks) && relocCount < proc->relocation_count()) {
+        // process cookies
+        if (trans->is_set(weoHttpAcceptCookies)) {
+            c_value = headers.find_first("Set-Cookie");
+            cookies.Parse(c_value);
+            dom = cookies.ifind_first("domain");
+            if (dom == "") {
+                cookies.append("domain", realUrl.host);
+                dom = realUrl.host;
+            }
+            pth = cookies.ifind_first("path");
+            if (pth == "") {
+                cookies.append("path", "/");
+                pth = "/";
+            }
+            expr = cookies.ifind_first("expires");
+            if (trans->storage() != NULL) {
+                cookies.ierase("domain");
+                cookies.ierase("path");
+                cookies.ierase("expires");
+                int tmout = -1;
+                try {
+                    boost::posix_time::ptime  tm_boost;
+                    tm_boost = boost::posix_time::time_from_string(expr);
+                    struct tm tm_time;
+                    tm_time = boost::posix_time::to_tm(tm_boost); 
+                    tmout = (int)mktime( &tm_time );
+                }
+                catch(...) {};
+                StringLinks::data_list::iterator it;
+                db_recordset dataset;
+                dataset.set_names(trans->storage()->get_namespace_struct("auth_data"));
+                db_cursor rec = dataset.push_back();
+                db_query query;
+                query.what = trans->storage()->get_namespace_struct("auth_data");
+                db_condition cq, cn, cd, cp;
+                cq.field() = "auth_data.data_type";
+                cq.operation() = db_condition::equal;
+                cq.value() = 0;
+
+                cn.field() = "auth_data.name";
+                cn.operation() = db_condition::equal;
+                cn.value() = "";
+
+                cd.field() = "auth_data.domain";
+                cd.operation() = db_condition::equal;
+                cd.value() = dom;
+
+                cp.field() = "auth_data.path";
+                cp.operation() = db_condition::equal;
+                cp.value() = pth;
+
+                for (it = cookies.begin(); it != cookies.end(); ++it)
+                {   // foreach cookie value
+                    cn.value() = it->first;
+                    query.where.set(cq).and(cn).and(cd).and(cp);
+
+                    rec["auth_data.task_id"] = 0;
+                    rec["auth_data.data_type"] = 0; // 0 == cookie
+                    rec["auth_data.name"] = it->first;
+                    rec["auth_data.value"] = it->second;
+                    rec["auth_data.timeout"] = tmout;
+                    rec["auth_data.path"] = pth;
+                    rec["auth_data.domain"] = dom;
+
+                    trans->storage()->set(query, dataset);
+                }
+            }
+        }
+        if (httpCode >= 300 && httpCode < 400 && trans->is_set(weoFollowLinks) && relocCount < trans->relocation_count()) {
             // redirections
             relocCount++;
             string url = headers.find_first("Location");
@@ -154,7 +225,7 @@ void HttpResponse::Process(i_transport* proc)
                 /// @todo process options: weoStayInDomain, weoStayInHost, weoStayInDir and request blocking
                 headData.clear();
                 data.clear();
-                proc->request(url, boost::shared_dynamic_cast<i_response>(shared_from_this()));
+                trans->request(url, boost::shared_dynamic_cast<i_response>(shared_from_this()));
             }
         }
     }

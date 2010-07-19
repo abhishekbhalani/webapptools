@@ -22,8 +22,10 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 #include <algorithm>
-#include "weHelper.h"
-#include "weHTTP.h"
+#include <weHelper.h>
+#include <weHTTP.h>
+#include <weDbstruct.h>
+#include <weDispatch.h>
 
 static string xrc = "<plugin id='httpTransport'>\
 <option name='httpTransport/port' label='Port number' type='1' control='text'>80</option>\
@@ -34,11 +36,24 @@ static string xrc = "<plugin id='httpTransport'>\
 <option name='0' label='No' control='radio'>1</option>\
 <option name='1' label='Yes' control='radio'>0</option>\
 </option>\
+<option name='' label='Local port settings' composed='true'>\
+<option name='httpTransport/use_localport' label='Use local port binding' type='2' control='checkbox'>0</option>\
+<option name='httpTransport/local_port' label='Local port' type='1' control='text'>0</option>\
+<option name='httpTransport/local_range' label='Local port pool' type='1' control='text'>0</option>\
+</option>\
 <category label='Proxy' name='proxy'>\
 <option name='httpTransport/Proxy' type='1' label='Proxy type' composed='true'>\
 <option name='0' label='None' control='radio'>1</option>\
 <option name='1' label='HTTP' control='radio'>0</option>\
-<option name='2' label='Socks' control='radio'>0</option>\
+<option name='2' label='Socks 4' control='radio'>0</option>\
+<option name='3' label='Socks 4A' control='radio'>0</option>\
+<option name='4' label='Socks 5' control='radio'>0</option>\
+</option>\
+<option name='httpTransport/ProxyAuth' type='1' label='Proxy Authentication' composed='true'>\
+<option name='0' label='None' control='radio'>1</option>\
+<option name='1' label='Basic' control='radio'>0</option>\
+<option name='2' label='Diges' control='radio'>0</option>\
+<option name='3' label='NTLM' control='radio'>0</option>\
 </option>\
 <option name='httpTransport/Proxy/host' label='Proxy host' type='4' control='text'></option>\
 <option name='httpTransport/Proxy/port' label='Proxy port' type='1' control='text'>8080</option>\
@@ -67,7 +82,6 @@ static i_transport* weCreateHttp(engine_dispatcher* krnl)
 HttpRequest::HttpRequest()
 {
     /// @todo set appropriate proxy
-    proxy = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,8 +96,6 @@ HttpRequest::HttpRequest()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*/, HttpResponse* resp /*= NULL*/ )
 {
-    /// @todo set appropriate proxy
-    proxy = NULL;
     method = meth;
     RequestUrl(url, resp);
     /// @todo Implement this!
@@ -261,6 +273,95 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
             // set the timeout
             ht_retval->start_time(boost::posix_time::second_clock::local_time());
             curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_TIMEOUT, default_timeout);
+            if (use_proxy > 0) {
+                // set appropriate proxy
+                int p_type = CURLPROXY_HTTP;
+                switch (use_proxy) {
+                    case weoHttpProxyTypeHTTP:
+                        p_type = CURLPROXY_HTTP;
+                        break;
+                    case weoHttpProxyTypeSocks4:
+                        p_type = CURLPROXY_SOCKS4;
+                        break;
+                    case weoHttpProxyTypeSocks4a:
+                        p_type = CURLPROXY_SOCKS4A;
+                        break;
+                    case weoHttpProxyTypeSocks5:
+                        p_type = CURLPROXY_SOCKS5;
+                        break;
+                }
+                curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYTYPE, p_type);
+                curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXY, proxy_host.c_str());
+                curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYPORT, proxy_port);
+                string uname = proxy_username;
+                switch (proxy_auth_type) {
+                    case weoHttpProxyAuthBasic:
+                        p_type = CURLAUTH_BASIC;
+                        break;
+                    case weoHttpProxyAuthDigest:
+                        p_type = CURLAUTH_DIGEST;
+                        break;
+                    case weoHttpProxyAuthNTLM:
+                        p_type = CURLAUTH_NTLM;
+                        uname = proxy_domain + "\\" + proxy_username;
+                        break;
+                    default:
+                        p_type = CURLAUTH_ANY;
+                        break;
+                }
+                curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYAUTH, p_type);
+                curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYUSERNAME, uname.c_str());
+                curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYPASSWORD, proxy_password.c_str());
+            }
+            if (use_localport && local_port > 0 && local_port < 65536) {
+                curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_LOCALPORT, local_port);
+                curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_LOCALPORTRANGE, local_range);
+            }
+            // set cookies
+            // CURLOPT_COOKIE
+            if (options[weoHttpAcceptCookies]) {
+                db_recordset rs;
+                db_query cookie_query;
+                time_t cookie_time = time(NULL);
+                db_condition cq, ct1, ct2, cp;
+                db_filter ctm;
+                cq.field() = "auth_data.data_type";
+                cq.operation() = db_condition::equal;
+                cq.value() = 0;
+
+                ct1.field() = "auth_data.timeout";
+                ct1.operation() = db_condition::great_or_equal;
+                ct1.value() = (int)cookie_time;
+
+                ct2.field() = "auth_data.timeout";
+                ct2.operation() = db_condition::equal;
+                ct2.value() = -1;
+
+                ctm.set(ct1).or(ct2);
+                string cookie_value = "";
+                if (kernel != NULL && kernel->storage() != NULL) {
+                    cookie_query.what = kernel->storage()->get_namespace_struct("auth_data");
+                    cookie_query.where.set(cq).and(ctm);
+                    kernel->storage()->get(cookie_query, rs);
+                    db_cursor cur;
+                    transport_url cookie_dom;
+                    for (cur = rs.begin(); cur != rs.end(); ++cur) {
+                        if (cookie_value != "") {
+                            cookie_value += "; ";
+                        }
+                        /// @todo verify domain and path for cookie
+                        cookie_dom.assign("http://" + cur["auth_data.domain"].get<string>());
+                        if (ht_retval->BaseUrl().is_domain_equal(cookie_dom) ||
+                            ht_retval->BaseUrl().is_host_equal(cookie_dom)) {
+                            cookie_value += cur["auth_data.name"].get<string>();
+                            cookie_value += "=";
+                            cookie_value += cur["auth_data.value"].get<string>();
+                        }
+                    }
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "Cookie: " << cookie_value);
+                    curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_COOKIE, cookie_value.c_str());
+                }
+            }
             curl_multi_add_handle(transferHandle, ht_retval->CURLHandle());
             process_requests();
         }
@@ -418,16 +519,56 @@ const string http_transport::get_setup_ui( void )
 void http_transport::load_settings( i_options_provider *data_provider, string key /*= ""*/ )
 {
     if (key == "") {
-        key = "httpTransport";
+        key = "httpTransport/";
     }
     we_option opt;
     bool val;
 
-    opt = data_provider->Option(key + "/port");
+    opt = data_provider->Option(weoHttpPort);
     SAFE_GET_OPTION_VAL(opt, default_port, 80);
 
-    opt = data_provider->Option(key + "/protocol");
+    opt = data_provider->Option(weoHttpProto);
     SAFE_GET_OPTION_VAL(opt, proto_name, "http");
+
+    opt = data_provider->Option(weoHttpTimeout);
+    SAFE_GET_OPTION_VAL(opt, default_timeout, 10);
+
+    opt = data_provider->Option(weoHttpSizeLimit);
+    SAFE_GET_OPTION_VAL(opt, max_doc_size, -1);
+
+    opt = data_provider->Option(weoHttpAcceptCookies);
+    SAFE_GET_OPTION_VAL(opt, val, false);
+    options[weoHttpAcceptCookies] = val;
+
+    opt = data_provider->Option(weoHttpUseLocalPort);
+    SAFE_GET_OPTION_VAL(opt, use_localport, false);
+
+    opt = data_provider->Option(weoHttpLocalPort);
+    SAFE_GET_OPTION_VAL(opt, local_port, 0);
+
+    opt = data_provider->Option(weoHttpLocalRange);
+    SAFE_GET_OPTION_VAL(opt, local_range, 0);
+
+    opt = data_provider->Option(weoHttpProxy);
+    SAFE_GET_OPTION_VAL(opt, use_proxy, false);
+
+    opt = data_provider->Option(weoHttpProxyAuth);
+    SAFE_GET_OPTION_VAL(opt, proxy_auth_type, 0);
+
+    opt = data_provider->Option(weoHttpProxyHost);
+    SAFE_GET_OPTION_VAL(opt, proxy_host, "");
+
+    opt = data_provider->Option(weoHttpProxyPort);
+    SAFE_GET_OPTION_VAL(opt, proxy_port, 8080);
+
+    opt = data_provider->Option(weoHttpProxyDomain);
+    SAFE_GET_OPTION_VAL(opt, proxy_domain, "");
+
+    opt = data_provider->Option(weoHttpProxyUname);
+    SAFE_GET_OPTION_VAL(opt, proxy_username, "");
+
+    opt = data_provider->Option(weoHttpProxyPswd);
+    SAFE_GET_OPTION_VAL(opt, proxy_password, "");
 
     opt = data_provider->Option(key + weoCollapseSpaces);
     SAFE_GET_OPTION_VAL(opt, val, false);
@@ -437,8 +578,6 @@ void http_transport::load_settings( i_options_provider *data_provider, string ke
     SAFE_GET_OPTION_VAL(opt, val, false);
     options[weoFollowLinks] = val;
 
-    opt = data_provider->Option(key + "/timeout");
-    SAFE_GET_OPTION_VAL(opt, default_timeout, 10);
 }
 
 bool http_transport::is_set( const string& name )
