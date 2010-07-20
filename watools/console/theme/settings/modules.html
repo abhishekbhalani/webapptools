@@ -1,6 +1,7 @@
 <div class="ui-widget">
     <script src="/scripts/modules.js"></script>
     <!-- pre>Debug:[{$debug}]</pre -->
+	<div style="padding-bottom: 10px;"><button id="btn_top" onclick="RefreshModules();">Refresh</button></div>
     <fieldset class="fields">
         <legend class="fields"><span class="ui-icon ui-icon-gear ui-icon-btn"></span> Scanning Modules</legend>
 [{if $ScanNum > 0}]
@@ -26,7 +27,7 @@
                         <span class="ui-icon ui-icon-info ui-icon-btn" title="Module Information"></span></a>
 [{if $ScanACL == 1}]
                     <a href="#" onclick="return stopModule('scanner', '[{$ScanModules[scanner][0]}]');">
-                        <span class="ui-icon ui-icon-cancel ui-icon-btn" title="Stop Module"></span></a>
+                        <span class="ui-icon ui-icon-power ui-icon-btn" title="Stop Module"></span></a>
                     <a href="#" onclick="return restartModule('scanner', '[{$ScanModules[scanner][0]}]');">
                         <span class="ui-icon ui-icon-refresh ui-icon-btn" title="Restart Module"></span></a>
                     <a href="#" onclick="return cmdQueueEdit('scanner', '[{$ScanModules[scanner][0]}]');">
@@ -62,3 +63,16 @@
         <span id="confirmUuid"></span>?</td>
     </tr></table>
 </div>
+<script language="javascript">
+$('#btn_top').button({
+		icons: {
+			primary: 'ui-icon-refresh'
+		}
+	});
+function autoUpdModules() {
+	RefreshModules();
+	// one minute update
+	setTimeout("autoUpdModules()",30000);
+}
+setTimeout("autoUpdModules()",30000);
+</script>

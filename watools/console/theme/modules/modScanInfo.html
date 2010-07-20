@@ -12,7 +12,12 @@
     <tr><td>CPU usage:</td><td>[{$cpu}]</td></tr>
     <tr><td>Commands in queue</td><td>[{$queuelen}]</td></tr>
 [{if $queuelen > 0 && $showqueue == 'true'}]
-    <tr><td>Commands:</td><td><textarea>[{section name=cmds loop=$queue}][{$queue[$cmds]}]
-[{/section}]</textarea></td></tr>
+    <tr><td>Commands:</td><td><table width="100%"><tr class="ui-widget-header"><td>Issue date</td><td>Command code</td></tr>
+	[{foreach from=$queue item=cmd_info}]
+	<tr><td>[{$cmd_info[0]}]
+	</td><td>[{$cmd_info[1]}]
+	</td></tr>
+[{/foreach}]
+</table>
 [{/if}]
 </table>

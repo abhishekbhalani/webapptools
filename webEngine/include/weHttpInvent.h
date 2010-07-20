@@ -76,7 +76,9 @@ namespace webEngine {
 #define weoDomainsAllow      "httpInventory/domains_allow"
 /// URL parameters processing mode
 #define weoIgnoreUrlParam    "httpInventory/url_param"
-/// ignore URL parameters (bool)
+/// allowed content-type
 #define weoAllowedCTypes     "httpInventory/AllowedCType"
+/// list of urls to ignore
+#define weoIgnoreUrlList     "httpInventory/ignore_urls"
 
 #endif //__WEHTTPINVENTORY_H__

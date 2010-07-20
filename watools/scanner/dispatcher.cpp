@@ -29,6 +29,8 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 namespace btm = boost::posix_time;
 
+#define MODULE_CLASS_SCANNER    0
+
 // global variables
 bool inLoop = true;
 int max_tasks_count = 10;  // why? no comments...
@@ -77,51 +79,99 @@ void signal_halt(int sig)
     }
 }
 
-void save_plugin_ui(string args)
+void save_plugin_ui(webEngine::i_storage* store)
 {
-    LOG4CXX_TRACE(scan_logger, "Save UI for plugin " << args);
+    LOG4CXX_TRACE(scan_logger, "Save UI for plugins");
     int pos;
     string db_key;
     string db_data;
+    string db_icon;
     webEngine::string_list str_data;
+    webEngine::db_recordset packet(store->get_namespace_struct("profile_ui"));
+    webEngine::db_cursor rec = packet.push_back();
+    webEngine::db_query c_query;
+    webEngine::db_condition c_plugin, c_locale;
 
-    pos = args.find(' ');
-    if (pos == string::npos) {
-        pos = args.find('\t');
-    }
-    if (pos != string::npos) {
-        args = args.substr(0, pos);
-    }
+    c_locale.field() = "profile_ui.locale";
+    c_locale.operation() = webEngine::db_condition::equal;
+    c_locale.value() = string("en");
+
+    c_plugin.field() = "profile_ui.plugin_id";
+    c_plugin.operation() = webEngine::db_condition::equal;
+
+    rec["profile_ui.locale"] = string("en");
+
+//     pos = args.find(' ');
+//     if (pos == string::npos) {
+//         pos = args.find('\t');
+//     }
+//     if (pos != string::npos) {
+//         args = args.substr(0, pos);
+//     }
     webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
     for (int i = 0; i < plgs.size(); i++)
     {
-        if (boost::iequals(plgs[i].plugin_id, args) == 0) {
-            // save plugin icon
-            db_key = "Plugin:Scanner:" + plgs[i].plugin_id + ":Icon";
-            db_data = "";
+        webEngine::string_list::iterator it;
+        it = find(plgs[i].interface_list.begin(), plgs[i].interface_list.end(), "i_storage");
+        if (it == plgs[i].interface_list.end()) {
+            // not a storage plugin
+            // get plugin icon
+            db_icon = "";
             for (int j = 0; j < plgs[i].plugin_icon.size(); j++)
             {
-                db_data += plgs[i].plugin_icon[j];
-                db_data += "\n";
+                db_icon += plgs[i].plugin_icon[j];
+                db_icon += "\n";
             }
-			// save icon
-            webEngine::i_plugin* plg = we_dispatcer->load_plugin(args);
+            webEngine::i_plugin* plg = we_dispatcer->load_plugin(plgs[i].plugin_id);
             if (plg != NULL) {
-                db_key = "Plugin:Scanner:" + plgs[i].plugin_id + ":UI";
+                // get UI
                 db_data = plg->get_setup_ui();
-				// save UI
                 plg->release();
+                // save information
+                c_plugin.value() = plgs[i].interface_name;
+                c_query.where.set(c_plugin).and(c_locale);
+                rec["profile_ui.plugin_id"] = plgs[i].interface_name;
+                rec["profile_ui.plugin_name"] = plgs[i].plugin_desc;
+                rec["profile_ui.ui_settings"] = db_data;
+                rec["profile_ui.ui_icon"] = db_icon;
+                store->set(c_query, packet);
             }
             else {
                 LOG4CXX_ERROR(scan_logger, "Can't load plugin " << plgs[i].plugin_id << "; " << plgs[i].plugin_desc);
             }
-        }// if (plugin_id == args)
-    }
+        } // if not a storage plugin
+    } // foreach plugins
 }
 
-void send_keepalive(int timeout) {
+void send_keepalive(webEngine::i_storage* store, int timeout) {
     LOG4CXX_TRACE(scan_logger, "Send keep-alive signal");
 	keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
+    webEngine::db_recordset packet(store->get_namespace_struct("modules"));
+    webEngine::db_cursor rec = packet.push_back();
+    rec["modules.id"] = scaner_instance;
+    rec["modules.instance"] = scaner_uuid;
+    rec["modules.class"] = MODULE_CLASS_SCANNER;
+    rec["modules.version"] = keep_alive_packet[scan_version];
+    rec["modules.ipaddr"] = keep_alive_packet[ip_addr];
+    rec["modules.name"] = keep_alive_packet[scanner_name];
+    rec["modules.stamp"] = (int)time(NULL);
+    rec["modules.timeout"] = timeout;
+    rec["modules.onrun"] = running_tasks_count;
+    rec["modules.status"] = keep_alive_packet[status];
+
+    webEngine::db_query scan_query;
+    webEngine::db_condition c_instance, c_class, c_id;
+    c_instance.field() = "modules.instance";
+    c_instance.operation() = webEngine::db_condition::equal;
+    c_instance.value() = scaner_uuid;
+    c_class.field() = "modules.class";
+    c_class.operation() = webEngine::db_condition::equal;
+    c_class.value() = MODULE_CLASS_SCANNER;
+    c_id.field() = "modules.id";
+    c_id.operation() = webEngine::db_condition::equal;
+    c_id.value() = scaner_instance;
+    scan_query.where.set(c_instance).and(c_class).and(c_id);
+    store->set(scan_query, packet);
 }
 
 void send_plugins_list(int timeout) {
@@ -139,25 +189,83 @@ void send_plugins_list(int timeout) {
     }
 }
 
-void send_sysinfo(int timeout) {
+void send_sysinfo(webEngine::i_storage* store, int timeout) {
     LOG4CXX_TRACE(scan_logger, "Send system information");
 	// not divide to instances - whole system information
-	string db_key =  "ScanModule:SysInfo:" + scaner_uuid;
+    webEngine::db_recordset packet(store->get_namespace_struct("modules_info"));
+    webEngine::db_cursor rec = packet.push_back();
 
+    rec["modules_info.module_id"] = scaner_uuid;
+    rec["modules_info.osname"] = sys_info_packet[os_name];
 	LOG4CXX_TRACE(scan_logger, "Get memory information");
     sys_info_packet[memory_size] = sys_meminfo();
+    rec["modules_info.mem_size"] = sys_info_packet[memory_size];
     LOG4CXX_TRACE(scan_logger, "Get CPU information");
     sys_info_packet[cpu_usage] = sys_cpu();
+    rec["modules_info.cpu_usage"] = sys_info_packet[cpu_usage];
     LOG4CXX_TRACE(scan_logger, "Get disk information");
     sys_info_packet[disk_size] = sys_disk();
+    rec["modules_info.disk_size"] = sys_info_packet[disk_size];
     sys_info_packet[max_tasks] = boost::lexical_cast<string>(max_tasks_count);
-	// save info
+    rec["modules_info.max_tasks"] = max_tasks_count;
+    rec["modules_info.stamp"] = (int)time(NULL);
+	rec["modules_info.timeout"] = timeout;
+    // save info
 
     // save to DB1 information about plugins.
-    send_plugins_list(timeout);
+    webEngine::db_query scan_query;
+    webEngine::db_condition c_instance;
+    c_instance.field() = "modules_info.module_id";
+    c_instance.operation() = webEngine::db_condition::equal;
+    c_instance.value() = scaner_uuid;
+    scan_query.where.set(c_instance);
+    store->set(scan_query, packet);
+
+    //send_plugins_list(timeout);
 }
 
-void dispatcher_routine(po::variables_map& vm)
+string get_command(webEngine::i_storage* store)
+{
+    string retval = "";
+    webEngine::db_recordset packet;
+
+    webEngine::db_query scan_query;
+    webEngine::db_condition c_instance, c_stamp;
+
+    c_instance.field() = "module_cmds.module_id";
+    c_instance.operation() = webEngine::db_condition::equal;
+    c_instance.value() = scaner_uuid + ":" +  boost::lexical_cast<string>(scaner_instance);
+    scan_query.what = store->get_namespace_struct("module_cmds");
+    scan_query.where.set(c_instance);
+    store->get(scan_query, packet);
+    if (packet.size() > 0) {
+        webEngine::db_cursor rec = packet.begin();
+        retval = rec["module_cmds.cmd"].get<string>();
+
+        c_stamp.field() = "module_cmds.timestamp";
+        c_stamp.operation() = webEngine::db_condition::equal;
+        c_stamp.value() = rec["module_cmds.timestamp"];
+        scan_query.where.set(c_instance).and(c_stamp);
+        store->del(scan_query.where);
+    }
+
+    return retval;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn int dispatcher_routine(po::variables_map& vm)
+///
+/// @brief  Dispatcher routine. 
+///
+/// @author A. Abramov
+/// @date   20.07.2010
+///
+/// @param [in,out] vm  The configuration variables map. 
+///
+/// @return code - 0 - graceful shutdown; 1 - need restart. 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int dispatcher_routine(po::variables_map& vm)
 {
     btm::ptime  keep_alive;
     btm::ptime  sys_info;
@@ -166,6 +274,7 @@ void dispatcher_routine(po::variables_map& vm)
     int         sys_info_timeout;
     char        ac[80] = {0};
     string      queue_key;
+    int         retcode = 0;
 
     // set signal processor
     signal(SIGINT, signal_halt);
@@ -173,23 +282,23 @@ void dispatcher_routine(po::variables_map& vm)
     we_dispatcer = new webEngine::engine_dispatcher;
     if (we_dispatcer == NULL) {
         LOG4CXX_FATAL(scan_logger, "Can't create webEngine dispatcher - exit!");
-        return;
+        return retcode;
     }
     // refresh plugins information
     bfs::path plg_path = vm["plugin_dir"].as<string>();
     we_dispatcer->refresh_plugin_list(plg_path);
     webEngine::i_plugin* plg = we_dispatcer->load_plugin(vm["db_interface"].as<string>());
     if (plg == NULL) {
-        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db2_interface"].as<string>());
-        return;
+        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
+        return retcode;
     }
-    LOG4CXX_INFO(scan_logger, "Storage plugin loaded successfully: " << vm["db2_interface"].as<string>());
+    LOG4CXX_INFO(scan_logger, "Storage plugin loaded successfully: " << vm["db_interface"].as<string>());
     LOG4CXX_DEBUG(scan_logger, "Plugin ID=" << plg->get_id() << "; Description: " << plg->get_description());
     webEngine::i_storage* storage = (webEngine::i_storage*)plg->get_interface("i_storage");
     if (plg == NULL) {
         LOG4CXX_FATAL(scan_logger, "No iStorage interface in the plugin " << plg->get_id() << "(ID="  << plg->get_id() );
-        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db2_interface"].as<string>());
-        return;
+        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
+        return retcode;
     }
     string params = "";
     if (vm.count("db_parameters")) {
@@ -199,21 +308,38 @@ void dispatcher_routine(po::variables_map& vm)
     we_dispatcer->storage(storage);
     LOG4CXX_INFO(scan_logger, "Storage initialised");
 
+    // clear outdated records
     // verify instance id
-	
-    /*scaner_instance = db1_client->keys("ScanModule:Instance:" + scaner_uuid + "*", redis_out);
-    LOG4CXX_TRACE(scan_logger, "DB1 returns " << scaner_instance << " as number of instances");
+    webEngine::db_recordset scanners;
+    webEngine::db_query scan_query;
+    webEngine::db_condition c_instance, c_class;
+    scan_query.what = storage->get_namespace_struct("modules");
+    c_instance.field() = "modules.instance";
+    c_instance.operation() = webEngine::db_condition::equal;
+    c_instance.value() = scaner_uuid;
+    c_class.field() = "modules.class";
+    c_class.operation() = webEngine::db_condition::equal;
+    c_class.value() = MODULE_CLASS_SCANNER;
+    scan_query.where.set(c_instance).and(c_class);
+    storage->get(scan_query, scanners);
+    scaner_instance = scanners.size();
+    if (scaner_instance > 0) {
+        // fix holes
+        webEngine::db_cursor cur;
+        for (cur = scanners.begin(); cur != scanners.end(); ++cur) {
+            if (cur["modules.id"].get<int>() > scaner_instance) {
+                scaner_instance = cur["modules.id"].get<int>();
+            }
+        }
+    }
+    LOG4CXX_TRACE(scan_logger, "Found " << scaner_instance << " instances of " << scaner_uuid);
     scaner_instance++;
-    max_inst = vm["instances"].as<int>();
+    int max_inst = vm["instances"].as<int>();
     if (scaner_instance > max_inst) {
         LOG4CXX_FATAL(scan_logger, "Can't run instance " << scaner_instance << " 'cause the limit is " << max_inst);
-        goto finish;
+        return retcode;
     }
-    LOG4CXX_DEBUG(scan_logger, "Register instance #" << scaner_instance);
-    db1_instance_name = "ScanModule:Instance:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
-    db1_client->set(db1_instance_name, "0");
-    db1_client->expire(db1_instance_name, 10);*/
-
+    
     // init values 
     sys_cpu();
     queue_key = "ScanModule:Queue:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
@@ -261,12 +387,14 @@ void dispatcher_routine(po::variables_map& vm)
     keep_alive_packet[keepalive_timeout] = boost::lexical_cast<string>(keep_alive_timeout);
     keep_alive_packet[status] = "READY";
     keep_alive_packet[scan_version] = scaner_version;
-    send_keepalive(keep_alive_timeout);
+    LOG4CXX_DEBUG(scan_logger, "Register instance #" << scaner_instance);
+    send_keepalive(storage, keep_alive_timeout);
 
 	sys_info_packet[os_name] = sys_uname();
     sys_info_packet[sysinfo_timeout] = boost::lexical_cast<string>(sys_info_timeout);
-    send_sysinfo(sys_info_timeout);
+    send_sysinfo(storage, sys_info_timeout);
 
+    save_plugin_ui(storage);
     send_plugins_list(sys_info_timeout);
 
     inLoop = true;
@@ -281,19 +409,19 @@ void dispatcher_routine(po::variables_map& vm)
         curr_time = btm::second_clock::local_time();
         if ( (keep_alive + btm::seconds(keep_alive_timeout)) <= curr_time) {
             keep_alive = curr_time;
-            send_keepalive(keep_alive_timeout);
+            send_keepalive(storage, keep_alive_timeout);
         }
         if ( (sys_info + btm::seconds(sys_info_timeout)) <= curr_time) {
             sys_info = curr_time;
-            send_sysinfo(sys_info_timeout);
+            send_sysinfo(storage, sys_info_timeout);
         }
         // check commands
         string cmd;
         string args;
         int pos;
-        //cmd = db1_client->lpop(queue_key);
+        cmd = get_command(storage);
         while (cmd != "") {
-            LOG4CXX_DEBUG(scan_logger, "Process command: " << cmd);
+            LOG4CXX_INFO(scan_logger, "DEBUG: Process command: " << cmd);
             // separate command from argumenets
             pos = cmd.find(' ');
             if (pos == string::npos) {
@@ -318,6 +446,7 @@ void dispatcher_routine(po::variables_map& vm)
                 // need to exit this copy and run new instance
                 signal_halt(0);
                 LOG4CXX_INFO(scan_logger, "Restart request recieved");
+                retcode = 1; // restart need
                 break;
             }
             else if (cmd == "PLUGINS") {
@@ -326,15 +455,28 @@ void dispatcher_routine(po::variables_map& vm)
             }
             else if (cmd == "SAVE_PLUGIN_UI") {
                 // refresh plugins list
-                save_plugin_ui(args);
+                save_plugin_ui(storage);
             }
             else if (cmd == "") {
                 // other cmd's
             }
-            //cmd = db1_client->lpop(queue_key);
+            cmd = get_command(storage);
         }
     }
     // finalize...
-    delete we_dispatcer;
+    webEngine::db_condition c_id;
+    c_instance.field() = "modules.instance";
+    c_instance.operation() = webEngine::db_condition::equal;
+    c_instance.value() = scaner_uuid;
+    c_class.field() = "modules.class";
+    c_class.operation() = webEngine::db_condition::equal;
+    c_class.value() = MODULE_CLASS_SCANNER;
+    c_id.field() = "modules.id";
+    c_id.operation() = webEngine::db_condition::equal;
+    c_id.value() = scaner_instance;
+    scan_query.where.set(c_instance).and(c_class).and(c_id);
+    storage->del(scan_query.where);
 
+    delete we_dispatcer;
+    return retcode;
 }

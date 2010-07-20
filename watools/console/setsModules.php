@@ -19,8 +19,15 @@ if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $
 }
 $dbg = "";
 $table = GetTableName("modules");
+$tinfo = GetTableName("modules_info");
 // class=0 - the scanners
-$scanners = $db->query("SELECT * FROM $table WHERE class=0")->fetchAll(PDO::FETCH_COLUMN);
+$tm = time();
+$db->exec("DELETE FROM $table WHERE class=0 AND stamp+timeout < $tm");
+$db->exec("DELETE FROM $tinfo WHERE stamp+timeout < $tm");
+$scanners = $db->query("SELECT * FROM $table WHERE class=0");
+if ($scanners) {
+	$scanners = $scanners->fetchAll();
+}
 foreach($scanners as $scan) {
 	$instance = array();
 	/*$dbg .= $scan . "\n";
@@ -39,7 +46,7 @@ foreach($scanners as $scan) {
 	$dbg .= $inst . "\n";
 	$dbg .= $system . "\n";
 	$info = $db->lrange($scan, 0, -1);*/
-	$instance[] = $scan['id'] . ":" . $scan['instance'];
+	$instance[] = $scan['instance']  . ":" .  $scan['id'];
 	$instance[] = $scan['version'];
 	$instance[] = $scan['ipaddr'];
 	$instance[] = $scan['name'];

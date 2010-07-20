@@ -218,25 +218,25 @@ void dispatcher_routine(po::variables_map& vm)
     we_dispatcer->add_plugin_class("9251BAB1B2C8", create_audit_jscript);
     we_dispatcer->add_plugin_class("audit_jscript", create_audit_jscript);  // copy for interface name
 
-    webEngine::i_plugin* plg = we_dispatcer->load_plugin(vm["db2_interface"].as<string>());
+    webEngine::i_plugin* plg = we_dispatcer->load_plugin(vm["db_interface"].as<string>());
     if (plg == NULL) {
-        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db2_interface"].as<string>());
+        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
         return;
     }
-    LOG4CXX_INFO(scan_logger, "Storage plugin loaded successfully: " << vm["db2_interface"].as<string>());
+    LOG4CXX_INFO(scan_logger, "Storage plugin loaded successfully: " << vm["db_interface"].as<string>());
     LOG4CXX_DEBUG(scan_logger, "Plugin ID=" << plg->get_id() << "; Description: " << plg->get_description());
     webEngine::i_storage* storage = (webEngine::i_storage*)plg->get_interface("i_storage");
     if (plg == NULL) {
         LOG4CXX_FATAL(scan_logger, "No iStorage interface in the plugin " << plg->get_id() << "(ID="  << plg->get_id() );
-        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db2_interface"].as<string>());
+        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
         return;
     }
     // no need to keep plugin - it can be removed by the dispatcher 
     storage->release();
 
     string params = "";
-    if (vm.count("db2_parameters")) {
-        params = vm["db2_parameters"].as<string>();
+    if (vm.count("db_parameters")) {
+        params = vm["db_parameters"].as<string>();
     }
     storage->init_storage(params);
     we_dispatcer->storage(storage);
@@ -439,7 +439,7 @@ void dispatcher_routine(po::variables_map& vm)
     webEngine::transport_url t_url(url);
     LOG4CXX_INFO(scan_logger, "Start scanning for: " << t_url.tostring());
     tsk->Option(weoScanHost, t_url.host);
-    tsk->Option(weoBaseURL,  t_url.request);
+    tsk->Option(weoBaseURL,  url);
 
     // run endless loop for the task
     tsk->Run();
