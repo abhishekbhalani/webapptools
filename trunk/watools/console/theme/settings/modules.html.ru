@@ -26,7 +26,7 @@
                         <span class="ui-icon ui-icon-info ui-icon-btn" title="Информация о сканере"></span></a>
 [{if $ScanACL == 1}]
                     <a href="#" onclick="return stopModule('scanner', '[{$ScanModules[scanner][0]}]');">
-                        <span class="ui-icon ui-icon-cancel ui-icon-btn" title="Остановить сканер"></span></a>
+                        <span class="ui-icon ui-icon-power ui-icon-btn" title="Остановить сканер"></span></a>
                     <a href="#" onclick="return restartModule('scanner', '[{$ScanModules[scanner][0]}]');">
                         <span class="ui-icon ui-icon-refresh ui-icon-btn" title="Перезапустить сканер"></span></a>
                     <a href="#" onclick="return cmdQueueEdit('scanner', '[{$ScanModules[scanner][0]}]');">

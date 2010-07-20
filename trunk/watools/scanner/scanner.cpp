@@ -54,7 +54,7 @@ int scaner_instance = 0;
 bool daemonize = false;
 
 // dispatcher prototype
-extern void dispatcher_routine(po::variables_map& vm);
+extern int dispatcher_routine(po::variables_map& vm);
 
 bool get_bool_option(const string& value, bool noLogging = false)
 {
@@ -169,14 +169,12 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
 
 int main(int argc, char* argv[])
 {
+restart:
     po::options_description cfg_file("Configuration");
     po::options_description cmd_line("Command-line configuration");
     po::options_description cmd_line_vis("Command-line configuration");
     po::variables_map vm;
     string db1_stage;
-
-    vector<string> redis_out;
-    int max_inst;
 
     cfg_file.add_options()
         ("identity", po::value<string>(), "instalation identificator")
@@ -188,7 +186,7 @@ int main(int argc, char* argv[])
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
         ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
         ("plugin_dir",  po::value<string>()->default_value(string("./")), "directory, where plug-ins are placed")
-        ("db_interface",  po::value<string>()->default_value(string("sqlite")), "plug-in identifier to connect to Storage DB")
+        ("db_interface",  po::value<string>()->default_value(string("sqlite_storage")), "plug-in identifier to connect to Storage DB")
         ("db_parameters",  po::value<string>(), "plug-in configuration to connect to Storage DB")
 		("daemonize",  po::value<string>(), "run program as daemon (yes|no or true|false)")
     ;
@@ -449,7 +447,38 @@ int main(int argc, char* argv[])
 	}
 
     // run dispatcher
-    dispatcher_routine(vm);
+    int retcode = dispatcher_routine(vm);
+    if (retcode == 1) {
+        // need to restart
+        bool master = true;
+#ifdef WIN32
+        char** cmd = new char*[argc+1];
+        for (int j = 1; j < argc; j++) {
+            cmd[j] = strdup(argv[j]);
+        }
+        cmd[argc] = NULL;
+        cmd[0] = strdup(argv[0]);
+        int pid = _spawnv(_P_NOWAIT, argv[0], cmd);
+        if (pid <= 0) {
+            LOG4CXX_ERROR(scan_logger, "_spawnv failed: (" << pid << ") ERRNO=" << errno);
+        }
+#else
+        pid_t pid = vfork();
+        if (pid < 0) {
+            // error 
+            LOG4CXX_ERROR(scan_logger, "vfork returns error: " << pid);
+        }
+        else if (pid == 0) {
+            // child process
+            LOG4CXX_INFO(scan_logger, "instance started!");
+            master = false;
+            break;
+        }
+#endif
+        if (!master) {
+            goto restart;
+        }
+    }
     
 
 finish:

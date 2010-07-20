@@ -494,6 +494,8 @@ bool sqlite_storage::init_storage( const string& params )
         rc = sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
         tbl_query = "CREATE UNIQUE INDEX IF NOT EXISTS [profile_idx] ON [profile] ([profile_id] ASC, [name] ASC)";
         rc = sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
+        tbl_query = "CREATE UNIQUE INDEX IF NOT EXISTS [profile_ui_index] ON [profile_ui] ([plugin_id] ASC, [locale] ASC)";
+        rc = sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
 
         names.clear();
         names.push_back("value");

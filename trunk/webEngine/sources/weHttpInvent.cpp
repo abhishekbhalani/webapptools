@@ -18,11 +18,15 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <webEngine.h>
+
 #include <weHelper.h>
 #include <weDispatch.h>
 #include <weTask.h>
 #include <weHttpInvent.h>
 #include <weScan.h>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 static string xrc = "<plugin id='httpInventory'>\
 <category name='crawl' label='Crawling mode'>\
@@ -34,11 +38,12 @@ static string xrc = "<plugin id='httpInventory'>\
 <option name='httpInventory/domains_allow' label='List of allowed domains' type='4'  control='textarea'>*</option>\
 </category>\
 <option name='httpInventory/scan_depth' label='Scan depth' type='1' control='text'>-1</option>\
-<option name='httpInventory/url_param' label='Ignore url parameters' type='1' composed='true'>\
+<option name='httpInventory/url_param' label='Ignore URL parameters' type='1' composed='true'>\
 <option name='0' label='None' control='radio'>1</option>\
 <option name='1' label='Ignore all' control='radio'>0</option>\
 <option name='2' label='Ignore values' control='radio'>0</option>\
 </option>\
+<option name='httpInventory/ignore_urls' label='Ignore URLs' type='4' control='textarea'></option>\
 <option name='httpInventory/denied_file_types' label='Denied file types' type='4' control='text'></option>\
 <option name='httpInventory/AllowedCType' label='Allowed content-type' type='2' control='select'>\
 <select_option value='0'>Any</select_option>\
@@ -96,6 +101,7 @@ const string HttpInventory::get_setup_ui( void )
 void HttpInventory::init( task* tsk )
 {
     transport_url   start_url;
+    string url_list;
 
     if (tsk)
     {
@@ -160,13 +166,27 @@ void HttpInventory::init( task* tsk )
                 opt = parent_task->Option(weoAllowedCTypes);
                 SAFE_GET_OPTION_VAL(opt, opt_ctype_method, 0); // default - any type
 
-
                 opt = tsk->Option(weoBaseURL);
                 SAFE_GET_OPTION_VAL(opt, path, "");
+                start_url.protocol = "http";
+                start_url.port = 80;
                 start_url.host = host;
-                start_url.request = path;
-                host += path;
+                start_url.assign_with_referer(path);
                 LOG4CXX_INFO(logger, "HttpInventory::init: init scanning from: " << host << " ==> " << start_url.tostring());
+                // get ignore urls list
+                opt = parent_task->Option(weoIgnoreUrlList);
+                SAFE_GET_OPTION_VAL(opt, url_list, "");
+                if (url_list != "") {
+                    vector<string> urls;
+                    boost::split(urls, url_list, boost::is_any_of(" \n"));
+                    for (size_t i = 0; i < urls.size(); ++i) {
+                        transport_url ignore;
+                        ignore.assign_with_referer(urls[i], &start_url);
+                        parent_task->register_url(ignore.tostring());
+                    }
+                }
+
+
                 HttpRequest* req = new HttpRequest;
                 req->RequestUrl(start_url);
                 LOG4CXX_TRACE(logger, "HttpInventory::init: init request = " << req->RequestUrl().tostring());

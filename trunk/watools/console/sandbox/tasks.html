@@ -1,12 +1,10 @@
 <script language="javascript">
-function showInfo(tsk_id)
-{
-	$("#mainView").load('/taskInfo.php', {'tsk_id': tsk_id});
-}
-function RefreshList() {
-	$("#mainView").load('/tasks.php');
-}
+var btnYes = "Yes";
+var btnNo = "No";
+var btnOk = "Ok";
+var btnCancel = "Cancel";
 </script>
+<script language="javascript" src="/scripts/tasks.js"></script>
 <h3 class="ui-widget-header-h3">Tasks</h3>
 <div style="margin: 20;">
 <div style="width: 100%; text-align: left;"><button id="btn_top" onclick="RefreshList();">Refresh</button></div>
@@ -56,7 +54,7 @@ function RefreshList() {
 					<span class="ui-icon ui-icon-document ui-icon-btn" title="Task Details"></span></a>
 [{if $TaskACL == 1}]
 				<a href="#" onclick="return stopTask('[{$TaskList[task][0]}]');">
-					<span class="ui-icon ui-icon-circle-close ui-icon-btn" title="Stop Task"></span></a>
+					<span class="ui-icon ui-icon-power ui-icon-btn" title="Stop Task"></span></a>
 				<a href="#" onclick="return deleteTask('[{$TaskList[task][0]}]');">
 					<span class="ui-icon ui-icon-closethick ui-icon-btn" title="Delete Task"></span></a>
 [{/if}]
@@ -72,6 +70,19 @@ function RefreshList() {
 [{/if}]
 <div style="width: 100%; text-align: left;"><button id="btn_bottom" onclick="RefreshList();">Refresh</button></div>
 </div>
+<div id="confirm_delete" title="Confirmation" style="display: none">
+    <table><tr>
+        <td><img src="/[{$theme}]/images/warning.png"> </td><td>Are you shure to delete task?</br>
+		This operation can't be undone!</td>
+    </tr></table>
+</div>
+<div id="confirm_stop" title="Confirmation" style="display: none">
+    <table><tr>
+        <td><img src="/[{$theme}]/images/warning.png"> </td><td>Are you shure to stop task?<br/>
+		Task can't be resumed after stop operation!</td>
+    </tr></table>
+</div>
+<div id="task_notify" title="Error!"<span id="task_notify_text"></span></div>
 <script language="javascript">
 $('#btn_top').button({
 		icons: {

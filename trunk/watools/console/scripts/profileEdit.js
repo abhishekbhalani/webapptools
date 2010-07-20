@@ -78,20 +78,26 @@ function saveProfile()
 }
 
 function setControlValue(nm, val) {
-	var type = $('input:[name='+nm+']').attr('type');
+	var type = $('[name='+nm+']').attr('type');
 	var value = unescape(val);
+	if (type == undefined) {
+		type = $('[name='+nm+']').attr('nodeName');
+	}
 	if (type != undefined) {
 		if (type == 'checkbox') {
 			if (val != '' && val != '0') {
-				$("input:[name="+nm+"]").attr('checked', 'checked');
+				$("[name="+nm+"]").attr('checked', 'checked');
 			}
 		}
+//		else if (type == 'textarea') {
+//			$("[name="+nm+"]").attr('textContent', value);
+//		}
 		else if (type == 'radio') {
-			var $radios = $('input:radio[name='+nm+']');
+			var $radios = $('[name='+nm+']');
 			$radios.filter('[value='+value+']').attr('checked', true);
 		}
 		else {
-			$("input:[name="+nm+"]").val(value);
+			$("[name="+nm+"]").val(value);
 		}
 	}
 }

@@ -50,12 +50,14 @@ char* webEngine::idb_struct[] =
 {
 
     "profile:profile_id INT:name TEXT:type INT:value VARIANT",
-    "profile_ui:plugin_id TEXT NOT NULL:plugin_name TEXT NOT NULL:locale TEXT NOT NULL:ui_settings BLOB NOT NULL",
+    "profile_ui:plugin_id TEXT NOT NULL:plugin_name TEXT NOT NULL:locale TEXT NOT NULL:ui_settings BLOB NOT NULL:ui_icon BLOB NOT NULL",
     "scan_data:id INT:task_id INT:parent_id INT:object_url TEXT:scan_depth INT:resp_code INT:data_size INT:dnld_time INT:content_type TEXT",
     "task:id INT:profile_id INT:name TEXT:status INT:completion INT:start_time TEXT:finish_time TEXT:ping_time TEXT:requests INT:processed_urls BLOB",
     "vulners:id INT NOT NULL:task_id INT NOT NULL:object_id INT:plugin_id TEXT:severity INT DEFAULT 0:vulner_id INT:params TEXT",
     "vulner_desc:plugin_id TEXT NOT NULL:id INT NOT NULL:severity INT NOT NULL:title TEXT:short TEXT:desc BLOB:locale TEXT",
-    "modules:id TEXT NOT NULL:instance INT NOT NULL:class INT NOT NULL:version TEXT:ipaddr TEXT:name TEXT:timeout INT:onrun INT:status TEXT",
+    "modules:id TEXT NOT NULL:instance INT NOT NULL:class INT NOT NULL:version TEXT:ipaddr TEXT:name TEXT:stamp INT:timeout INT:onrun INT:status TEXT",
+    "modules_info:module_id TEXT NOT NULL  UNIQUE:osname TEXT:mem_size TEXT:cpu_usage TEXT:disk_size TEXT:max_tasks INT:stamp INT NOT NULL DEFAULT 0:timeout INT NOT NULL DEFAULT 0",
+    "module_cmds:module_id TEXT NOT NULL:timestamp INT NOT NULL:cmd BLOB",
     "auth_data:task_id INT NOT NULL:data_type INT NOT NULL:name TEXT NOT NULL:value TEXT:timeout INT:path TEXT:domain TEXT",
     NULL
 };

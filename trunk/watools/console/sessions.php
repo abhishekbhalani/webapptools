@@ -101,7 +101,7 @@ if (is_null($gSession)) {
     while (!is_null($sess[0])) {
         $sid .=  $_SERVER['REMOTE_ADDR'] . rand(0, 9);
         $sid = md5($sid);
-		//$sess = GetSingleRow($r, "SELECT * FROM $tsess WHERE id=$sid");
+		$sess = GetSingleRow($r, "SELECT * FROM $tsess WHERE id='$sid'");
     }
     $ltm += 300;								 // timeout 0
     $cli_id = -1;				                 // ClientID 1
@@ -171,11 +171,7 @@ function CleanUpSessions() {
 	$tsess = GetTableName("sessions");
     if (!is_null($r)) {
 		$ltm = time();
-		$alls = $r->query("SELECT id FROM $tsess WHERE timeout <= $ltm");
-        foreach ($alls as $sess) {
-            $sid = $sess['id'];
-			DbExec($r, "DELETE FROM $tsess WHERE id='$sid'");
-        }
+		DbExec($r, "DELETE FROM $tsess WHERE timeout <= $ltm");
     }
     return true;
 }

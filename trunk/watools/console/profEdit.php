@@ -32,8 +32,8 @@ if ($action == "load") {
 		// generate javascript to set values
 		$prof_vars = "function SetValues() {\n";
 		foreach ($prof_values as $val) {
-			$objName = htmlentities($val['name']); //preg_replace("/\\//", "_", $val['name']);
-			$objVal = htmlentities($val['value']);
+			$objName = $val['name']; //preg_replace("/\\//", "_", $val['name']);
+			$objVal = urlencode($val['value']);
 			$prof_vars .= "setControlValue('" . $objName . "', '" . $objVal . "');\n";
 			if ($val['name'] == 'plugin_list') {
 				$plg_list = $val['value'];
@@ -47,7 +47,7 @@ if ($action == "load") {
 		$ui_list = array();
 		$loc = $gSession['lang'];
 		if ($loc != 'en') {
-			$pq = $db->query("SELECT plugin_id,plugin_name,ui_settings FROM $tui WHERE locale='$loc'");
+			$pq = $db->query("SELECT plugin_id,plugin_name,ui_settings,ui_icon FROM $tui WHERE locale='$loc'");
 			$prof_ui = $pq->fetchAll();
 			foreach($prof_ui as $ui) {
 				$pl_id = $ui['plugin_id'];
@@ -55,7 +55,7 @@ if ($action == "load") {
 			}
 		}
 		// fix missing data from english (default) locale
-		$pq = $db->query("SELECT plugin_id,plugin_name,ui_settings FROM $tui WHERE locale='en'");
+		$pq = $db->query("SELECT plugin_id,plugin_name,ui_settings,ui_icon FROM $tui WHERE locale='en'");
 		if ($pq) {
 			$prof_en = $pq->fetchAll();
 			foreach ($prof_en as $en) {
@@ -67,9 +67,15 @@ if ($action == "load") {
 					if ($ui_list[$pl_id]['ui_settings'] == "") {
 						$ui_list[$pl_id]['ui_settings'] = $en['ui_settings'];
 					}
+					if ($ui_list[$pl_id]['ui_icon'] == "") {
+						$ui_list[$pl_id]['ui_icon'] = $en['ui_icon'];
+					}
 				}
 				else {
 					$ui_list[$pl_id] = $en;
+				}
+				if ($ui_list[$pl_id]['ui_icon'] == "") {
+					//save icon
 				}
 			}
 		}

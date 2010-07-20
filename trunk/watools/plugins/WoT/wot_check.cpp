@@ -22,6 +22,7 @@
 #include <weDispatch.h>
 #include <weTask.h>
 #include <weTagScanner.h>
+#include "wot.xpm"
 
 wot_check::wot_check( webEngine::engine_dispatcher* krnl, void* handle /*= NULL*/ ):
     i_vulner(krnl, handle)
@@ -30,6 +31,7 @@ wot_check::wot_check( webEngine::engine_dispatcher* krnl, void* handle /*= NULL*
     pluginInfo.interface_list.push_back("wot_check");
     pluginInfo.plugin_desc = "Site information from WebOfTrust database";
     pluginInfo.plugin_id = "75A0ABE8C7A8"; //{E9C666D6-0B89-4c86-8169-75A0ABE8C7A8}
+    pluginInfo.plugin_icon = WeXpmToStringList(wot, sizeof(wot) / sizeof(char*) );
     // internal initialization
     is_on_run = false;
 }

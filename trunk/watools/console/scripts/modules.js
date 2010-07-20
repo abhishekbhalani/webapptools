@@ -1,3 +1,5 @@
+var tabModulesIndex = 1;
+
 function showInfo(cls, uuid, inst)
 {
     $('#moduleNotify').load('modActions.php', {'action': "info", 'class': cls, 'uuid': uuid, 'instance': inst},
@@ -44,6 +46,7 @@ function stopModule(cls, uuid)
                                         modal: true,
                                         buttons: {
                                             'Ok': function() {
+												RefreshModules();
                                                 $(this).dialog('close');
                                             }
                                         }                        
@@ -82,6 +85,7 @@ function restartModule(cls, uuid)
                                         modal: true,
                                         buttons: {
                                             'Ok': function() {
+												RefreshModules();
                                                 $(this).dialog('close');
                                             }
                                         }                        
@@ -98,5 +102,11 @@ function restartModule(cls, uuid)
 
 function cmdQueueEdit(cls, uuid)
 {
+	alert("Not implemented yet!");
+    return false;
+}
+
+function RefreshModules() {
+	$("#tabs").tabs( 'load' , tabModulesIndex );
     return false;
 }
