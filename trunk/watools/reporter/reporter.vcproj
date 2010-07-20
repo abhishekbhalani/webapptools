@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="scanner"
-	ProjectGUID="{76537019-478B-4598-A4E2-FBEA625C778F}"
-	RootNamespace="scanner"
+	Name="reporter"
+	ProjectGUID="{5da496e5-75be-4af3-a079-57ba5f778a71}"
+	RootNamespace="reporter"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -187,7 +187,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\scanner.cpp"
+				RelativePath=".\reporter.cpp"
 				>
 			</File>
 			<File

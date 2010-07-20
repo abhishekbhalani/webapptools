@@ -190,7 +190,7 @@ void HttpResponse::Process(i_transport* trans)
 
                 cn.field() = "auth_data.name";
                 cn.operation() = db_condition::equal;
-                cn.value() = "";
+                cn.value() = string("");
 
                 cd.field() = "auth_data.domain";
                 cd.operation() = db_condition::equal;

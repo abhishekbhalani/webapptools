@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="scanner"
-	ProjectGUID="{76537019-478B-4598-A4E2-FBEA625C778F}"
-	RootNamespace="scanner"
+	Name="consolidator"
+	ProjectGUID="{c953110d-edba-4aa3-a0c1-100aafadd67d}"
+	RootNamespace="consolidator"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -183,11 +183,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\dispatcher.cpp"
+				RelativePath=".\consolidator.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\scanner.cpp"
+				RelativePath=".\dispatcher.cpp"
 				>
 			</File>
 			<File
