@@ -11,8 +11,10 @@ if (!CheckACL('settings/modules')) {
 
 $db = GetDbConnection();
 
-$acl = GetACL('settings/modules/scanners');
+$acl = GetACL('modules/scanners');
 $scModules = array();
+$repModules = array();
+$connModules = array();
 $scanACL = 0;
 if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
     $scanACL = 1;
@@ -22,7 +24,7 @@ $table = GetTableName("modules");
 $tinfo = GetTableName("modules_info");
 // class=0 - the scanners
 $tm = time();
-$db->exec("DELETE FROM $table WHERE class=0 AND stamp+timeout < $tm");
+$db->exec("DELETE FROM $table WHERE stamp+timeout < $tm");
 $db->exec("DELETE FROM $tinfo WHERE stamp+timeout < $tm");
 $scanners = $db->query("SELECT * FROM $table WHERE class=0");
 if ($scanners) {
@@ -30,23 +32,7 @@ if ($scanners) {
 }
 foreach($scanners as $scan) {
 	$instance = array();
-	/*$dbg .= $scan . "\n";
-	// real scanner record, not the SysInfo or commands queue
-	$system = substr($scan, 20);
-	$dbg .= $system . "\n";
-	$inst = "";
-	$pos = strpos($system, ":");
-	if ($pos === false) {
-		$inst = "1";
-	}
-	else {
-		$inst = substr($system, $pos+1);
-		$system = substr($system, 0, $pos);
-	}
-	$dbg .= $inst . "\n";
-	$dbg .= $system . "\n";
-	$info = $db->lrange($scan, 0, -1);*/
-	$instance[] = $scan['instance']  . ":" .  $scan['id'];
+	$instance[] = $scan['id']  . ":" .  $scan['instance'];
 	$instance[] = $scan['version'];
 	$instance[] = $scan['ipaddr'];
 	$instance[] = $scan['name'];
@@ -56,14 +42,16 @@ foreach($scanners as $scan) {
 	$scModules[] = $instance;
 }
 $scanNum = count($scModules);
-$dbg .= print_r($scModules, true);
 $dbg .= "\nCount: " . $scanNum;
 
 // class=1 - the reporters
-$reporters = $db->query("SELECT * FROM $table WHERE class=1")->fetchAll(PDO::FETCH_COLUMN);
+$reporters = $db->query("SELECT * FROM $table WHERE class=1");
+if ($reporters) {
+	$reporters = $reporters->fetchAll();
+}
 foreach($reporters as $rep) {
 	$instance = array();
-	$instance[] = $rep['id'] . ":" . $rep['instance'];
+	$instance[] = $rep['id']  . ":" .  $rep['instance'];
 	$instance[] = $rep['version'];
 	$instance[] = $rep['ipaddr'];
 	$instance[] = $rep['name'];
@@ -73,10 +61,36 @@ foreach($reporters as $rep) {
 	$repModules[] = $instance;
 }
 $repACL = 0;
+$acl = GetACL('modules/reporters');
+if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
+    $repACL = 1;
+}
 $repNum = count($repModules);
 
+// class=2 - the connectors
+$connectors = $db->query("SELECT * FROM $table WHERE class=2");
+if ($connectors) {
+	$connectors = $connectors->fetchAll();
+}
+foreach($connectors as $conn) {
+	$instance = array();
+	$instance[] = $conn['id']  . ":" .  $conn['instance'];
+	$instance[] = $conn['version'];
+	$instance[] = $conn['ipaddr'];
+	$instance[] = $conn['name'];
+	$instance[] = $conn['onrun'];
+	$instance[] = $conn['status'];
+	
+	$connModules[] = $instance;
+}
+$connACL = 0;
+$acl = GetACL('modules/connectors');
+if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
+    $connACL = 1;
+}
+$connNum = count($connModules);
+
 $smarty->assign('UserName', $gUser['login']);
-$smarty->assign('debug', $dbg);
 
 $smarty->assign('ScanACL', $scanACL);
 $smarty->assign('ScanNum', $scanNum);
@@ -85,5 +99,10 @@ $smarty->assign('ScanModules', $scModules);
 $smarty->assign('ReportACL', $repACL);
 $smarty->assign('ReportNum', $repNum);
 $smarty->assign('ReportModules', $repModules);
+
+$smarty->assign('ConnectACL', $connACL);
+$smarty->assign('ConnectNum', $connNum);
+$smarty->assign('ConnectModules', $connModules);
+
 DisplayThemePage('settings/modules.html');
 ?>

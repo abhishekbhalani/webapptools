@@ -47,8 +47,8 @@ int default_trace_level = 3; //INFO
 wstring default_layout = L"%d{dd MMM yyyy HH:mm:ss,SSS} [%-5p] - %m%n";
 
 // global variables
-LoggerPtr scan_logger = Logger::getLogger("watScanner");
-string scaner_uuid = "";
+LoggerPtr module_logger = Logger::getLogger("watScanner");
+string module_uuid = "";
 string reporter_version = "";
 int reporter_instance = 0;
 bool daemonize = false;
@@ -77,7 +77,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
                 cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false." << endl;
             }
             else {
-                LOG4CXX_WARN(scan_logger, "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.");
+                LOG4CXX_WARN(module_logger, "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.");
             }
         }
 	    if (i != 0) {
@@ -85,7 +85,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
 	    }
     }
     if (!noLogging) {
-	    LOG4CXX_DEBUG(scan_logger, "get_bool_option(" << value << ") = " << retval);
+	    LOG4CXX_DEBUG(module_logger, "get_bool_option(" << value << ") = " << retval);
     }
 	return retval;
 }
@@ -106,7 +106,7 @@ inline bool is_any(const boost::any& op)
 void save_config(const string& fname, po::variables_map& vm, po::options_description& desc, bool noLogging = false )
 {
 	if (!noLogging) {
-		LOG4CXX_INFO(scan_logger, "Save configuration to " << fname);
+		LOG4CXX_INFO(module_logger, "Save configuration to " << fname);
 	}
 
     try{
@@ -117,7 +117,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
 			string value = "";
 			string name = opts[i]->long_name();
 			if (!noLogging) {
-				LOG4CXX_DEBUG(scan_logger, "Save variable " << name);
+				LOG4CXX_DEBUG(module_logger, "Save variable " << name);
 			}
 			ofs << "#" << opts[i]->description() << endl;
 			if (vm.count(name)) {
@@ -143,7 +143,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
 						cerr << "Unknown variable type " << val.type().name() << endl;
 					}
 					else {
-						LOG4CXX_ERROR(scan_logger, "Unknown variable type " << val.type().name());
+						LOG4CXX_ERROR(module_logger, "Unknown variable type " << val.type().name());
 					}
 				}
 			}
@@ -158,12 +158,12 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
 			cerr << "Configuration not saved: " << e.what() << endl;
 		}
 		else {
-			LOG4CXX_ERROR(scan_logger, "Configuration not saved: " << e.what());
+			LOG4CXX_ERROR(module_logger, "Configuration not saved: " << e.what());
 		}
         return;
     }
 	if (!noLogging) {
-		LOG4CXX_INFO(scan_logger, "Configuration saved successfully");
+		LOG4CXX_INFO(module_logger, "Configuration saved successfully");
 	}
 }
 
@@ -177,11 +177,11 @@ restart:
     string db1_stage;
 
     cfg_file.add_options()
-        ("identity", po::value<string>(), "instalation identificator")
+        ("identity", po::value<string>(), "installation identifier")
         ("instances",  po::value<int>()->default_value(int(1)), "number of instances")
 		("keepalive_timeout", po::value<int>()->default_value(int(5)), "keep-alive timeout in seconds")
 		("sysinfo_timeout", po::value<int>()->default_value(int(60)), "system information timeout in seconds")
-		("reporter_name", po::value<string>()->default_value(string("default report generator")), "human-readable identificator of the module instalation")
+		("reporter_name", po::value<string>()->default_value(string("default report generator")), "human-readable identifier of the module installation")
         ("log_file",  po::value<string>(), "file to store log information")
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
         ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
@@ -234,8 +234,8 @@ restart:
 		cout << "write config file " << vm["generate"].as<string>() << endl;
         basic_random_generator<boost::mt19937> gen;
         uuid tag = gen();
-        scaner_uuid = boost::lexical_cast<string>(tag);
-        string value = "identity=" + scaner_uuid;
+        module_uuid = boost::lexical_cast<string>(tag);
+        string value = "identity=" + module_uuid;
         {   
             istrstream ss(value.c_str());
 			store(parse_config_file(ss, cfg_file), vm);
@@ -305,7 +305,7 @@ restart:
 		// set log file from config file
         if (vm.count("log_file")) {
             FileAppenderPtr appender(new FileAppender(layout, string_to_wstring(vm["log_file"].as<string>()), true));
-            scan_logger->addAppender(appender);
+            module_logger->addAppender(appender);
             traceFile = true;
         }
         else {
@@ -313,13 +313,13 @@ restart:
 
 		    if(daemonize) {
                 FileAppenderPtr appender(new FileAppender(layout, default_trace, true));
-                scan_logger->addAppender(appender);
+                module_logger->addAppender(appender);
                 traceFile = true;
 		    }
 		    else {
 			    // set trace to console
                 ConsoleAppenderPtr appender(new ConsoleAppender(layout));
-                scan_logger->addAppender(appender);
+                module_logger->addAppender(appender);
                 traceFile = true;
 		    }
         }
@@ -332,28 +332,28 @@ restart:
         }
         switch (lvl) {
             case 0:
-                scan_logger->setLevel(Level::getFatal());
+                module_logger->setLevel(Level::getFatal());
                 break;
             case 1:
-                scan_logger->setLevel(Level::getError());
+                module_logger->setLevel(Level::getError());
                 break;
             case 2:
-                scan_logger->setLevel(Level::getWarn());
+                module_logger->setLevel(Level::getWarn());
                 break;
             case 3:
-                scan_logger->setLevel(Level::getInfo());
+                module_logger->setLevel(Level::getInfo());
                 break;
             case 4:
-                scan_logger->setLevel(Level::getDebug());
+                module_logger->setLevel(Level::getDebug());
                 break;
             default: // TRACE and bad values
-                scan_logger->setLevel(Level::getTrace());
+                module_logger->setLevel(Level::getTrace());
         };
         traceLevel = true;
 	}
-    LOG4CXX_INFO(scan_logger, "\n\n");
-	LOG4CXX_INFO(scan_logger, "WAT Reporter started. Version: " << reporter_version);
-	LOG4CXX_INFO(scan_logger, "Loaded configuration from " << vm["config"].as<string>());
+    LOG4CXX_INFO(module_logger, "\n\n");
+	LOG4CXX_INFO(module_logger, "WAT Reporter started. Version: " << reporter_version);
+	LOG4CXX_INFO(module_logger, "Loaded configuration from " << vm["config"].as<string>());
 
 	// init webEngine library
     if (vm.count("trace")) {
@@ -362,29 +362,29 @@ restart:
     }
     else {
         // init library with the existing logger
-        AppenderList appList = scan_logger->getAllAppenders();
-		webEngine::LibInit(appList[0], scan_logger->getLevel());
+        AppenderList appList = module_logger->getAllAppenders();
+		webEngine::LibInit(appList[0], module_logger->getLevel());
     }
     // verify installation UUID
     if (vm.count("identity")) {
-        scaner_uuid = vm["identity"].as<string>();
+        module_uuid = vm["identity"].as<string>();
     }
     else {
-        LOG4CXX_INFO(scan_logger, "WAT Reporter identificator is undefined, create new");
+        LOG4CXX_INFO(module_logger, "WAT Reporter identificator is undefined, create new");
         basic_random_generator<boost::mt19937> gen;
         uuid tag = gen();
-        scaner_uuid = boost::lexical_cast<string>(tag);
+        module_uuid = boost::lexical_cast<string>(tag);
         // todo: save config
-        string value = "identity=" + scaner_uuid;
+        string value = "identity=" + module_uuid;
 		{
 			istrstream ss(value.c_str());
 			store(parse_config_file(ss, cfg_file), vm);
 			notify(vm);
 		}
-        LOG4CXX_TRACE(scan_logger, "New config value for identity is " << vm["identity"].as<string>());
+        LOG4CXX_TRACE(module_logger, "New config value for identity is " << vm["identity"].as<string>());
         save_config(vm["config"].as<string>(), vm, cfg_file);
     }
-    LOG4CXX_INFO(scan_logger, "WAT Reporter identificator is " << scaner_uuid);
+    LOG4CXX_INFO(module_logger, "WAT Reporter identificator is " << module_uuid);
 
 #ifdef WIN32
     //----------------------
@@ -393,7 +393,7 @@ restart:
     int iResult;
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != NO_ERROR) {
-        LOG4CXX_FATAL(scan_logger, "WSAStartup failed: " << iResult);
+        LOG4CXX_FATAL(module_logger, "WSAStartup failed: " << iResult);
 		return 1;
     }
 #endif
@@ -402,18 +402,18 @@ restart:
 #ifdef WIN32
     // prevent instance to fall into endless "run-the-instances" loop
     // only on Win32, 'cause the *NIX have the fork() syscall, which do all this work
-    LOG4CXX_TRACE(scan_logger, "running as " << argv[0]);
+    LOG4CXX_TRACE(module_logger, "running as " << argv[0]);
     if (boost::iequals(argv[0], "instance") ) {
         daemonize = false;
-        LOG4CXX_DEBUG(scan_logger, "Win32 - already daemonized instance");
+        LOG4CXX_DEBUG(module_logger, "Win32 - already daemonized instance");
     }
 #endif
 	if (daemonize) {
 		int instances = vm["instances"].as<int>();
-		LOG4CXX_INFO(scan_logger, "daemonize. try to run " << instances << " instances");
+		LOG4CXX_INFO(module_logger, "daemonize. try to run " << instances << " instances");
 		bool master = true;
 		for (int i = 0; i < instances; i++) {
-			LOG4CXX_TRACE(scan_logger, "Start instance");
+			LOG4CXX_TRACE(module_logger, "Start instance");
 #ifdef WIN32
             char** cmd = new char*[argc+1];
             for (int j = 1; j < argc; j++) {
@@ -423,25 +423,25 @@ restart:
             cmd[0] = strdup("instance");
             int pid = _spawnv(_P_NOWAIT, argv[0], cmd);
             if (pid <= 0) {
-                LOG4CXX_ERROR(scan_logger, "_spawnv failed: (" << pid << ") ERRNO=" << errno);
+                LOG4CXX_ERROR(module_logger, "_spawnv failed: (" << pid << ") ERRNO=" << errno);
             }
 #else
             pid_t pid = vfork();
             if (pid < 0) {
                 // error 
-                LOG4CXX_ERROR(scan_logger, "vfork returns error: " << pid);
+                LOG4CXX_ERROR(module_logger, "vfork returns error: " << pid);
             }
             else if (pid == 0) {
                 // child process
-                LOG4CXX_INFO(scan_logger, "instance started!");
+                LOG4CXX_INFO(module_logger, "instance started!");
                 master = false;
                 break;
             }
 #endif
-            LOG4CXX_DEBUG(scan_logger, "running instance #" << i+1);
+            LOG4CXX_DEBUG(module_logger, "running instance #" << i+1);
 		}
         if (master) {
-            LOG4CXX_INFO(scan_logger, "All instances started, exit launcher");
+            LOG4CXX_INFO(module_logger, "All instances started, exit launcher");
             goto finish;
         }
 	}
@@ -460,17 +460,17 @@ restart:
         cmd[0] = strdup(argv[0]);
         int pid = _spawnv(_P_NOWAIT, argv[0], cmd);
         if (pid <= 0) {
-            LOG4CXX_ERROR(scan_logger, "_spawnv failed: (" << pid << ") ERRNO=" << errno);
+            LOG4CXX_ERROR(module_logger, "_spawnv failed: (" << pid << ") ERRNO=" << errno);
         }
 #else
         pid_t pid = vfork();
         if (pid < 0) {
             // error 
-            LOG4CXX_ERROR(scan_logger, "vfork returns error: " << pid);
+            LOG4CXX_ERROR(module_logger, "vfork returns error: " << pid);
         }
         else if (pid == 0) {
             // child process
-            LOG4CXX_INFO(scan_logger, "instance started!");
+            LOG4CXX_INFO(module_logger, "instance started!");
             master = false;
             break;
         }
@@ -485,6 +485,6 @@ finish:
     // cleanup
     webEngine::LibClose();
 
-    LOG4CXX_INFO(scan_logger, "WAT Reporter stopped");
+    LOG4CXX_INFO(module_logger, "WAT Reporter stopped");
     return 0;
 }

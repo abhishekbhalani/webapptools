@@ -72,7 +72,7 @@ else {
 
 // activity stats
 $table = GetTableName("task");
-$tsks = GetSingleRow($db, "SELECT count(id) FROM $table WHERE completion<100");
+$tsks = GetSingleRow($db, "SELECT count(id) FROM $table WHERE completion<100 AND status !=0 AND status !=3 AND status !=4 ");
 if ($tsks) {
 	$tsks = $tsks[0];
 }

@@ -262,6 +262,14 @@ else if ($action == "save") {
 				if (!$tp || $tp == '') {
 					$tp = 4;
 				}
+				if ($tp == 2) {
+					if ($value == "on") {
+						$value = 1;
+					}
+					else {
+						$value = 0;
+					}
+				}
 				$upd->bindParam(1, $key);
 				$upd->bindParam(2, $value);
 				$upd->bindParam(3, $tp);

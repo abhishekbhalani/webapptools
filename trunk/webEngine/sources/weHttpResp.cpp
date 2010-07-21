@@ -116,6 +116,15 @@ void HttpResponse::CurlSetOpts( HttpRequest* req /*= NULL*/ )
             curl_easy_setopt(curlHandle, CURLOPT_READDATA, &(req->Data()[0]));
             curl_easy_setopt(curlHandle, CURLOPT_INFILESIZE, req->Data().size());
         }
+        int ameth = req->GetAuthMethod();
+        if (ameth != CURLAUTH_NONE) {
+            string val;
+            curl_easy_setopt(curlHandle, CURLOPT_HTTPAUTH, ameth);
+            val = req->GetAuthUname();
+            curl_easy_setopt(curlHandle, CURLOPT_USERNAME, val.c_str());
+            val = req->GetAuthPassword();
+            curl_easy_setopt(curlHandle, CURLOPT_PASSWORD, val.c_str());
+        }
     }
 }
 

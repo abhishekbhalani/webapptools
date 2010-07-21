@@ -148,8 +148,8 @@ void send_keepalive(webEngine::i_storage* store, int timeout) {
 	keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
     webEngine::db_recordset packet(store->get_namespace_struct("modules"));
     webEngine::db_cursor rec = packet.push_back();
-    rec["modules.id"] = scaner_instance;
-    rec["modules.instance"] = scaner_uuid;
+    rec["modules.id"] = scaner_uuid;
+    rec["modules.instance"] = scaner_instance;
     rec["modules.class"] = MODULE_CLASS_SCANNER;
     rec["modules.version"] = keep_alive_packet[scan_version];
     rec["modules.ipaddr"] = keep_alive_packet[ip_addr];
@@ -163,13 +163,13 @@ void send_keepalive(webEngine::i_storage* store, int timeout) {
     webEngine::db_condition c_instance, c_class, c_id;
     c_instance.field() = "modules.instance";
     c_instance.operation() = webEngine::db_condition::equal;
-    c_instance.value() = scaner_uuid;
+    c_instance.value() = scaner_instance;
     c_class.field() = "modules.class";
     c_class.operation() = webEngine::db_condition::equal;
     c_class.value() = MODULE_CLASS_SCANNER;
     c_id.field() = "modules.id";
     c_id.operation() = webEngine::db_condition::equal;
-    c_id.value() = scaner_instance;
+    c_id.value() = scaner_uuid;
     scan_query.where.set(c_instance).and(c_class).and(c_id);
     store->set(scan_query, packet);
 }
@@ -467,13 +467,13 @@ int dispatcher_routine(po::variables_map& vm)
     webEngine::db_condition c_id;
     c_instance.field() = "modules.instance";
     c_instance.operation() = webEngine::db_condition::equal;
-    c_instance.value() = scaner_uuid;
+    c_instance.value() = scaner_instance;
     c_class.field() = "modules.class";
     c_class.operation() = webEngine::db_condition::equal;
     c_class.value() = MODULE_CLASS_SCANNER;
     c_id.field() = "modules.id";
     c_id.operation() = webEngine::db_condition::equal;
-    c_id.value() = scaner_instance;
+    c_id.value() = scaner_uuid;
     scan_query.where.set(c_instance).and(c_class).and(c_id);
     storage->del(scan_query.where);
 

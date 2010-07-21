@@ -15,45 +15,120 @@
                 <th style="width: auto;">Status</th>
                 <th style="width: auto;">Actions</th>
             </tr>
-[{section name=scanner loop=$ScanModules}]<tr>
-                <td width="10%" style="white-space: nowrap">[{$ScanModules[scanner][0]}]</td>
-                <td style="width: auto; text-align: center;">[{$ScanModules[scanner][1]}]</td>
-                <td style="width: auto;">[{$ScanModules[scanner][2]}]</td>
-                <td style="width: auto;">[{$ScanModules[scanner][3]}]</td>
-                <td style="width: auto; text-align: center;">[{$ScanModules[scanner][4]}]</td>
-                <td style="width: auto; text-align: center;">[{$ScanModules[scanner][5]}]</td>
+[{section name=module loop=$ScanModules}]<tr>
+                <td width="10%" style="white-space: nowrap">[{$ScanModules[module][0]}]</td>
+                <td style="width: auto; text-align: center;">[{$ScanModules[module][1]}]</td>
+                <td style="width: auto;">[{$ScanModules[module][2]}]</td>
+                <td style="width: auto;">[{$ScanModules[module][3]}]</td>
+                <td style="width: auto; text-align: center;">[{$ScanModules[module][4]}]</td>
+                <td style="width: auto; text-align: center;">[{$ScanModules[module][5]}]</td>
                 <td style="white-space: nowrap">
-                    <a href="#" onclick="return showInfo('scanner', '[{$ScanModules[scanner][0]}]');">
+                    <a href="#" onclick="return showInfo('scanner', '[{$ScanModules[module][0]}]');">
                         <span class="ui-icon ui-icon-info ui-icon-btn" title="Module Information"></span></a>
 [{if $ScanACL == 1}]
-                    <a href="#" onclick="return stopModule('scanner', '[{$ScanModules[scanner][0]}]');">
+                    <a href="#" onclick="return stopModule('scanner', '[{$ScanModules[module][0]}]');">
                         <span class="ui-icon ui-icon-power ui-icon-btn" title="Stop Module"></span></a>
-                    <a href="#" onclick="return restartModule('scanner', '[{$ScanModules[scanner][0]}]');">
+                    <a href="#" onclick="return restartModule('scanner', '[{$ScanModules[module][0]}]');">
                         <span class="ui-icon ui-icon-refresh ui-icon-btn" title="Restart Module"></span></a>
-                    <a href="#" onclick="return cmdQueueEdit('scanner', '[{$ScanModules[scanner][0]}]');">
+                    <a href="#" onclick="return cmdQueueEdit('scanner', '[{$ScanModules[module][0]}]');">
                         <span class="ui-icon ui-icon-wrench ui-icon-btn" title="Edit command queue"></span></a>
 [{/if}]
                 </td>
             </tr>
             [{/section}]
         </table>
-        [{else}]
+[{else}]
          <div class="ui-state-error ui-corner-all" width="100%" style="padding: 5px;">
             <span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>
             No scanning modules found!
          </div>
-        [{/if}]
+[{/if}]
     </fieldset>
     <br/>
     <fieldset class="fields">
         <legend class="fields"><span class="ui-icon ui-icon-print ui-icon-btn"></span> Reporting Modules</legend>
-        [{if ReportNum > 0}]
-        [{else}]
+[{if $ReportNum > 0}]
+        <table width="100%" id='userstable'>
+            <tr class="ui-widget-header">
+                <th style="width: auto;">Instance</th>
+                <th style="width: auto;">Version</th>
+                <th style="width: auto;">Address</th>
+                <th style="width: auto;">Name</th>
+                <th style="width: auto;">Tasks</th>
+                <th style="width: auto;">Status</th>
+                <th style="width: auto;">Actions</th>
+            </tr>
+[{section name=module loop=$ReportModules}]<tr>
+                <td width="10%" style="white-space: nowrap">[{$ReportModules[module][0]}]</td>
+                <td style="width: auto; text-align: center;">[{$ReportModules[module][1]}]</td>
+                <td style="width: auto;">[{$ReportModules[module][2]}]</td>
+                <td style="width: auto;">[{$ReportModules[module][3]}]</td>
+                <td style="width: auto; text-align: center;">[{$ReportModules[module][4]}]</td>
+                <td style="width: auto; text-align: center;">[{$ReportModules[module][5]}]</td>
+                <td style="white-space: nowrap">
+                    <a href="#" onclick="return showInfo('reporter', '[{$ReportModules[module][0]}]');">
+                        <span class="ui-icon ui-icon-info ui-icon-btn" title="Module Information"></span></a>
+[{if $ReportACL == 1}]
+                    <a href="#" onclick="return stopModule('reporter', '[{$ReportModules[module][0]}]');">
+                        <span class="ui-icon ui-icon-power ui-icon-btn" title="Stop Module"></span></a>
+                    <a href="#" onclick="return restartModule('reporter', '[{$ReportModules[module][0]}]');">
+                        <span class="ui-icon ui-icon-refresh ui-icon-btn" title="Restart Module"></span></a>
+                    <a href="#" onclick="return cmdQueueEdit('reporter', '[{$ReportModules[module][0]}]');">
+                        <span class="ui-icon ui-icon-wrench ui-icon-btn" title="Edit command queue"></span></a>
+[{/if}]
+                </td>
+            </tr>
+            [{/section}]
+        </table>
+[{else}]
          <div class="ui-state-error ui-corner-all" width="100%" style="padding: 5px;">
             <span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>
             No reporting modules found!
          </div>
-        [{/if}]
+[{/if}]
+    </fieldset>
+    <br/>
+    <fieldset class="fields">
+        <legend class="fields"><span class="ui-icon ui-icon-shuffle ui-icon-btn"></span> Connector Modules</legend>
+[{if $ConnectNum > 0}]
+        <table width="100%" id='userstable'>
+            <tr class="ui-widget-header">
+                <th style="width: auto;">Instance</th>
+                <th style="width: auto;">Version</th>
+                <th style="width: auto;">Address</th>
+                <th style="width: auto;">Name</th>
+                <th style="width: auto;">Tasks</th>
+                <th style="width: auto;">Status</th>
+                <th style="width: auto;">Actions</th>
+            </tr>
+[{section name=module loop=$ConnectModules}]<tr>
+                <td width="10%" style="white-space: nowrap">[{$ConnectModules[module][0]}]</td>
+                <td style="width: auto; text-align: center;">[{$ConnectModules[module][1]}]</td>
+                <td style="width: auto;">[{$ConnectModules[module][2]}]</td>
+                <td style="width: auto;">[{$ConnectModules[module][3]}]</td>
+                <td style="width: auto; text-align: center;">[{$ConnectModules[module][4]}]</td>
+                <td style="width: auto; text-align: center;">[{$ConnectModules[module][5]}]</td>
+                <td style="white-space: nowrap">
+                    <a href="#" onclick="return showInfo('connector', '[{$ConnectModules[module][0]}]');">
+                        <span class="ui-icon ui-icon-info ui-icon-btn" title="Module Information"></span></a>
+[{if $ConnectACL == 1}]
+                    <a href="#" onclick="return stopModule('connector', '[{$ConnectModules[module][0]}]');">
+                        <span class="ui-icon ui-icon-power ui-icon-btn" title="Stop Module"></span></a>
+                    <a href="#" onclick="return restartModule('connector', '[{$ConnectModules[module][0]}]');">
+                        <span class="ui-icon ui-icon-refresh ui-icon-btn" title="Restart Module"></span></a>
+                    <a href="#" onclick="return cmdQueueEdit('connector', '[{$ConnectModules[module][0]}]');">
+                        <span class="ui-icon ui-icon-wrench ui-icon-btn" title="Edit command queue"></span></a>
+[{/if}]
+                </td>
+            </tr>
+            [{/section}]
+        </table>
+[{else}]
+         <div class="ui-state-error ui-corner-all" width="100%" style="padding: 5px;">
+            <span style="float: left; margin-right: 0.3em;" class="ui-icon ui-icon-alert"></span>
+            No connector modules found!
+         </div>
+[{/if}]
     </fieldset>
 </div>
 <div id="moduleNotify" title="Module Information"></div>
@@ -69,10 +144,10 @@ $('#btn_top').button({
 			primary: 'ui-icon-refresh'
 		}
 	});
-function autoUpdModules() {
+/*function autoUpdModules() {
 	RefreshModules();
 	// one minute update
 	setTimeout("autoUpdModules()",30000);
 }
-setTimeout("autoUpdModules()",30000);
+//setTimeout("autoUpdModules()",30000);*/
 </script>

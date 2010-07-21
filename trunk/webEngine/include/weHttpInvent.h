@@ -49,14 +49,24 @@ namespace webEngine {
         string_list domain_allow;
 
         // processing options
+        bool opt_in_dlist;
+        bool opt_in_dir;
+        bool opt_in_ip;
         bool opt_in_host;
         bool opt_in_domain;
+        int opt_auth_methods;
+        string opt_auth_username;
+        string opt_auth_password;
+        string opt_auth_domain;
+        vector<string> opt_auth_form_params;
         int  opt_ignore_param;
         int  opt_max_depth;
         int  opt_ctype_method;
 
     };
 } // namespace webEngine
+
+#define CURLAUTH_FORMS      (1<<15)
 
 /// allowed all hosts on same IP address
 #define weoStayInIP          "httpInventory/stay_in_ip"
@@ -80,5 +90,21 @@ namespace webEngine {
 #define weoAllowedCTypes     "httpInventory/AllowedCType"
 /// list of urls to ignore
 #define weoIgnoreUrlList     "httpInventory/ignore_urls"
+/// use HTTP-Basic authentication
+#define weoHttpAuthBasic     "httpInventory/Auth/Base"
+/// use HTTP-Basic authentication
+#define weoHttpAuthDigest    "httpInventory/Auth/Digest"
+/// use HTTP-Basic authentication
+#define weoHttpAuthNTLM      "httpInventory/Auth/NTLM"
+/// use HTTP-Basic authentication
+#define weoHttpAuthForms     "httpInventory/Auth/Forms"
+/// domain for NTLM authentication
+#define weoHttpAuthDomain    "httpInventory/Auth/domain"
+/// username for authentication
+#define weoHttpAuthUname     "httpInventory/Auth/username"
+/// password for authentication
+#define weoHttpAuthPassword  "httpInventory/Auth/password"
+/// form descriptions for authentication
+#define weoHttpAuthFormData  "httpInventory/Auth/form-list"
 
 #endif //__WEHTTPINVENTORY_H__

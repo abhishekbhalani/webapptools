@@ -55,6 +55,7 @@ static string xrc = "<plugin id='httpInventory'>\
 <category label='Authentication' name='auth'>\
 <option name='' label='Authentication methods' composed='true'>\
 <option name='httpInventory/Auth/Base' label='Basic HTTP' type='2' control='checkbox'>0</option>\
+<option name='httpInventory/Auth/Digest' label='HTTP Digest' type='2' control='checkbox'>0</option>\
 <option name='httpInventory/Auth/NTLM' label='NTLM' type='2' control='checkbox'>0</option>\
 <option name='httpInventory/Auth/Forms' label='Form-based' type='2' control='checkbox'>0</option>\
 </option>\
@@ -157,8 +158,44 @@ void HttpInventory::init( task* tsk )
                 }
 
                 // processing options
+                opt_in_dlist = parent_task->IsSet(weoStayInDomainList);
+                opt_in_dir = parent_task->IsSet(weoStayInDir);
+                opt_in_ip = parent_task->IsSet(weoStayInIP);
                 opt_in_host = parent_task->IsSet(weoStayInHost);
                 opt_in_domain = parent_task->IsSet(weoStayInDomain);
+
+                opt_auth_methods = CURLAUTH_NONE;
+                bool opt_auth;
+                opt_auth = parent_task->IsSet(weoHttpAuthBasic);
+                if (opt_auth) {
+                    opt_auth_methods |= CURLAUTH_BASIC;
+                }
+                opt_auth = parent_task->IsSet(weoHttpAuthDigest);
+                if (opt_auth) {
+                    opt_auth_methods |= CURLAUTH_DIGEST;
+                }
+                opt_auth = parent_task->IsSet(weoHttpAuthNTLM);
+                if (opt_auth) {
+                    opt_auth_methods |= CURLAUTH_NTLM;
+                }
+                opt_auth = parent_task->IsSet(weoHttpAuthForms);
+                if (opt_auth) {
+                    opt_auth_methods |= CURLAUTH_FORMS; // not a really curl
+                }
+
+                opt = parent_task->Option(weoHttpAuthUname);
+                SAFE_GET_OPTION_VAL(opt, opt_auth_username, "");
+                opt = parent_task->Option(weoHttpAuthPassword);
+                SAFE_GET_OPTION_VAL(opt, opt_auth_password, "");
+                opt = parent_task->Option(weoHttpAuthDomain);
+                SAFE_GET_OPTION_VAL(opt, url_list, "");
+                if (url_list != "" && (opt_auth_methods & CURLAUTH_NTLM)) {
+                    opt_auth_username = url_list + "\\" + opt_auth_username;
+                }
+                opt = parent_task->Option(weoHttpAuthFormData);
+                SAFE_GET_OPTION_VAL(opt, url_list, "");
+                boost::split(opt_auth_form_params, url_list, boost::is_any_of("\r\n"));
+
                 opt = parent_task->Option(weoIgnoreUrlParam);
                 SAFE_GET_OPTION_VAL(opt, opt_ignore_param, 0);
                 opt = parent_task->Option(weoScanDepth);
@@ -189,6 +226,11 @@ void HttpInventory::init( task* tsk )
 
                 HttpRequest* req = new HttpRequest;
                 req->RequestUrl(start_url);
+                if ( (opt_auth_methods & ~CURLAUTH_FORMS) != CURLAUTH_NONE) {
+                    // sets auth data
+                    req->SetAuth((opt_auth_methods & ~CURLAUTH_FORMS), opt_auth_username, opt_auth_password);
+                }
+
                 LOG4CXX_TRACE(logger, "HttpInventory::init: init request = " << req->RequestUrl().tostring());
 //                req->processor = HttpInventory::response_dispatcher;
 //                req->context = (void*)this;
@@ -445,6 +487,10 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, boost::sh
             new_url->ID(scData->data_id);
 //            new_url->processor = HttpInventory::response_dispatcher;
 //            new_url->context = (void*)this;
+            if ( (opt_auth_methods & ~CURLAUTH_FORMS) != CURLAUTH_NONE) {
+                // sets auth data
+                new_url->SetAuth((opt_auth_methods & ~CURLAUTH_FORMS), opt_auth_username, opt_auth_password);
+            }
             parent_task->get_request_async(i_request_ptr(new_url));
         }
         else
