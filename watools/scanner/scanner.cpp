@@ -177,11 +177,11 @@ restart:
     string db1_stage;
 
     cfg_file.add_options()
-        ("identity", po::value<string>(), "instalation identificator")
+        ("identity", po::value<string>(), "installation identifier")
         ("instances",  po::value<int>()->default_value(int(1)), "number of instances")
 		("keepalive_timeout", po::value<int>()->default_value(int(5)), "keep-alive timeout in seconds")
 		("sysinfo_timeout", po::value<int>()->default_value(int(60)), "system information timeout in seconds")
-		("scanner_name", po::value<string>()->default_value(string("default scanner")), "human-readable identificator of the scanner instalation")
+		("scanner_name", po::value<string>()->default_value(string("default scanner")), "human-readable identifier of the scanner installation")
         ("log_file",  po::value<string>(), "file to store log information")
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
         ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
@@ -230,7 +230,7 @@ restart:
     }
 	// create config file
 	if (vm.count("generate")) {
-		cout << "WAT scanner " << scaner_version << endl;
+		cout << "WAT Scanner " << scaner_version << endl;
 		cout << "write config file " << vm["generate"].as<string>() << endl;
         basic_random_generator<boost::mt19937> gen;
         uuid tag = gen();

@@ -55,7 +55,8 @@ if ($action == "info") {
             $scanACL = 1;
         }
 
-		$query = $db->prepare("SELECT * FROM $table, $tinfo WHERE $table.class=0 AND $table.instance=? AND $table.id=? AND $tinfo.module_id=$table.instance");
+		$query = $db->prepare("SELECT * FROM $table, $tinfo WHERE $table.class=0 AND $table.id=? AND $table.instance=? AND $tinfo.module_id=$table.id");
+		//print "SELECT * FROM $table, $tinfo WHERE $table.class=0 AND $table.id='$module' AND $table.instance='$inst' AND $tinfo.module_id=$table.id";
 		if ($query) {
 			$sysInfo = array();
 
@@ -115,8 +116,133 @@ if ($action == "info") {
         }
     }
     else if ($class == 'reporter') {
-        // no information yet
-    }
+        $acl = GetACL('modules/reporters');
+        $scanACL = 0;
+        if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
+            $scanACL = 1;
+        }
+
+		$query = $db->prepare("SELECT * FROM $table, $tinfo WHERE $table.class=1 AND $table.id=? AND $table.instance=? AND $tinfo.module_id=$table.id");
+		//print "SELECT * FROM $table, $tinfo WHERE $table.class=1 AND $table.id='$module' AND $table.instance='$inst' AND $tinfo.module_id=$table.id";
+		if ($query) {
+			$sysInfo = array();
+
+			$query->bindParam(1, $module);
+			$query->bindParam(2, $inst);
+			$reps = $query->execute();
+			if ($reps) {
+				$sysInfo = $query->fetchAll();
+				$sysInfo = $sysInfo[0];
+			} // has results
+			foreach ($sysInfo as $key => $val) {
+				if (is_null($val)) {
+					$sysInfo[$key] = gettext('<unknown>');
+				}
+			} // fix results
+			$cmdQueue = array();
+			$qcmd = $db->prepare("SELECT * FROM $tcmds WHERE module_id=? ORDER BY timestamp ASC");
+			if ($qcmd) {
+				$inf = "$module:$inst";
+				$qcmd->bindParam(1, $inf);
+				$cmds = $qcmd->execute();
+				if ($cmds) {
+					$cmds = $qcmd->fetchAll();
+					foreach($cmds as $cm) {
+						$inf = array();
+						$inf[0] = date(DATE_RFC822, $cm['timestamp']);
+						$vals = preg_split("/[\s]+/", $cm['cmd']);
+						$inf[1] = $vals[0];
+						$cmdQueue[] = $inf;
+					}
+				}
+			}
+			$smarty->assign('identity', htmlentities("$module:$inst", ENT_QUOTES));
+			$smarty->assign('address', htmlentities($sysInfo['ipaddr'], ENT_QUOTES));
+			$smarty->assign('scanname', htmlentities($sysInfo['name'], ENT_QUOTES));
+			$smarty->assign('scanvers', htmlentities($sysInfo['version'], ENT_QUOTES));
+			$smarty->assign('currtasks', htmlentities($sysInfo['onrun'], ENT_QUOTES));
+			$smarty->assign('osname', htmlentities($sysInfo['osname'], ENT_QUOTES));
+			$smarty->assign('memory', htmlentities($sysInfo['mem_size'], ENT_QUOTES));
+			$smarty->assign('disks', htmlentities($sysInfo['disk_size'], ENT_QUOTES));
+			$smarty->assign('cpu', htmlentities($sysInfo['cpu_usage'], ENT_QUOTES));
+			$smarty->assign('maxtasks', htmlentities($sysInfo['max_tasks'], ENT_QUOTES));
+			$smarty->assign('queuelen', htmlentities(count($cmdQueue), ENT_QUOTES));
+			
+			if ($scanACL) {
+				$smarty->assign('showqueue', 'true');
+				$smarty->assign('queue', $cmdQueue);
+			}
+			else {
+				$smarty->assign('showqueue', 'false');
+				$smarty->assign('queue', "");
+			}
+			DisplayThemePage('modules/modScanInfo.html');
+		}
+	}
+    else if ($class == 'connector') {
+        $acl = GetACL('modules/connectors');
+        $scanACL = 0;
+        if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
+            $scanACL = 1;
+        }
+
+		$query = $db->prepare("SELECT * FROM $table, $tinfo WHERE $table.class=2 AND $table.id=? AND $table.instance=? AND $tinfo.module_id=$table.id");
+		//print "SELECT * FROM $table, $tinfo WHERE $table.class=2 AND $table.id='$module' AND $table.instance='$inst' AND $tinfo.module_id=$table.id";
+		if ($query) {
+			$sysInfo = array();
+
+			$query->bindParam(1, $module);
+			$query->bindParam(2, $inst);
+			$reps = $query->execute();
+			if ($reps) {
+				$sysInfo = $query->fetchAll();
+				$sysInfo = $sysInfo[0];
+			} // has results
+			foreach ($sysInfo as $key => $val) {
+				if (is_null($val)) {
+					$sysInfo[$key] = gettext('<unknown>');
+				}
+			} // fix results
+			$cmdQueue = array();
+			$qcmd = $db->prepare("SELECT * FROM $tcmds WHERE module_id=? ORDER BY timestamp ASC");
+			if ($qcmd) {
+				$inf = "$module:$inst";
+				$qcmd->bindParam(1, $inf);
+				$cmds = $qcmd->execute();
+				if ($cmds) {
+					$cmds = $qcmd->fetchAll();
+					foreach($cmds as $cm) {
+						$inf = array();
+						$inf[0] = date(DATE_RFC822, $cm['timestamp']);
+						$vals = preg_split("/[\s]+/", $cm['cmd']);
+						$inf[1] = $vals[0];
+						$cmdQueue[] = $inf;
+					}
+				}
+			}
+			$smarty->assign('identity', htmlentities("$module:$inst", ENT_QUOTES));
+			$smarty->assign('address', htmlentities($sysInfo['ipaddr'], ENT_QUOTES));
+			$smarty->assign('scanname', htmlentities($sysInfo['name'], ENT_QUOTES));
+			$smarty->assign('scanvers', htmlentities($sysInfo['version'], ENT_QUOTES));
+			$smarty->assign('currtasks', htmlentities($sysInfo['onrun'], ENT_QUOTES));
+			$smarty->assign('osname', htmlentities($sysInfo['osname'], ENT_QUOTES));
+			$smarty->assign('memory', htmlentities($sysInfo['mem_size'], ENT_QUOTES));
+			$smarty->assign('disks', htmlentities($sysInfo['disk_size'], ENT_QUOTES));
+			$smarty->assign('cpu', htmlentities($sysInfo['cpu_usage'], ENT_QUOTES));
+			$smarty->assign('maxtasks', htmlentities($sysInfo['max_tasks'], ENT_QUOTES));
+			$smarty->assign('queuelen', htmlentities(count($cmdQueue), ENT_QUOTES));
+			
+			if ($scanACL) {
+				$smarty->assign('showqueue', 'true');
+				$smarty->assign('queue', $cmdQueue);
+			}
+			else {
+				$smarty->assign('showqueue', 'false');
+				$smarty->assign('queue', "");
+			}
+			DisplayThemePage('modules/modScanInfo.html');
+		}
+	}
     else {
         PrintError("Invalid request!");
     }
@@ -138,6 +264,16 @@ else if ($action == "stop") {
 	else if ($class == 'reporter') {
 		$mdClass = gettext("report generator");
         $acl = GetACL('modules/reporters');
+        if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
+            $moduleACL = 1;
+        }
+        else {
+            PrintError("Access denied for user $gUser[0]!");
+        }
+    }
+	else if ($class == 'connector') {
+		$mdClass = gettext("connector");
+        $acl = GetACL('modules/connectors');
         if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
             $moduleACL = 1;
         }
@@ -182,6 +318,16 @@ else if ($action == "restart") {
 	else if ($class == 'reporter') {
 		$mdClass = gettext("report generator");
         $acl = GetACL('modules/reporters');
+        if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
+            $moduleACL = 1;
+        }
+        else {
+            PrintError("Access denied for user $gUser[0]!");
+        }
+    }
+	else if ($class == 'connector') {
+		$mdClass = gettext("connector");
+        $acl = GetACL('modules/connectors');
         if (in_array('system', $acl) || in_array('write', $acl) || in_array('execute', $acl)) {
             $moduleACL = 1;
         }

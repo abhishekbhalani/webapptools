@@ -149,6 +149,11 @@ namespace webEngine {
 
         void ComposePost(int method = composeOverwrite);
 
+        void SetAuth(int auth_, string uname, string pswd) { auth_method = auth_; username = uname; password = pswd; }
+        const int GetAuthMethod() const { return auth_method; }
+        const string GetAuthUname() const { return username; }
+        const string GetAuthPassword() const { return password; }
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief Unstructured data for the request
         ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -172,6 +177,9 @@ namespace webEngine {
 #ifndef __DOXYGEN__
     protected:
         weHttpMethod    method;
+        int             auth_method;
+        string          username;
+        string          password;
         transport_url   reqUrl;
         blob            data;
         StringLinks     postData;

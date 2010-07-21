@@ -340,6 +340,7 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
 {
     LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts for " << sc->parsed_data);
     entity_list lst;
+    string source;
 
     if (js_exec == NULL) {
         LOG4CXX_ERROR(logger, "No JsExecutor given - exit");
@@ -347,13 +348,19 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
     }
     parent_task->add_thread();
     if (parser) {
+        // fix location object
+        source = "location.href = \"";
+        source += sc->object_url;
+        source += "\"";
+        js_exec->execute_string(source, "", true, true);
+        js_exec->reset_results();
         // execute all scripts
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts execute scripts for parsed_data " << parser);
         lst = parser->FindTags("script");
         for (size_t i = 0; i < lst.size(); i++) {
             base_entity_ptr ent = lst[i];
             if (ent != NULL) {
-                string source = ent->attr("#code");
+                source = ent->attr("#code");
 #ifdef _DEBUG
                 LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts execute script #" << i << "; Source:\n" << source);
 #endif

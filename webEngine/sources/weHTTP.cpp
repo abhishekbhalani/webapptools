@@ -81,7 +81,9 @@ static i_transport* weCreateHttp(engine_dispatcher* krnl)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 HttpRequest::HttpRequest()
 {
-    /// @todo set appropriate proxy
+    auth_method = CURLAUTH_NONE;
+    username = "";
+    password = "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +99,9 @@ HttpRequest::HttpRequest()
 HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*/, HttpResponse* resp /*= NULL*/ )
 {
     method = meth;
+    auth_method = CURLAUTH_NONE;
+    username = "";
+    password = "";
     RequestUrl(url, resp);
     /// @todo Implement this!
     //LOG4CXX_WARN(iLogger::GetLogger(), "HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented");
