@@ -85,6 +85,9 @@ function deleteTaskOk(tsk_id)
 					buttons: dialog_buttons
 				});
 			}
+			else {
+				RefreshList();
+			}
 		});
 	return false;
 }

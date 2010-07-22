@@ -231,7 +231,7 @@ namespace webEngine {
         virtual const int process_requests(void) = 0;
 
         // @brief Initialize default values
-        virtual void load_settings(i_options_provider *data_provider, string key = "") = 0;
+        virtual void init(task *data_provider) = 0;
         virtual bool is_set(const string& name) = 0;
 
         // i_plugin functions

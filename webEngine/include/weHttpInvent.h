@@ -23,6 +23,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <weiInventory.h>
 #include <weScan.h>
+#include <weHTTP.h>
 
 namespace webEngine {
 
@@ -42,9 +43,9 @@ namespace webEngine {
 
         // i_inventory functions
         void process(task* tsk, scan_data_ptr scData);
-    protected:
-
         void add_url(transport_url link, HttpResponse *htResp, boost::shared_ptr<ScanData> scData);
+
+    protected:
         string_list ext_deny;
         string_list domain_allow;
 

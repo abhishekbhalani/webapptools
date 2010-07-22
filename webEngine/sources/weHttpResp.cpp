@@ -40,6 +40,7 @@ namespace webEngine {
 HttpResponse::HttpResponse() :
 headers(": ", "[\\n\\r]+"), cookies("=", "; ")
 {
+    useragent = "";
     curlHandle = NULL;
     baseUrl = "";
     realUrl = "";
@@ -124,6 +125,10 @@ void HttpResponse::CurlSetOpts( HttpRequest* req /*= NULL*/ )
             curl_easy_setopt(curlHandle, CURLOPT_USERNAME, val.c_str());
             val = req->GetAuthPassword();
             curl_easy_setopt(curlHandle, CURLOPT_PASSWORD, val.c_str());
+        }
+        string refer = req->GetReferer();
+        if (refer != "") {
+            curl_easy_setopt(curlHandle, CURLOPT_REFERER, refer.c_str());
         }
     }
 }

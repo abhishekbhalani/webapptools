@@ -358,50 +358,50 @@ bool task::IsReady()
     return result;
 }
 
-void task::AddPlgParser(i_parser* plugin)
+void task::add_plg_parser(i_parser* plugin)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgParser");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_parser");
     for (size_t i = 0; i < parsers.size(); i++)
     {
         if (parsers[i]->get_id() == plugin->get_id())
         {
             // transport already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgParser - parser already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_parser - parser already in list");
             return;
         }
     }
     parsers.push_back(plugin);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgParser: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_parser: added " << plugin->get_description());
 }
 
-void task::AddPlgTransport( i_transport* plugin )
+void task::add_plg_transport( i_transport* plugin )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgTransport");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_transport");
     for (size_t i = 0; i < transports.size(); i++)
     {
         if (transports[i]->get_id() == plugin->get_id())
         {
             // transport already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgTransport - transport already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_transport - transport already in list");
             return;
         }
     }
     transports.push_back(plugin);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgTransport: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_transport: added " << plugin->get_description());
 }
 
-void task::AddPlgInventory( i_inventory* plugin )
+void task::add_plg_inventory( i_inventory* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgInventory");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_inventory");
     for (size_t i = 0; i < inventories.size(); i++)
     {
         if (inventories[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgInventory - inventory already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_inventory - inventory already in list");
             return;
         }
         if (inventories[i]->get_priority() > plgPrio) {
@@ -414,21 +414,21 @@ void task::AddPlgInventory( i_inventory* plugin )
     else {
         inventories.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgInventory: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_inventory: added " << plugin->get_description());
 }
 
-void task::AddPlgAuditor( i_audit* plugin )
+void task::add_plg_auditor( i_audit* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgAuditor");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_auditor");
     for (size_t i = 0; i < auditors.size(); i++)
     {
         if (auditors[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgAuditor - auditor already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_auditor - auditor already in list");
             return;
         }
         if (auditors[i]->get_priority() > plgPrio) {
@@ -441,21 +441,21 @@ void task::AddPlgAuditor( i_audit* plugin )
     else {
         auditors.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgAuditor: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_auditor: added " << plugin->get_description());
 }
 
-void task::AddPlgVulner( i_vulner* plugin )
+void task::add_plg_vulner( i_vulner* plugin )
 {
     int plgPrio = plugin->get_priority();
     int inPlace = -1;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgVulner");
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_vulner");
     for (size_t i = 0; i < vulners.size(); i++)
     {
         if (vulners[i]->get_id() == plugin->get_id())
         {
             // plugin already in list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::AddPlgVulner - vulner already in list");
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_vulner - vulner already in list");
             return;
         }
         if (vulners[i]->get_priority() > plgPrio) {
@@ -468,10 +468,10 @@ void task::AddPlgVulner( i_vulner* plugin )
     else {
         vulners.push_back(plugin);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::AddPlgVulner: added " << plugin->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_vulner: added " << plugin->get_description());
 }
 
-void task::StorePlugins(vector<i_plugin*>& plugins)
+void task::store_plugins(vector<i_plugin*>& plugins)
 {
     string_list::iterator trsp;
     string_list ifaces;
@@ -479,41 +479,41 @@ void task::StorePlugins(vector<i_plugin*>& plugins)
     for (size_t i = 0; i < plugins.size(); i++)
     {
         ifaces = plugins[i]->interface_list();
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - plugin: " << plugins[i]->get_description() << " ifaces: " << ifaces.size());
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - plugin: " << plugins[i]->get_description() << " ifaces: " << ifaces.size());
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_parser");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found parser: " << plugins[i]->get_description());
-            AddPlgParser((i_parser*)plugins[i]);
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found parser: " << plugins[i]->get_description());
+            add_plg_parser((i_parser*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_transport");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found transport: " << plugins[i]->get_description());
-            AddPlgTransport((i_transport*)plugins[i]);
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found transport: " << plugins[i]->get_description());
+            add_plg_transport((i_transport*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_inventory");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found inventory: " << plugins[i]->get_description());
-            AddPlgInventory((i_inventory*)plugins[i]);
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found inventory: " << plugins[i]->get_description());
+            add_plg_inventory((i_inventory*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_audit");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found auditor: " << plugins[i]->get_description());
-            AddPlgAuditor((i_audit*)plugins[i]);
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found auditor: " << plugins[i]->get_description());
+            add_plg_auditor((i_audit*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_vulner");
         if (trsp != ifaces.end())
         {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "task::StorePlugins - found vulner: " << plugins[i]->get_description());
-            AddPlgVulner((i_vulner*)plugins[i]);
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found vulner: " << plugins[i]->get_description());
+            add_plg_vulner((i_vulner*)plugins[i]);
         }
     }
 
@@ -544,7 +544,7 @@ void task::Run(void)
     for (size_t i = 0; i < transports.size(); i++)
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << transports[i]->get_description());
-        transports[i]->load_settings(this);
+        transports[i]->init(this);
     }
     // init parsers first
     for (size_t i = 0; i < parsers.size(); i++)
@@ -1253,6 +1253,53 @@ void task::register_url( string& url )
     else {
         processed_urls[url]++;
     }
+}
+
+i_plugin* task::get_active_plugin( const string& iface_name, bool autoload /*= false*/ )
+{
+    i_plugin* resp = NULL;
+    size_t i;
+
+    for (i = 0; i < parsers.size(); ++i) {
+        resp = parsers[i]->get_interface(iface_name);
+    }
+    if (resp != NULL) {
+        return resp;
+    }
+    for (i = 0; i < transports.size(); ++i) {
+        resp = transports[i]->get_interface(iface_name);
+    }
+    if (resp != NULL) {
+        return resp;
+    }
+    for (i = 0; i < inventories.size(); ++i) {
+        resp = inventories[i]->get_interface(iface_name);
+    }
+    if (resp != NULL) {
+        return resp;
+    }
+    for (i = 0; i < auditors.size(); ++i) {
+        resp = auditors[i]->get_interface(iface_name);
+    }
+    if (resp != NULL) {
+        return resp;
+    }
+    for (i = 0; i < vulners.size(); ++i) {
+        resp = vulners[i]->get_interface(iface_name);
+    }
+    if (resp != NULL) {
+        return resp;
+    }
+    if (autoload && kernel != NULL) {
+        // try to load requested plugin
+        resp = kernel->load_plugin(iface_name);
+        if (resp != NULL) {
+            vector<i_plugin*> plg_lst;
+            plg_lst.push_back(resp);
+            store_plugins(plg_lst);
+        }
+    }
+    return resp;
 }
 
 } // namespace webEngine

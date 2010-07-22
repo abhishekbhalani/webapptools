@@ -128,81 +128,19 @@ void audit_comment::process_response( i_response_ptr resp )
 // clone of the HttpInventory::add_url
 void audit_comment::add_url( transport_url link, transport_url *base_url, shared_ptr<ScanData> sc )
 {
-    bool allowed = true;
-
-    if (!link.is_host_equal(sc->object_url))
-    {
-        if (opt_in_host)
-        {
-            allowed = false;
-        }
-        LOG4CXX_TRACE(logger, "audit_comment::add_url: weoStayInHost check " << allowed << " (" << link.tostring() << ")");
+    i_plugin* plg = parent_task->get_active_plugin("httpInventory");
+    if (plg != NULL) {
+        // just cast to save resources
+        HttpInventory *inv = (HttpInventory*)plg;
+        HttpResponse fake;
+        // fill required field in the fake response
+        fake.RealUrl(sc->object_url);
+        fake.depth(sc->scan_depth);
+        LOG4CXX_TRACE(logger, "audit_comment::add_url - fall into the HttpInventory::add_url");
+        inv->add_url(link, &fake, sc);
     }
-    if (!link.is_domain_equal(sc->object_url))
-    {
-        if (opt_in_domain)
-        {
-            allowed = false;
-        }
-        LOG4CXX_TRACE(logger, "audit_comment::add_url: weoStayInDomain check << " << allowed << " (" << link.tostring() << ")");
-    }
-    if ( opt_max_depth > 0 && sc->scan_depth >= opt_max_depth) {
-        LOG4CXX_DEBUG(logger, "audit_comment::add_url: maximum scanning depth reached! (" << opt_max_depth << ")");
-        allowed = false;
-    }
-    if (allowed)
-    {    // verify blocked file types
-        string path = link.request;
-        int pos = path.find_last_of('.');
-        if (pos != string::npos && ext_deny.size() > 0)
-        {
-            path = path.substr(pos+1);
-            LOG4CXX_TRACE(logger, "audit_comment::add_url: Found extension: " << path << "; Deny list size is " << ext_deny.size());
-            for (size_t i = 0; i < ext_deny.size(); i++) {
-                if (path == ext_deny[i]) {
-                    allowed = false;
-                    LOG4CXX_DEBUG(logger, "audit_comment::add_http_url: not need to download " << link.tostring());
-                    // make the pseudo-response
-                    boost::shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
-                    if (scn->data_id == "")
-                    {
-                        scn->data_id = kernel->storage()->generate_id(weObjTypeScan);
-                        scn->parent_id = sc->data_id;
-                        scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
-                        scn->download_time = 0;
-                        scn->data_size = 0;
-                        scn->scan_depth = sc->scan_depth + 1;
-                        scn->content_type = "application/octet-stream";
-                        scn->parsed_data.reset();
-                        parent_task->set_scan_data(scn->object_url, scn);
-                    }
-                    break;
-                } // if path == ext_deny[i]
-            } // for deny list size
-        } // if file extension found
-    } // if allowed
-    if (allowed)
-    {
-        string u_req = link.tostring();
-        if (opt_ignore_param) {
-            u_req = link.tostring_noparam();
-        }
-        LOG4CXX_TRACE(logger, "audit_comment::add_http_url: weoIgnoreUrlParam check << " << u_req);
-        if (!parent_task->is_url_processed(u_req))
-        {
-            HttpRequest* new_url = new HttpRequest(u_req);
-            new_url->depth(sc->scan_depth + 1);
-            new_url->ID(sc->data_id);
-            // to send response to the inventories
-            new_url->processor = NULL;
-            new_url->context = NULL; 
-            parent_task->get_request_async(i_request_ptr(new_url));
-        }
-        else
-        {
-            // add parent to existing scan data
-        }
-        parent_task->register_url(u_req);
+    else {
+        LOG4CXX_ERROR(logger, "audit_comment::add_url can't find HttpInventory plugin, can't add url " << link.tostring());
     }
 }
 
