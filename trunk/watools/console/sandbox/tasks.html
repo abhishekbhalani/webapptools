@@ -8,6 +8,10 @@ var btnApply = "Apply filter";
 </script>
 <script language="javascript" src="/scripts/json.js"></script>
 <script language="javascript" src="/scripts/tasks.js"></script>
+<style>
+.task-list {white-space: nowrap; text-align: center; border-bottom: 1px dotted; width: auto; }
+.task-list-hover {background: #ffdd57 url(/[{$theme}]/images/ui-bg_gloss-wave_70_ffdd57_500x100.png) 50% 50% repeat-x;}
+</style>
 <h3 class="ui-widget-header-h3">Tasks</h3>
 <div style="margin: 20;">
 <div style="width: 100%; text-align: left;"><button id="btn_top" onclick="RefreshList();">Refresh</button>
@@ -26,10 +30,10 @@ var btnApply = "Apply filter";
 			<th style="width: auto;">Last Activity</th>
 			<th style="width: auto;">Actions</th>
 		</tr>
-[{section name=task loop=$TaskList}]<tr>
-			<td style="white-space: nowrap; text-align: center;">[{$TaskList[task][1]}]</td>
-			<td style="width: auto; text-align: center;">[{$TaskList[task][2]}]</td>
-			<td style="width: 5%; white-space: nowrap; text-align: center;">
+[{section name=task loop=$TaskList}]<tr class="task-list" onmouseover="$(this).addClass('task-list-hover'); return true;" onmouseout="$(this).removeClass('task-list-hover'); return true;" >
+			<td class="task-list">[{$TaskList[task][1]}]</td>
+			<td class="task-list">[{$TaskList[task][2]}]&nbsp;</td>
+			<td class="task-list" style="width: 5%;">
 			[{assign var=st_ico value='ui-icon-help'}]
 			[{if $TaskList[task][3] == 0}]
 			[{assign var=st_ico value='ui-icon-eject'}]
@@ -41,7 +45,7 @@ var btnApply = "Apply filter";
 			[{assign var=st_ico value='ui-icon-pause'}]
 			[{/if}]
 			[{if $TaskList[task][3] == 3}]
-			[{assign var=st_ico value='ui-icon-check'}]
+			[{assign var=st_ico value='ui-icon-circle-check'}]
 			[{/if}]
 			[{if $TaskList[task][3] == 4}]
 			[{assign var=st_ico value='ui-icon-stop'}]
@@ -51,11 +55,11 @@ var btnApply = "Apply filter";
 			[{/if}]
 			<span class="ui-icon [{$st_ico}] ui-icon-btn" title="[{$TaskList[task][8]}]"></span>
 			[{$TaskList[task][8]}]</td>
-			<td style="width: 5%; text-align: center;">[{$TaskList[task][4]}]%</td>
-			<td style="width: auto; text-align: center;">[{$TaskList[task][5]}]</td>
-			<td style="width: auto; text-align: center;">[{$TaskList[task][6]}]</td>
-			<td style="width: auto; text-align: center;">[{$TaskList[task][7]}]</td>
-			<td style="white-space: nowrap; text-align: center;">
+			<td class="task-list" style="width: 5%;">[{$TaskList[task][4]}]%</td>
+			<td class="task-list">[{$TaskList[task][5]}]</td>
+			<td class="task-list">[{$TaskList[task][6]}]</td>
+			<td class="task-list">[{$TaskList[task][7]}]</td>
+			<td class="task-list">
 				<a href="#" onclick="return showInfo('[{$TaskList[task][0]}]');">
 					<span class="ui-icon ui-icon-document ui-icon-btn" title="Task Details"></span></a>
 [{if $TaskACL == 1}]

@@ -2,11 +2,11 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="crawler"
-	ProjectGUID="{76537019-478B-4598-A4E2-FBEA625C778F}"
-	RootNamespace="crawler"
+	Name="aJscript"
+	ProjectGUID="{ABF41DE3-427F-4ECD-930A-599C07574C70}"
+	RootNamespace="aJscript"
 	Keyword="Win32Proj"
-	TargetFrameworkVersion="196613"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -20,13 +20,13 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="0"
+			ConfigurationType="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				Description="Increment build number"
-				CommandLine="..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t600"
+				Description="Increase builds count"
+				CommandLine="..\..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t600"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -43,8 +43,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\webEngine\include;..\common"
-				PreprocessorDefinitions="WIN32;_CONSOLE;V8PARSER_EXPORTS;_WINDOWS;"
+				AdditionalIncludeDirectories="..\..\..\webEngine\include;..\..\common"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DEMO_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -64,14 +64,16 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Psapi.lib log4cxx.lib ws2_32.lib libboost_regex-vc90-mt-gd-1_38.lib webEngine.lib curllib.lib ssleay32.lib libeay32.lib v8.lib winmm.lib"
+				AdditionalDependencies="log4cxx.lib webEngine.lib libboost_regex-vc90-mt-gd-1_38.lib curllib.lib ws2_32.lib v8.lib winmm.lib"
+				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\webEngine\libs\Debug"
-				EnableUAC="true"
+				AdditionalLibraryDirectories="..\..\..\webEngine\libs\debug"
+				IgnoreDefaultLibraryNames="LIBCMTD.lib"
+				ModuleDefinitionFile="dlExport.def"
 				GenerateDebugInformation="true"
-				SubSystem="1"
-				StackReserveSize="67108864"
-				StackCommitSize="16384"
+				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -82,6 +84,7 @@
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
+				ValidateIntelliSense="true"
 			/>
 			<Tool
 				Name="VCBscMakeTool"
@@ -100,14 +103,14 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="0"
+			ConfigurationType="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increment build number"
-				CommandLine="..\..\verbuild.exe version.h *.*.+.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t120"
+				CommandLine="..\..\..\verbuild.exe version.h *.*.+.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t120"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -123,15 +126,12 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4251 /wd4275"
-				Optimization="2"
-				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\webEngine\include;..\common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;V8PARSER_EXPORTS"
+				AdditionalIncludeDirectories="..\..\..\webEngine\include;..\..\common"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DEMO_EXPORTS"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -145,17 +145,18 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/IGNORE:4748"
-				AdditionalDependencies="Psapi.lib log4cxx.lib webEngine.lib curllib.lib ws2_32.lib ssleay32.lib libeay32.lib openldap.lib libboost_regex-vc90-mt-1_38.lib v8.lib Winmm.lib"
+				AdditionalDependencies="log4cxx.lib curllib.lib webEngine.lib libboost_regex-vc90-mt-1_38.lib ws2_32.lib v8.lib winmm.lib"
+				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\webEngine\libs\release"
+				AdditionalLibraryDirectories="..\..\..\webEngine\libs\release"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
+				ModuleDefinitionFile="dlExport.def"
 				GenerateDebugInformation="true"
-				SubSystem="1"
-				StackReserveSize="67108864"
-				StackCommitSize="16384"
+				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -187,98 +188,114 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			UniqueIdentifier="{88AFA79B-68BC-4934-85E8-881DD7227889}"
 			>
 			<File
-				RelativePath=".\audit_comment.cpp"
+				RelativePath=".\audit_jscript.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\dispatcher.cpp"
+				RelativePath=".\dlExport.def"
 				>
 			</File>
 			<File
-				RelativePath=".\scanner.cpp"
+				RelativePath=".\dlMain.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\common\sysinfo.cpp"
+				RelativePath="..\..\common\jsWrappers\jsBrowser.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\jsWrappers\jsDocument.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\jsWrappers\jsElement.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\jsWrappers\jsGlobal.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\jsWrappers\jsLocation.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\jsWrappers\weJsExecutor.cpp"
 				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			UniqueIdentifier="{89285B90-7D8D-497e-99A2-E10CEFA7C16B}"
 			>
 			<File
-				RelativePath=".\audit_comment.h"
+				RelativePath=".\audit_jscript.h"
 				>
 			</File>
 			<File
-				RelativePath=".\boost\seed_rng.hpp"
+				RelativePath="..\..\common\jsWrappers\jsBrowser.h"
 				>
 			</File>
 			<File
-				RelativePath=".\boost\sha1.hpp"
+				RelativePath="..\..\common\jsWrappers\jsDocument.h"
 				>
 			</File>
 			<File
-				RelativePath="..\common\sysinfo.h"
+				RelativePath="..\..\common\jsWrappers\jsElement.h"
 				>
 			</File>
 			<File
-				RelativePath=".\boost\uuid.hpp"
+				RelativePath="..\..\common\jsWrappers\jsGlobal.h"
 				>
 			</File>
 			<File
-				RelativePath=".\boost\uuid_generators.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\boost\uuid_io.hpp"
+				RelativePath="..\..\common\jsWrappers\jsLocation.h"
 				>
 			</File>
 			<File
 				RelativePath=".\version.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\common\jsWrappers\weJsExecutor.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			UniqueIdentifier="{47A742CE-AB95-44f7-9CEE-C2B504532FEE}"
 			>
+			<File
+				RelativePath=".\dom.js"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\jscript.xpm"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
 		</Filter>
-		<Filter
-			Name="My Amplifier Results"
-			>
-		</Filter>
-		<File
-			RelativePath=".\dom.js"
-			>
-		</File>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
-		<Global
-			Name="AssemblyFileVersion"
-			Value="0"
-		/>
-		<Global
-			Name="AssemblyVersion"
-			Value="0"
-		/>
-		<Global
-			Name="Reset"
-			Value="1"
-		/>
-		<Global
-			Name="StartDate"
-			Value="20100310"
-		/>
 	</Globals>
 </VisualStudioProject>

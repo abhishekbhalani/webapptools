@@ -26,12 +26,14 @@
 #include <weHTTP.h>
 #include <weDbstruct.h>
 #include <weDispatch.h>
+#include <weTask.h>
 
 static string xrc = "<plugin id='httpTransport'>\
 <option name='httpTransport/port' label='Port number' type='1' control='text'>80</option>\
 <option name='httpTransport/protocol' label='Protocol' type='4' control='text'>http</option>\
 <option name='httpTransport/timeout' label='Timeout (sec.)' type='1' control='text'>10</option>\
 <option name='httpTransport/size_Limit' label='Document size limit' type='1' control='text'>-1</option>\
+<option name='httpTransport/user_agent' label='Use UserAgent value' type='4' control='text'>WebEngine "WE_VERSION_PRODUCTSTR"</option>\
 <option name='httpTransport/cookies' type='1' label='Accept cookies' composed='true'>\
 <option name='0' label='No' control='radio'>1</option>\
 <option name='1' label='Yes' control='radio'>0</option>\
@@ -367,6 +369,12 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
                     curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_COOKIE, cookie_value.c_str());
                 }
             }
+            // set useragent
+            string uag = ht_retval->GetUseragent();
+            if (uag == "") {
+                uag = useragent;
+            }
+            curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_USERAGENT, uag.c_str());
             curl_multi_add_handle(transferHandle, ht_retval->CURLHandle());
             process_requests();
         }
@@ -521,13 +529,18 @@ const string http_transport::get_setup_ui( void )
     return xrc;
 }
 
-void http_transport::load_settings( i_options_provider *data_provider, string key /*= ""*/ )
+void http_transport::init( task *data_provider )
 {
-    if (key == "") {
-        key = "httpTransport/";
-    }
     we_option opt;
+    string uagent;
     bool val;
+
+    uagent = "WebEngine ";
+    uagent += WE_VERSION_PRODUCTSTR;
+    uagent += WE_VERSION_PRODUCTSTR;
+    uagent += " (cURL: ";
+    uagent += curl_version();
+    uagent += ")";
 
     opt = data_provider->Option(weoHttpPort);
     SAFE_GET_OPTION_VAL(opt, default_port, 80);
@@ -540,6 +553,12 @@ void http_transport::load_settings( i_options_provider *data_provider, string ke
 
     opt = data_provider->Option(weoHttpSizeLimit);
     SAFE_GET_OPTION_VAL(opt, max_doc_size, -1);
+
+    opt = data_provider->Option(weoHttpUserAgent);
+    SAFE_GET_OPTION_VAL(opt, useragent, uagent);
+    if (useragent == "") {
+        useragent = uagent;
+    }
 
     opt = data_provider->Option(weoHttpAcceptCookies);
     SAFE_GET_OPTION_VAL(opt, val, false);
@@ -575,11 +594,11 @@ void http_transport::load_settings( i_options_provider *data_provider, string ke
     opt = data_provider->Option(weoHttpProxyPswd);
     SAFE_GET_OPTION_VAL(opt, proxy_password, "");
 
-    opt = data_provider->Option(key + weoCollapseSpaces);
+    opt = data_provider->Option(weoCollapseSpaces);
     SAFE_GET_OPTION_VAL(opt, val, false);
     options[weoCollapseSpaces] = val;
 
-    opt = data_provider->Option(key + weoFollowLinks);
+    opt = data_provider->Option(weoFollowLinks);
     SAFE_GET_OPTION_VAL(opt, val, false);
     options[weoFollowLinks] = val;
 

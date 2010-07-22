@@ -79,54 +79,66 @@ namespace webEngine {
         size_t OptionSize();
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgParser(i_parser* plugin)
+        /// @fn void add_plg_parser(i_parser* plugin)
         ///
         /// @brief  Adds a parser plugin to the task object.
         /// @param  plugin   - Plugin with i_parser interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgParser(i_parser* plugin);
+        void add_plg_parser(i_parser* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgTransport(i_transport* plugin)
+        /// @fn void add_plg_transport(i_transport* plugin)
         ///
         /// @brief  Adds a transport plugin to the task object.
         /// @param  plugin   - Plugin with i_transport interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgTransport(i_transport* plugin);
+        void add_plg_transport(i_transport* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgInventory(i_inventory* plugin)
+        /// @fn void add_plg_inventory(i_inventory* plugin)
         ///
         /// @brief  Adds a inventory plugin to the task object.
         /// @param  plugin   - Plugin with i_inventory interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgInventory(i_inventory* plugin);
+        void add_plg_inventory(i_inventory* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgAuditor(i_audit* plugin)
+        /// @fn void add_plg_auditor(i_audit* plugin)
         ///
         /// @brief  Adds a auditor plugin to the task object.
         /// @param  plugin   - Plugin with i_audit interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgAuditor(i_audit* plugin);
+        void add_plg_auditor(i_audit* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void AddPlgVulner(i_vulner* plugin)
+        /// @fn void add_plg_vulner(i_vulner* plugin)
         ///
         /// @brief  Adds a vulnerability search plugin to the task object.
         /// @param  plugin   - Plugin with i_vulner interface. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void AddPlgVulner(i_vulner* plugin);
+        void add_plg_vulner(i_vulner* plugin);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn	void StorePlugins(vector<i_plugin*>& plugins)
+        /// @fn	void store_plugins(vector<i_plugin*>& plugins)
         ///
         /// @brief	Adds plugins to the task object. Plugins will be separated to categories and sorted by
         ///         priority.
         ///
         /// @param [in,out]	plugins	 - if non-null, the plugins. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void StorePlugins(vector<i_plugin*>& plugins);
+        void store_plugins(vector<i_plugin*>& plugins);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn	i_plugin* get_active_plugin(const string& iface_name, bool autoload = false)
+        ///
+        /// @brief	Returns pointer to the existing plugin instance. If no plugin with such interface name
+        ///         loaded, may be attempt to load this plugin on depends of @b autoload parameter.
+        ///         Function returns NULL if automatic loading isn't allowed or no such plugin.
+        ///
+        /// @param [in]	iface_name	 - requested interface name. 
+        /// @param [in]	autoload	 - perform automatic loading or not. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        i_plugin* get_active_plugin(const string& iface_name, bool autoload = false);
 
         void Run();
         void Pause(const bool& state = true);

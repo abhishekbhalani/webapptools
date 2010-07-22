@@ -53,25 +53,25 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief  HTTP headers of the document.
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        StringLinks& Headers(void)     { return (headers); };
+        StringLinks& Headers(void)     { return (headers); }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief  HTTP cookies of the document.
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        StringLinks& Cookies(void)     { return (cookies); };
+        StringLinks& Cookies(void)     { return (cookies); }
 
         //@{
         /// @brief  HTTP response code for the document.
         ///
         ///
-        int HttpCode(void)      { return httpCode;  };
-        void HttpCode(int code) { httpCode = code;  };
+        int HttpCode(void)      { return httpCode;  }
+        void HttpCode(int code) { httpCode = code;  }
         //@}
 
         //@{
         /// @brief  cURL transfer handle
         ///
-        CURL* CURLHandle(void)  { return curlHandle; };
+        CURL* CURLHandle(void)  { return curlHandle; }
         //@}
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,12 +84,12 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief  Gets the CURLcode - the last cURL operation status.
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        const CURLcode &GetLastError(void) const   { return(lastError);    };
+        const CURLcode &GetLastError(void) const   { return(lastError);    }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief  Gets the human readable error message.
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        const char* GetErrorMessage(void) const   { return(errorBuff);    };
+        const char* GetErrorMessage(void) const   { return(errorBuff);    }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief  Gets the human readable error message.
@@ -99,7 +99,9 @@ namespace webEngine {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief  Gets the content type.
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        const string ContentType(void) { return(contentType);    };
+        const string ContentType(void) const { return(contentType); }
+
+        const string GetUseragent(void) const { return(useragent); }
 
         void Process(i_transport* proc);
         virtual void timeout();
@@ -117,6 +119,7 @@ namespace webEngine {
         string contentType;
         CURL* curlHandle;
         CURLcode lastError;
+        string useragent;
         char errorBuff[CURL_ERROR_SIZE];
 
         // private:
@@ -154,6 +157,12 @@ namespace webEngine {
         const string GetAuthUname() const { return username; }
         const string GetAuthPassword() const { return password; }
 
+        const string GetUseragent(void) const { return(useragent); }
+        void SetUseragent(const string& uag) { useragent = uag; }
+
+        const string GetReferer(void) const { return(referer); }
+        void SetReferer(const string& refr) { referer = refr; }
+
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief Unstructured data for the request
         ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,6 +189,8 @@ namespace webEngine {
         int             auth_method;
         string          username;
         string          password;
+        string          useragent;
+        string          referer;
         transport_url   reqUrl;
         blob            data;
         StringLinks     postData;
@@ -202,12 +213,11 @@ namespace webEngine {
 
         virtual i_plugin* get_interface( const string& ifName );
         virtual const string get_setup_ui( void );
-        virtual void init(task* tsk) {}
         virtual void pause(task* tsk, bool paused = true) {}
         virtual void stop(task* tsk) {}
 
         // @brief Initialize default values
-        virtual void load_settings(i_options_provider *data_provider, string key = "");
+        virtual void init(task *data_provider);
         virtual bool is_set(const string& name);
 
 
@@ -232,6 +242,7 @@ namespace webEngine {
         int         default_timeout;
         string      proto_name;
         int         max_doc_size;
+        string      useragent;
         bool        use_localport;
         int         local_port;
         int         local_range;
@@ -264,6 +275,7 @@ namespace webEngine {
 #define weoHttpProto "httpTransport/protocol"
 #define weoHttpTimeout "httpTransport/timeout"
 #define weoHttpSizeLimit "httpTransport/size_Limit"
+#define weoHttpUserAgent "httpTransport/user_agent"
 #define weoHttpAcceptCookies "httpTransport/cookies"
 #define weoHttpUseLocalPort "httpTransport/use_localport"
 #define weoHttpLocalPort "httpTransport/local_port"

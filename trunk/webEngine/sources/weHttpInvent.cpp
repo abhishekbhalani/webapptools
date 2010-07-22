@@ -491,6 +491,7 @@ void HttpInventory::add_url( transport_url link, HttpResponse *htResp, boost::sh
                 // sets auth data
                 new_url->SetAuth((opt_auth_methods & ~CURLAUTH_FORMS), opt_auth_username, opt_auth_password);
             }
+            new_url->SetReferer(scData->object_url);
             parent_task->get_request_async(i_request_ptr(new_url));
         }
         else

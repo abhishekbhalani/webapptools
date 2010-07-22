@@ -37,7 +37,7 @@ if (!is_null($gSession) && !is_null($gUser)) {
 $r = GetDbConnection();
 if (is_null($r)) {
     if ($isAjax == 'true') {
-        echo gettext("Database connection error! " .$gRedisError);
+        echo gettext("Database connection error! " .$gDbError);
     }
     else {
         header('HTTP/1.0 302 FOUND');

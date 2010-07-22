@@ -1,5 +1,3 @@
-#include "weJsExecutor.h"
-#include "audit_jscript.h"
 #include "audit_comment.h"
 
 #include <signal.h>
@@ -26,8 +24,11 @@
 #include <weScan.h>
 // for options: 
 #include <weHttpInvent.h>
+// redefine audit_jscript options
+#define weoAuditJSenable    "audit_jscript/enable_jscript"
+#define weoAuditJSpreloads  "audit_jscript/preload"
 
-#include "../common/sysinfo.h"
+#include "sysinfo.h"
 #include "version.h"
 
 using namespace log4cxx;
@@ -70,7 +71,6 @@ bool inLoop = true;
 int max_tasks_count = 10;  // why? no comments...
 int running_tasks_count = 0;
 webEngine::engine_dispatcher* we_dispatcer;
-webEngine::jsExecutor* jsExec;
 
 enum _keep_alive_fileds {
     ip_addr = 0,
@@ -187,11 +187,6 @@ static void* create_audit_comments(void* krnl, void* handle = NULL)
     return (void*) (new audit_comment((webEngine::engine_dispatcher*)krnl, handle));
 }
 
-static void* create_audit_jscript(void* krnl, void* handle = NULL)
-{
-    return (void*) (new audit_jscript((webEngine::engine_dispatcher*)krnl, handle));
-}
-
 void dispatcher_routine(po::variables_map& vm)
 {
     btm::ptime  keep_alive;
@@ -215,8 +210,6 @@ void dispatcher_routine(po::variables_map& vm)
     we_dispatcer->refresh_plugin_list(plg_path);
     we_dispatcer->add_plugin_class("D00E80357E27", create_audit_comments);
     we_dispatcer->add_plugin_class("audit_comment", create_audit_comments);  // copy for interface name
-    we_dispatcer->add_plugin_class("9251BAB1B2C8", create_audit_jscript);
-    we_dispatcer->add_plugin_class("audit_jscript", create_audit_jscript);  // copy for interface name
 
     webEngine::i_plugin* plg = we_dispatcer->load_plugin(vm["db_interface"].as<string>());
     if (plg == NULL) {
@@ -305,6 +298,12 @@ void dispatcher_routine(po::variables_map& vm)
     keep_alive = btm::second_clock::local_time();
     sys_info = btm::second_clock::local_time();
 
+    // create task executor
+    webEngine::task* tsk = new webEngine::task(we_dispatcer);
+    tsk->store_plugins(scan_plugins);
+    tsk->set_profile_id(string("0")); // todo - take it from params
+
+    // set scanning options
     bool is_jscript = true;
     if (vm.count("jscript"))
     {
@@ -315,52 +314,9 @@ void dispatcher_routine(po::variables_map& vm)
     if (vm.count("no-jscript")) {
         is_jscript = false;
     }
-    if (is_jscript) {
-        LOG4CXX_DEBUG(scan_logger, "Create JavaScript processor");
-        jsExec = new webEngine::jsExecutor;
-        jsExec->execute_string("print('V8 Engine version is: ' + version())", "", true, true);
-        if (vm.count("js_preload")) {
-            string fname = vm["js_preload"].as<string>();
-            char* buff = NULL;
-            LOG4CXX_DEBUG(scan_logger, "Execute JavaScript preloads from " << fname);
-            try{
-                size_t fsize = fs::file_size(fs::path(fname));
-                ifstream ifs(fname.c_str());
-                buff = new char[fsize + 10];
-                if(buff != NULL)
-                {
-                    memset(buff, 0, fsize+10);
-                    ifs.read(buff, fsize);
-                    jsExec->execute_string(buff, "", true, true);
-                    delete buff;
-#ifdef _DEBUG
-                    LOG4CXX_TRACE(scan_logger, "JavaScript preloads execution result: " << jsExec->get_results());
-                    LOG4CXX_TRACE(scan_logger, "JavaScript preloads execution result (dump): " << jsExec->dump("Object"));
-#endif // _DEBUG
-                }
-            }
-            catch(std::exception& e)
-            {
-                LOG4CXX_WARN(scan_logger, "JavaScript preloads execution failed " << e.what());
-                if (buff != NULL)
-                {
-                    delete buff;
-                }
-            }
-        }
-        audit_jscript::js_exec = jsExec;
-    }
-    else {
-        jsExec = NULL;
-        LOG4CXX_DEBUG(scan_logger, "JavaScript will not used");
-    }
+    tsk->Option(weoAuditJSenable, is_jscript);
+    LOG4CXX_DEBUG(scan_logger, "Set "weoAuditJSenable" to " << is_jscript);
 
-    // create task executor
-    webEngine::task* tsk = new webEngine::task(we_dispatcer);
-    tsk->StorePlugins(scan_plugins);
-    tsk->set_profile_id(string("0")); // todo - take it from params
-
-    // set scanning options
     if (vm.count("depth")) {
         int val = vm["depth"].as<int>();
         tsk->Option(weoScanDepth, val);
@@ -590,10 +546,6 @@ void dispatcher_routine(po::variables_map& vm)
     // finalize...
     delete tsk;
 
-    if (jsExec != NULL) {
-        //LOG4CXX_DEBUG(scan_logger, "V8 results: " << jsExec->get_results());
-        delete jsExec;
-    }
     delete we_dispatcer;
 
 }
