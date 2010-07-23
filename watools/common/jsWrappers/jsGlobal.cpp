@@ -139,7 +139,7 @@ Handle<Value> dump_object(const Arguments& args)
         else {
             dp = 0;
         }
-        string dat = jsExec->obj_dump(args[0], nm, id, dp);
+        string dat = jsExec->obj_dump(args[0], nm, id, dp, ctx);
         res = String::New(dat.c_str());
     }
 

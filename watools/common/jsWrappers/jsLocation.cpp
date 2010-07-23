@@ -3,25 +3,20 @@
 #include "jsLocation.h"
 
 using namespace v8;
+using namespace webEngine;
 
-Persistent<FunctionTemplate> js_location::object_template;
-bool js_location::is_init = false;
+Persistent<FunctionTemplate> jsLocation::object_template;
+bool jsLocation::is_init = false;
 
 static Handle<Value> GetProto(Local<String> name, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    {
-        String::AsciiValue prop(name);
-        String::AsciiValue self(info.This()->ToString());
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js_location::GetProto self("<< *self <<"), property("<< *prop<<")");
-    }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
 
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    if(url->is_valid()) {
-        const string& path = url->protocol + ":";
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    if(url->url.is_valid()) {
+        string path = url->url.protocol + ":";
         return String::New(path.c_str());
     }
     else {
@@ -31,79 +26,49 @@ static Handle<Value> GetProto(Local<String> name, const AccessorInfo& info)
 
 static void SetProto(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue vvv(val);
-    //         String::AsciiValue self(info.This()->ToString());
-    // //        String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: self(%s), property(%s), value(%s)\n", *self, *prop, *vvv);
-    //     }
     Local<Object> self = info.This();
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    url->protocol = value_to_string(val);
-    if (url->protocol[url->protocol.length()] == ':') {
-        url->protocol = url->protocol.substr(0, url->protocol.length()-1);
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    url->url.protocol = value_to_string(val);
+    if (url->url.protocol[url->url.protocol.length()] == ':') {
+        url->url.protocol = url->url.protocol.substr(0, url->url.protocol.length()-1);
     }
 }
 
-
-
 static Handle<Value> GetLocationHash(Local<String> name, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue self(info.This()->ToString());
-    //         String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: holder(%s), self(%s), property(%s)\n", *holder, *self, *prop);
-    //     }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
 
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    const string& path = url->hashlink;
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    string path = url->url.hashlink;
     return String::New(path.c_str());
 }
 
 static void SetLocationHash(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue vvv(val);
-    //         String::AsciiValue self(info.This()->ToString());
-    // //        String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: self(%s), property(%s), value(%s)\n", *self, *prop, *vvv);
-    //     }
     Local<Object> self = info.This();
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    url->hashlink = value_to_string(val);
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    url->url.hashlink = value_to_string(val);
 }
 
 static Handle<Value> GetLocationHost(Local<String> name, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue self(info.This()->ToString());
-    //         String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: holder(%s), self(%s), property(%s)\n", *holder, *self, *prop);
-    //     }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
 
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    if(url->is_valid()) {
-        const string& path = url->host;
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    if(url->url.is_valid()) {
+        string path = url->url.host;
         return String::New(path.c_str());
     }
     else {
@@ -113,38 +78,24 @@ static Handle<Value> GetLocationHost(Local<String> name, const AccessorInfo& inf
 
 static void SetLocationHost(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue vvv(val);
-    //         String::AsciiValue self(info.This()->ToString());
-    // //        String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: self(%s), property(%s), value(%s)\n", *self, *prop, *vvv);
-    //     }
     Local<Object> self = info.This();
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    url->assign_with_referer(value_to_string(val), url);
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    url->url.assign_with_referer(value_to_string(val), &url->url);
 }
 
 static Handle<Value> GetLocationHostname(Local<String> name, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue self(info.This()->ToString());
-    //         String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: holder(%s), self(%s), property(%s)\n", *holder, *self, *prop);
-    //     }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
 
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    if(url->is_valid()) {
-        const string& path = url->host;
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    if(url->url.is_valid()) {
+        string path = url->url.host;
         return String::New(path.c_str());
     }
     else {
@@ -154,38 +105,24 @@ static Handle<Value> GetLocationHostname(Local<String> name, const AccessorInfo&
 
 static void SetLocationHostname(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue vvv(val);
-    //         String::AsciiValue self(info.This()->ToString());
-    // //        String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: self(%s), property(%s), value(%s)\n", *self, *prop, *vvv);
-    //     }
     Local<Object> self = info.This();
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    url->host = value_to_string(val);
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    url->url.host = value_to_string(val);
 }
 
 static Handle<Value> GetLocationPath(Local<String> name, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue self(info.This()->ToString());
-    //         String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: holder(%s), self(%s), property(%s)\n", *holder, *self, *prop);
-    //     }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
 
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    if(url->is_valid()) {
-        const string& path = url->request;
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    if(url->url.is_valid()) {
+        string path = url->url.request;
         return String::New(path.c_str());
     }
     else {
@@ -195,73 +132,45 @@ static Handle<Value> GetLocationPath(Local<String> name, const AccessorInfo& inf
 
 static void SetLocationPath(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue vvv(val);
-    //         String::AsciiValue self(info.This()->ToString());
-    // //        String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: self(%s), property(%s), value(%s)\n", *self, *prop, *vvv);
-    //     }
     Local<Object> self = info.This();
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    url->request = value_to_string(val);
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    url->url.request = value_to_string(val);
 }
 
 static Handle<Value> GetLocationPort(Local<String> name, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue self(info.This()->ToString());
-    //         String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: holder(%s), self(%s), property(%s)\n", *holder, *self, *prop);
-    //     }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
 
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    return Int32::New(url->port);
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    return Int32::New(url->url.port);
 }
 
 static void SetLocationPort(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue vvv(val);
-    //         String::AsciiValue self(info.This()->ToString());
-    // //        String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: self(%s), property(%s), value(%s)\n", *self, *prop, *vvv);
-    //     }
     Local<Object> self = info.This();
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    url->port = val->Int32Value();
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    url->url.port = val->Int32Value();
 }
 
 static Handle<Value> GetLocationSearch(Local<String> name, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue self(info.This()->ToString());
-    //         String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: holder(%s), self(%s), property(%s)\n", *holder, *self, *prop);
-    //     }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
 
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    if(url->is_valid()) {
-        const string& path = url->params;
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    if(url->url.is_valid()) {
+        string path = url->url.params;
         return String::New(path.c_str());
     }
     else {
@@ -271,38 +180,24 @@ static Handle<Value> GetLocationSearch(Local<String> name, const AccessorInfo& i
 
 static void SetLocationSearch(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue vvv(val);
-    //         String::AsciiValue self(info.This()->ToString());
-    // //        String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: self(%s), property(%s), value(%s)\n", *self, *prop, *vvv);
-    //     }
     Local<Object> self = info.This();
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    url->params = value_to_string(val);
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    url->url.params = value_to_string(val);
 }
 
 static Handle<Value> GetLocationHref(Local<String> name, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue self(info.This()->ToString());
-    //         String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: holder(%s), self(%s), property(%s)\n", *holder, *self, *prop);
-    //     }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
 
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
-    if(url->is_valid()) {
-        const string& path = url->tostring();
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    if(url->url.is_valid()) {
+        string path = url->url.tostring();
         return String::New(path.c_str(), path.length());
     }
     else {
@@ -312,35 +207,89 @@ static Handle<Value> GetLocationHref(Local<String> name, const AccessorInfo& inf
 
 static void SetLocationHref(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-    //     {
-    //         String::AsciiValue prop(name);
-    //         String::AsciiValue vvv(val);
-    //         String::AsciiValue self(info.This()->ToString());
-    // //        String::AsciiValue holder(info.Holder()->ToString());
-    //         printf("getter: self(%s), property(%s), value(%s)\n", *self, *prop, *vvv);
-    //     }
     Local<Object> self = info.This();
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
-    webEngine::transport_url* url = static_cast<webEngine::transport_url*>(ptr);
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
     std::string log_info = "Location changed from '";
-    if(url->is_valid()) {
-        log_info += url->tostring();
+    if(url->url.is_valid()) {
+        log_info += url->url.tostring();
     }
     else {
         log_info += "undefined";
     }
     log_info += "' to \n\thref: ";
-    url->assign_with_referer(value_to_string(val), url);
-    if(url->is_valid()) {
-        log_info += url->tostring();
+    url->url.assign_with_referer(value_to_string(val), &url->url);
+    if(url->url.is_valid()) {
+        log_info += url->url.tostring();
     }
     else {
         log_info += "undefined";
     }
     append_results(log_info);
+}
+
+static Handle<Value> LocationToString(const v8::Arguments& args)
+{
+    Local<Object> self = args.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    string path = url->url.tostring();
+    Handle<Value> retval = String::New(path.c_str(), path.length());
+    return retval;
+}
+
+static Handle<Value> LocationReplace(const v8::Arguments& args)
+{
+    Local<Object> self = args.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    std::string log_info = "Location changed from '";
+    if(url->url.is_valid()) {
+        log_info += url->url.tostring();
+    }
+    else {
+        log_info += "undefined";
+    }
+    log_info += "' to \n\thref: ";
+    if (args.Length() > 0) {
+        url->url.assign_with_referer(value_to_string(args[0]), &url->url);
+        if(url->url.is_valid()) {
+            log_info += url->url.tostring();
+        }
+        else {
+            log_info += "undefined";
+        }
+    }
+    else {
+        if(url->url.is_valid()) {
+            log_info += url->url.tostring();
+        }
+        else {
+            log_info += "undefined";
+        }
+    }
+    append_results(log_info);
+    return Handle<Value>();
+}
+
+static Handle<Value> LocationReload(const v8::Arguments& args)
+{
+    Local<Object> self = args.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+
+    jsLocation* url = static_cast<jsLocation*>(ptr);
+    std::string log_info = "Location reloaded for ";
+    log_info += url->url.tostring();
+    append_results(log_info);
+    return Handle<Value>();
 }
 
 Handle<Value> Location(const Arguments& args)
@@ -351,21 +300,14 @@ Handle<Value> Location(const Arguments& args)
 
     HandleScope scope;
 
-    webEngine::transport_url *p = new webEngine::transport_url();
-    p->protocol = "http";
-    p->host = "";
-    p->port = 80;
-    p->request = "";
-    p->params = "";
-    p->username = "";
-    p->password = "";
+    jsLocation *p = new jsLocation();
     if (args.Length() > 0) {
-        p->assign_with_referer(value_to_string(args[0]), p);
+        p->url.assign_with_referer(value_to_string(args[0]), &p->url);
     }
-    return scope.Close(wrap_object<js_location>(p));
+    return scope.Close(wrap_object<jsLocation>(p));
 }
 
-js_location::js_location(void)
+jsLocation::jsLocation(void)
 {
     if (!is_init) {
         is_init = true;
@@ -375,6 +317,7 @@ js_location::js_location(void)
         //set its internal field count to one (we'll put references to the C++ point here later)
         _proto->SetInternalFieldCount(1);
 
+        Handle<Value> self = External::New(this);
         // Add accessors for each of the fields of the Location.
         _proto->SetAccessor(String::NewSymbol("hash"),      GetLocationHash, SetLocationHash);
         _proto->SetAccessor(String::NewSymbol("host"),      GetLocationHost, SetLocationHost);
@@ -384,12 +327,22 @@ js_location::js_location(void)
         _proto->SetAccessor(String::NewSymbol("port"),      GetLocationPort, SetLocationPort);
         _proto->SetAccessor(String::NewSymbol("protocol"),  GetProto, SetProto);
         _proto->SetAccessor(String::NewSymbol("search"),    GetLocationSearch, SetLocationSearch);
+        _proto->Set(String::NewSymbol("toString"), FunctionTemplate::New(LocationToString));
+        _proto->Set(String::NewSymbol("assign"), FunctionTemplate::New(LocationReplace));
+        _proto->Set(String::NewSymbol("reload"), FunctionTemplate::New(LocationReload));
+        _proto->Set(String::NewSymbol("replace"), FunctionTemplate::New(LocationReplace));
 
         object_template = Persistent<FunctionTemplate>::New(_object);
     }
+    url.protocol = "http";
+    url.host = "";
+    url.port = 80;
+    url.request = "";
+    url.params = "";
+    url.username = "";
+    url.password = "";
 }
 
-js_location::~js_location(void)
+jsLocation::~jsLocation(void)
 {
 }
-

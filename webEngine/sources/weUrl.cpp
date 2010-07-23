@@ -466,19 +466,24 @@ string transport_url::tostring_noparam( bool noDefPort /*= true*/ )
 {
     string retval; // = new string;
 
-    retval = protocol + "://";
-    if (!username.empty() || !password.empty()) {
-        retval += username + ':' + password +'@';
+    if (iequals(protocol, "about")) {
+        retval = protocol + ":" + host;
     }
-    retval += host;
-    if (noDefPort && ((protocol == "http" && port == 80) || (protocol == "https" && port == 443))) {
-        // oops, in this case we don't need print anything :)
+    else{
+        retval = protocol + "://";
+        if (!username.empty() || !password.empty()) {
+            retval += username + ':' + password +'@';
+        }
+        retval += host;
+        if (noDefPort && ((protocol == "http" && port == 80) || (protocol == "https" && port == 443))) {
+            // oops, in this case we don't need print anything :)
+        }
+        else if (port > 0 && port < 65536) {
+            retval += ':';
+            retval += boost::lexical_cast<std::string>(port);
+        }
+        retval += request;
     }
-    else if (port > 0 && port < 65536) {
-        retval += ':';
-        retval += boost::lexical_cast<std::string>(port);
-    }
-    retval += request;
     return retval;
 }
 

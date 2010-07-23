@@ -5,49 +5,10 @@
 #include "jsBrowser.h"
 
 using namespace v8;
+using namespace webEngine;
 
-Persistent<FunctionTemplate> jsBrowser::object_template;
-bool jsBrowser::is_init = false;
-
-class jsDomBrowser {
-public:
-    std::map<std::string, Persistent<Value>>  props;
-
-    jsDomBrowser();
-};
-
-jsDomBrowser::jsDomBrowser()
-{
-    props["appCodeName"] = Persistent<Value>::New(String::New("Mozilla"));
-    props["appMinorVersion"] = Persistent<Value>::New(Int32::New(0));
-    props["appName"] = Persistent<Value>::New(String::New("Netscape"));
-    props["appVersion"] = Persistent<Value>::New(String::New("5.0 (Windows; ru)"));
-    props["cookieEnabled"] = Persistent<Value>::New(Boolean::New(true));
-    props["javaEnabled"] = Persistent<Value>::New(Boolean::New(false));
-    props["cpuClass"] = Persistent<Value>::New(String::New(""));
-    props["onLine"] = Persistent<Value>::New(Boolean::New(true));
-    props["platform"] = Persistent<Value>::New(String::New("Win32"));
-    props["userAgent"] = Persistent<Value>::New(String::New("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) PT-MaxPatrol V8/3022"));
-    props["browserLanguage"] = Persistent<Value>::New(String::New(""));
-    props["systemLanguage"] = Persistent<Value>::New(String::New(""));
-    props["userLanguage"] = Persistent<Value>::New(String::New(""));
-}
-
-std::map<std::string, jsDomBrowser*> globalBrowsers;
-
-Handle<Value> Browser(const Arguments& args)
-{
-    // throw if called without `new'
-    if (!args.IsConstructCall()) 
-        return ThrowException(String::New("Cannot call constructor as function"));
-
-    HandleScope scope;
-    Handle<External> external;
-
-    //    if (args.Length() > 0) {
-    jsDomBrowser *p = new jsDomBrowser();
-    return scope.Close(wrap_object<jsBrowser>(p));
-}
+Persistent<FunctionTemplate> jsNavigator::object_template;
+bool jsNavigator::is_init = false;
 
 static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
 {
@@ -62,7 +23,7 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsDomBrowser* el = static_cast<jsDomBrowser*>(ptr);
+    jsNavigator* el = static_cast<jsNavigator*>(ptr);
     // Convert the JavaScript string to a std::string.
     std::string key = value_to_string(name);
 
@@ -88,7 +49,7 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsDomBrowser* el = static_cast<jsDomBrowser*>(ptr);
+    jsNavigator* el = static_cast<jsNavigator*>(ptr);
     // Convert the JavaScript string to a std::string.
     std::string key = value_to_string(name);
 
@@ -96,8 +57,22 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
     return value;
 }
 
-jsBrowser::jsBrowser(void)
+jsNavigator::jsNavigator()
 {
+    props["appCodeName"] = Persistent<Value>::New(String::New("Mozilla"));
+    props["appMinorVersion"] = Persistent<Value>::New(Int32::New(0));
+    props["appName"] = Persistent<Value>::New(String::New("Netscape"));
+    props["appVersion"] = Persistent<Value>::New(String::New("5.0 (Windows; ru)"));
+    props["cookieEnabled"] = Persistent<Value>::New(Boolean::New(true));
+    props["javaEnabled"] = Persistent<Value>::New(Boolean::New(false));
+    props["cpuClass"] = Persistent<Value>::New(String::New(""));
+    props["onLine"] = Persistent<Value>::New(Boolean::New(true));
+    props["platform"] = Persistent<Value>::New(String::New("Win32"));
+    props["userAgent"] = Persistent<Value>::New(String::New("Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) PT-MaxPatrol V8/3022"));
+    props["browserLanguage"] = Persistent<Value>::New(String::New(""));
+    props["systemLanguage"] = Persistent<Value>::New(String::New(""));
+    props["userLanguage"] = Persistent<Value>::New(String::New(""));
+
     if (!is_init) {
         is_init = true;
         Handle<FunctionTemplate> _object = FunctionTemplate::New();
@@ -113,6 +88,76 @@ jsBrowser::jsBrowser(void)
     }
 }
 
+jsBrowser::jsBrowser(void)
+{
+    if (!is_init) {
+        init_globals();
+    }
+    // delete default context from jsExecutor
+    context.Dispose();
+    // init values
+    location.url.protocol = "about";
+    location.url.host = "blank";
+    window = new jsWindow(this, NULL, NULL);
+    // assign extensions
+    Handle<Value> self = External::New(this);
+    instance_global = Persistent<ObjectTemplate>::New(global);
+    instance_global->SetAccessor(String::New("navigator"), GetNavigator, NULL, self);
+    instance_global->SetAccessor(String::New("window"), GetWindow, NULL, self);
+    instance_global->SetAccessor(String::New("location"), GetLocation, NULL, self);
+    instance_global->Set(String::New("Location"), FunctionTemplate::New(Location));
+    instance_global->Set(String::New("Window"), FunctionTemplate::New(Window));
+    // make new context
+    context = Context::New(NULL, instance_global);
+    {
+        // make executor accessible in the JS
+        LOG4CXX_TRACE(iLogger::GetLogger(), "jsExecutor: try to wrap object");
+        Context::Scope context_scope(context);
+        Handle<Object> _instance = wrap_object<jsExecutor>(this);
+        context->Global()->Set(String::New("v8_context"), _instance);
+    }
+}
+
 jsBrowser::~jsBrowser(void)
 {
+    delete window;
+}
+
+Handle<Value> jsBrowser::GetNavigator( Local<String> name, const AccessorInfo &info )
+{
+    HandleScope scope;
+
+    Local<External> wrap = Local<External>::Cast(info.Data());
+    void* ptr = wrap->Value();
+    jsBrowser* el = static_cast<jsBrowser*>(ptr);
+
+    Handle<Object> _obj = wrap_object<jsNavigator>(&el->navigator);
+
+    return scope.Close(_obj);
+}
+
+Handle<Value> jsBrowser::GetWindow( Local<String> name, const AccessorInfo &info )
+{
+    HandleScope scope;
+
+    Local<External> wrap = Local<External>::Cast(info.Data());
+    void* ptr = wrap->Value();
+    jsBrowser* el = static_cast<jsBrowser*>(ptr);
+
+    Handle<Object> _obj = wrap_object<jsWindow>(el->window);
+
+    return scope.Close(_obj);
+}
+
+Handle<Value> jsBrowser::GetLocation( Local<String> name, const AccessorInfo &info )
+{
+    HandleScope scope;
+
+    Local<External> wrap = Local<External>::Cast(info.Data());
+    void* ptr = wrap->Value();
+    jsBrowser* el = static_cast<jsBrowser*>(ptr);
+
+    Handle<Object> _obj = wrap_object<jsLocation>(&el->location);
+
+    return scope.Close(_obj);
 }

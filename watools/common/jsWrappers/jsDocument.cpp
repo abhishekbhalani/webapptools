@@ -4,19 +4,14 @@
 #include <weLogger.h>
 #include "jsGlobal.h"
 #include "jsDocument.h"
+#include "jsBrowser.h"
+#include "jsWindow.h"
 
 using namespace v8;
+using namespace webEngine;
 
 Persistent<FunctionTemplate> jsDocument::object_template;
 bool jsDocument::isInit = false;
-
-jsDomDocument::jsDomDocument() : jsDomElement()
-{
-    namedprops["images"] = Persistent<Value>::New(Array::New());
-    namedprops["forms"] = Persistent<Value>::New(Array::New());
-}
-
-static Handle<Object> wrapDocument(jsDomDocument *locToWrap);
 
 static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
 {
@@ -31,7 +26,7 @@ static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsDomDocument* el = static_cast<jsDomDocument*>(ptr);
+    jsDocument* el = static_cast<jsDocument*>(ptr);
     // Convert the JavaScript string to a std::string.
     std::string key = value_to_string(name);
 
@@ -57,7 +52,7 @@ void DocumentSet(Local<String> name, Local<Value> value, const AccessorInfo& inf
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsDomDocument* el = static_cast<jsDomDocument*>(ptr);
+    jsDocument* el = static_cast<jsDocument*>(ptr);
     // Convert the JavaScript string to a std::string.
     std::string key = value_to_string(name);
 
@@ -71,7 +66,7 @@ static Handle<Value> getElementsByTagName(const Arguments& args)
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsDomDocument* dc = static_cast<jsDomDocument*>(ptr);
+    jsDocument* dc = static_cast<jsDocument*>(ptr);
 
     //enter a handle scope
     HandleScope scope;
@@ -81,7 +76,7 @@ static Handle<Value> getElementsByTagName(const Arguments& args)
     if (args.Length() > 0) {
         std::string tagName = value_to_string(args[0]);
         int idx = 0;
-        for(size_t i = 0; i < dc->elements.size(); i++) {
+/*        for(size_t i = 0; i < dc->elements.size(); i++) {
             Local<Value> aref = Local<Value>::New(dc->elements[i]);
             if (aref->IsObject())
             {
@@ -93,7 +88,7 @@ static Handle<Value> getElementsByTagName(const Arguments& args)
                     res->Set(Int32::New(idx++), aref);
                 }
             }
-        }
+        }*/
     }
     return scope.Close(res);
 }
@@ -106,7 +101,7 @@ static Handle<Value> createElement(const Arguments& args)
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsDomDocument* dc = static_cast<jsDomDocument*>(ptr);
+    jsDocument* dc = static_cast<jsDocument*>(ptr);
 
     Handle<Value> res(Undefined());
 
@@ -126,7 +121,7 @@ static Handle<Value> createElement(const Arguments& args)
                 vals->Set(pN, pV);
             }
         }
-        dc->elements.push_back(Persistent<Value>::New(res));
+        //dc->elements.push_back(Persistent<Value>::New(res));
     }
     return scope.Close(res);
 }
@@ -141,7 +136,7 @@ static Handle<Value> documentWrite(const Arguments& args)
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsDomDocument* dc = static_cast<jsDomDocument*>(ptr);
+    jsDocument* dc = static_cast<jsDocument*>(ptr);
 
     for (int i = 0; i < args.Length(); i++) {
         if (first) {
@@ -164,14 +159,34 @@ Handle<Value> Document(const Arguments& args)
         return ThrowException(String::New("Cannot call constructor as function"));
 
     HandleScope scope;
-    Handle<External> external;
 
-    jsDomDocument *p = new jsDomDocument();
+    Handle<Value> retval;
+    Local<Context> ctx = v8::Context::GetCurrent();
+    Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets v8_context");
+    if (exec->IsObject())
+    {
+        Local<Object> eObj = Local<Object>::Cast(exec);
+        Local<External> wrap = Local<External>::Cast(eObj->GetInternalField(0));
+        jsBrowser* jsExec = static_cast<jsBrowser*>(wrap->Value());
+        jsWindow* win = jsExec->window;
+        if (args.Length() > 0 && args[0]->IsObject())
+        {
+            Local<Object> winObj = Local<Object>::Cast(args[0]);
+            Local<External> winPtr = Local<External>::Cast(winObj->GetInternalField(0));
+            win = static_cast<jsWindow*>(winPtr->Value());
+        }
+        jsDocument *p = new jsDocument(win);
+        retval = wrap_object<jsDocument>(p);
+    }
+
+    return scope.Close(retval);
+
     String::Utf8Value str(args[0]);
-    return scope.Close(wrap_object<jsDocument>(p));
+    return scope.Close(retval);
 }
 
-jsDocument::jsDocument(void)
+jsDocument::jsDocument(jsWindow* holder_)
 {
     if (!isInit) {
         isInit = true;
@@ -197,6 +212,7 @@ jsDocument::jsDocument(void)
 
         object_template = Persistent<FunctionTemplate>::New(_object);
     }
+    holder = holder_;
 }
 
 jsDocument::~jsDocument(void)
