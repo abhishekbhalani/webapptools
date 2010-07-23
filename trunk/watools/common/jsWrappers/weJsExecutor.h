@@ -26,6 +26,12 @@
 using namespace std;
 
 namespace webEngine {
+    //////////////////////////////////////////////////////////////////////////
+    /// @class jsExecutor
+    /// 
+    /// @brief General-purpose JavaScript executor based on Google-V8 engine
+    ///
+    //////////////////////////////////////////////////////////////////////////
     class jsExecutor
     {
     public:
@@ -35,21 +41,27 @@ namespace webEngine {
         bool execute_string(const string& src,
             const string& nm,
             bool print_result,
-            bool report_exceptions);
+            bool report_exceptions,
+            v8::Handle<v8::Context> ctx = v8::Handle<v8::Context>((v8::Context*)NULL));
         void reset_results();
         const string get_results() {return exec_result; };
         void append_results(const string& data);
         void append_object(v8::Handle<v8::Object> data);
         void set_max_depth(int depth) {maxDepth = depth; };
-        string dump(const string& name, const string& indent = "", int depth = 0);
-        string obj_dump(v8::Local<v8::Value> val, const string& name, const string& indent, int depth);
+        string dump(const string& name, const string& indent = "", int depth = 0, v8::Handle<v8::Context> ctx = v8::Handle<v8::Context>((v8::Context*)NULL));
+        string obj_dump(v8::Local<v8::Value> val, const string& name, const string& indent, int depth, v8::Handle<v8::Context> ctx);
+
+        v8::Persistent<v8::Context> get_child_context();
+        void close_child_context(v8::Persistent<v8::Context> ctx);
 
         static v8::Persistent<v8::FunctionTemplate> object_template;
+        static void init_globals();
 
     protected:
         static bool is_init;
         static int  num_objects;
         static v8::Persistent<v8::ObjectTemplate> global;
+        v8::Persistent<v8::ObjectTemplate> instance_global;
 
         v8::Persistent<v8::Context> context;
         vector<v8::Persistent<v8::Value>> objects;
