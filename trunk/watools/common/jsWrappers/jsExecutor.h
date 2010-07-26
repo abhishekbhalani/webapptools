@@ -55,14 +55,13 @@ namespace webEngine {
         void close_child_context(v8::Persistent<v8::Context> ctx);
 
         static v8::Persistent<v8::FunctionTemplate> object_template;
-        static void init_globals();
+        void init_globals();
 
     protected:
         static bool is_init;
         static int  num_objects;
-        static v8::Persistent<v8::ObjectTemplate> global;
-        v8::Persistent<v8::ObjectTemplate> instance_global;
-
+        v8::Persistent<v8::ObjectTemplate> global;
+        
         v8::Persistent<v8::Context> context;
         vector<v8::Persistent<v8::Value>> objects;
         string exec_result;

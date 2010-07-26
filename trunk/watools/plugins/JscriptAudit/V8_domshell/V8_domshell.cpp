@@ -16,7 +16,7 @@
 class shellExecutor : public webEngine::jsBrowser
 {
 public:
-    static v8::Persistent<v8::ObjectTemplate> global_object() { return global; }
+    v8::Persistent<v8::ObjectTemplate> global_object() { return global; }
 };
 
 void RunShell(v8::Handle<v8::Context> context);
@@ -65,26 +65,26 @@ int RunMain(int argc, char* argv[]) {
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
     v8::HandleScope handle_scope;
     // init global objects
-    webEngine::jsExecutor::init_globals();
+    shellExecutor executor;
 
     // Bind the global 'read' function to the C++ Read callback.
-    shellExecutor::global_object()->Set(v8::String::New("read"), v8::FunctionTemplate::New(Read));
+    executor.global_object()->Set(v8::String::New("read"), v8::FunctionTemplate::New(Read));
     // Bind the global 'load' function to the C++ Load callback.
-    shellExecutor::global_object()->Set(v8::String::New("load"), v8::FunctionTemplate::New(Load));
+    executor.global_object()->Set(v8::String::New("load"), v8::FunctionTemplate::New(Load));
     // Bind the 'quit' function
-    shellExecutor::global_object()->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
+    executor.global_object()->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
     // Bind the 'version' function
-    shellExecutor::global_object()->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
+    executor.global_object()->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
     // init global objects
-    shellExecutor::global_object()->SetAccessor(v8::String::NewSymbol("objects"), GetAnyObject);
-
-    shellExecutor executor;
+    executor.global_object()->SetAccessor(v8::String::NewSymbol("objects"), GetAnyObject);
 
     // Create a new execution environment containing the built-in
     // functions
     v8::Persistent<v8::Context> context = executor.get_child_context();
     // Enter the newly created execution environment.
     v8::Context::Scope context_scope(context);
+    executor.window->history->push_back("http://www.ru");
+    executor.window->history->push_back("http://www.ya.ru");
     bool run_shell = (argc == 1);
     for (int i = 1; i < argc; i++) {
         const char* str = argv[i];

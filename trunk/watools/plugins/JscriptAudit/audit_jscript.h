@@ -6,7 +6,7 @@
 
 namespace webEngine {
 
-    class jsExecutor;
+    class jsBrowser;
     class audit_jscript;
 
     class ajs_to_process :
@@ -110,7 +110,7 @@ namespace webEngine {
         virtual void parse_scripts(scan_data_ptr sc, boost::shared_ptr<webEngine::html_document> parser);
         virtual void process_events(base_entity_ptr entity);
 
-        jsExecutor* js_exec;
+        jsBrowser* js_exec;
 
     protected:
         void add_url( transport_url link, scan_data_ptr sc );
