@@ -15,7 +15,7 @@
 #include <boost/filesystem/operations.hpp>
 
 // from common/
-#include "jsWrappers/weJsExecutor.h"
+#include "jsWrappers/jsBrowser.h"
 
 #include "audit_jscript.h"
 #include "jscript.xpm"
@@ -87,7 +87,7 @@ void audit_jscript::init( task* tsk )
     SAFE_GET_OPTION_VAL(opt, opt_preloads, "");
 
     if (opt_use_js) {
-        js_exec = new webEngine::jsExecutor;
+        js_exec = new webEngine::jsBrowser;
         js_exec->execute_string("print('V8 Engine version is: ' + version())", "", true, true);
         if (opt_preloads != "") {
 #ifdef WIN32
@@ -323,11 +323,8 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
     parent_task->add_thread();
     if (parser) {
         // fix location object
-        source = "location.href = \"";
-        source += sc->object_url;
-        source += "\"";
-        js_exec->execute_string(source, "", true, true);
-        js_exec->reset_results();
+        js_exec->window->history->push_back(sc->object_url);
+        js_exec->window->location.url.assign_with_referer(sc->object_url);
         // execute all scripts
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts execute scripts for parsed_data " << parser);
         lst = parser->FindTags("script");

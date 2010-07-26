@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <weLogger.h>
-#include "weJsExecutor.h"
+#include "jsExecutor.h"
 #include "jsGlobal.h"
 
 // include DOM objects
@@ -38,7 +38,6 @@ static boost::mutex locker;
 bool jsExecutor::is_init = false;
 int  jsExecutor::num_objects = 0;
 Persistent<FunctionTemplate> jsExecutor::object_template;
-Persistent<ObjectTemplate> jsExecutor::global;
 
 jsExecutor::jsExecutor(void)
 {
@@ -48,17 +47,14 @@ jsExecutor::jsExecutor(void)
     maxDepth = 10; //default value
     objects.clear();
 
-    if (!is_init) {
-        init_globals();
-    }
-    instance_global = Persistent<ObjectTemplate>::New(global);
+    init_globals();
 
     // init global objects
-    instance_global->SetAccessor(v8::String::NewSymbol("v8_objects"), result_object);
-    instance_global->SetAccessor(v8::String::NewSymbol("v8_results"), get_result_string, set_result_string);
+    global->SetAccessor(v8::String::NewSymbol("v8_objects"), result_object);
+    global->SetAccessor(v8::String::NewSymbol("v8_results"), get_result_string, set_result_string);
 
     num_objects++;
-    context = Context::New(NULL, instance_global);
+    context = Context::New(NULL, global);
     {
         // make executor accessible in the JS
         LOG4CXX_TRACE(iLogger::GetLogger(), "jsExecutor: try to wrap object");
@@ -229,7 +225,7 @@ v8::Persistent<v8::Context> jsExecutor::get_child_context()
 {
     HandleScope handle_scope;
 
-    v8::Persistent<v8::Context> ctx = v8::Context::New(NULL, instance_global);
+    v8::Persistent<v8::Context> ctx = v8::Context::New(NULL, global);
     {
         // make executor accessible in the JS
         LOG4CXX_TRACE(iLogger::GetLogger(), "jsExecutor: try to wrap object");

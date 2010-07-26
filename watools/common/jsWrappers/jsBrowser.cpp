@@ -7,17 +7,15 @@
 using namespace v8;
 using namespace webEngine;
 
+bool jsBrowser::is_init = false;
+
 Persistent<FunctionTemplate> jsNavigator::object_template;
 bool jsNavigator::is_init = false;
+Persistent<FunctionTemplate> jsScreen::object_template;
+bool jsScreen::is_init = false;
 
-static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
+static Handle<Value> NavigatorGet(Local<String> name, const AccessorInfo &info)
 {
-    //this only shows information on what object is being used... just for fun
-//     {
-//         String::AsciiValue prop(name);
-//         String::AsciiValue self(info.This()->ToString());
-//         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::BrowserGet: self("<< *self <<"), property("<< *prop<<")");
-//     }
     HandleScope scope;
 
     Local<Object> self = info.This();
@@ -38,14 +36,8 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
     return scope.Close(val);
 }
 
-static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const AccessorInfo& info)
+static Handle<Value> NavigatorSet(Local<String> name, Local<Value> value, const AccessorInfo& info)
 {
-    //this only shows information on what object is being used... just for fun
-//     {
-//         String::AsciiValue prop(name);
-//         String::AsciiValue self(info.This()->ToString());
-//         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::BrowserSet: self("<< *self <<"), property("<< *prop<<")");
-//     }
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
@@ -82,36 +74,147 @@ jsNavigator::jsNavigator()
         _proto->SetInternalFieldCount(1);
 
         // Add accessors for each of the fields of the Location.
-        _proto->SetNamedPropertyHandler(BrowserGet, BrowserSet);
+        _proto->SetNamedPropertyHandler(NavigatorGet, NavigatorSet);
 
         object_template = Persistent<FunctionTemplate>::New(_object);
     }
 }
 
+static Handle<Value> ScreenGet(Local<String> name, const AccessorInfo &info)
+{
+    HandleScope scope;
+
+    Local<Object> self = info.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsScreen* el = static_cast<jsScreen*>(ptr);
+    // Convert the JavaScript string to a std::string.
+    std::string key = value_to_string(name);
+
+    // Look up the value if it exists using the standard STL idiom.
+    std::map<std::string, Persistent<Value>>::iterator iter = el->props.find(key);
+
+    // If the key is not present return an empty handle as signal.
+    if (iter == el->props.end()) return Handle<Value>();
+
+    // Otherwise fetch the value and wrap it in a JavaScript string.
+    Local<Value> val = Local<Value>::New(iter->second);
+    return scope.Close(val);
+}
+
+static Handle<Value> ScreenSet(Local<String> name, Local<Value> value, const AccessorInfo& info)
+{
+    Local<Object> self = info.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsScreen* el = static_cast<jsScreen*>(ptr);
+    // Convert the JavaScript string to a std::string.
+    std::string key = value_to_string(name);
+
+    el->props[key] = Persistent<Value>::New(value);
+    return value;
+}
+
+jsScreen::jsScreen()
+{
+    props["availHeight"] = Persistent<Value>::New(Int32::New(600));
+    props["availWidth"] = Persistent<Value>::New(Int32::New(800));
+    props["colorDepth"] = Persistent<Value>::New(Int32::New(32));
+    props["height"] = Persistent<Value>::New(Int32::New(600));
+    props["pixelDepth"] = Persistent<Value>::New(Int32::New(32));
+    props["width"] = Persistent<Value>::New(Int32::New(800));
+
+    if (!is_init) {
+        is_init = true;
+        Handle<FunctionTemplate> _object = FunctionTemplate::New();
+        //get the location's instance template
+        Handle<ObjectTemplate> _proto = _object->InstanceTemplate();
+        //set its internal field count to one (we'll put references to the C++ point here later)
+        _proto->SetInternalFieldCount(1);
+
+        // Add accessors for each of the fields of the Location.
+        _proto->SetNamedPropertyHandler(ScreenGet, ScreenSet);
+
+        object_template = Persistent<FunctionTemplate>::New(_object);
+    }
+}
+
+static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
+{
+    HandleScope scope;
+    Handle<Value> val;
+    std::string key = value_to_string(name);
+
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "jsBrowserGet: property("<< key <<")");
+
+    Local<External> wrap = Local<External>::Cast(info.Data());
+    void* ptr = wrap->Value();
+    jsBrowser* el = static_cast<jsBrowser*>(ptr);
+        if (key == "v8_context") {
+        val = wrap_object<jsExecutor>(el);
+    }
+    else if (key == "window") {
+        val = wrap_object<jsWindow>(el->window);
+    }
+    else if (el->window->is_property(key)) {
+        val = el->window->GetProperty(name, info);
+    }
+    else {
+        // Look up the value if it exists using the standard STL idiom.
+        std::map<std::string, Persistent<Value>>::iterator iter = el->props.find(key);
+        // If the key is not present return an empty handle as signal.
+        if (iter != el->props.end()) {
+            // Otherwise fetch the value and wrap it in a JavaScript string.
+            val = Local<Value>::New(iter->second);
+        }
+    }
+ 
+    return scope.Close(val);
+}
+
+static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const AccessorInfo& info)
+{
+    Handle<Value> val;
+    std::string key = value_to_string(name);
+    
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "jsBrowserSet: property("<< key <<")");
+    Local<External> wrap = Local<External>::Cast(info.Data());
+    void* ptr = wrap->Value();
+    if (ptr != NULL) {
+        jsBrowser* el = static_cast<jsBrowser*>(ptr);
+        if (el->window->is_property(key)) {
+            val = el->window->GetProperty(name, info);
+        }
+        else {
+            el->props[key] = Persistent<Value>::New(value);
+        }
+    }
+    return val;
+}
+
 jsBrowser::jsBrowser(void)
 {
     if (!is_init) {
+        is_init = true;
         init_globals();
+        // assign extensions
+        Handle<Value> self = External::New(this);
+        global->SetNamedPropertyHandler(BrowserGet, BrowserSet, NULL, NULL, NULL, self);
+        //global->SetAccessor(String::New("window"), GetWindow, NULL, self);
+        global->Set(String::New("Location"), FunctionTemplate::New(Location));
+        global->Set(String::New("Window"), FunctionTemplate::New(Window));
     }
     // delete default context from jsExecutor
     context.Dispose();
     // init values
-    location.url.protocol = "about";
-    location.url.host = "blank";
     window = new jsWindow(this, NULL, NULL);
-    // assign extensions
-    Handle<Value> self = External::New(this);
-    instance_global = Persistent<ObjectTemplate>::New(global);
-    instance_global->SetAccessor(String::New("navigator"), GetNavigator, NULL, self);
-    instance_global->SetAccessor(String::New("window"), GetWindow, NULL, self);
-    instance_global->SetAccessor(String::New("location"), GetLocation, NULL, self);
-    instance_global->Set(String::New("Location"), FunctionTemplate::New(Location));
-    instance_global->Set(String::New("Window"), FunctionTemplate::New(Window));
+    top_win = window;
+    win_list[window->get_id()] = window;
     // make new context
-    context = Context::New(NULL, instance_global);
+    context = Context::New(NULL, global);
     {
         // make executor accessible in the JS
-        LOG4CXX_TRACE(iLogger::GetLogger(), "jsExecutor: try to wrap object");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "jsBrowser: try to wrap object");
         Context::Scope context_scope(context);
         Handle<Object> _instance = wrap_object<jsExecutor>(this);
         context->Global()->Set(String::New("v8_context"), _instance);
@@ -120,20 +223,39 @@ jsBrowser::jsBrowser(void)
 
 jsBrowser::~jsBrowser(void)
 {
-    delete window;
+    windows_list::iterator it;
+
+    for (it = win_list.begin(); it != win_list.end(); ++it) {
+        delete it->second;
+    }
 }
 
-Handle<Value> jsBrowser::GetNavigator( Local<String> name, const AccessorInfo &info )
+jsWindow* jsBrowser::window_by_id(std::string id)
 {
-    HandleScope scope;
+    jsWindow* retval = NULL;
+    windows_list::iterator it = win_list.find(id);
 
-    Local<External> wrap = Local<External>::Cast(info.Data());
-    void* ptr = wrap->Value();
-    jsBrowser* el = static_cast<jsBrowser*>(ptr);
+    if (it != win_list.end()) {
+        retval = it->second;
+    }
 
-    Handle<Object> _obj = wrap_object<jsNavigator>(&el->navigator);
+    return retval;
+}
 
-    return scope.Close(_obj);
+jsWindow* jsBrowser::window_by_name(std::string name)
+{
+    jsWindow* retval = NULL;
+    windows_list::iterator it;
+    string nm;
+
+    for (it = win_list.begin(); it != win_list.end(); ++it) {
+        nm = value_to_string(it->second->props["name"]->ToString());
+        if (nm == name) {
+            retval = it->second;
+            break;
+        }
+    }
+    return retval;
 }
 
 Handle<Value> jsBrowser::GetWindow( Local<String> name, const AccessorInfo &info )
@@ -145,19 +267,6 @@ Handle<Value> jsBrowser::GetWindow( Local<String> name, const AccessorInfo &info
     jsBrowser* el = static_cast<jsBrowser*>(ptr);
 
     Handle<Object> _obj = wrap_object<jsWindow>(el->window);
-
-    return scope.Close(_obj);
-}
-
-Handle<Value> jsBrowser::GetLocation( Local<String> name, const AccessorInfo &info )
-{
-    HandleScope scope;
-
-    Local<External> wrap = Local<External>::Cast(info.Data());
-    void* ptr = wrap->Value();
-    jsBrowser* el = static_cast<jsBrowser*>(ptr);
-
-    Handle<Object> _obj = wrap_object<jsLocation>(&el->location);
 
     return scope.Close(_obj);
 }
