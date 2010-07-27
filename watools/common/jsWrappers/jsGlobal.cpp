@@ -1,5 +1,5 @@
 #include <weLogger.h>
-#include "weJsExecutor.h"
+#include "jsExecutor.h"
 #include "jsGlobal.h"
 
 using namespace v8;

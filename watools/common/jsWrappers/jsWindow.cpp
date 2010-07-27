@@ -39,9 +39,24 @@ static char* func_list[] = {
     "toString",
     "alert",
     "blur",
+    "clearInterval",
+    "clearTimeout",
     "close",
+    "confirm",
+    "createPopup",
     "focus",
-    "open"
+    "moveBy",
+    "moveTo",
+    "open",
+    "print",
+    "prompt",
+    "resizeBy",
+    "resizeTo",
+    "scroll",
+    "scrollBy",
+    "scrollTo",
+    "setInterval",
+    "setTimeout"
 };
 
 Persistent<FunctionTemplate> jsHistory::object_template;
@@ -233,10 +248,25 @@ jsWindow::jsWindow( jsBrowser* holder_, jsWindow* parent_, jsWindow* creator_ )
         _proto->Set(String::NewSymbol("toString"), FunctionTemplate::New(jsWindow::toString));
         _proto->Set(String::NewSymbol("alert"), FunctionTemplate::New(alert));
         _proto->Set(String::NewSymbol("blur"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("clearInterval"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("clearTimeout"), FunctionTemplate::New(jsWindow::PlaceHolder));
         _proto->Set(String::NewSymbol("close"), FunctionTemplate::New(jsWindow::Close));
+        _proto->Set(String::NewSymbol("confirm"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("createPopup"), FunctionTemplate::New(jsWindow::Popup));
         _proto->Set(String::NewSymbol("focus"), FunctionTemplate::New(jsWindow::Focus));
+        _proto->Set(String::NewSymbol("moveBy"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("moveTo"), FunctionTemplate::New(jsWindow::PlaceHolder));
         _proto->Set(String::NewSymbol("open"), FunctionTemplate::New(jsWindow::Open));
-        _proto->SetNamedPropertyHandler(jsWindow::WindowGet, jsWindow::WindowSet);
+        _proto->Set(String::NewSymbol("print"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("prompt"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("resizeBy"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("resizeTo"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("scroll"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("scrollBy"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("scrollTo"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("setInterval"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->Set(String::NewSymbol("setTimeout"), FunctionTemplate::New(jsWindow::PlaceHolder));
+        _proto->SetNamedPropertyHandler(jsWindow::WindowGet, jsWindow::WindowSet, NULL, NULL, jsWindow::WindowEnum);
 
         object_template = Persistent<FunctionTemplate>::New(_object);
     }
@@ -347,7 +377,7 @@ Handle<Value> jsWindow::GetProperty(Local<String> name, const AccessorInfo &info
 	}
     else {
         // Look up the value if it exists using the standard STL idiom.
-        std::map<std::string, Persistent<Value>>::iterator iter = props.find(key);
+        jsPropertyMap::iterator iter = props.find(key);
         // If the key is not present return an empty handle as signal.
         if (iter != props.end()) {
             // Otherwise fetch the value and wrap it in a JavaScript string.
@@ -414,6 +444,38 @@ Handle<Value> jsWindow::WindowSet(Local<String> name, Local<Value> value, const 
         retval = el->SetProperty(name, value, info);
     }
     return retval;
+}
+
+
+Handle<Array> jsWindow::WindowEnum( const AccessorInfo &info )
+{
+    HandleScope scope;
+
+    Handle<Array> retval = Local<Array>::New(Array::New());
+
+    Local<Object> self = info.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsWindow* el = static_cast<jsWindow*>(ptr); 
+
+    map<string, int> prop_list;
+    size_t i;
+    for (i = 0; i < ro_props.size(); ++i) {
+        prop_list[ro_props[i]] = 1;
+    }
+    jsPropertyMap::iterator it;
+    for (it = el->props.begin(); it != el->props.end(); ++it) {
+        prop_list[it->first] = 1;
+    }
+    map<string, int>::iterator ins;
+    i = 0;
+    for (ins = prop_list.begin(); ins != prop_list.end(); ++ins) {
+        string val = ins->first;
+        retval->Set(Number::New(i), String::New(val.c_str()));
+        i++;
+    }
+
+    return scope.Close(retval);
 }
 
 Handle<Value> jsWindow::toString(const Arguments& args)
@@ -517,6 +579,23 @@ Handle<Value> jsWindow::Open(const Arguments& args)
         string msg = "Open new Window\r\n\thref: ";
         msg += url.tostring();
         append_results(msg);
+    }
+    return val;
+}
+
+Handle<Value> jsWindow::Popup( const Arguments& args )
+{
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsWindow* el = static_cast<jsWindow*>(ptr); 
+
+    Handle<Value> val;
+    if (!el->is_closed()) {
+        jsWindow* new_win = new jsWindow(el->browser, el, el);
+        el->browser->register_window(new_win);
+        val = wrap_object<jsWindow>(new_win); 
+        LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow::Popup new window - uuid=" << new_win->win_uuid);
     }
     return val;
 }

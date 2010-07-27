@@ -43,7 +43,7 @@ namespace webEngine {
         jsLocation location;
         jsDocument* document;
         jsHistory* history;
-		std::map<std::string, v8::Persistent<v8::Value>>  props;
+		jsPropertyMap  props;
 
         static bool is_init;
         static v8::Persistent<v8::FunctionTemplate> object_template;
@@ -58,10 +58,13 @@ namespace webEngine {
         static v8::Handle<v8::Value> GetSelf(v8::Local<v8::String> name, const v8::AccessorInfo &info);*/
         static v8::Handle<v8::Value> WindowGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
         static v8::Handle<v8::Value> WindowSet(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
+        static v8::Handle<v8::Array> WindowEnum(const v8::AccessorInfo &info);
+
 
         static v8::Handle<v8::Value> Close(const v8::Arguments& args);
         static v8::Handle<v8::Value> Focus(const v8::Arguments& args);
         static v8::Handle<v8::Value> Open(const v8::Arguments& args);
+        static v8::Handle<v8::Value> Popup(const v8::Arguments& args);
 
         static v8::Handle<v8::Value> toString(const v8::Arguments& args);
         static v8::Handle<v8::Value> PlaceHolder(const v8::Arguments& args);
