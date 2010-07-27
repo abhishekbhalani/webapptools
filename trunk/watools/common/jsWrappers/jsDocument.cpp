@@ -186,14 +186,14 @@ Handle<Value> Document(const Arguments& args)
     return scope.Close(retval);
 }
 
-jsDocument::jsDocument(jsWindow* holder_)
+jsDocument::jsDocument(jsWindow* holder_) : jsElement(html_entity_ptr((html_entity*)NULL))
 {
     if (!isInit) {
         isInit = true;
         Handle<FunctionTemplate> _object = FunctionTemplate::New();
         if (!jsElement::is_init)
         {
-            jsElement *elem = new jsElement;
+            jsElement::init();
         }
         Local<FunctionTemplate> _template = Local<FunctionTemplate>::New(jsElement::object_template);
         _object->Inherit(_template);
@@ -205,7 +205,7 @@ jsDocument::jsDocument(jsWindow* holder_)
         // Add accessors for each of the fields of the Location.
         _proto->SetAccessor(String::NewSymbol("images"), DocumentGet, DocumentSet);
         _proto->SetAccessor(String::NewSymbol("forms"), DocumentGet, DocumentSet);
-        _proto->Set(String::New("appendChild"), FunctionTemplate::New(js_el_append_child));
+        //_proto->Set(String::New("appendChild"), FunctionTemplate::New(js_el_append_child));
         _proto->Set(String::New("getElementsByTagName"), FunctionTemplate::New(getElementsByTagName));
         _proto->Set(String::New("createElement"), FunctionTemplate::New(createElement));
         _proto->Set(String::New("write"), FunctionTemplate::New(documentWrite));
@@ -213,8 +213,45 @@ jsDocument::jsDocument(jsWindow* holder_)
         object_template = Persistent<FunctionTemplate>::New(_object);
     }
     holder = holder_;
+    //doc = NULL;
 }
 
 jsDocument::~jsDocument(void)
 {
+}
+
+Handle<Value> jsDocument::AppendChild( const Arguments& args )
+{
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "jsElement::AppendChild");
+
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+
+    jsDocument* el = static_cast<jsDocument*>(ptr);
+    if (args.Length() > 0 && args[0]->IsObject()) {
+        // get object to append
+        Local<Object> aref = args[0]->ToObject();
+        Local<External> awrap = Local<External>::Cast(aref->GetInternalField(0));
+        void* aptr = awrap->Value();
+        jsElement* chld = static_cast<jsElement*>(aptr);
+        // get append position
+        if (el->doc) {
+            base_entity_ptr parent;
+            entity_list lst = el->doc->FindTags("body");
+            if (lst.size() > 0) {
+                parent = lst[0];
+            }
+            else {
+                parent = el->doc;
+            }
+            parent->Children().push_back(chld->entity);
+            chld->entity->Parent(parent);
+        }
+    }
+    else {
+        LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "jsElement::AppendChild exception: argument must be an object!\n");
+    }
+
+    return Undefined();
 }

@@ -3,6 +3,7 @@
 #include <weLogger.h>
 #include "jsGlobal.h"
 #include "jsBrowser.h"
+#include "jsElement.h"
 
 using namespace v8;
 using namespace webEngine;
@@ -161,7 +162,7 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
     }
     else {
         // Look up the value if it exists using the standard STL idiom.
-        std::map<std::string, Persistent<Value>>::iterator iter = el->props.find(key);
+        jsPropertyMap::iterator iter = el->props.find(key);
         // If the key is not present return an empty handle as signal.
         if (iter != el->props.end()) {
             // Otherwise fetch the value and wrap it in a JavaScript string.
@@ -203,6 +204,30 @@ jsBrowser::jsBrowser(void)
         //global->SetAccessor(String::New("window"), GetWindow, NULL, self);
         global->Set(String::New("Location"), FunctionTemplate::New(Location));
         global->Set(String::New("Window"), FunctionTemplate::New(Window));
+        global->Set(String::New("Element"), FunctionTemplate::New(Element));
+        global->Set(String::New("Image"), FunctionTemplate::New(Image));
+
+        // intercept window's functions
+        global->Set(String::NewSymbol("blur"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("clearInterval"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("clearTimeout"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("close"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("confirm"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("createPopup"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("focus"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("moveBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("moveTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("open"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("print"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("prompt"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("resizeBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("resizeTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("scroll"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("scrollBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("scrollTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("setInterval"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+        global->Set(String::NewSymbol("setTimeout"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+
     }
     // delete default context from jsExecutor
     context.Dispose();
@@ -269,4 +294,26 @@ Handle<Value> jsBrowser::GetWindow( Local<String> name, const AccessorInfo &info
     Handle<Object> _obj = wrap_object<jsWindow>(el->window);
 
     return scope.Close(_obj);
+}
+
+Handle<Value> jsBrowser::WinInterceptor( const Arguments& args )
+{
+    Handle<Value> retval;
+    Local<Context> ctx = v8::Context::GetCurrent();
+    Local<Object> exec = Local<Object>::Cast(ctx->Global()->Get(String::New("v8_context")));
+    Local<External> wrap = Local<External>::Cast(exec->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsBrowser* el = static_cast<jsBrowser*>(ptr); 
+
+    string fname = value_to_string(args.Callee()->GetName()->ToString());
+
+    Local<Object> _obj = Local<Object>::New(wrap_object<jsWindow>(el->window));
+    Local<Function> _func = Local<Function>::Cast(_obj->Get(String::New(fname.c_str())));
+    Handle<Value> *fargs = new Handle<Value>[args.Length()];
+    for (int i = 0; i < args.Length(); ++i) {
+        fargs[i] = args[i];
+    }
+    retval = _func->Call(_obj, args.Length(), fargs );
+
+    return retval;
 }

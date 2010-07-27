@@ -5,16 +5,19 @@
 namespace webEngine {
     class jsWindow;
 
-    class jsDocument
+    class jsDocument : public jsElement
     {
     public:
         jsDocument(jsWindow* holder_);
         ~jsDocument(void);
 
+        html_document_ptr doc;
+
         static bool isInit;
         static v8::Persistent<v8::FunctionTemplate> object_template;
+        static v8::Handle<v8::Value> AppendChild(const v8::Arguments& args);
 
-        std::map<std::string, v8::Persistent<v8::Value>>  namedprops;
+        jsPropertyMap  namedprops;
     protected:
         jsWindow* holder;
     };

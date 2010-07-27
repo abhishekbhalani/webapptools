@@ -9,7 +9,7 @@ namespace webEngine {
 
     class jsNavigator {
     public:
-        std::map<std::string, v8::Persistent<v8::Value>>  props;
+        jsPropertyMap  props;
 
         jsNavigator();
 
@@ -19,7 +19,7 @@ namespace webEngine {
 
     class jsScreen {
     public:
-        std::map<std::string, v8::Persistent<v8::Value>>  props;
+        jsPropertyMap  props;
 
         jsScreen();
 
@@ -38,7 +38,7 @@ namespace webEngine {
     public:
         jsBrowser(void);
         ~jsBrowser(void);
-        std::map<std::string, v8::Persistent<v8::Value>>  props;
+        jsPropertyMap  props;
 
         jsNavigator navigator;
         jsScreen screen;
@@ -50,6 +50,7 @@ namespace webEngine {
 //        jsDocument document;
         static bool is_init;
         static v8::Handle<v8::Value> GetWindow(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+        static v8::Handle<v8::Value> WinInterceptor(const v8::Arguments& args);
     protected:
         jsWindow* top_win;
         typedef std::map<std::string, jsWindow*> windows_list;
