@@ -64,6 +64,9 @@ const string base_entity::attr(string name)
 void base_entity::attr(string name, string value)
 {
     attributes[name] = value;
+    if (name == "id") {
+        entity_id = value;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +121,7 @@ void base_entity::GenerateId(void)
     unsigned int third;
     char buff[40];
 
-    m_entityId = "{";
+    entity_id = "{";
 
     first = (unsigned int)this;
     while ((first & 0xF0000000) == 0)
@@ -137,8 +140,8 @@ void base_entity::GenerateId(void)
     third ^= second;
     sprintf(buff, "%08X-%04X-%04X-9798-A2%08X9F", first, (unsigned short)(second & 0xFFFF), (unsigned short)(second >> 16), third);
 
-    m_entityId += buff;
-    m_entityId += "}";
+    entity_id += buff;
+    entity_id += "}";
     srand(third);*/
 }
 #pragma warning(pop)
@@ -158,7 +161,7 @@ base_entity_ptr base_entity::FindID(string id)
     entity_list::iterator  chld;
     base_entity_ptr retval;
 
-    if (id == m_entityId) {
+    if (id == entity_id) {
         return shared_from_this();
     }
     for (chld = chldList.begin(); chld != chldList.end(); chld++) {
@@ -185,7 +188,7 @@ entity_list base_entity::FindTags(string tag)
     entity_list retval;
     entity_list::iterator  chld;
 
-    if (iequals(tag, entityName)) {
+    if (iequals(tag, entityName) || tag == "*") {
         retval.push_back(shared_from_this());
     }
     for (size_t i = 0; i < chldList.size(); i++) {

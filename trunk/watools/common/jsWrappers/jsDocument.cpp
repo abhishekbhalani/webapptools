@@ -23,6 +23,8 @@ static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
 
     HandleScope scope;
 
+    Local<Value> val;
+
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
@@ -30,14 +32,19 @@ static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
     // Convert the JavaScript string to a std::string.
     std::string key = value_to_string(name);
 
-    // Look up the value if it exists using the standard STL idiom.
-    std::map<std::string, Persistent<Value>>::iterator iter = el->namedprops.find(key);
+    if (key == "documentElement") {
+        val = Local<Value>::New(wrap_object<jsElement>((jsElement*)el));
+    }
+    else {
+        // Look up the value if it exists using the standard STL idiom.
+        std::map<std::string, Persistent<Value>>::iterator iter = el->namedprops.find(key);
+        // If the key is not present return an empty handle as signal.
+        if (iter == el->namedprops.end()) return Handle<Value>();
+        // Otherwise fetch the value and wrap it in a JavaScript string.
+        val = Local<Value>::New(iter->second);
 
-    // If the key is not present return an empty handle as signal.
-    if (iter == el->namedprops.end()) return Handle<Value>();
+    }
 
-    // Otherwise fetch the value and wrap it in a JavaScript string.
-    Local<Value> val = Local<Value>::New(iter->second);
     return scope.Close(val);
 }
 
@@ -63,32 +70,47 @@ void DocumentSet(Local<String> name, Local<Value> value, const AccessorInfo& inf
 
 static Handle<Value> getElementsByTagName(const Arguments& args)
 {
+    //enter a handle scope
+    HandleScope scope;
+
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
     jsDocument* dc = static_cast<jsDocument*>(ptr);
 
-    //enter a handle scope
-    HandleScope scope;
-
     Local<Array> res = Array::New();
 
     if (args.Length() > 0) {
-        std::string tagName = value_to_string(args[0]);
-        int idx = 0;
-/*        for(size_t i = 0; i < dc->elements.size(); i++) {
-            Local<Value> aref = Local<Value>::New(dc->elements[i]);
-            if (aref->IsObject())
-            {
-                Local<Object> oref = aref->ToObject();
-                Local<Value> tname = oref->Get(String::New("tag"));
-                std::string tagCheck = value_to_string(tname);
-                if (tagCheck == tagName)
-                {
-                    res->Set(Int32::New(idx++), aref);
-                }
-            }
-        }*/
+        string key = value_to_string(args[0]);
+        entity_list ptrs = dc->entity()->FindTags(key);
+        for(size_t i = 0; i < ptrs.size(); ++i) {
+            jsElement* e = new jsElement(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
+            Handle<Object> w = wrap_object<jsElement>(e);
+            res->Set(Number::New(i), w);
+        }
+    }
+    return scope.Close(res);
+}
+
+static Handle<Value> getElementById(const Arguments& args)
+{
+    //enter a handle scope
+    HandleScope scope;
+
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsDocument* dc = static_cast<jsDocument*>(ptr);
+
+    Handle<Object> res;
+
+    if (args.Length() > 0) {
+        string key = value_to_string(args[0]);
+        html_entity_ptr el = boost::shared_dynamic_cast<html_entity>(dc->entity()->FindID(key));
+        if (el) {
+            jsElement* p = new jsElement(el);
+            res = wrap_object<jsElement>(p);
+        }
     }
     return scope.Close(res);
 }
@@ -123,6 +145,75 @@ static Handle<Value> createElement(const Arguments& args)
         }
         //dc->elements.push_back(Persistent<Value>::New(res));
     }
+    return scope.Close(res);
+}
+
+static Handle<Value> createComment(const Arguments& args)
+{
+    //enter a handle scope
+    HandleScope scope;
+
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsDocument* dc = static_cast<jsDocument*>(ptr);
+
+    Handle<Object> res;
+
+    html_entity_ptr hte(new html_comment());
+    if (args.Length() > 0) {
+        string sval = value_to_string(args[0]->ToString());
+        hte->attr("", sval);
+    }
+    jsElement* jse = new jsElement(hte);
+    res = wrap_object<jsElement>(jse);
+    append_object(res);
+
+    return scope.Close(res);
+}
+
+static Handle<Value> createFragment(const Arguments& args)
+{
+    //enter a handle scope
+    HandleScope scope;
+
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsDocument* dc = static_cast<jsDocument*>(ptr);
+
+    Handle<Object> res;
+
+    html_entity_ptr hte(new html_entity());
+    hte->Name("#fragment");
+    jsElement* jse = new jsElement(hte);
+    res = wrap_object<jsElement>(jse);
+    append_object(res);
+
+    return scope.Close(res);
+}
+
+static Handle<Value> createText(const Arguments& args)
+{
+    //enter a handle scope
+    HandleScope scope;
+
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsDocument* dc = static_cast<jsDocument*>(ptr);
+
+    Handle<Object> res;
+
+    html_entity_ptr hte(new html_textnode());
+    if (args.Length() > 0) {
+        string sval = value_to_string(args[0]->ToString());
+        hte->attr("", sval);
+    }
+    jsElement* jse = new jsElement(hte);
+    res = wrap_object<jsElement>(jse);
+    append_object(res);
+
     return scope.Close(res);
 }
 
@@ -203,26 +294,56 @@ jsDocument::jsDocument(jsWindow* holder_) : jsElement(html_entity_ptr((html_enti
         _proto->SetInternalFieldCount(1);
 
         // Add accessors for each of the fields of the Location.
-        _proto->SetAccessor(String::NewSymbol("images"), DocumentGet, DocumentSet);
+        _proto->SetAccessor(String::NewSymbol("anchors"), DocumentGet, DocumentSet);
         _proto->SetAccessor(String::NewSymbol("forms"), DocumentGet, DocumentSet);
-        //_proto->Set(String::New("appendChild"), FunctionTemplate::New(js_el_append_child));
-        _proto->Set(String::New("getElementsByTagName"), FunctionTemplate::New(getElementsByTagName));
+        _proto->SetAccessor(String::NewSymbol("images"), DocumentGet, DocumentSet);
+        _proto->SetAccessor(String::NewSymbol("links"), DocumentGet, DocumentSet);
+
+        _proto->SetAccessor(String::NewSymbol("documentElement"), DocumentGet, DocumentSet);
+
+        _proto->Set(String::New("appendChild"), FunctionTemplate::New(AppendChild));
+        _proto->Set(String::New("close"), FunctionTemplate::New(PlaceHolder));
+        _proto->Set(String::New("createComment"), FunctionTemplate::New(createComment));
         _proto->Set(String::New("createElement"), FunctionTemplate::New(createElement));
-        _proto->Set(String::New("write"), FunctionTemplate::New(documentWrite));
+        _proto->Set(String::New("createTextNode"), FunctionTemplate::New(createText));
+        _proto->Set(String::New("createDocumentFragment"), FunctionTemplate::New(createFragment));
+        _proto->Set(String::New("getElementById"), FunctionTemplate::New(getElementById));
+        _proto->Set(String::New("getElementsByName"), FunctionTemplate::New(PlaceHolder));
+        _proto->Set(String::New("getElementsByTagName"), FunctionTemplate::New(getElementsByTagName));
+        _proto->Set(String::New("open"), FunctionTemplate::New(PlaceHolder));
+        _proto->Set(String::New("write"), FunctionTemplate::New(PlaceHolder));
+        _proto->Set(String::New("writeln"), FunctionTemplate::New(PlaceHolder));
 
         object_template = Persistent<FunctionTemplate>::New(_object);
     }
     holder = holder_;
-    //doc = NULL;
+    doc.reset(new html_document);
 }
 
 jsDocument::~jsDocument(void)
 {
 }
 
+Handle<Value> jsDocument::PlaceHolder( const Arguments& args )
+{
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsDocument* el = static_cast<jsDocument*>(ptr); 
+
+    string ret;
+    ret = value_to_string(args.Callee()->ToString());
+    ret += " [Document]";
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsDocument::PlacHolder - " << ret);
+    return String::New(ret.c_str());
+}
+
 Handle<Value> jsDocument::AppendChild( const Arguments& args )
 {
-    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "jsElement::AppendChild");
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "jsDocument::AppendChild");
+    HandleScope scope;
+
+    Handle<Value> retval;
 
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
@@ -245,13 +366,14 @@ Handle<Value> jsDocument::AppendChild( const Arguments& args )
             else {
                 parent = el->doc;
             }
-            parent->Children().push_back(chld->entity);
-            chld->entity->Parent(parent);
+            parent->Children().push_back(chld->entity());
+            chld->entity()->Parent(parent);
+            retval = args[0];
         }
     }
     else {
         LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "jsElement::AppendChild exception: argument must be an object!\n");
     }
 
-    return Undefined();
+    return scope.Close(retval);
 }

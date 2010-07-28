@@ -150,6 +150,7 @@ html_entity::~html_entity(void)
 /// @fn	string& html_entity::InnerText(void)
 ///
 /// @brief	Inner text.
+///
 /// Just a plain text inside this entity.
 ///
 /// @retval	null if something wrong, inner text string otherwise.
@@ -167,6 +168,28 @@ const string html_entity::InnerText(void)
     }
 
 	return retval;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @fn	string& html_entity::InnerHtml(void)
+///
+/// @brief	Inner HTML.
+///
+/// The text without outer HTML tags for this entity but all children HTML representations.
+///
+/// @retval	null if something wrong, inner HTML string otherwise.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+const string html_entity::InnerHtml(void)
+{
+    string retval; // = new string;
+    entity_list::iterator  chld;
+
+    retval = "";
+    for (chld = chldList.begin(); chld != chldList.end(); chld++) {
+        retval += (*chld)->OuterText();
+    }
+
+    return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +280,7 @@ scanner_token html_entity::Parse( string tagName, tag_scanner& scanner, i_transp
 {
     scanner_token  state;
     base_entity_ptr     chld;
-    WeInnerText*   txt;
+    html_textnode*   txt;
     string         txtAttr;
     string         lString;
 
@@ -278,8 +301,8 @@ scanner_token html_entity::Parse( string tagName, tag_scanner& scanner, i_transp
     if (tagName.length() > 0) {
         startPos--; // if tagName present - skip the "<" symbol
     }
-    attributes.clear();
-    ClearChildren();
+    //attributes.clear();
+    //ClearChildren();
     txt = NULL;
     chld.reset();
     txtAttr = "";
@@ -387,11 +410,14 @@ parseRestart:
             lString = scanner.get_attr_name();
             to_lower(lString);
             attributes[lString] = scanner.get_value();
+            if (lString == "id") {
+                entity_id = scanner.get_value();
+            }
         	break;
         case wstWord:
         case wstSpace:
             if (txt == NULL) {
-                txt = new WeInnerText(shared_from_this());
+                txt = new html_textnode(shared_from_this());
                 txtAttr = "";
             }
             /// @todo: implement option receiver for parser
@@ -410,7 +436,7 @@ parseRestart:
                 txtAttr.clear();
                 txt = NULL;
             }
-            chld = base_entity_ptr(new WeHtmlComment(shared_from_this()));
+            chld = base_entity_ptr(new html_comment(shared_from_this()));
             break;
         case wstCDataStart:
             if (txt != NULL) {
@@ -420,7 +446,7 @@ parseRestart:
                 txtAttr.clear();
                 txt = NULL;
             }
-            chld = base_entity_ptr(new WeCData(shared_from_this()));
+            chld = base_entity_ptr(new html_cdata(shared_from_this()));
             break;
         case wstPiStart:
             if (txt != NULL) {
@@ -461,11 +487,11 @@ CmpResults* html_entity::Diff( base_entity& cmp, weCmpMode mode )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeInnerText::WeInnerText(base_entity_ptr prnt)
+/// @fn	html_textnode::html_textnode(base_entity_ptr prnt)
 ///
 /// @brief  Default constructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeInnerText::WeInnerText(base_entity_ptr prnt /*= NULL*/) :
+html_textnode::html_textnode(base_entity_ptr prnt /*= NULL*/) :
     html_entity(prnt)
 {
     entityName = "#text";
@@ -473,13 +499,13 @@ WeInnerText::WeInnerText(base_entity_ptr prnt /*= NULL*/) :
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeInnerText::WeInnerText(WeInnerText& entity)
+/// @fn	html_textnode::html_textnode(html_textnode& entity)
 ///
 /// @brief  Copy constructor.
 ///
 /// @param  entity  - the entity.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeInnerText::WeInnerText(WeInnerText& entity) :
+html_textnode::html_textnode(html_textnode& entity) :
     html_entity()
 {
     entityName = "#text";
@@ -487,17 +513,17 @@ WeInnerText::WeInnerText(WeInnerText& entity) :
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	WeInnerText::~WeInnerText()
+/// @fn	html_textnode::~html_textnode()
 ///
 /// @brief  Destructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WeInnerText::~WeInnerText()
+html_textnode::~html_textnode()
 {
     // nothing special
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string WeInnerText::attr(string )
+/// @fn	string html_textnode::attr(string )
 ///
 /// @brief  Gets the attribute value.
 ///
@@ -506,7 +532,7 @@ WeInnerText::~WeInnerText()
 /// @retval attribute value if the attribute exist,
 ///         empty string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string WeInnerText::attr(string name)
+const string html_textnode::attr(string name)
 {
     AttrMap::iterator it;
 
@@ -519,38 +545,38 @@ const string WeInnerText::attr(string name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	void WeInnerText::attr(string , string )
+/// @fn	void html_textnode::attr(string , string )
 ///
 /// @brief  Sets the attribute.
 ///
 /// @param  name - The attribute name (skipped).
 /// @param  value - The attribute value.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void WeInnerText::attr(string name, string value)
+void html_textnode::attr(string name, string value)
 {
 	attributes["#text"] = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string& WeInnerText::InnerText(void)
+/// @fn	string& html_textnode::InnerText(void)
 ///
 /// @brief	Inner text.
 /// @retval	null if something wrong, inner text string otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string WeInnerText::InnerText(void)
+const string html_textnode::InnerText(void)
 {
     AttrMap::iterator it;
 
     it = attributes.find(string("#text"));
     if (it != attributes.end())
     {
-        return attributes.val(it);
+        return *it;
     }
 	return empty_string;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn	string& WeInnerText::OuterText(void)
+/// @fn	string& html_textnode::OuterText(void)
 ///
 /// @brief  Outer text.
 ///
@@ -558,20 +584,20 @@ const string WeInnerText::InnerText(void)
 ///         string that represents the HTML-encoded entity, includes own tags and all child
 ///         entities otherwise.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-const string WeInnerText::OuterText(void)
+const string html_textnode::OuterText(void)
 {
     AttrMap::iterator it;
 
     it = attributes.find(string("#text"));
     if (it != attributes.end())
     {
-        return attributes.val(it);
+        return *it;
     }
     return empty_string;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn CmpResults* WeInnerText::Diff(base_entity& cmp,
+/// @fn CmpResults* html_textnode::Diff(base_entity& cmp,
 /// 	weCmpMode mode)
 ///
 /// @brief  Builds difference between two texts. 
@@ -581,9 +607,9 @@ const string WeInnerText::OuterText(void)
 ///
 /// @retval	null if it fails, the list of the compares else. 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-CmpResults* WeInnerText::Diff(base_entity& cmp, weCmpMode mode)
+CmpResults* html_textnode::Diff(base_entity& cmp, weCmpMode mode)
 {
-    WeInnerText* ptr;
+    html_textnode* ptr;
     CmpResults* retval = NULL;
     string s1, s2;
     regex repl("\\s+");
@@ -592,7 +618,7 @@ CmpResults* WeInnerText::Diff(base_entity& cmp, weCmpMode mode)
         mode = compareMode;
     }
     try {
-        ptr = reinterpret_cast<WeInnerText*>(&cmp);
+        ptr = reinterpret_cast<html_textnode*>(&cmp);
         s1 = attributes["#text"];
         s2 = ptr->attributes["#text"];
         retval = TextDiff(s1, s2, mode);
@@ -607,7 +633,7 @@ CmpResults* WeInnerText::Diff(base_entity& cmp, weCmpMode mode)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// @fn weCmpState WeInnerText::Compare(base_entity& cmp,
+/// @fn weCmpState html_textnode::Compare(base_entity& cmp,
 ///     weCmpMode mode)
 ///
 /// @brief  Compares two base_entity& objects to determine
@@ -619,9 +645,9 @@ CmpResults* WeInnerText::Diff(base_entity& cmp, weCmpMode mode)
 /// @retval Negative if 'cmp' is less than this object, 0 if they are equal, or positive if it
 ///         is greater. See the weCmpState enum for symbolic constants.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-weCmpState WeInnerText::Compare(base_entity& cmp, weCmpMode mode)
+weCmpState html_textnode::Compare(base_entity& cmp, weCmpMode mode)
 {
-    WeInnerText* ptr;
+    html_textnode* ptr;
     string s1, s2;
     weCmpState retval = weCmpNonComparable;
     regex repl("\\s+");
@@ -630,7 +656,7 @@ weCmpState WeInnerText::Compare(base_entity& cmp, weCmpMode mode)
         mode = compareMode;
     }
     try {
-        ptr = reinterpret_cast<WeInnerText*>(&cmp);
+        ptr = reinterpret_cast<html_textnode*>(&cmp);
         s1 = attributes["#text"];
         s2 = ptr->attributes["#text"];
         if (mode & weCmpCollapseSpace) {

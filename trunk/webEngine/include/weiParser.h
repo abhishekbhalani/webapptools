@@ -113,7 +113,7 @@ public:
     //@}
 
     /// @brief  Gets the entity unique ID
-    const string ID(void) const {return m_entityId; };
+    const string ID(void) const {return entity_id; };
 
 protected:
     virtual void GenerateId(void);
@@ -125,7 +125,7 @@ protected:
     AttrMap attributes;
     entity_list chldList;
     string entityName;
-    string m_entityId;
+    string entity_id;
     static weCmpMode compareMode;
     int startPos, endPos;
 #endif //__DOXYGEN__

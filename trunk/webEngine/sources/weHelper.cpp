@@ -179,20 +179,20 @@ static base_entity_ptr weCreateRefObj(base_entity_ptr prnt)
 
 static base_entity_ptr weCreateText(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeInnerText");
-    return base_entity_ptr(new WeInnerText(prnt));
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create html_textnode");
+    return base_entity_ptr(new html_textnode(prnt));
 }
 
 static base_entity_ptr weCreateComment(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeHtmlComment");
-    return base_entity_ptr(new WeHtmlComment(prnt));
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create html_comment");
+    return base_entity_ptr(new html_comment(prnt));
 }
 
 static base_entity_ptr weCreateCData(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeCData");
-    return base_entity_ptr(new WeCData(prnt));
+    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create html_cdata");
+    return base_entity_ptr(new html_cdata(prnt));
 }
 
 static base_entity_ptr weCreatePhpInc(base_entity_ptr prnt)
