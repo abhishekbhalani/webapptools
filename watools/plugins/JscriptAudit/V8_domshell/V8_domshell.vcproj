@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\common\jsWrappers\jsCssStyle.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\common\jsWrappers\jsDocument.cpp"
 				>
 			</File>
@@ -239,6 +243,10 @@
 			>
 			<File
 				RelativePath="..\..\..\common\jsWrappers\jsBrowser.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\jsWrappers\jsCssStyle.h"
 				>
 			</File>
 			<File

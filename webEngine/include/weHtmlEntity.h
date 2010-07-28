@@ -52,6 +52,7 @@ namespace webEngine {
         ~html_entity();
 
         virtual const string InnerText(void);
+        virtual const string InnerHtml(void);
         virtual const string OuterText(void);
 
         virtual CmpResults* Diff(base_entity& cmp, weCmpMode mode);
@@ -61,7 +62,7 @@ namespace webEngine {
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  WeInnerText
+    /// @class  html_textnode
     ///
     /// @brief  HTML entity to store plain text .
     ///
@@ -72,11 +73,11 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   26.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class WeInnerText : public html_entity {
+    class html_textnode : public html_entity {
     public:
-        WeInnerText(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL));
-        WeInnerText(WeInnerText& entity);
-        ~WeInnerText();
+        html_textnode(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL));
+        html_textnode(html_textnode& entity);
+        ~html_textnode();
 
         virtual const string attr(string);
         virtual void attr(string, string);
@@ -92,35 +93,35 @@ namespace webEngine {
         /// @brief Placeholder to avoid children manipulations
         /// @throw runtime_error with description
         virtual entity_list& Children() {
-            throw runtime_error("WeInnerText: Children property is not accessible");
+            //throw runtime_error("html_textnode: Children property is not accessible");
             return chldList;
         }
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  WeHtmlComment
+    /// @class  html_comment
     ///
     /// @brief  HTML entity to store comments.
     ///
     /// @author A. Abramov
     /// @date   28.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class WeHtmlComment : public WeInnerText {
+    class html_comment : public html_textnode {
     public:
-        WeHtmlComment(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : WeInnerText(prnt) { entityName = "#comment"; };
+        html_comment(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : html_textnode(prnt) { entityName = "#comment"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  WeCData
+    /// @class  html_cdata
     ///
     /// @brief  HTML entity to store CDATA.
     ///
     /// @author A. Abramov
     /// @date   28.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class WeCData : public WeInnerText {
+    class html_cdata : public html_textnode {
     public:
-        WeCData(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : WeInnerText(prnt) { entityName = "#cdata"; };
+        html_cdata(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : html_textnode(prnt) { entityName = "#cdata"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,9 +132,9 @@ namespace webEngine {
     /// @author A. Abramov
     /// @date   28.05.2009
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class WePhpInclude : public WeInnerText {
+    class WePhpInclude : public html_textnode {
     public:
-        WePhpInclude(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : WeInnerText(prnt) { entityName = "#php"; };
+        WePhpInclude(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : html_textnode(prnt) { entityName = "#php"; };
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
