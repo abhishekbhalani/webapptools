@@ -22,10 +22,12 @@
 #include <v8/v8.h>
 #include <string>
 #include <vector>
+#include <weBlob.h>
 
 using namespace std;
 
 namespace webEngine {
+    class task;
     //////////////////////////////////////////////////////////////////////////
     /// @class jsExecutor
     /// 
@@ -56,8 +58,12 @@ namespace webEngine {
 
         static v8::Persistent<v8::FunctionTemplate> object_template;
         void init_globals();
+        bool allow_network(task* net_acc) { net_access = net_acc; return (net_access != NULL); }
+        blob* http_request(string url, int method, blob &post_data, int& ret_code);
+        bool http_request_async(string url, int method, blob &post_data, v8::Handle<v8::Value> callback);
 
     protected:
+        task* net_access;
         static bool is_init;
         static int  num_objects;
         v8::Persistent<v8::ObjectTemplate> global;
