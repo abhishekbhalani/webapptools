@@ -244,6 +244,24 @@ void jsExecutor::close_child_context( v8::Persistent<v8::Context> ctx )
     }
 }
 
+blob* jsExecutor::http_request(string url, int method, blob &data, int& ret_code)
+{
+    blob* retval = new blob;
+
+    if(net_access != NULL) {
+    }
+    return retval;
+}
+
+bool jsExecutor::http_request_async(string url, int method, blob &data, Handle<Value> callback)
+{
+    bool retval = false;
+
+    if(net_access != NULL) {
+    }
+    return false;
+}
+
 void jsExecutor::init_globals()
 {
     is_init = true;
