@@ -3,10 +3,11 @@
 #include <weScan.h>
 #include <weiParser.h>
 #include <weHtmlEntity.h>
+// from common
+#include "jsWrappers/jsBrowser.h"
 
 namespace webEngine {
 
-    class jsBrowser;
     class audit_jscript;
 
     class ajs_to_process :
@@ -108,7 +109,7 @@ namespace webEngine {
         virtual void process_response(i_response_ptr resp);
 
         virtual void parse_scripts(scan_data_ptr sc, boost::shared_ptr<webEngine::html_document> parser);
-        virtual void process_events(base_entity_ptr entity);
+        virtual void process_events(v8::Persistent<v8::Context> ctx, base_entity_ptr entity);
 
         jsBrowser* js_exec;
 
@@ -128,9 +129,11 @@ namespace webEngine {
         // processing options
         string opt_preloads;
         bool opt_use_js;
+        bool opt_allow_network;
     };
 
 } // namespace webEngine
 
 #define weoAuditJSenable    "audit_jscript/enable_jscript"
 #define weoAuditJSpreloads  "audit_jscript/preload"
+#define weoAuditJSnetwork   "audit_jscript/allow_network"

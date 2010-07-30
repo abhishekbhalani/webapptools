@@ -18,6 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <weLogger.h>
+#include <weTask.h>
 #include "jsExecutor.h"
 #include "jsGlobal.h"
 
@@ -38,6 +39,7 @@ static boost::mutex locker;
 bool jsExecutor::is_init = false;
 int  jsExecutor::num_objects = 0;
 Persistent<FunctionTemplate> jsExecutor::object_template;
+Persistent<ObjectTemplate> jsExecutor::global;
 
 jsExecutor::jsExecutor(void)
 {
@@ -45,6 +47,7 @@ jsExecutor::jsExecutor(void)
     bool notFirst = is_init;
 
     maxDepth = 10; //default value
+    net_access = NULL;
     objects.clear();
 
     init_globals();
@@ -223,7 +226,7 @@ string jsExecutor::obj_dump(Local<Value> val, const string& name, const string& 
 
 v8::Persistent<v8::Context> jsExecutor::get_child_context()
 {
-    HandleScope handle_scope;
+/*    HandleScope handle_scope;
 
     v8::Persistent<v8::Context> ctx = v8::Context::New(NULL, global);
     {
@@ -233,56 +236,83 @@ v8::Persistent<v8::Context> jsExecutor::get_child_context()
         Context::Scope context_scope(ctx);
         Handle<Object> _instance = wrap_object<jsExecutor>(this);
         ctx->Global()->Set(String::New("v8_context"), _instance);
-    }
-    return ctx;
+    }*/
+    return context;
 }
 
 void jsExecutor::close_child_context( v8::Persistent<v8::Context> ctx )
 {
-    if (!ctx.IsEmpty()) {
+    /*if (!ctx.IsEmpty()) {
         ctx.Dispose();
-    }
+    }*/
 }
 
-blob* jsExecutor::http_request(string url, int method, blob &data, int& ret_code)
+i_response_ptr jsExecutor::http_request(i_request_ptr req)
 {
-    blob* retval = new blob;
+    i_response_ptr retval;
+    HttpRequest* ptr = (HttpRequest*)req.get();
 
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsExecutor::http_request URL=" << ptr->RequestUrl().tostring() << " METHOD=" << ptr->Method());
     if(net_access != NULL) {
+        retval = net_access->get_request(req);
+    }
+    else {
+        HttpResponse* ptr = new HttpResponse();
+        ptr->HttpCode(503);
+        ptr->BaseUrl(req->RequestUrl());
+        ptr->RealUrl(req->RequestUrl());
+        ptr->Data().clear();
+        ptr->Headers().clear();
+        ptr->Cookies().clear();
+        retval.reset(ptr);
+        string log = "jsExecutor::http_request\n\thref: ";
+        log += req->RequestUrl().tostring();
+        append_results(log);
     }
     return retval;
 }
 
-bool jsExecutor::http_request_async(string url, int method, blob &data, Handle<Value> callback)
+bool jsExecutor::http_request_async(i_request_ptr req)
 {
     bool retval = false;
+    HttpRequest* ptr = (HttpRequest*)req.get();
 
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsExecutor::http_request_async URL=" << ptr->RequestUrl().tostring() << " METHOD=" << ptr->Method());
     if(net_access != NULL) {
+        net_access->get_request_async(req);
+        retval = false;
+    }
+    else {
+        string log = "jsExecutor::http_request_async\n\thref: ";
+        log += req->RequestUrl().tostring();
+        append_results(log);
     }
     return false;
 }
 
 void jsExecutor::init_globals()
 {
-    is_init = true;
-    // Create a template for the global object.
-    global = Persistent<ObjectTemplate>::New(ObjectTemplate::New());
-    // Bind the global 'alert' function to the C++ print callback.
-    global->Set(String::New("alert"), FunctionTemplate::New(alert));
-    // Bind the global 'print' function to the C++ print callback.
-    global->Set(String::New("print"), FunctionTemplate::New(print));
-    // Bind the 'version' function
-    global->Set(String::New("version"), FunctionTemplate::New(version));
-    // Bind the 'dumpObj' function
-    global->Set(String::New("dumpObj"), FunctionTemplate::New(dump_object));
+    if(!is_init) {
+        is_init = true;
+        // Create a template for the global object.
+        global = Persistent<ObjectTemplate>::New(ObjectTemplate::New());
+        // Bind the global 'alert' function to the C++ print callback.
+        global->Set(String::New("alert"), FunctionTemplate::New(alert));
+        // Bind the global 'print' function to the C++ print callback.
+        global->Set(String::New("echo"), FunctionTemplate::New(print));
+        // Bind the 'version' function
+        global->Set(String::New("version"), FunctionTemplate::New(version));
+        // Bind the 'dumpObj' function
+        global->Set(String::New("dumpObj"), FunctionTemplate::New(dump_object));
 
-    // Initialize Object template to wrap object into JavaScript
-    Handle<FunctionTemplate> _object = FunctionTemplate::New();
-    //get the location's instance template
-    Handle<ObjectTemplate> _proto = _object->InstanceTemplate();
-    //set its internal field count to one (we'll put references to the C++ point here later)
-    _proto->SetInternalFieldCount(1);
-    object_template = Persistent<FunctionTemplate>::New(_object);
+        // Initialize Object template to wrap object into JavaScript
+        Handle<FunctionTemplate> _object = FunctionTemplate::New();
+        //get the location's instance template
+        Handle<ObjectTemplate> _proto = _object->InstanceTemplate();
+        //set its internal field count to one (we'll put references to the C++ point here later)
+        _proto->SetInternalFieldCount(1);
+        object_template = Persistent<FunctionTemplate>::New(_object);
+    }
     LOG4CXX_TRACE(iLogger::GetLogger(), "jsExecutor: objectTemplate initialized");
 }
 
@@ -323,12 +353,6 @@ static Handle<Value> result_object(Local<String> name, const AccessorInfo &info)
 
 static Handle<Value> get_result_string(Local<String> name, const AccessorInfo &info)
 {
-    //this only shows information on what object is being used... just for fun
-    {
-        v8::String::AsciiValue prop(name);
-        v8::String::AsciiValue self(info.This()->ToString());
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::GetResultString: self("<< *self <<"), property("<< *prop<<")");
-    }
     HandleScope scope;
 
     Handle<Value> res = Undefined();
@@ -346,7 +370,7 @@ static Handle<Value> get_result_string(Local<String> name, const AccessorInfo &i
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets v8_context wrapper");
         jsExecutor* jsExec = static_cast<jsExecutor*>(wrap->Value());
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets jsExecutor");
-        res = String::New(jsExec->exec_result.c_str());
+        res = String::New(jsExec->get_results().c_str());
     }
 
     return scope.Close(res);
@@ -354,11 +378,6 @@ static Handle<Value> get_result_string(Local<String> name, const AccessorInfo &i
 
 void set_result_string(Local<String> name, Local<Value> val, const AccessorInfo& info)
 {
-    {
-        v8::String::AsciiValue prop(name);
-        v8::String::AsciiValue self(info.This()->ToString());
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::GetResultString: self("<< *self <<"), property("<< *prop<<")");
-    }
     HandleScope scope;
 
     // get 'global' object
@@ -374,8 +393,8 @@ void set_result_string(Local<String> name, Local<Value> val, const AccessorInfo&
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets v8_context wrapper");
         jsExecutor* jsExec = static_cast<jsExecutor*>(wrap->Value());
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets jsExecutor");
-        jsExec->exec_result += value_to_string(val);
-        jsExec->exec_result += "\n";
+        string sval = value_to_string(val);
+        jsExec->append_results(sval);
     }
 
 }

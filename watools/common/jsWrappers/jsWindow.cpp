@@ -102,6 +102,9 @@ std::string jsHistory::forward()
     if (index < ((int)history.size() - 1)) {
         index++;
         retval = history[index];
+        if (window != NULL) {
+            window->load(retval);
+        }
     }
     return retval;
 }
@@ -113,6 +116,9 @@ std::string jsHistory::back()
     if (index > 0) {
         index--;
         retval = history[index];
+        if (window != NULL) {
+            window->load(retval);
+        }
     }
     return retval;
 }
@@ -128,6 +134,9 @@ std::string jsHistory::go(v8::Handle<v8::Value> pos)
         if (offs > 0 && offs < (int)history.size()) {
             index = offs;
             retval = history[index];
+            if (window != NULL) {
+                window->load(retval);
+            }
         }
     }
     else if (pos->IsString()) {
@@ -137,6 +146,9 @@ std::string jsHistory::go(v8::Handle<v8::Value> pos)
             if (history[i].find(srch) != string::npos) {
                 index = i;
                 retval = history[index];
+                if (window != NULL) {
+                    window->load(retval);
+                }
                 break;
             }
         }
@@ -277,8 +289,9 @@ jsWindow::jsWindow( jsBrowser* holder_, jsWindow* parent_, jsWindow* creator_ )
     browser = holder_;
     parent = parent_;
     creator = creator_;
-    location.url.protocol = "about";
-    location.url.host = "blank";
+    location = new jsLocation(this);
+    location->url.protocol = "about";
+    location->url.host = "blank";
     document = new jsDocument(this);
     history = new jsHistory(this);
 
@@ -304,6 +317,12 @@ jsWindow::~jsWindow( void )
 {
     delete document;
     delete history;
+    for (size_t i = 0; i < frames.size(); ++i) {
+        browser->delete_window(frames[i]);
+        delete frames[i];
+    }
+    frames.clear();
+    browser->delete_window(this);
     LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow window destroyed - uuid=" << win_uuid);
 }
 
@@ -333,47 +352,208 @@ const bool jsWindow::is_property(string key)
     return retval;
 }
 
+#ifdef V8_DOMSHELL
+void process_events( jsBrowser* js_exec, base_entity_ptr entity )
+{
+    /* simplest variant - recursive descent through DOM-tree */
+    Local<Context> ctx = Context::GetCurrent();
+    std::string src;
+    std::string name;
+    // get on... events
+    LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events entity = " << entity->Name());
+
+    AttrMap::iterator attrib = entity->attr_list().begin();
+
+    while(attrib != entity->attr_list().end() ) {
+        name = (*attrib).first;
+        src = (*attrib).second;
+
+        Local<Object> obj = Local<Object>::New(wrap_entity(boost::shared_dynamic_cast<html_entity>(entity)));
+        ctx->Global()->Set(String::New("__evt_target__"), obj);
+        if (boost::istarts_with(name, "on")) {
+            // attribute name started with "on*" - this is the event
+            LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
+            src = "__evt_target__.__event__=function(){" + src + "}";
+            js_exec->execute_string(src, "", true, true);
+            js_exec->execute_string("__evt_target__.__event__()", "", true, true);
+        }
+        if (boost::istarts_with(src, "javascript:")) {
+            LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events - " << name << " source = " << src);
+            src = src.substr(11); // skip "javascript:"
+            src = "__evt_target__.event=function(){ " + src + " }";
+            js_exec->execute_string(src, "", true, true);
+            js_exec->execute_string("__evt_target__.__event__()", "", true, true);
+        }
+
+        ++attrib;
+    }
+
+    // and process all children
+    entity_list chld = entity->Children();
+    entity_list::iterator  it;
+
+    for(size_t i = 0; i < chld.size(); i++) {
+        std::string nm = chld[i]->Name();
+        if (nm[0] != '#') {
+            process_events(js_exec, chld[i]);
+        }
+    }
+    // all results will be processed in the caller parse_scripts function
+}
+#endif
+
+void jsWindow::load( const string& url )
+{
+    string to_load = url;
+    string refer = location->url.tostring();
+    int relocs = 0;
+
+    HttpResponse* hresp;
+    i_response_ptr resp;
+    while (true) {
+        HttpRequest* hreq = new HttpRequest(to_load);
+        hreq->Method(HttpRequest::wemGet);
+        hreq->depth(relocs);
+        hreq->SetReferer(refer);
+        i_request_ptr req(hreq);
+        resp = browser->http_request(req);
+        hresp = (HttpResponse*)resp.get();
+        if (hresp->HttpCode() < 300 || hresp->HttpCode() >= 400) {
+            break;
+        }
+        // process redirects
+        if (relocs < 5) {
+            relocs++;
+            refer = to_load;
+            string to_load = hresp->Headers().find_first("Location");
+            if (to_load.empty()) {
+                break;
+            }
+            // delete response
+            resp.reset();
+        } // if relocs < 5
+        // delete request
+        req.reset();
+    } // while relocations
+    if (hresp->HttpCode() < 300) {
+        document->doc->ParseData(resp);
+        // execute scripts
+#ifdef V8_DOMSHELL
+        string source;
+        entity_list scrs = document->doc->FindTags("script");
+        for(size_t i = 0; i < scrs.size(); ++i) {
+            source = scrs[i]->attr("src");
+            if (source != "") {
+                LOG4CXX_INFO(webEngine::iLogger::GetLogger(), "jsWindow::load external script " << source);
+            }
+            else {
+                source = scrs[i]->attr("#code");
+                browser->execute_string(source, "", true, true);
+            }
+        }
+        ClearEntityList(scrs);
+        HandleScope handle_scope;
+        process_events(browser, document->doc);
+        assign_document( document->doc );
+#endif
+    }
+    else {
+        LOG4CXX_WARN(webEngine::iLogger::GetLogger(), "jsWindow::load the " << hresp->RealUrl().tostring() << " failed! HTTP code=" << hresp->HttpCode());
+    }
+}
+
+void webEngine::jsWindow::assign_document( html_document_ptr dc )
+{
+    size_t i;
+
+    for (i = 0; i < frames.size(); ++i) {
+        browser->delete_window(frames[i]);
+        delete frames[i];
+    }
+    frames.clear();
+    document->doc = dc;
+    if (document->doc) {
+        entity_list frm;
+        string f_src;
+        frm = document->doc->FindTags("frames");
+        for (i = 0; i < frm.size(); ++i) {
+            jsWindow* f = new jsWindow(browser, this, this);
+            browser->register_window(f);
+            frames.push_back(f);
+            f_src = frm[i]->attr("src");
+            if (f_src != "") {
+                // skip preloaded frames
+                f->load(f_src);
+            }
+        }
+        ClearEntityList(frm);
+        frm = document->doc->FindTags("iframes");
+        for (i = 0; i < frm.size(); ++i) {
+            jsWindow* f = new jsWindow(browser, this, this);
+            browser->register_window(f);
+            frames.push_back(f);
+            f_src = frm[i]->attr("src");
+            if (f_src != "") {
+                // skip preloaded frames
+                f->load(f_src);
+            }
+        }
+        ClearEntityList(frm);
+    }
+}
+
 Handle<Value> jsWindow::GetProperty(Local<String> name, const AccessorInfo &info)
 {
 	Handle<Value> val;
 	std::string key = value_to_string(name);
 
-	if (key == "navigator") {
+    if (key == "document") {
+        val = wrap_object<jsDocument>(document);
+    }
+    else if (key == "frames") {
+        Handle<Array> elems(Array::New());
+        for (size_t i = 0; i < frames.size(); ++i) {
+            Handle<Object> w = wrap_object<jsWindow>(frames[i]);
+            elems->Set(Number::New(i), w);
+        }
+        val = elems;
+    }
+    else if (key == "history") {
+        val = wrap_object<jsHistory>(history);
+    }
+    else if (key == "length") {
+        val = Number::New(frames.size());
+    }
+    else if (key == "location") {
+        val = wrap_object<jsLocation>(location);
+    }
+	else if (key == "navigator") {
 		val = wrap_object<jsNavigator>(&browser->navigator);
 	}
-	else if (key == "screen") {
-		val = wrap_object<jsScreen>(&browser->screen);
-	}
-	else if (key == "history") {
-		val = wrap_object<jsHistory>(history);
-	}
-	else if (key == "location") {
-		val = wrap_object<jsLocation>(&location);
-	}
-	else if (key == "document") {
-		val = wrap_object<jsDocument>(document);
-	}
-	else if (key == "opener") {
+    else if (key == "opener") {
         if (creator == NULL) {
             val = wrap_object<jsWindow>(this);
         }
         else {
             val = wrap_object<jsWindow>(creator);
         }
-	}
-	else if (key == "self") {
-		val = wrap_object<jsWindow>(this);
-	}
-	else if (key == "top") {
-		val = wrap_object<jsWindow>(browser->window);
-	}
-	else if (key == "parent") {
+    }
+    else if (key == "parent") {
         if (parent == NULL) {
             val = wrap_object<jsWindow>(this);
         }
         else {
             val = wrap_object<jsWindow>(parent);
         }
+    }
+	else if (key == "screen") {
+		val = wrap_object<jsScreen>(&browser->screen);
+	}
+	else if (key == "self") {
+		val = wrap_object<jsWindow>(this);
+	}
+	else if (key == "top") {
+		val = wrap_object<jsWindow>(browser->window);
 	}
     else {
         // Look up the value if it exists using the standard STL idiom.
@@ -399,18 +579,18 @@ Handle<Value> jsWindow::SetProperty(Local<String> name, Local<Value> value, cons
     }
     else if (key == "location" && value->IsString()) {
         std::string uri = value_to_string(value);
-        if (location.url.tostring() == uri) {
+        if (location->url.tostring() == uri) {
             // reload
         }
         else if (uri == "about:blank") {
             // assign
-            location.url.protocol = "about";
-            location.url.host = "blank";
+            location->url.protocol = "about";
+            location->url.host = "blank";
         }
         else {
-            location.url.assign_with_referer(uri);
+            location->url.assign_with_referer(uri);
             history->push_back(uri);
-            // todo - reload document
+            load(uri);
         }
         // todo - log the location changes
     }
@@ -550,7 +730,7 @@ Handle<Value> jsWindow::Open(const Arguments& args)
         bool is_replace = false;
         jsWindow* new_win = NULL;
         if (args.Length() > 0) {
-            url.assign_with_referer(value_to_string(args[0]), &el->location.url);
+            url.assign_with_referer(value_to_string(args[0]), &el->location->url);
         }
         else {
             url.protocol = "about";
@@ -570,7 +750,7 @@ Handle<Value> jsWindow::Open(const Arguments& args)
             new_win = new jsWindow(el->browser, el->browser->window, el);
             new_win->props["name"] = Persistent<Value>::New(String::New(nm.c_str()));
         }
-        new_win->location.url = url;
+        new_win->location->url = url;
         el->browser->register_window(new_win);
         val = wrap_object<jsWindow>(new_win); 
         LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow::Open new window - uuid=" << new_win->win_uuid

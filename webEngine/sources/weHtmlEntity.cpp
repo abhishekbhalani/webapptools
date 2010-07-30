@@ -211,12 +211,12 @@ const string html_entity::OuterText(void)
 
     retval = "<";
     retval += entityName;
-    for (attr = attributes.begin(); attr != attributes.end(); attr++) {
+    for (attr = attributes.begin(); attr != attributes.end(); ++attr) {
         retval += " ";
-        retval += attributes.key(attr);
+        retval += (*attr).first;
         retval += "=";
-        if (attributes.val(attr) != "") {
-            if (attributes.val(attr).find("\\\"") != string::npos) {
+        if ((*attr).second != "") {
+            if ((*attr).second.find("\\\"") != string::npos) {
                 // quoted " found - use the " mark
                 quote = '"';
             }
@@ -224,7 +224,7 @@ const string html_entity::OuterText(void)
                 quote = '\'';
             }
             retval += quote;
-            retval += attributes.val(attr);
+            retval += (*attr).second ;
             retval += quote;
         }
     }
@@ -369,12 +369,12 @@ parseRestart:
                 LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: force TAG END(wstTagStart): " << entityName);
                 return state;
             }
-            if (lString == "form") {
-                /// @todo Add forms processing
-                // right now all form's attributes will be placed to parent entity
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: NEW FORM BEGIN");
-                break;
-            }
+//             if (lString == "form") {
+//                 /// @todo Add forms processing
+//                 // right now all form's attributes will be placed to parent entity
+//                 LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: NEW FORM BEGIN");
+//                 break;
+//             }
             chld = weHtmlFactory.CreateEntity(lString, shared_from_this());
             if (chld) {
                 scanner_token chldState;
@@ -382,12 +382,12 @@ parseRestart:
                 chldState = chld->Parse(lString, scanner, processor);
                 LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: from child, state=" << chldState <<
                     " current=" << entityName << ", child=" << chld->Name() << ", active=" << lString);
-                if (iequals(string("form"), lString)) {
-                    /// @todo Add forms processing
-                    // form finished?
-                    // right now all form's attributes will be placed to parent entity
-                    break;
-                }
+//                 if (iequals(string("form"), lString)) {
+//                     /// @todo Add forms processing
+//                     // form finished?
+//                     // right now all form's attributes will be placed to parent entity
+//                     break;
+//                 }
                 if (chldState != wstTagEnd && state != wstEof && state != wstError) {
                     // previous tag was closed incorrectly
                     // restart parsing
@@ -539,7 +539,7 @@ const string html_textnode::attr(string name)
     it = attributes.find("#text");
     if (it != attributes.end())
     {
-        return attributes.val(it);
+        return (*it).second;
     }
     return(*(new string("")));
 }
@@ -570,7 +570,7 @@ const string html_textnode::InnerText(void)
     it = attributes.find(string("#text"));
     if (it != attributes.end())
     {
-        return *it;
+        return (*it).second;
     }
 	return empty_string;
 }
@@ -591,7 +591,7 @@ const string html_textnode::OuterText(void)
     it = attributes.find(string("#text"));
     if (it != attributes.end())
     {
-        return *it;
+        return (*it).second;
     }
     return empty_string;
 }

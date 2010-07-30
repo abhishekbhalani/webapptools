@@ -47,7 +47,8 @@ namespace webEngine {
         jsWindow* window_by_id(std::string id);
         jsWindow* window_by_name(std::string name);
         void register_window(jsWindow* win) { win_list[win->get_id()] = win; }
-//        jsDocument document;
+        void delete_window(jsWindow* win) { win_list.erase(win->get_id()); }
+
         static bool is_init;
         static v8::Handle<v8::Value> GetWindow(v8::Local<v8::String> name, const v8::AccessorInfo &info);
         static v8::Handle<v8::Value> WinInterceptor(const v8::Arguments& args);
@@ -55,5 +56,8 @@ namespace webEngine {
         jsWindow* top_win;
         typedef std::map<std::string, jsWindow*> windows_list;
         windows_list win_list;
+// 
+//         friend v8::Handle<v8::Value> BrowserGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+//         friend v8::Handle<v8::Value> BrowserSet(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
     };
 } //namespace webEngine

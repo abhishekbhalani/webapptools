@@ -3,12 +3,15 @@
 #include <weUrl.h>
 
 namespace webEngine {
+    class jsWindow;
+
     class jsLocation
     {
     public:
-        jsLocation(void);
+        jsLocation(jsWindow* parent);
         ~jsLocation(void);
          transport_url url;
+         jsWindow* win;
 
         static bool is_init;
         static v8::Persistent<v8::FunctionTemplate> object_template;

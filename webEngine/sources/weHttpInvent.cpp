@@ -271,10 +271,6 @@ void HttpInventory::process( task* tsk, scan_data_ptr scData )
     {
         scData->parent_id = htResp->ID();
     }
-    if (scData->data_id == "")
-    {
-        scData->data_id = kernel->storage()->generate_id(weObjTypeScan);
-    }
     scData->resp_code = htResp->HttpCode();
     scData->download_time = htResp->DownloadTime();
     scData->data_size = htResp->Data().size();

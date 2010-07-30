@@ -2,6 +2,7 @@
 //
 #include "stdafx.h"
 
+#define V8_DOMSHELL 1
 #include <v8/v8.h>
 #include <fcntl.h>
 #include <string.h>
@@ -9,14 +10,21 @@
 #include <stdlib.h>
 #include <vector>
 #include <weHelper.h>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <weDispatch.h>
+#include <weTask.h>
+
+using namespace webEngine;
+namespace bfs = boost::filesystem;
 
 // from common/
 #include "jsWrappers/JsBrowser.h"
 
-class shellExecutor : public webEngine::jsBrowser
+class shellExecutor : public jsBrowser
 {
 public:
-    v8::Persistent<v8::ObjectTemplate> global_object() { return global; }
+    static v8::Persistent<v8::ObjectTemplate> global_object() { return global; }
 };
 
 void RunShell(v8::Handle<v8::Context> context);
@@ -65,22 +73,54 @@ int RunMain(int argc, char* argv[]) {
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
     v8::HandleScope handle_scope;
     // init global objects
+    engine_dispatcher we_dispatcer;
+    bfs::path plg_path = ".";
+    we_dispatcer.refresh_plugin_list(plg_path);
+    i_plugin* plg = we_dispatcer.load_plugin("sqlite_storage");
+    if (plg == NULL) {
+        LOG4CXX_FATAL(iLogger::GetLogger(), "Can't load plug-in for Storage DB connection: sqlite_storage");
+        return 0;
+    }
+    i_storage* storage = (i_storage*)plg->get_interface("i_storage");
+    if (plg == NULL) {
+        LOG4CXX_FATAL(iLogger::GetLogger(), "No iStorage interface in the plugin " << plg->get_id() << "(ID="  << plg->get_id() );
+        return 0;
+    }
+    string params = "v8_domshell.sqlite";
+    storage->init_storage(params);
+    we_dispatcer.storage(storage);
+    plugin_list plgs = we_dispatcer.get_plugin_list();
+    vector<i_plugin*> scan_plugins;
+    for (size_t i = 0; i < plgs.size(); i++)
+    {
+        plg = we_dispatcer.load_plugin(plgs[i].plugin_id);
+        scan_plugins.push_back(plg->get_interface("i_plugin")); //(webEngine::i_plugin*)
+    }
+    task* tsk = new webEngine::task(&we_dispatcer);
+    tsk->store_plugins(scan_plugins);
+    tsk->set_profile_id(string("0")); // todo - take it from params
+
+    shellExecutor::init_globals();
+    shellExecutor::global_object()->Set(v8::String::New("read"), v8::FunctionTemplate::New(Read));
+    // Bind the global 'load' function to the C++ Load callback.
+    shellExecutor::global_object()->Set(v8::String::New("load"), v8::FunctionTemplate::New(Load));
+    // Bind the 'quit' function
+    shellExecutor::global_object()->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
+    // Bind the 'version' function
+    // shellExecutor::global_object()->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
+    // Bind the 'version' function
+    // shellExecutor::global_object()->Set(v8::String::New("echo"), v8::FunctionTemplate::New(Print));
+    // init global objects
+    shellExecutor::global_object()->SetAccessor(v8::String::NewSymbol("objects"), GetAnyObject);
+
     shellExecutor executor;
+    executor.allow_network(tsk);
 
     // Bind the global 'read' function to the C++ Read callback.
-    executor.global_object()->Set(v8::String::New("read"), v8::FunctionTemplate::New(Read));
-    // Bind the global 'load' function to the C++ Load callback.
-    executor.global_object()->Set(v8::String::New("load"), v8::FunctionTemplate::New(Load));
-    // Bind the 'quit' function
-    executor.global_object()->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
-    // Bind the 'version' function
-    executor.global_object()->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
-    // init global objects
-    executor.global_object()->SetAccessor(v8::String::NewSymbol("objects"), GetAnyObject);
+    v8::Persistent<v8::Context> context = executor.get_child_context();
 
     // Create a new execution environment containing the built-in
     // functions
-    v8::Persistent<v8::Context> context = executor.get_child_context();
     // Enter the newly created execution environment.
     v8::Context::Scope context_scope(context);
     executor.window->history->push_back("http://www.ru");
@@ -119,6 +159,8 @@ int RunMain(int argc, char* argv[]) {
     }
     if (run_shell) RunShell(context);
 
+    executor.allow_network(NULL);
+    delete tsk;
     executor.close_child_context(context);
     return 0;
 }

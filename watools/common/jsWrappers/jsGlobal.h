@@ -1,6 +1,7 @@
 #pragma once
 #include <v8/v8.h>
 #include <string>
+#include <weHtmlEntity.h>
 
 typedef std::map<std::string, v8::Persistent<v8::Value> > jsPropertyMap;
 
@@ -29,3 +30,5 @@ template<class T> v8::Handle<v8::Object> wrap_object(void *objToWrap)
     //scope handle_scope is, use the Close() function
     return scope.Close(_instance);
 }
+
+v8::Handle<v8::Object> wrap_entity(webEngine::html_entity_ptr objToWrap);

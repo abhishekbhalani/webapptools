@@ -99,19 +99,22 @@ static int sqlite_query_to_rs(sqlite_handle* handle, const string& query, db_rec
             rc = sqlite3_step(pStmt);
         }
         if ( rc == SQLITE_BUSY ) {
-            LOG4CXX_WARN(handle->logger, "sqlite3_step: database busy");
+            LOG4CXX_WARN(handle->logger, "sqlite_query_to_rs sqlite3_step: database busy");
         }
         if ( rc == SQLITE_ERROR || rc == SQLITE_MISUSE) {
-            LOG4CXX_ERROR(handle->logger, "sqlite3_step error: " << rc << "; " << sqlite3_errmsg(handle->db));
+            LOG4CXX_ERROR(handle->logger, "sqlite_query_to_rs sqlite3_step error: " << rc << "; " << sqlite3_errmsg(handle->db));
+            LOG4CXX_DEBUG(handle->logger, "sqlite_query_to_rs sqlite3_step error SQL: " << query);
         }
         // finalize query
         rc = sqlite3_finalize(pStmt);
         if (rc != SQLITE_OK) {
-            LOG4CXX_ERROR(handle->logger, "sqlite3_finalize error: " << rc << "; " << sqlite3_errmsg(handle->db));
+            LOG4CXX_ERROR(handle->logger, "sqlite_query_to_rs sqlite3_finalize error: " << rc << "; " << sqlite3_errmsg(handle->db));
+            LOG4CXX_DEBUG(handle->logger, "sqlite_query_to_rs sqlite3_finalize error SQL: " << query);
         }
     }
     else {
-        LOG4CXX_ERROR(handle->logger, "sqlite3_prepare error: " << rc << "; " << sqlite3_errmsg(handle->db));
+        LOG4CXX_ERROR(handle->logger, "sqlite_query_to_rs sqlite3_prepare error: " << rc << "; " << sqlite3_errmsg(handle->db));
+        LOG4CXX_DEBUG(handle->logger, "sqlite_query_to_rs sqlite3_prepare error SQL: " << query);
     }
 
     return retval;
@@ -147,22 +150,31 @@ static int sqlite_query_from_rs(sqlite_handle* handle, const string& query, db_r
                 break;
             }
             if ( rc != SQLITE_OK ) {
-                LOG4CXX_ERROR(handle->logger, "sqlite_query_from_rs sqlite3_bind_* error: " << rc << "; " << sqlite3_errmsg(handle->db));
+                LOG4CXX_ERROR(handle->logger, "sqlite_query_from_rs sqlite3_bind_* error: " << rc << "; param #" << i << " " << sqlite3_errmsg(handle->db));
             }
         } // foreach field
         rc = sqlite3_step(pStmt);
         if ( rc != SQLITE_OK && rc != SQLITE_DONE ) {
             LOG4CXX_ERROR(handle->logger, "sqlite_query_from_rs sqlite3_step error: " << rc << "; " << sqlite3_errmsg(handle->db));
+            LOG4CXX_DEBUG(handle->logger, "sqlite_query_from_rs sqlite3_step error SQL: " << query);
+            for (i = 0; i < record_size; ++i) {
+                LOG4CXX_DEBUG(handle->logger, "sqlite_query_from_rs param #" << i << " = " << data[i].get<string>());
+            }
         }
         // finalize query
         rc = sqlite3_finalize(pStmt);
         if (rc != SQLITE_OK) {
             LOG4CXX_ERROR(handle->logger, "sqlite_query_from_rs sqlite3_finalize error: " << rc << "; " << sqlite3_errmsg(handle->db));
+            LOG4CXX_DEBUG(handle->logger, "sqlite_query_from_rs sqlite3_finalize error SQL: " << query);
+            for (i = 0; i < record_size; ++i) {
+                LOG4CXX_DEBUG(handle->logger, "sqlite_query_from_rs param #" << i << " = " << data[i].get<string>());
+            }
         }
         retval = sqlite3_changes(handle->db);
     } // if statement prepared
     else {
         LOG4CXX_ERROR(handle->logger, "sqlite_query_from_rs sqlite3_prepare error: " << rc << "; " << sqlite3_errmsg(handle->db));
+        LOG4CXX_DEBUG(handle->logger, "sqlite_query_from_rs sqlite3_prepare error SQL: " << query);
     }
     return retval;
 }
@@ -172,17 +184,22 @@ static string sqlite_fix_filter(const string& filter)
     string result = filter;
 
     // fix string values
-    boost::replace_all(result, "'", "''");
+    //boost::replace_all(result, "'", "''");
     // ([=><]\s+)(([\S]+[^\d\s][\S]*)|([^\d]))\s+ => $1"$2" )
-    boost::regex srch1("([=><]\\s+)(([\\S]+[^\\d\\s][\\S]*)|([^\\d]))\\s+");
-    string repl1 = "$1'$2' ";
-    result = boost::regex_replace(result, srch1, repl1, boost::match_default | boost::format_all);
+    //boost::regex srch1("([=><]\\s+)(([\\S]+[^\\d\\s][\\S]*)|([^\\d]))\\s+");
+    //string repl1 = "$1'$2' ";
+    //result = boost::regex_replace(result, srch1, repl1, boost::match_default | boost::format_all);
+
+    // ([=><])(\s{2,})(\S) => "$1 '' $3"
+    //boost::regex srch2("([=><])(\\s{2,})(\\S)");
+    //string repl2 = "$1 '' $3";
+    //result = boost::regex_replace(result, srch2, repl2, boost::match_default | boost::format_all);
 
     // fix "like" statement
     // like\s+([^\)]+)\s+\) => like '%$1%' )
-    boost::regex srch2("like\\s+([^\\)]+)\\s+\\)");
-    string repl2 = " like '%$1%' )";
-    result = boost::regex_replace(result, srch2, repl2, boost::match_default | boost::format_all);
+    //boost::regex srch9("like\\s+([^\\)]+)\\s+\\)");
+    //string repl9 = " like '%$1%' )";
+    //result = boost::regex_replace(result, srch9, repl9, boost::match_default | boost::format_all);
 
     return result;
 }
@@ -530,6 +547,7 @@ string sqlite_storage::generate_id( const string& objType /*= ""*/ )
     names.push_back("value");
     rs.clear();
     rs.set_names(names);
+    boost::unique_lock<boost::mutex> locker(data_access);
     sqlite3_exec(db_handle->db, "BEGIN EXCLUSIVE TRANSACTION", sqlite_callback, (void*)db_handle, &err_msg);
     sqlite3_exec(db_handle->db, "UPDATE _internals_ SET value=value+1 WHERE name == 'last_id'", sqlite_callback, (void*)db_handle, &err_msg);
     tbl_query = "SELECT [value] FROM [_internals_] WHERE [name] == 'last_id'";

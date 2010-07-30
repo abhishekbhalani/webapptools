@@ -1,6 +1,7 @@
 #include <weLogger.h>
 #include "jsGlobal.h"
 #include "jsLocation.h"
+#include "jsWindow.h"
 
 using namespace v8;
 using namespace webEngine;
@@ -250,32 +251,39 @@ static Handle<Value> LocationReplace(const v8::Arguments& args)
     void* ptr = wrap->Value();
 
     jsLocation* url = static_cast<jsLocation*>(ptr);
-    std::string log_info = "Location changed from '";
-    if(url->url.is_valid()) {
-        log_info += url->url.tostring();
-    }
-    else {
-        log_info += "undefined";
-    }
-    log_info += "' to \n\thref: ";
-    if (args.Length() > 0) {
+    if (url->win != NULL && args.Length() > 0) {
         url->url.assign_with_referer(value_to_string(args[0]), &url->url);
-        if(url->url.is_valid()) {
-            log_info += url->url.tostring();
-        }
-        else {
-            log_info += "undefined";
-        }
+        url->win->history->push_back(url->url.tostring());
+        url->win->load(url->url.tostring());
     }
     else {
+        std::string log_info = "Location changed from '";
         if(url->url.is_valid()) {
             log_info += url->url.tostring();
         }
         else {
             log_info += "undefined";
         }
+        log_info += "' to \n\thref: ";
+        if (args.Length() > 0) {
+            url->url.assign_with_referer(value_to_string(args[0]), &url->url);
+            if(url->url.is_valid()) {
+                log_info += url->url.tostring();
+            }
+            else {
+                log_info += "undefined";
+            }
+        }
+        else {
+            if(url->url.is_valid()) {
+                log_info += url->url.tostring();
+            }
+            else {
+                log_info += "undefined";
+            }
+        }
+        append_results(log_info);
     }
-    append_results(log_info);
     return Handle<Value>();
 }
 
@@ -286,28 +294,18 @@ static Handle<Value> LocationReload(const v8::Arguments& args)
     void* ptr = wrap->Value();
 
     jsLocation* url = static_cast<jsLocation*>(ptr);
-    std::string log_info = "Location reloaded for ";
-    log_info += url->url.tostring();
-    append_results(log_info);
+    if (url->win != NULL) {
+        url->win->load(url->url.tostring());
+    }
+    else {
+        std::string log_info = "Location reloaded for ";
+        log_info += url->url.tostring();
+        append_results(log_info);
+    }
     return Handle<Value>();
 }
 
-Handle<Value> Location(const Arguments& args)
-{
-    // throw if called without `new'
-    if (!args.IsConstructCall()) 
-        return ThrowException(String::New("Cannot call constructor as function"));
-
-    HandleScope scope;
-
-    jsLocation *p = new jsLocation();
-    if (args.Length() > 0) {
-        p->url.assign_with_referer(value_to_string(args[0]), &p->url);
-    }
-    return scope.Close(wrap_object<jsLocation>(p));
-}
-
-jsLocation::jsLocation(void)
+jsLocation::jsLocation(jsWindow* parent)
 {
     if (!is_init) {
         is_init = true;
@@ -341,6 +339,7 @@ jsLocation::jsLocation(void)
     url.params = "";
     url.username = "";
     url.password = "";
+    win = parent;
 }
 
 jsLocation::~jsLocation(void)

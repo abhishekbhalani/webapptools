@@ -48,7 +48,7 @@ const string base_entity::attr(string name)
     it = attributes.find(name);
     if (it != attributes.end())
     {
-        return attributes.val(it);
+        return (*it).second;
     }
     return string("");
 }

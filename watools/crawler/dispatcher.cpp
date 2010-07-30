@@ -190,10 +190,8 @@ static void* create_audit_comments(void* krnl, void* handle = NULL)
 void dispatcher_routine(po::variables_map& vm)
 {
     btm::ptime  keep_alive;
-    btm::ptime  sys_info;
     btm::ptime  curr_time;
     int         keep_alive_timeout;
-    int         sys_info_timeout;
     char        ac[80] = {0};
     string      queue_key;
 
@@ -256,7 +254,6 @@ void dispatcher_routine(po::variables_map& vm)
     sys_cpu();
     queue_key = "ScanModule:Queue:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
     keep_alive_timeout = vm["keepalive_timeout"].as<int>();
-    sys_info_timeout = vm["sysinfo_timeout"].as<int>();
 
     keep_alive_packet[ip_addr] = "";
     // find all ip's of machine
@@ -296,7 +293,6 @@ void dispatcher_routine(po::variables_map& vm)
 
     inLoop = true;
     keep_alive = btm::second_clock::local_time();
-    sys_info = btm::second_clock::local_time();
 
     // create task executor
     webEngine::task* tsk = new webEngine::task(we_dispatcer);
