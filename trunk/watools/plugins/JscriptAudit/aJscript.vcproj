@@ -223,6 +223,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\common\jsWrappers\jsForm.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\common\jsWrappers\jsGlobal.cpp"
 				>
 			</File>
@@ -262,6 +266,10 @@
 			</File>
 			<File
 				RelativePath="..\..\common\jsWrappers\jsExecutor.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\common\jsWrappers\jsForm.h"
 				>
 			</File>
 			<File

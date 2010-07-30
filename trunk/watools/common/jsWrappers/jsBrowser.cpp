@@ -151,8 +151,11 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
     Local<External> wrap = Local<External>::Cast(info.Data());
     void* ptr = wrap->Value();
     jsBrowser* el = static_cast<jsBrowser*>(ptr);
-        if (key == "v8_context") {
+    if (key == "v8_context") {
         val = wrap_object<jsExecutor>(el);
+    }
+    else if (key == "v8_results") {
+        val = String::New(el->get_results().c_str());
     }
     else if (key == "window") {
         val = wrap_object<jsWindow>(el->window);
@@ -183,7 +186,11 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
     void* ptr = wrap->Value();
     if (ptr != NULL) {
         jsBrowser* el = static_cast<jsBrowser*>(ptr);
-        if (el->window->is_property(key)) {
+        if (key == "v8_results") {
+            string sval = value_to_string(value);
+            el->append_results(sval);
+        }
+        else if (el->window->is_property(key)) {
             val = el->window->GetProperty(name, info);
         }
         else {
@@ -202,7 +209,7 @@ jsBrowser::jsBrowser(void)
         Handle<Value> self = External::New(this);
         global->SetNamedPropertyHandler(BrowserGet, BrowserSet, NULL, NULL, NULL, self);
         //global->SetAccessor(String::New("window"), GetWindow, NULL, self);
-        global->Set(String::New("Location"), FunctionTemplate::New(Location));
+        //global->Set(String::New("Location"), FunctionTemplate::New(Location));
         global->Set(String::New("Window"), FunctionTemplate::New(Window));
         global->Set(String::New("Element"), FunctionTemplate::New(Element));
         global->Set(String::New("Image"), FunctionTemplate::New(Image));
@@ -250,9 +257,9 @@ jsBrowser::~jsBrowser(void)
 {
     windows_list::iterator it;
 
-    for (it = win_list.begin(); it != win_list.end(); ++it) {
+    /*for (it = win_list.begin(); it != win_list.end(); ++it) {
         delete it->second;
-    }
+    }*/
 }
 
 jsWindow* jsBrowser::window_by_id(std::string id)

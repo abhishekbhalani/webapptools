@@ -43,11 +43,11 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 
 #ifdef WIN32
-string default_config = ".\\scanner.conf";
-wstring default_trace  = L".\\watools.scanner.log";
+string default_config = ".\\crawler.conf";
+wstring default_trace  = L".\\watools.crawler.log";
 #else
-string default_config = "/etc/watools/scanner.conf";
-wstring default_trace  = L"/tmp/watools.scanner.trace";
+string default_config = "/etc/watools/crawler.conf";
+wstring default_trace  = L"/tmp/watools.crawler.trace";
 #endif
 int default_trace_level = 3; //INFO
 wstring default_layout = L"%d{dd MMM yyyy HH:mm:ss,SSS} [%-5p] - %m%n";
@@ -184,14 +184,12 @@ int main(int argc, char* argv[])
 
     cfg_file.add_options()
 		("keepalive_timeout", po::value<int>()->default_value(int(5)), "keep-alive timeout in seconds")
-		("sysinfo_timeout", po::value<int>()->default_value(int(60)), "system information timeout in seconds")
-		("scanner_name", po::value<string>()->default_value(string("default scanner")), "human-readable identificator of the scanner instalation")
         ("log_file",  po::value<string>(), "file to store log information")
         ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
         ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
         ("plugin_dir",  po::value<string>()->default_value(string("./")), "directory, where plug-ins are placed")
-        ("db_interface",  po::value<string>()->default_value(string("mem_storage")), "plug-in identifier to connect to Storage DB")
-        ("db_parameters",  po::value<string>()->default_value(string("database")), "plug-in configuration to connect to Storage DB")
+        ("db_interface",  po::value<string>()->default_value(string("sqlite_storage")), "plug-in identifier to connect to Storage DB")
+        ("db_parameters",  po::value<string>()->default_value(string("database.sqlite")), "plug-in configuration to connect to Storage DB")
         ("domain_list",  po::value<string>(), "semicolon separated list of the allowed sub-domains")
         ("ext_deny",  po::value<string>(), "semicolon separated list of the denied file types (by extensions)")
         ("depth", po::value<int>(), "scan depth")
@@ -204,6 +202,7 @@ int main(int argc, char* argv[])
         ("parallel", po::value<int>(), "number of parallel requests")
         ("jscript", po::value<bool>(), "analyze JavaScript links")
         ("js_preload", po::value<string>(), "file with JavaScripts preloads (debug routines)")
+        ("js_network", po::value<bool>(), "allow JavaScript routines to access network")
         ("content", po::value<int>(), "conent_type processing mode")
         ("output", po::value<int>(), "output format: 0 - full, 1 - only links")
     ;
@@ -268,7 +267,7 @@ int main(int argc, char* argv[])
     }
 	// create config file
 	if (vm.count("generate")) {
-		cout << "WAT scanner " << scaner_version << endl;
+		cout << "WAT Crawler " << scaner_version << endl;
 		cout << "write config file " << vm["generate"].as<string>() << endl;
 		save_config(vm["generate"].as<string>(), vm, cfg_file, true);
 		return 0;
@@ -381,7 +380,7 @@ int main(int argc, char* argv[])
         traceLevel = true;
 	}
     LOG4CXX_INFO(scan_logger, "\n\n");
-	LOG4CXX_INFO(scan_logger, "WAT Scanner started. Version: " << scaner_version);
+	LOG4CXX_INFO(scan_logger, "WAT Crawler started. Version: " << scaner_version);
 	LOG4CXX_INFO(scan_logger, "Loaded configuration from " << vm["config"].as<string>());
 
 	// init webEngine library
@@ -420,6 +419,6 @@ int main(int argc, char* argv[])
     // cleanup
     webEngine::LibClose();
 
-    LOG4CXX_INFO(scan_logger, "WAT Scanner stopped");
+    LOG4CXX_INFO(scan_logger, "WAT Crawler stopped");
     return 0;
 }

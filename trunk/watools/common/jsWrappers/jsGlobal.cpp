@@ -1,9 +1,12 @@
 #include <weLogger.h>
-#include "jsExecutor.h"
 #include "jsGlobal.h"
+#include "jsExecutor.h"
+#include "jsElement.h"
+#include "jsForm.h"
 
 using namespace v8;
 using namespace std;
+using namespace webEngine;
 
 // Functions
 // Extracts a C string from a V8 Utf8Value.
@@ -141,6 +144,21 @@ Handle<Value> dump_object(const Arguments& args)
         }
         string dat = jsExec->obj_dump(args[0], nm, id, dp, ctx);
         res = String::New(dat.c_str());
+    }
+
+    return res;
+}
+
+Handle<Object> wrap_entity( html_entity_ptr objToWrap )
+{
+    Handle<Object> res;
+
+    string tagname = objToWrap->Name();
+    if (tagname == "form") {
+        res = wrap_object<jsForm>(new jsForm(objToWrap));
+    }
+    else {
+        res = wrap_object<jsElement>(new jsElement(objToWrap));
     }
 
     return res;

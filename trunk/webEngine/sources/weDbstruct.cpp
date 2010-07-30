@@ -22,6 +22,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/regex.hpp>
 #include <weDbstruct.h>
 
@@ -526,6 +527,12 @@ string db_condition::tostring( ) const
             op = " not_null";
             val = "";
             break;
+    }
+    if ( test_value.which() == 4) {
+        // string value
+        boost::replace_all(val, "'", "''");
+        // surround by '
+        val = "'" + val + "'";
     }
     res += op;
     res += val;

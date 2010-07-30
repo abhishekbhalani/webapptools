@@ -114,10 +114,10 @@ Handle<Value> Element(const Arguments& args)
         jsBrowser* jsExec = static_cast<jsBrowser*>(wrap->Value());
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets jsBrowser");
         if (args.Length() > 0) {
-            jsElement *p = new jsElement(jsExec->window->document->doc);
+            html_entity_ptr hent(new html_entity(jsExec->window->document->doc));
             string tag = value_to_string(args[0]->ToString());
-            p->entity()->Name(tag);
-            res = wrap_object<jsElement>(p);
+            hent->Name(tag);
+            res = wrap_entity(hent);
             append_object(res);
         }
     }
@@ -216,23 +216,20 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
 
                 entity_list ptrs = entity()->Children();
                 for(size_t i = 0; i < ptrs.size(); ++i) {
-                    jsElement* e = new jsElement(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
-                    Handle<Object> w = wrap_object<jsElement>(e);
+                    Handle<Object> w = wrap_entity(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
                     elems->Set(Number::New(i), w);
                 }
                 val = elems;
             }
             else if (key == "firstChild") {
                 if (entity()->Children().size() > 0) {
-                    jsElement* p = new jsElement(boost::shared_dynamic_cast<html_entity>(entity()->Child(0)));
-                    val = wrap_object<jsElement>(p);
+                    val = wrap_entity(boost::shared_dynamic_cast<html_entity>(entity()->Child(0)));
                 }
             }
             else if (key == "lastChild") {
                 if (entity()->Children().size() > 0) {
                     int idx = entity()->Children().size() - 1;
-                    jsElement* p = new jsElement(boost::shared_dynamic_cast<html_entity>(entity()->Child(idx)));
-                    val = wrap_object<jsElement>(p);
+                    val = wrap_entity(boost::shared_dynamic_cast<html_entity>(entity()->Child(idx)));;
                 }
             }
             else if (key == "nodeName") {
@@ -282,13 +279,19 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
             }
         }
         else {
-            // Look up the value in the attributes list.
-            AttrMap::iterator itmp;
-            itmp = entity()->attr_list().find(key);
-            if (itmp != entity()->attr_list().end())
-            {
-                val = Local<Value>::New(String::New(itmp->c_str()));
-            } // attribute found
+            // check special entry for event processing
+            if (key == "__event__") {
+                val = Local<Value>::New(evt_handler);
+            }
+            else {
+                // Look up the value in the attributes list.
+                AttrMap::iterator itmp;
+                itmp = entity()->attr_list().find(key);
+                if (itmp != entity()->attr_list().end())
+                {
+                    val = Local<Value>::New(String::New((*itmp).second.c_str()));
+                } // attribute found
+            }
         } // RO property search
     } // RW property search
 
@@ -331,9 +334,15 @@ Handle<Value> jsElement::SetProperty( Local<String> name, Local<Value> value, co
             }
         }
         else {
-            // set the attribute
-            string sval = value_to_string(value);
-            entity()->attr(key, sval);
+            // check special entry for event processing
+            if (key == "__event__") {
+                evt_handler = Persistent<Value>::New(value);
+            }
+            else {
+                // set the attribute
+                string sval = value_to_string(value);
+                entity()->attr(key, sval);
+            }
         } // RO property search
     } // RW property search
     val = value;
@@ -392,7 +401,7 @@ Handle<Array> jsElement::PropertyEnum( const AccessorInfo &info )
     }
     AttrMap::iterator it;
     for (it = el->entity()->attr_list().begin(); it != el->entity()->attr_list().end(); ++it) {
-        prop_list[el->entity()->attr_list().key(it)] = 1;
+        prop_list[(*it).first] = 1;
     }
     map<string, int>::iterator ins;
     i = 0;
@@ -551,8 +560,7 @@ Handle<Value> jsElement::GetElemsByName( const Arguments& args )
         key = value_to_string(args[0]);
         entity_list ptrs = el->entity()->FindTags(key);
         for(size_t i = 0; i < ptrs.size(); ++i) {
-            jsElement* e = new jsElement(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
-            Handle<Object> w = wrap_object<jsElement>(e);
+            Handle<Object> w = wrap_entity(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
             elems->Set(Number::New(i), w);
         }
         retval = elems;
@@ -574,8 +582,7 @@ Handle<Value> jsElement::CloneNode( const Arguments& args )
     /// @todo Warning! Fake clone! Implement real clone operation for entity
     html_entity_ptr hte(new html_entity());
     *hte = *(el->entity());
-    jsElement* p = new jsElement(hte);
-    retval = wrap_object<jsElement>(p);
+    retval = wrap_entity(hte);
 
     return scope.Close(retval);
 }

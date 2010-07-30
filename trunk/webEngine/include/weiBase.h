@@ -60,22 +60,51 @@ namespace webEngine {
     class orderedmap
     {
     public:
-        typedef typename std::vector<_Val> valvector;
-        typedef typename std::vector<_Val>::iterator iterator;
-        typedef typename std::map<_Key, int> mapkeys;
-        typedef typename mapkeys::value_type value_type;
+        typedef typename std::vector<_Key> keyvector;
+        typedef typename std::map<_Key, _Val> valuesmap;
+        typedef typename std::pair<_Key, _Val> valuespair;
+        typedef typename valuesmap::value_type value_type;
+        template <class _Key, class _Val>
+        class __iterator{
+        public:
+            __iterator() {parent = NULL; pos = -1; }
+            __iterator(orderedmap<_Key, _Val>* prnt, int pos_) {parent = prnt; pos = pos_; }
+            valuespair operator*() { return valuespair(parent->keys[pos], parent->values[parent->keys[pos]]); }
+            valuespair operator->() { return valuespair(parent->keys[pos], parent->values[parent->keys[pos]]); }
+            __iterator<_Key, _Val>& operator++() { if(parent != NULL && pos < parent->keys.size()) ++pos; return *this; }
+            const bool operator==(const __iterator<_Key, _Val>& rhs) { return (parent == rhs.parent && pos == rhs.pos); }
+            const bool operator!=(const __iterator<_Key, _Val>& rhs) { return !operator==(rhs); }
+            __iterator<_Key, _Val>& operator=(const __iterator<_Key, _Val>& rhs) { parent = rhs.parent; pos = rhs.pos; return *this; }
+        protected:
+            size_t pos;
+            orderedmap<_Key, _Val>* parent;
+        };
+        typedef typename __iterator<_Key, _Val> iterator;
 
     public:
         orderedmap()
-            : values(), keys()
+            : values(), keys(0)
         {	// construct empty map from defaults
+            values.clear();
+            keys.clear();
         };
 
         int erase(const _Key& _Keyval)
-        {   // erase element at given Keyval
-            //         valvector::iterator it = keys[_Keyval];
-            //         values.erase(it);
-            return (keys.erase(_Keyval));
+        {
+            values.erase(_Keyval);
+            keyvector::iterator rm = ::find(keys.begin(), keys.end(), _Keyval);
+            keys.erase(rm);
+            return 0;
+        }
+
+        int erase(const int pos)
+        {
+            if (pos >=0 && pos < keys.size()) {
+                values.erase(keys[pos]);
+                keyvector::iterator rm = keys.begin() + pos;
+                keys.erase(rm);
+            }
+            return 0;
         }
 
         void clear() { 
@@ -83,51 +112,36 @@ namespace webEngine {
             keys.clear();
         };
 
-        iterator begin() {return values.begin(); };
-        iterator end() {return values.end(); };
+        size_t size() { return keys.size(); }
+
+        iterator begin() {return iterator(this, 0); }
+        iterator end() {return iterator(this, keys.size()); };
 
         iterator find(const _Key& _Keyval)
         {   // returns the iterator for the given Keyval
-            typename mapkeys::iterator it = keys.find(_Keyval);
+            keyvector::iterator it = ::find(keys.begin(), keys.end(), _Keyval);
             if(it != keys.end()) {
-                return (values.begin() + it->second);
+                return iterator(this, it - keys.begin());
             }
             else {
-                return values.end();
+                return iterator(this, keys.size());
             }
 
         }
-
-        _Key& key(iterator& _Where)
-        {   // gives key for current iterator
-            typename mapkeys::iterator it;
-            for(it = keys.begin(); it != keys.end(); it++) {
-                if ((values.begin() + it->second) == _Where) {
-                    return (_Key&)it->first;
-                }
-            }
-            return *(new _Key());
-        };
-
-        _Val& val(iterator& _Where)
-        {   // gives value for current iterator
-            return *_Where;
-        };
 
         _Val& operator[](const _Key& _Keyval)
         {	// find element matching _Keyval or insert with default mapped
-            typename mapkeys::iterator _Where = keys.find(_Keyval);
+            keyvector::iterator _Where = ::find(keys.begin(), keys.end(), _Keyval);
             if (_Where == keys.end()) {
-                values.push_back(_Val());
-                int ins = values.size() - 1;
-                _Where = keys.insert(_Where, value_type(_Keyval, ins));
+                keys.push_back(_Keyval);
+                values[_Keyval] = _Val();
             }
-            return  (_Val&)values[_Where->second];
+            return  (_Val&)values[_Keyval];
         }
 
     protected:
-        valvector   values;
-        mapkeys     keys;
+        valuesmap   values;
+        keyvector   keys;
     };
 
 } // namespace webEngine

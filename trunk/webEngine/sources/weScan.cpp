@@ -92,12 +92,17 @@ void ScanInfo::SetScanData( const string& object_url, scan_data_ptr scData )
 
 ScanData::ScanData()
 {
-    response.reset();
-    parsed_data.reset();
-    scan_depth = 0;
+    data_id.clear();
+    parent_id.clear();
+    scan_id.clear();
+    object_url.clear();
     resp_code = 0;
     data_size = 0;
     download_time = 0;
+    scan_depth = 0;
+    content_type.clear();
+    response.reset();
+    parsed_data.reset();
 }
 
 ScanData::~ScanData()

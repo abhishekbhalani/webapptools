@@ -23,10 +23,12 @@
 #include <string>
 #include <vector>
 #include <weBlob.h>
+#include <weiTransport.h>
 
 using namespace std;
 
 namespace webEngine {
+
     class task;
     //////////////////////////////////////////////////////////////////////////
     /// @class jsExecutor
@@ -46,7 +48,7 @@ namespace webEngine {
             bool report_exceptions,
             v8::Handle<v8::Context> ctx = v8::Handle<v8::Context>((v8::Context*)NULL));
         void reset_results();
-        const string get_results() {return exec_result; };
+        const string& get_results() { return exec_result; }
         void append_results(const string& data);
         void append_object(v8::Handle<v8::Object> data);
         void set_max_depth(int depth) {maxDepth = depth; };
@@ -57,16 +59,16 @@ namespace webEngine {
         void close_child_context(v8::Persistent<v8::Context> ctx);
 
         static v8::Persistent<v8::FunctionTemplate> object_template;
-        void init_globals();
+        static void init_globals();
         bool allow_network(task* net_acc) { net_access = net_acc; return (net_access != NULL); }
-        blob* http_request(string url, int method, blob &post_data, int& ret_code);
-        bool http_request_async(string url, int method, blob &post_data, v8::Handle<v8::Value> callback);
+        i_response_ptr http_request(i_request_ptr req);
+        bool http_request_async(i_request_ptr req);
 
     protected:
         task* net_access;
         static bool is_init;
         static int  num_objects;
-        v8::Persistent<v8::ObjectTemplate> global;
+        static v8::Persistent<v8::ObjectTemplate> global;
         
         v8::Persistent<v8::Context> context;
         vector<v8::Persistent<v8::Value>> objects;

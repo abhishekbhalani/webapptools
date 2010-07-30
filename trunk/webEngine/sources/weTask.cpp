@@ -173,6 +173,9 @@ void task_processor(task* tsk)
                         // 2. Create ScanData
                         scan_data_ptr scd = tsk->get_scan_data((*rIt)->BaseUrl().tostring());
                         scd->response = *rIt;
+                        if (scd->data_id == "") {
+                            scd->data_id = tsk->kernel->storage()->generate_id(weObjTypeScan);
+                        }
                         if (! (scd->parsed_data)) {
                             scd->parsed_data = parsed_doc;
                         }

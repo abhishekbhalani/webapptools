@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <weHtmlEntity.h>
 #include "jsGlobal.h"
 
 namespace webEngine {
@@ -18,8 +17,9 @@ namespace webEngine {
 
         virtual html_entity_ptr entity() { return html_ent; }
 
-        v8::Handle<v8::Value> GetProperty(v8::Local<v8::String> name, const v8::AccessorInfo &info);
-        v8::Handle<v8::Value> SetProperty(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
+        virtual v8::Handle<v8::Value> GetProperty(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+        virtual v8::Handle<v8::Value> SetProperty(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
+        v8::Persistent<v8::Value> evt_handler;
 
         static bool is_init;
         static v8::Persistent<v8::FunctionTemplate> object_template;

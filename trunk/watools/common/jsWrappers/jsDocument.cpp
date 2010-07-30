@@ -6,6 +6,7 @@
 #include "jsDocument.h"
 #include "jsBrowser.h"
 #include "jsWindow.h"
+#include "jsForm.h"
 
 using namespace v8;
 using namespace webEngine;
@@ -34,6 +35,17 @@ static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
 
     if (key == "documentElement") {
         val = Local<Value>::New(wrap_object<jsElement>((jsElement*)el));
+    }
+    else if (key == "forms") {
+        Local<Array> elems(Array::New());
+
+        entity_list ptrs = el->doc->FindTags("form");
+        for(size_t i = 0; i < ptrs.size(); ++i) {
+            jsForm* e = new jsForm(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
+            Handle<Object> w = wrap_object<jsForm>(e);
+            elems->Set(Number::New(i), w);
+        }
+        val = elems;
     }
     else {
         // Look up the value if it exists using the standard STL idiom.
@@ -84,8 +96,7 @@ static Handle<Value> getElementsByTagName(const Arguments& args)
         string key = value_to_string(args[0]);
         entity_list ptrs = dc->entity()->FindTags(key);
         for(size_t i = 0; i < ptrs.size(); ++i) {
-            jsElement* e = new jsElement(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
-            Handle<Object> w = wrap_object<jsElement>(e);
+            Handle<Object> w = wrap_entity(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
             res->Set(Number::New(i), w);
         }
     }
@@ -108,8 +119,7 @@ static Handle<Value> getElementById(const Arguments& args)
         string key = value_to_string(args[0]);
         html_entity_ptr el = boost::shared_dynamic_cast<html_entity>(dc->entity()->FindID(key));
         if (el) {
-            jsElement* p = new jsElement(el);
-            res = wrap_object<jsElement>(p);
+            res = wrap_entity(el);
         }
     }
     return scope.Close(res);

@@ -14,9 +14,6 @@
 #include <boost/thread.hpp>
 #include <boost/filesystem/operations.hpp>
 
-// from common/
-#include "jsWrappers/jsBrowser.h"
-
 #include "audit_jscript.h"
 #include "jscript.xpm"
 #include "version.h"
@@ -29,9 +26,11 @@ using namespace webEngine;
 namespace fs = boost::filesystem;
 
 static string xrc = "<plugin id='audit_jscript'>\
+<option name='' label='This plugin depends on HTTP Inventory and uses some it&apos;s settings' control='none'></option>\
 <option name='audit_jscript/enable_jscript' label='Enable JavaScript processing' type='2' control='checkbox'>0</option>\
 <option name='audit_jscript/preload' label='Preload JavaScript code' type='4' control='text'>./dom.js</option>\
-<option name='' label='This plugin depends on HTTP Inventory and uses some it&apos;s settings' control='none'></option>\
+<option name='audit_jscript/allow_network' label='Allow newtwork access' type='2' control='checkbox'>0</option>\
+<option name='' label='This option allows JavaScript to load data from the server independently from scanning process.' control='none'></option>\
 </plugin>";
 
 static log4cxx::LoggerPtr js_logger;
@@ -83,12 +82,14 @@ void audit_jscript::init( task* tsk )
     // create list of the blocked extension
     parent_task = tsk;
     opt_use_js = tsk->IsSet(weoAuditJSenable);
+    opt_allow_network = tsk->IsSet(weoAuditJSnetwork);
     opt = tsk->Option(weoAuditJSpreloads);
     SAFE_GET_OPTION_VAL(opt, opt_preloads, "");
 
     if (opt_use_js) {
+        v8::HandleScope handle_scope;
         js_exec = new webEngine::jsBrowser;
-        js_exec->execute_string("print('V8 Engine version is: ' + version())", "", true, true);
+        js_exec->execute_string("echo('V8 Engine version is: ' + version())", "", true, true);
         if (opt_preloads != "") {
 #ifdef WIN32
             boost::replace_all(opt_preloads, "/", "\\");
@@ -322,10 +323,17 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
     }
     parent_task->add_thread();
     if (parser) {
+        v8::Persistent<v8::Context> ctx = js_exec->get_child_context();
+        v8::HandleScope scope;
         // fix location object
         js_exec->window->history->push_back(sc->object_url);
-        js_exec->window->location.url.assign_with_referer(sc->object_url);
+        js_exec->window->location->url.assign_with_referer(sc->object_url);
+        // fix document object
+        js_exec->window->assign_document(parser);
         // execute all scripts
+        if (opt_allow_network) {
+            js_exec->allow_network(parent_task);
+        }
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts execute scripts for parsed_data " << parser);
         lst = parser->FindTags("script");
         for (size_t i = 0; i < lst.size(); i++) {
@@ -345,12 +353,15 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
         ClearEntityList(lst);
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts process events");
         //html_document* doc_entity = sc->parsed_data.get();
-        process_events(parser);
+        process_events(ctx, parser);
         // process results
         string res;
         res = js_exec->get_results();
         // res += js_exec->dump("Object");
         js_exec->reset_results();
+        // disable network operations
+        js_exec->allow_network(NULL);
+        js_exec->close_child_context(ctx);
 #ifdef _DEBUG
         LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts results:\n" << res);
 #endif
@@ -429,42 +440,40 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
     }
 }
 
-void audit_jscript::process_events( webEngine::base_entity_ptr entity )
+void audit_jscript::process_events(v8::Persistent<v8::Context> ctx, webEngine::base_entity_ptr entity )
 {
-/* simple variant - recursive descent through DOM-tree */
+    v8::Context::Scope scope(ctx);
+    /* simplest variant - recursive descent through DOM-tree */
     std::string src;
     std::string name;
     // get on... events
-    LOG4CXX_DEBUG(logger, "audit_jscript::process_events entity = " << entity->Name());
+    LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events entity = " << entity->Name());
 
-    webEngine::AttrMap::iterator attrib = entity->attr_list().begin();
+    AttrMap::iterator attrib = entity->attr_list().begin();
+
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::New(wrap_entity(boost::shared_dynamic_cast<html_entity>(entity)));
+    ctx->Global()->Set(v8::String::New("__evt_target__"), obj);
 
     while(attrib != entity->attr_list().end() ) {
-        name = entity->attr_list().key(attrib);
-        src = entity->attr_list().val(attrib);
+        name = (*attrib).first;
+        src = (*attrib).second;
 
         if (boost::istarts_with(name, "on")) {
             // attribute name started with "on*" - this is the event
-#ifdef _DEBUG
-            LOG4CXX_TRACE(logger, "audit_jscript::process_events - " << name << " source = " << src);
-#else
-            LOG4CXX_DEBUG(logger, "audit_jscript::process_events - " << name);
-#endif
-            src = "(function(){ " + src + " })()";
+            LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
+            src = "__evt_target__.__event__=function(){" + src + "}";
             js_exec->execute_string(src, "", true, true);
+            js_exec->execute_string("__evt_target__.__event__()", "", true, true);
         }
         if (boost::istarts_with(src, "javascript:")) {
-#ifdef _DEBUG
-            LOG4CXX_TRACE(logger, "audit_jscript::process_events - " << name << " source = " << src);
-#else
-            LOG4CXX_DEBUG(logger, "audit_jscript::process_events - " << name);
-#endif
+            LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events - " << name << " source = " << src);
             src = src.substr(11); // skip "javascript:"
-            src = "(function(){ " + src + " })()";
+            src = "__evt_target__.event=function(){ " + src + " }";
             js_exec->execute_string(src, "", true, true);
+            js_exec->execute_string("__evt_target__.__event__()", "", true, true);
         }
 
-        attrib++;
+        ++attrib;
     }
 
     // and process all children
@@ -474,7 +483,7 @@ void audit_jscript::process_events( webEngine::base_entity_ptr entity )
     for(size_t i = 0; i < chld.size(); i++) {
         std::string nm = chld[i]->Name();
         if (nm[0] != '#') {
-            process_events(chld[i]);
+            process_events(ctx, chld[i]);
         }
     }
     // all results will be processed in the caller parse_scripts function

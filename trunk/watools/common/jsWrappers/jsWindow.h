@@ -39,11 +39,14 @@ namespace webEngine {
         const string& get_id() const { return win_uuid; }
         const bool is_closed();
         const bool is_property(string key);
+        void load(const string& url);
+        void assign_document(html_document_ptr dc);
 
-        jsLocation location;
+        jsLocation* location;
         jsDocument* document;
         jsHistory* history;
 		jsPropertyMap  props;
+        vector<jsWindow*> frames;
 
         static bool is_init;
         static v8::Persistent<v8::FunctionTemplate> object_template;
