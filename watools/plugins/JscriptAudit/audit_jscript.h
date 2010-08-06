@@ -77,7 +77,7 @@ namespace webEngine {
         ///
         /// @retval The user interface in the XML-based format or empty string if no setup dialog. 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        virtual const string get_setup_ui( void ) { return ""; };
+        virtual const string get_setup_ui( void );
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn void init(task* tsk)

@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <winsock2.h>
 #include <process.h>
+#include <conio.h>
 #else
 #include <sys/types.h>
 #include <unistd.h>
@@ -204,13 +205,15 @@ int main(int argc, char* argv[])
         ("js_preload", po::value<string>(), "file with JavaScripts preloads (debug routines)")
         ("js_network", po::value<bool>(), "allow JavaScript routines to access network")
         ("content", po::value<int>(), "conent_type processing mode")
-        ("output", po::value<int>(), "output format: 0 - full, 1 - only links")
+        ("output", po::value<int>(), "output format: 0 - full, 1 - only links, 2 - compact results")
     ;
 
     cmd_line_vis.add_options()
         ("help", "this help message")
         ("target", po::value<string>(), "target to scan")
-        ("output", po::value<int>()->default_value(int(0)), "output format: 0 - full, 1 - only links")
+        ("profile", po::value<int>(), "select scanning profile (all given settings will be skipped, except the \"name\" option)")
+        ("name", po::value<string>(), "set the task name (the \"Crawling <target>\" is used by default)")
+        ("output", po::value<int>()->default_value(int(0)), "output format: 0 - full, 1 - only links, 2 - compact results")
         ("depth", po::value<int>()->default_value(int(10)), "scan depth")
         ("dir", "stay in the directory")
         ("host", "stay on the host")
@@ -225,6 +228,7 @@ int main(int argc, char* argv[])
         ("result",  po::value<string>(), "results file (stdout, if not set)")
         ("trace",  po::value<string>(), "trace configuration file")
 		("generate", po::value<string>(), "make config file with current values")
+        ("init_db", "just initialize database and update plugins information")
     ;
 // 	// hidden options
 //     cmd_line.add_options()
@@ -406,7 +410,7 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    if (vm.count("target")) {
+    if (vm.count("target") || vm.count("init_db")) {
         // run dispatcher
         dispatcher_routine(vm);
     }

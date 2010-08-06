@@ -27,12 +27,12 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace webEngine {
 
-    class HttpInventory :
+    class http_inventory :
         public i_inventory
     {
     public:
-        HttpInventory(engine_dispatcher* krnl, void* handle = NULL);
-        virtual ~HttpInventory(void);
+        http_inventory(engine_dispatcher* krnl, void* handle = NULL);
+        virtual ~http_inventory(void);
 
         // i_plugin functions
         virtual i_plugin* get_interface(const string& ifName);
