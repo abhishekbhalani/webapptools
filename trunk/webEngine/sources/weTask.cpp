@@ -666,17 +666,23 @@ void task::calc_status()
     if ( (count + total_done + taskQueue.size()) < total_reqs) {
         LOG4CXX_WARN(iLogger::GetLogger(), "task::calc_status: counters mismatch! count + total_done + taskQueue.size() < total_reqs!");
     }
+    if (idata == 100) {
+        idata = 99;
+    }
     tsk_completion = idata;
+    tsk_status = WI_TSK_RUN;
+
     // set task status
     if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
         //processThread = false;
+        tsk_completion = 100;
         finish_tm = btm::second_clock::local_time();
         tsk_status = WI_TSK_IDLE;
-        save_to_db();
         boost::unique_lock<boost::mutex> lock(tsk_mutex);
         tsk_event.notify_all();
     }
+    save_to_db();
 }
 
 std::auto_ptr<db_recordset> task::get_scan()

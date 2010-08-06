@@ -38,6 +38,11 @@ i_plugin* audit_comment::get_interface( const string& ifName )
     return i_audit::get_interface(ifName);
 }
 
+const string audit_comment::get_setup_ui( void )
+{
+    return xrc;
+}
+
 void audit_comment::process( task* tsk, shared_ptr<ScanData> scData )
 {
     LOG4CXX_TRACE(logger, "audit_comment::process");
@@ -125,22 +130,22 @@ void audit_comment::process_response( i_response_ptr resp )
     return;
 }
 
-// clone of the HttpInventory::add_url
+// clone of the http_inventory::add_url
 void audit_comment::add_url( transport_url link, transport_url *base_url, shared_ptr<ScanData> sc )
 {
     i_plugin* plg = parent_task->get_active_plugin("httpInventory");
     if (plg != NULL) {
         // just cast to save resources
-        HttpInventory *inv = (HttpInventory*)plg;
+        http_inventory *inv = (http_inventory*)plg;
         HttpResponse fake;
         // fill required field in the fake response
         fake.RealUrl(sc->object_url);
         fake.depth(sc->scan_depth);
-        LOG4CXX_TRACE(logger, "audit_comment::add_url - fall into the HttpInventory::add_url");
+        LOG4CXX_TRACE(logger, "audit_comment::add_url - fall into the http_inventory::add_url");
         inv->add_url(link, &fake, sc);
     }
     else {
-        LOG4CXX_ERROR(logger, "audit_comment::add_url can't find HttpInventory plugin, can't add url " << link.tostring());
+        LOG4CXX_ERROR(logger, "audit_comment::add_url can't find http_inventory plugin, can't add url " << link.tostring());
     }
 }
 

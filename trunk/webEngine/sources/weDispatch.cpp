@@ -141,7 +141,7 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
     plg_list.push_back(*(plugin_info*)memStore.info());
     http_transport httpTrans(this);
     plg_list.push_back(*(plugin_info*)httpTrans.info());
-    HttpInventory httpInvent(this);
+    http_inventory httpInvent(this);
     plg_list.push_back(*(plugin_info*)httpInvent.info());
     html_parser htmlParser(this);
     plg_list.push_back(*(plugin_info*)htmlParser.info());
@@ -583,7 +583,7 @@ static void* create_http_transport(void* krnl, void* handle = NULL)
 
 static void* create_http_inventory(void* krnl, void* handle = NULL)
 {
-    return (void*) (new HttpInventory((engine_dispatcher*)krnl, handle));
+    return (void*) (new http_inventory((engine_dispatcher*)krnl, handle));
 }
 
 static void* create_html_parser(void* krnl, void* handle = NULL)

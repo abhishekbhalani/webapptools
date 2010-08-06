@@ -1,6 +1,8 @@
 #include "audit_comment.h"
 
 #include <signal.h>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
@@ -187,6 +189,70 @@ static void* create_audit_comments(void* krnl, void* handle = NULL)
     return (void*) (new audit_comment((webEngine::engine_dispatcher*)krnl, handle));
 }
 
+void save_plugin_ui(webEngine::i_storage* store)
+{
+    LOG4CXX_TRACE(scan_logger, "Save UI for plugins");
+    int pos;
+    string db_key;
+    string db_data;
+    string db_icon;
+    webEngine::string_list str_data;
+    webEngine::db_recordset packet(store->get_namespace_struct("profile_ui"));
+    webEngine::db_cursor rec = packet.push_back();
+    webEngine::db_query c_query;
+    webEngine::db_condition c_plugin, c_locale;
+
+    c_locale.field() = "profile_ui.locale";
+    c_locale.operation() = webEngine::db_condition::equal;
+    c_locale.value() = string("en");
+
+    c_plugin.field() = "profile_ui.plugin_id";
+    c_plugin.operation() = webEngine::db_condition::equal;
+
+    rec["profile_ui.locale"] = string("en");
+
+    //     pos = args.find(' ');
+    //     if (pos == string::npos) {
+    //         pos = args.find('\t');
+    //     }
+    //     if (pos != string::npos) {
+    //         args = args.substr(0, pos);
+    //     }
+    webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
+    for (int i = 0; i < plgs.size(); i++)
+    {
+        webEngine::string_list::iterator it;
+        it = find(plgs[i].interface_list.begin(), plgs[i].interface_list.end(), "i_storage");
+        if (it == plgs[i].interface_list.end()) {
+            // not a storage plugin
+            // get plugin icon
+            db_icon = "";
+            for (int j = 0; j < plgs[i].plugin_icon.size(); j++)
+            {
+                db_icon += plgs[i].plugin_icon[j];
+                db_icon += "\n";
+            }
+            webEngine::i_plugin* plg = we_dispatcer->load_plugin(plgs[i].plugin_id);
+            if (plg != NULL) {
+                // get UI
+                db_data = plg->get_setup_ui();
+                plg->release();
+                // save information
+                c_plugin.value() = plgs[i].interface_name;
+                c_query.where.set(c_plugin).and(c_locale);
+                rec["profile_ui.plugin_id"] = plgs[i].interface_name;
+                rec["profile_ui.plugin_name"] = plgs[i].plugin_desc;
+                rec["profile_ui.ui_settings"] = db_data;
+                rec["profile_ui.ui_icon"] = db_icon;
+                store->set(c_query, packet);
+            }
+            else {
+                LOG4CXX_ERROR(scan_logger, "Can't load plugin " << plgs[i].plugin_id << "; " << plgs[i].plugin_desc);
+            }
+        } // if not a storage plugin
+    } // foreach plugins
+}
+
 void dispatcher_routine(po::variables_map& vm)
 {
     btm::ptime  keep_alive;
@@ -235,6 +301,14 @@ void dispatcher_routine(po::variables_map& vm)
 
     LOG4CXX_INFO(scan_logger, "Operating System: " << sys_uname());
     LOG4CXX_INFO(scan_logger, "Memory Information: " << sys_meminfo());
+
+    // update plugins information
+    save_plugin_ui(storage);
+
+    // if the init_db option given - we don't need to do anything
+    if (vm.count("init_db")) {
+        return;
+    }
 
     webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
     vector<webEngine::i_plugin*> scan_plugins;
@@ -296,98 +370,134 @@ void dispatcher_routine(po::variables_map& vm)
 
     // create task executor
     webEngine::task* tsk = new webEngine::task(we_dispatcer);
-    tsk->store_plugins(scan_plugins);
-    tsk->set_profile_id(string("0")); // todo - take it from params
 
-    // set scanning options
-    bool is_jscript = true;
-    if (vm.count("jscript"))
-    {
-        try {
-            is_jscript = vm["jscript"].as<bool>();
-        } catch (...) { } // just skip
-    }
-    if (vm.count("no-jscript")) {
-        is_jscript = false;
-    }
-    tsk->Option(weoAuditJSenable, is_jscript);
-    LOG4CXX_DEBUG(scan_logger, "Set "weoAuditJSenable" to " << is_jscript);
+    if (vm.count("profile")) {
+        int ival = vm["profile"].as<int>();
+        string sval = boost::lexical_cast<string>(ival);
+        // load profile
+        tsk->set_profile_id(sval);
+        // set-up plugins usage
+        scan_plugins.clear();
 
-    if (vm.count("depth")) {
-        int val = vm["depth"].as<int>();
-        tsk->Option(weoScanDepth, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoScanDepth" to " << val);
+        webEngine::we_option opt = tsk->Option("plugin_list");
+        SAFE_GET_OPTION_VAL(opt, sval, "");
+        if (sval != "") {
+            vector<string> plgs;
+            boost::split(plgs, sval, boost::is_any_of(";"));
+            for (size_t i = 0; i < plgs.size(); ++i) {
+                if (plgs[i] != "") {
+                    plg = we_dispatcer->load_plugin(plgs[i]);
+                    if (plg) {
+                        scan_plugins.push_back(plg->get_interface("i_plugin"));
+                    } // if plugin loaded
+                } // if name given
+            } // foreach plugin
+        }
+        else {
+            LOG4CXX_ERROR(scan_logger, "No plugins attached to profile " << ival << ". Nothing to do, exit.");
+            return;
+        }
     }
-    if (vm.count("dir")) {
-        bool val = true;
-        try {
-            val = vm["dir"].as<bool>();
-        } catch (...) { } // just skip
-        tsk->Option(weoStayInDir, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDir" to " << val);
-    }
-    if (vm.count("host")) {
-        bool val = true;
-        try {
-            val = vm["host"].as<bool>();
-        } catch (...) { } // just skip
-        tsk->Option(weoStayInHost, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInHost" to " << val);
-    }
-    if (vm.count("domain")) {
-        bool val = true;
-        try {
-            val = vm["domain"].as<bool>();
-        } catch (...) { } // just skip
-        tsk->Option(weoStayInDomain, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDomain" to " << val);
-    }
-    if (vm.count("dlist")) {
-        bool val = true;
-        try {
-            val = vm["dlist"].as<bool>();
-        } catch (...) { } // just skip
-        tsk->Option(weoStayInDomainList, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDomainList" to " << val);
-    }
-    if (vm.count("ip")) {
-        bool val = true;
-        try {
-            val = vm["ip"].as<bool>();
-        } catch (...) { } // just skip
-        tsk->Option(weoStayInIP, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoStayInIP" to " << val);
-    }
-    if (vm.count("url_param")) {
-        bool val = true;
-        try {
-            val = vm["url_param"].as<bool>();
-        } catch (...) { } // just skip
-        tsk->Option(weoIgnoreUrlParam, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoIgnoreUrlParam" to " << val);
-    }
-    if (vm.count("content")) {
-        int val = vm["content"].as<int>();
-        tsk->Option(weoAllowedCTypes, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoAllowedCTypes" to " << val);
-    }
-    if (vm.count("parallel")) {
-        int val = vm["parallel"].as<int>();
-        tsk->Option(weoParallelReq, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoParallelReq" to " << val);
-    }
-    if (vm.count("ext_deny")) {
-        string val = vm["ext_deny"].as<string>();
-        tsk->Option(weoDeniedFileTypes, val);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoDeniedFileTypes" to " << val);
+    else {
+        // initialize task from configuration
+        tsk->set_profile_id(string("0")); // todo - take it from params
+        // set scanning options
+        bool is_jscript = true;
+        if (vm.count("jscript"))
+        {
+            try {
+                is_jscript = vm["jscript"].as<bool>();
+            } catch (...) { } // just skip
+        }
+        if (vm.count("no-jscript")) {
+            is_jscript = false;
+        }
+        tsk->Option(weoAuditJSenable, is_jscript);
+        LOG4CXX_DEBUG(scan_logger, "Set "weoAuditJSenable" to " << is_jscript);
+
+        if (vm.count("depth")) {
+            int val = vm["depth"].as<int>();
+            tsk->Option(weoScanDepth, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoScanDepth" to " << val);
+        }
+        if (vm.count("dir")) {
+            bool val = true;
+            try {
+                val = vm["dir"].as<bool>();
+            } catch (...) { } // just skip
+            tsk->Option(weoStayInDir, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDir" to " << val);
+        }
+        if (vm.count("host")) {
+            bool val = true;
+            try {
+                val = vm["host"].as<bool>();
+            } catch (...) { } // just skip
+            tsk->Option(weoStayInHost, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInHost" to " << val);
+        }
+        if (vm.count("domain")) {
+            bool val = true;
+            try {
+                val = vm["domain"].as<bool>();
+            } catch (...) { } // just skip
+            tsk->Option(weoStayInDomain, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDomain" to " << val);
+        }
+        if (vm.count("dlist")) {
+            bool val = true;
+            try {
+                val = vm["dlist"].as<bool>();
+            } catch (...) { } // just skip
+            tsk->Option(weoStayInDomainList, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDomainList" to " << val);
+        }
+        if (vm.count("ip")) {
+            bool val = true;
+            try {
+                val = vm["ip"].as<bool>();
+            } catch (...) { } // just skip
+            tsk->Option(weoStayInIP, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInIP" to " << val);
+        }
+        if (vm.count("url_param")) {
+            bool val = true;
+            try {
+                val = vm["url_param"].as<bool>();
+            } catch (...) { } // just skip
+            tsk->Option(weoIgnoreUrlParam, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoIgnoreUrlParam" to " << val);
+        }
+        if (vm.count("content")) {
+            int val = vm["content"].as<int>();
+            tsk->Option(weoAllowedCTypes, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoAllowedCTypes" to " << val);
+        }
+        if (vm.count("parallel")) {
+            int val = vm["parallel"].as<int>();
+            tsk->Option(weoParallelReq, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoParallelReq" to " << val);
+        }
+        if (vm.count("ext_deny")) {
+            string val = vm["ext_deny"].as<string>();
+            tsk->Option(weoDeniedFileTypes, val);
+            LOG4CXX_DEBUG(scan_logger, "Set "weoDeniedFileTypes" to " << val);
+        }
     }
     
+    tsk->store_plugins(scan_plugins);
     // reconstruct URL to scan
     string url = vm["target"].as<string>();
     if (! boost::algorithm::starts_with(url, "http://")) {
         url = "http://" + url;
     }
-    tsk->set_name("Crawling " + url);
+    if (vm.count("name")) {
+        string val = vm["name"].as<string>();
+        tsk->set_name(val);
+    }
+    else {
+        tsk->set_name("Crawling " + url);
+    }
     webEngine::transport_url t_url(url);
     LOG4CXX_INFO(scan_logger, "Start scanning for: " << t_url.tostring());
     tsk->Option(weoScanHost, t_url.host);
