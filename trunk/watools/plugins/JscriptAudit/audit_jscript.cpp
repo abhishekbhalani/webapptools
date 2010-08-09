@@ -51,7 +51,7 @@ audit_jscript::audit_jscript(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     js_logger = logger;
     thread_running = false;
     js_exec = NULL;
-    LOG4CXX_INFO(logger, "audit_jscript plugin created; version " << VERSION_PRODUCTSTR);
+    LOG4CXX_DEBUG(logger, "audit_jscript plugin created; version " << VERSION_PRODUCTSTR);
 }
 
 audit_jscript::~audit_jscript(void)
@@ -452,7 +452,7 @@ void audit_jscript::process_events(v8::Persistent<v8::Context> ctx, webEngine::b
     std::string src;
     std::string name;
     // get on... events
-    LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events entity = " << entity->Name());
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "audit_jscript::process_events entity = " << entity->Name());
 
     AttrMap::iterator attrib = entity->attr_list().begin();
 

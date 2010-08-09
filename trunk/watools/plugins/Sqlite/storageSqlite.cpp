@@ -516,6 +516,10 @@ bool sqlite_storage::init_storage( const string& params )
         tbl_query = "CREATE UNIQUE INDEX IF NOT EXISTS [modules_index] ON [modules] ([id] ASC, [instance] ASC, [class] ASC)";
         rc = sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
 
+        // not a good idea to turn off journaling, but we need to speed :(
+        tbl_query = "PRAGMA journal_mode = OFF";
+        rc = sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
+
         names.clear();
         names.push_back("value");
         rs.clear();
