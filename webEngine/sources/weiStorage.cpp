@@ -29,6 +29,10 @@
 using namespace webEngine;
 using namespace boost;
 
+static map< string, vector<string> > namespaces_structs;
+static bool ns_init = false;
+static void init_namespaces();
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @property   char* webEngine::idb_struct[]
 ///
@@ -71,6 +75,7 @@ i_storage::i_storage(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     pluginInfo.plugin_id = "C7F595160595";
     pluginInfo.plugin_icon = WeXpmToStringList(iweStorage_xpm, sizeof(iweStorage_xpm) / sizeof(char*) );
     last_id = rand();
+    init_namespaces();
 }
 
 i_storage::~i_storage(void)
@@ -94,16 +99,30 @@ std::string i_storage::generate_id( const string& objType /*= ""*/ )
 
 std::vector<std::string> i_storage::get_namespace_struct( const std::string& ns )
 {
+    if (namespaces_structs.find(ns) != namespaces_structs.end()) {
+        return namespaces_structs[ns];
+    }
+    else {
+        return namespaces_structs[""];
+    }
+}
+
+void init_namespaces()
+{
     size_t i = 0;
     std::vector<std::string> inits;
     std::vector<std::string> fields;
 
-    fields.clear();
-    while (idb_struct[i] != NULL) {
-        boost::split(inits, idb_struct[i], boost::is_any_of(":"));
-        if (inits.size() > 0) {
-            if (inits[0] == ns) {
+    if (!ns_init) {
+        ns_init = true;
+        fields.clear();
+        namespaces_structs[""] = fields;
+
+        while (idb_struct[i] != NULL) {
+            boost::split(inits, idb_struct[i], boost::is_any_of(":"));
+            if (inits.size() > 0) {
                 //create namespace
+                fields.clear();
                 for (size_t j = 1; j < inits.size(); j++) {
                     string fld = inits[j];
                     size_t pos = fld.find(' ');
@@ -114,11 +133,9 @@ std::vector<std::string> i_storage::get_namespace_struct( const std::string& ns 
                         fields.push_back(inits[0] + "." + fld);
                     }
                 } // for each field
-                break; // finish while loop
-            } // not namespace found
-        } // if inits parsed
-        i++;
-    } // while exist initializer
-
-    return fields;
+                namespaces_structs[inits[0]] = fields;
+            } // if inits parsed
+            i++;
+        } // while exist initializer
+    }
 }
