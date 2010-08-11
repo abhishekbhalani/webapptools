@@ -687,7 +687,7 @@ Handle<Value> jsWindow::PlaceHolder(const Arguments& args)
     ret += "; name=";
     ret += value_to_string(el->props["name"]->ToString());
     ret += "]";
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsWindow::PlacHolder - " << ret);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsWindow::PlaceHolder - " << ret);
     return String::New(ret.c_str());
 }
 

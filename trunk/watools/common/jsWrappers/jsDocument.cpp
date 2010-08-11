@@ -39,13 +39,25 @@ static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
     else if (key == "forms") {
         Local<Array> elems(Array::New());
 
-        entity_list ptrs = el->doc->FindTags("form");
-        for(size_t i = 0; i < ptrs.size(); ++i) {
-            jsForm* e = new jsForm(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
-            Handle<Object> w = wrap_object<jsForm>(e);
-            elems->Set(Number::New(i), w);
+        if (el->doc) {
+            entity_list ptrs = el->doc->FindTags("form");
+            for(size_t i = 0; i < ptrs.size(); ++i) {
+                jsForm* e = new jsForm(boost::shared_dynamic_cast<html_entity>(ptrs[i]));
+                Handle<Object> w = wrap_object<jsForm>(e);
+                elems->Set(Number::New(i), w);
+            }
+            ClearEntityList(ptrs);
         }
         val = elems;
+    }
+    else if (key == "body") {
+        if (el->doc) {
+            entity_list ptrs = el->doc->FindTags("body");
+            if (ptrs.size() > 0) {
+                val = Local<Value>::New(wrap_entity(boost::shared_dynamic_cast<html_entity>(ptrs[0])));
+            }
+            ClearEntityList(ptrs);
+        }
     }
     else {
         // Look up the value if it exists using the standard STL idiom.
@@ -308,6 +320,7 @@ jsDocument::jsDocument(jsWindow* holder_) : jsElement(html_entity_ptr((html_enti
         _proto->SetAccessor(String::NewSymbol("forms"), DocumentGet, DocumentSet);
         _proto->SetAccessor(String::NewSymbol("images"), DocumentGet, DocumentSet);
         _proto->SetAccessor(String::NewSymbol("links"), DocumentGet, DocumentSet);
+        _proto->SetAccessor(String::NewSymbol("body"), DocumentGet, DocumentSet);
 
         _proto->SetAccessor(String::NewSymbol("documentElement"), DocumentGet, DocumentSet);
 

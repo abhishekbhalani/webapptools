@@ -159,7 +159,8 @@ void jsExecutor::append_results(const string& data)
 
 void jsExecutor::append_object(v8::Handle<v8::Object> data)
 {
-    objects.push_back(v8::Persistent<v8::Object>::New(data));
+    //objects.push_back(v8::Persistent<v8::Object>::New(data));
+    exec_result += obj_dump(Local<Object>::New(data), "appended object", "", 9, context);
 }
 
 void jsExecutor::reset_results()
