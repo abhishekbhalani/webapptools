@@ -13,6 +13,7 @@
 #include <boost/regex.hpp>
 #include <boost/thread.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 #include "audit_jscript.h"
 #include "jscript.xpm"
@@ -361,10 +362,22 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts process events");
         //html_document* doc_entity = sc->parsed_data.get();
         process_events(ctx, parser);
+
+        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts search for new scripts");
+        /*int obj_size = 0; 
+        int obj_size_n = 0;
+        do {
+            obj_size = js_exec->objects.size();
+            for (size_t i = obj_size_n; i < obj_size; ++i) {
+                //
+            }
+            obj_size_n = js_exec->objects.size();
+        }
+        while (obj_size_n > obj_size);*/
         // process results
         string res;
         res = js_exec->get_results();
-        // res += js_exec->dump("Object");
+        res += js_exec->dump_results();
         js_exec->reset_results();
         // disable network operations
         js_exec->allow_network(NULL);
@@ -467,13 +480,19 @@ void audit_jscript::process_events(v8::Persistent<v8::Context> ctx, webEngine::b
 
         if (boost::istarts_with(name, "on")) {
             // attribute name started with "on*" - this is the event
-            LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
-            src = "__evt_target__.__event__=function(){" + src + "}";
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
+            boost::trim(src);
+            if (! boost::istarts_with(src, "function")) {
+                src = "__evt_target__.__event__=function(){" + src + "}";
+            }
+            else {
+                src = "__evt_target__.__event__=" + src;
+            }
             js_exec->execute_string(src, "", true, true);
             js_exec->execute_string("__evt_target__.__event__()", "", true, true);
         }
         if (boost::istarts_with(src, "javascript:")) {
-            LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events - " << name << " source = " << src);
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
             src = src.substr(11); // skip "javascript:"
             src = "__evt_target__.event=function(){ " + src + " }";
             js_exec->execute_string(src, "", true, true);

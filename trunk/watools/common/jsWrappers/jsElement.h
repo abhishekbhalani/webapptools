@@ -34,6 +34,7 @@ namespace webEngine {
         static v8::Handle<v8::Value> SetAttribute(const v8::Arguments& args);
         static v8::Handle<v8::Value> GetElemsByName(const v8::Arguments& args);
         static v8::Handle<v8::Value> CloneNode(const v8::Arguments& args);
+        static v8::Handle<v8::Value> RemoveChild(const v8::Arguments& args);
 
         static v8::Handle<v8::Value> PlaceHolder(const v8::Arguments& args);
     protected:
@@ -44,6 +45,25 @@ namespace webEngine {
         static std::vector<std::string> ro_props;
         static std::vector<std::string> funcs;
     };
+
+    class jsAttribute {
+    public:
+        jsAttribute(jsElement* _prnt, string nm);
+
+        static bool is_init;
+        static v8::Persistent<v8::FunctionTemplate> object_template;
+
+        static void init();
+
+        static v8::Handle<v8::Value> ToString(const v8::Arguments& args);
+        static v8::Handle<v8::Value> ValueGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+        static void ValueSet(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+        static v8::Handle<v8::Value> NameGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+
+        jsElement* parent;
+        string name;
+    };
+
 } //namespace webEngine
 
 v8::Handle<v8::Value> Image(const v8::Arguments& args);

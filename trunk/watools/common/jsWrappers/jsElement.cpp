@@ -79,6 +79,25 @@ std::vector<std::string> jsElement::ro_props(ro_list, ro_list + sizeof ro_list /
 Persistent<FunctionTemplate> jsElement::object_template;
 bool jsElement::is_init = false;
 
+Persistent<FunctionTemplate> jsAttribute::object_template;
+bool jsAttribute::is_init = false;
+
+static void AddChildren(entity_list &curr)
+{
+    entity_list chld;
+    Handle<Object> val;
+
+    for (size_t i = 0; i < curr.size(); ++i) {
+        val = wrap_entity(boost::shared_dynamic_cast<html_entity>(curr[i]));
+        append_object(val);
+        chld = curr[i]->Children();
+        if (chld.size() > 0) {
+            AddChildren(chld);
+        }
+        ClearEntityList(chld);
+    }
+}
+
 Handle<Value> Image(const Arguments& args)
 {
     HandleScope scope;
@@ -104,13 +123,13 @@ Handle<Value> Element(const Arguments& args)
 {
     HandleScope scope;
     Handle<Object> res;
-    Local<Context> ctx = v8::Context::GetCurrent();
+    Local<Context> ctx = Context::GetCurrent();
     Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets v8_context");
     if (exec->IsObject())
     {
         Local<Object> eObj = Local<Object>::Cast(exec);
-        v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));
+        v8::Local<v8::External> wrap = Local<External>::Cast(eObj->GetInternalField(0));
         jsBrowser* jsExec = static_cast<jsBrowser*>(wrap->Value());
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets jsBrowser");
         if (args.Length() > 0) {
@@ -131,6 +150,8 @@ jsElement::jsElement(html_document_ptr document)
     }
     // todo - link to the document
     html_ent.reset(new html_entity());
+    html_ent->Parent(document);
+    document->Children().push_back(html_ent);
     css_style = new jsCssStyle(html_ent);
 }
 
@@ -171,7 +192,7 @@ void jsElement::init()
     _proto->Set(String::New("item"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("normalize"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("removeAttribute"), FunctionTemplate::New(jsElement::PlaceHolder));
-    _proto->Set(String::New("removeChild"), FunctionTemplate::New(jsElement::PlaceHolder));
+    _proto->Set(String::New("removeChild"), FunctionTemplate::New(jsElement::RemoveChild));
     _proto->Set(String::New("replaceChild"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("setAttribute"), FunctionTemplate::New(jsElement::SetAttribute));
     _proto->SetNamedPropertyHandler(jsElement::PropertyGet, jsElement::PropertySet, NULL, NULL, jsElement::PropertyEnum);
@@ -211,7 +232,26 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
         iter = find(ro_props.begin(), ro_props.end(), key);
         if (iter != ro_props.end()) {
             val = Local<Value>::New(Undefined());
-            if (key == "childNodes") {
+            if (key == "attributes") {
+                Handle<Array> elems = Local<Array>::New(Array::New());
+
+                AttrMap::iterator attrib = entity()->attr_list().begin();
+                int i = 0;
+                while(attrib != entity()->attr_list().end() ) {
+                    string atnm = (*attrib).first;
+
+                    jsAttribute* attr = new jsAttribute(this, atnm);
+                    Handle<Object> w = wrap_object<jsAttribute>(attr);
+
+                    //elems->Set(Number::New(i), w);
+                    elems->Set(String::New(atnm.c_str()), w);
+
+                    ++i;
+                    ++attrib;
+                }
+                val = elems;
+            }
+            else if (key == "childNodes") {
                 Handle<Array> elems = Local<Array>::New(Array::New());
 
                 entity_list ptrs = entity()->Children();
@@ -268,9 +308,19 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
                 val = String::New(sval.c_str());
             }
             else if (key == "ownerDocument") {
-                html_document_ptr d((html_document*)entity()->GetRootDocument());
+                html_document* d = (html_document*)entity()->GetRootDocument();
+                if (d == NULL) {
+                    // get main window's document
+                    Local<Context> ctx = v8::Context::GetCurrent();
+                    Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
+                    Local<Object> eObj = Local<Object>::Cast(exec);
+                    Local<External> wrap = Local<External>::Cast(eObj->GetInternalField(0));
+                    jsBrowser* jsExec = static_cast<jsBrowser*>(wrap->Value());
+                    d = jsExec->window->document->doc.get();
+                }
+                LOG4CXX_DEBUG(iLogger::GetLogger(), "jsElement::ownerDocument = " << d);
                 jsDocument* jd = new jsDocument(NULL);
-                jd->doc = d;
+                jd->doc.reset(d);
                 val = wrap_object<jsDocument>(jd);
             }
             else if (key == "tagName") {
@@ -331,6 +381,12 @@ Handle<Value> jsElement::SetProperty( Local<String> name, Local<Value> value, co
                 str_tag_stream stream(code.c_str());
                 tag_scanner scanner(stream);
                 entity()->Parse("", scanner, NULL);
+                // add all children as new objects
+                entity_list chld = entity()->Children();
+                if (chld.size() > 0) {
+                    AddChildren(chld);
+                }
+                ClearEntityList(chld);
             }
         }
         else {
@@ -585,4 +641,139 @@ Handle<Value> jsElement::CloneNode( const Arguments& args )
     retval = wrap_entity(hte);
 
     return scope.Close(retval);
+}
+
+Handle<Value> jsElement::RemoveChild( const Arguments& args )
+{
+    if (args[0]->IsObject()) {
+        try {
+            HandleScope scope;
+
+            Local<Object> self = args.This();
+            Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+            void* ptr = wrap->Value();
+            jsElement* el = static_cast<jsElement*>(ptr);
+
+            // get the object to remove 
+            Local<Object> child = args[0].As<Object>();
+            Local<External> wch = Local<External>::Cast(child->GetInternalField(0));
+            jsElement* ch = static_cast<jsElement*>(wch->Value());
+            if (el->html_ent && ch->html_ent) {
+                base_entity_ptr pptr = ch->html_ent->Parent().lock();
+                html_entity_ptr chp = boost::shared_dynamic_cast<html_entity>(pptr);
+                if (chp == el->html_ent) {
+                    // todo - remove it!
+                }
+                else {
+                    LOG4CXX_WARN(iLogger::GetLogger(), "jsElement::RemoveChild argument isn't a child!");
+                }
+            }
+            else {
+                LOG4CXX_WARN(iLogger::GetLogger(), "jsElement::RemoveChild objects are not valid! parent=" << el->html_ent.get() << "; child=" << ch->html_ent.get() );
+            }
+        }
+        catch(...) {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "jsElement::RemoveChild - exception!");
+        }
+    }
+
+    return args[0];
+}
+
+jsAttribute::jsAttribute(jsElement* _prnt, string nm)
+{
+    if (!is_init) {
+        init();
+    }
+    parent = _prnt;
+    name = nm;
+}
+
+void jsAttribute::init()
+{
+    is_init = true;
+    Handle<FunctionTemplate> _object = FunctionTemplate::New();
+    //get the location's instance template
+    Handle<ObjectTemplate> _proto = _object->InstanceTemplate();
+    //set its internal field count to one (we'll put references to the C++ point here later)
+    _proto->SetInternalFieldCount(1);
+
+    // Add accessors for each of the fields.
+    _proto->Set(String::New("toString"), FunctionTemplate::New(jsAttribute::ToString));
+    _proto->SetAccessor(String::New("value"), jsAttribute::ValueGet, jsAttribute::ValueSet);
+    _proto->SetAccessor(String::New("name"), jsAttribute::NameGet);
+
+    object_template = Persistent<FunctionTemplate>::New(_object);
+}
+
+Handle<Value> jsAttribute::ToString( const Arguments& args )
+{
+    HandleScope scope;
+    Handle<Value> res;
+
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsAttribute* el = static_cast<jsAttribute*>(ptr);
+
+    string retval = "[object Attribute name=";
+    retval += el->name;
+
+    if (el->parent && el->parent->entity()) {
+        string val = el->parent->entity()->attr(el->name);
+        retval += "; value=";
+        retval += val;
+    }
+
+    retval += "]";
+    res = String::New(retval.c_str());
+    return scope.Close(res);
+}
+
+Handle<Value> jsAttribute::ValueGet( Local<String> name, const AccessorInfo &info )
+{
+    HandleScope scope;
+    Handle<Value> res;
+
+    Local<Object> self = info.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsAttribute* el = static_cast<jsAttribute*>(ptr);
+
+    if (el->parent && el->parent->entity()) {
+        string val = el->parent->entity()->attr(el->name);
+        res = String::New(val.c_str());;
+    }
+
+    return scope.Close(res);
+}
+
+void jsAttribute::ValueSet( Local<String> name, Local<Value> value, const AccessorInfo &info )
+{
+    HandleScope scope;
+    Handle<Value> res;
+
+    Local<Object> self = info.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsAttribute* el = static_cast<jsAttribute*>(ptr);
+
+    if (el->parent && el->parent->entity()) {
+        string val = value_to_string(value);
+        el->parent->entity()->attr(el->name, val);
+    }
+}
+
+Handle<Value> jsAttribute::NameGet( Local<String> name, const AccessorInfo &info )
+{
+    HandleScope scope;
+    Handle<Value> res;
+
+    Local<Object> self = info.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    jsAttribute* el = static_cast<jsAttribute*>(ptr);
+
+    res = String::New(el->name.c_str());
+    return scope.Close(res);
 }
