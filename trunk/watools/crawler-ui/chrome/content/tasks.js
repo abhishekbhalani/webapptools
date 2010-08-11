@@ -236,8 +236,8 @@ function stopTaskOk(tsk_id)
 					width: 400,
 					modal: true,
 					open: function() {
-							$(this).parent().css("overflow", "hidden");
-							$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+						$(this).parent().css("overflow", "hidden");
+						$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
 					},
 					buttons: dialog_buttons
 				});
@@ -249,8 +249,8 @@ function stopTaskOk(tsk_id)
 					width: 400,
 					modal: true,
 					open: function() {
-							$(this).parent().css("overflow", "hidden");
-							$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+						$(this).parent().css("overflow", "hidden");
+						$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
 					},
 					buttons: dialog_buttons
 				});
@@ -274,8 +274,8 @@ function stopTask(tsk_id)
 		width: 400,
 		modal: true,
 		open: function() {
-				$(this).parent().css("overflow", "hidden");
-				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+			$(this).parent().css("overflow", "hidden");
+			$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
 		},
 		buttons: dialog_buttons
 	});
@@ -290,6 +290,7 @@ function deleteTaskOk(tsk_id)
 	catch (e) {
 		__alert("Task deletion failed:\n" + e);
 	}
+	drawTasks();
 	return false;
 }
 
@@ -308,8 +309,8 @@ function deleteTask(tsk_id)
 		width: 400,
 		modal: true,
 		open: function() {
-				$(this).parent().css("overflow", "hidden");
-				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+			$(this).parent().css("overflow", "hidden");
+			$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
 		},
 		buttons: dialog_buttons
 	});
@@ -395,8 +396,8 @@ function taskFilter()
 		width: 500,
 		modal: true,
 		open: function() {
-				$(this).parent().css("overflow", "hidden");
-				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+			$(this).parent().css("overflow", "hidden");
+			$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
 		},
 		buttons: dialog_buttons
 	}); 
@@ -474,8 +475,8 @@ function addTask()
 		width: 400,
 		modal: true,
 		open: function() {
-				$(this).parent().css("overflow", "hidden");
-				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+			$(this).parent().css("overflow", "hidden");
+			$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
 		},
 		buttons: dialog_buttons
 	}); 

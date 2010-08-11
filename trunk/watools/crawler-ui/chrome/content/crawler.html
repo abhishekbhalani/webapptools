@@ -740,10 +740,34 @@ The default value is 0</td></tr>
 </table>
 </div>
 
+<div id="confirm_delete" title="Confirmation" style="display: none">
+	<table class="ui-widget" width="100%"><tr>
+		<td width="10px;"><img src="../skin/classic/images/warning.png"> </td><td><div align="center">Are you shure to delete task?</div>
+		<div class="ui-state-error" align="center">This operation can't be undone!</div></td>
+	</tr></table>
+</div>
+
+<div id="confirm_stop" title="Confirmation" style="display: none">
+	<table class="ui-widget" width="100%"><tr>
+		<td width="10px;"><img src="../skin/classic/images/warning.png"> </td><td><div align="center">Are you shure to stop task?</div>
+		<div class="ui-state-error" align="center">Task can't be resumed after stop operation!</div></td>
+	</tr></table>
+</div>
+
+<div id="task_notify" title="Error!"><span id="task_notify_text"></span></div>
+
 <div id="style_alert" title="Alert" class="tab container" style="display:none; overflow: none;">
 <table class="ui-widget" border="0" width="100%"><tr valign="top">
 <td><img src="../skin/classic/images/warning.png"></td><td><span id="style_alert_text"></span></td>
 </tr></table>
+</div>
+
+<div id="newName" style="display: none" title="Create new profile">
+	<b>New profile name: </b><input id="nameInput" type="text" value="" onchange="profileName=this.value; return false;">
+</div>
+
+<div id="msgBox" style="display: none" title="Warning">
+	<span id="msgText"></span>
 </div>
 
 </body>
