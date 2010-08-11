@@ -142,6 +142,10 @@ function addProfile() {
         autoOpen: true,
         width: 300,
         modal: true,
+		open: function() {
+			$(this).parent().css("overflow", "hidden");
+			$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+		},
         buttons: dialog_buttons
     });
 }
@@ -158,6 +162,10 @@ function delProfileOk(pID) {
 			autoOpen: true,
 			width: 400,
 			modal: true,
+			open: function() {
+				$(this).parent().css("overflow", "hidden");
+				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+			},
 			buttons: dialog_buttons
 		});
 	}
@@ -177,11 +185,15 @@ function delProfile() {
 								$(this).dialog('close');
 							};
 		$("#msgBox").dialog({
-					autoOpen: true,
-					width: 400,
-					modal: true,
-					buttons: dialog_buttons
-				});
+			autoOpen: true,
+			width: 400,
+			modal: true,
+			open: function() {
+				$(this).parent().css("overflow", "hidden");
+				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+			},
+			buttons: dialog_buttons
+		});
 		selectedProfile = -1;
 	}
 }
@@ -218,6 +230,10 @@ function cloneProfile() {
 			autoOpen: true,
 			width: 300,
 			modal: true,
+			open: function() {
+				$(this).parent().css("overflow", "hidden");
+				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+			},
 			buttons: dialog_buttons
 		});
 		selectedProfile = -1;
