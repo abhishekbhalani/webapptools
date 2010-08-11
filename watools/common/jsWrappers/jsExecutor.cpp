@@ -159,8 +159,23 @@ void jsExecutor::append_results(const string& data)
 
 void jsExecutor::append_object(v8::Handle<v8::Object> data)
 {
-    //objects.push_back(v8::Persistent<v8::Object>::New(data));
-    exec_result += obj_dump(Local<Object>::New(data), "appended object", "", 9, context);
+    objects.push_back(v8::Persistent<v8::Object>::New(data));
+    //exec_result += obj_dump(Local<Object>::New(data), "appended object", "", 9, context);
+    //execute_string("function showAttr(o) { echo(o); if(o.attributes) { a = o.attributes; for(var i in a) {echo('\t'+a[i].name + ': ' + a[i].value)}}}", "", true, true);
+/*    Local<Object> obj = Local<Object>::New(data);
+    exec_result += value_to_string(obj);
+    exec_result += "\n";
+    Local<Array> attrs = obj->Get(String::New("attributes")).As<Array>();
+    if (attrs->IsArray()) {
+        //Local<Array> names = attrs->GetPropertyNames();
+        for (int i = 0; i < attrs->Length(); i++) {
+            exec_result += "\t";
+            exec_result += value_to_string((*attrs)[i].Get(String::New("name")));
+            exec_result += ": ";
+            exec_result += value_to_string((*attrs)[i].Get(String::New("value")));
+            exec_result += "\n";
+        }
+    }*/
 }
 
 void jsExecutor::reset_results()
@@ -168,7 +183,7 @@ void jsExecutor::reset_results()
     boost::lock_guard<boost::mutex> lock(locker);
 
     exec_result = "";
-    //objects.clear();
+    objects.clear();
 }
 
 string jsExecutor::dump(const string& name, const string& indent/* = ""*/, int depth/* = 0*/, v8::Handle<v8::Context> ctx/* = NULL*/)
@@ -305,6 +320,8 @@ void jsExecutor::init_globals()
         global->Set(String::New("version"), FunctionTemplate::New(version));
         // Bind the 'dumpObj' function
         global->Set(String::New("dumpObj"), FunctionTemplate::New(dump_object));
+        // Bind the 'dumpRsults' function
+        global->Set(String::New("dumpResults"), FunctionTemplate::New(result_object_info));
 
         // Initialize Object template to wrap object into JavaScript
         Handle<FunctionTemplate> _object = FunctionTemplate::New();
@@ -317,6 +334,33 @@ void jsExecutor::init_globals()
     LOG4CXX_TRACE(iLogger::GetLogger(), "jsExecutor: objectTemplate initialized");
 }
 
+string jsExecutor::dump_results()
+{
+    string result;
+    Context::Scope context_scope(context);
+
+    for(size_t i = 0; i < objects.size(); i++) {
+        Local<Value> obje = Local<Value>::New(objects[i]);
+        result += value_to_string(obje);
+        if (obje->IsObject()) {
+            Local<Object> obj = Local<Object>::New(obje.As<Object>());
+            result += "\n";
+            Local<Array> attrs = obj->Get(String::New("attributes")).As<Array>();
+            if (attrs->IsArray()) {
+                Local<Array> names = attrs->GetPropertyNames();
+                for (int i = 0; i < names->Length(); i++) {
+                    Local<Value> nm = names->Get(Number::New(i));
+                    result += "\t";
+                    result += value_to_string(attrs->Get(nm)->ToObject()->Get(String::New("name")));
+                    result += ": ";
+                    result += value_to_string(attrs->Get(nm)->ToObject()->Get(String::New("value")));
+                    result += "\n";
+                }
+            } // if has Array
+        } // if Object
+    } // foreach object
+    return result;
+}
 // Functions
 static Handle<Value> result_object(Local<String> name, const AccessorInfo &info)
 {
@@ -348,6 +392,24 @@ static Handle<Value> result_object(Local<String> name, const AccessorInfo &info)
             res->Set(Int32::New(i), val);
         }
     }
+
+    return scope.Close(res);
+}
+
+
+static Handle<Value> result_object_info( const Arguments& args )
+{
+    HandleScope scope;
+    Handle<Value> res;
+
+    Local<Object> self = args.This();
+    Local<Value> exec = self->Get(String::New("v8_context"));
+    Local<Object> eObj = Local<Object>::Cast(exec);
+    Local<External> wrap = Local<External>::Cast(eObj->GetInternalField(0));
+    jsExecutor* jsExec = static_cast<jsExecutor*>(wrap->Value());
+
+    string result = jsExec->dump_results();
+    res = String::New(result.c_str());
 
     return scope.Close(res);
 }

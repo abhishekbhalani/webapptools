@@ -108,8 +108,8 @@ int RunMain(int argc, char* argv[]) {
     shellExecutor::global_object()->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
     // Bind the 'version' function
     // shellExecutor::global_object()->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
-    // Bind the 'version' function
-    // shellExecutor::global_object()->Set(v8::String::New("echo"), v8::FunctionTemplate::New(Print));
+    // Bind the 'echo' function
+    shellExecutor::global_object()->Set(v8::String::New("echo2"), v8::FunctionTemplate::New(Print));
     // init global objects
     shellExecutor::global_object()->SetAccessor(v8::String::NewSymbol("objects"), GetAnyObject);
 

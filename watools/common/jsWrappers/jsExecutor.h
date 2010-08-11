@@ -55,6 +55,8 @@ namespace webEngine {
         string dump(const string& name, const string& indent = "", int depth = 0, v8::Handle<v8::Context> ctx = v8::Handle<v8::Context>((v8::Context*)NULL));
         string obj_dump(v8::Local<v8::Value> val, const string& name, const string& indent, int depth, v8::Handle<v8::Context> ctx);
 
+        string dump_results();
+
         v8::Persistent<v8::Context> get_child_context();
         void close_child_context(v8::Persistent<v8::Context> ctx);
 
@@ -64,6 +66,7 @@ namespace webEngine {
         i_response_ptr http_request(i_request_ptr req);
         bool http_request_async(i_request_ptr req);
 
+        vector<v8::Persistent<v8::Value>> objects;
     protected:
         task* net_access;
         static bool is_init;
@@ -71,13 +74,13 @@ namespace webEngine {
         static v8::Persistent<v8::ObjectTemplate> global;
         
         v8::Persistent<v8::Context> context;
-        vector<v8::Persistent<v8::Value>> objects;
         string exec_result;
         int maxDepth;
 
         void report_exception(v8::TryCatch* handler);
 
         friend v8::Handle<v8::Value> result_object(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+        friend v8::Handle<v8::Value> result_object_info(const v8::Arguments& args);
         friend v8::Handle<v8::Value> get_result_string(v8::Local<v8::String> name, const v8::AccessorInfo &info);
         friend void set_result_string(v8::Local<v8::String> name, v8::Local<v8::Value> val, const v8::AccessorInfo& info);
         //friend v8::Handle<v8::Value> dump(const v8::Arguments& args);

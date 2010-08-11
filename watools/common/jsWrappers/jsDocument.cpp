@@ -340,7 +340,7 @@ jsDocument::jsDocument(jsWindow* holder_) : jsElement(html_entity_ptr((html_enti
         object_template = Persistent<FunctionTemplate>::New(_object);
     }
     holder = holder_;
-    doc.reset(new html_document);
+    doc.reset(new html_document());
 }
 
 jsDocument::~jsDocument(void)
