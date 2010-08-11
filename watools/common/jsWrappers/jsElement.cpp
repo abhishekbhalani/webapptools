@@ -229,7 +229,7 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
             else if (key == "lastChild") {
                 if (entity()->Children().size() > 0) {
                     int idx = entity()->Children().size() - 1;
-                    val = wrap_entity(boost::shared_dynamic_cast<html_entity>(entity()->Child(idx)));;
+                    val = wrap_entity(boost::shared_dynamic_cast<html_entity>(entity()->Child(idx)));
                 }
             }
             else if (key == "nodeName") {
@@ -438,7 +438,7 @@ Handle<Value> jsElement::PlaceHolder( const Arguments& args )
         ret += attr;
     }
     ret += "]";
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsElement::PlacHolder - " << ret);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsElement::PlaceHolder - " << ret);
     return String::New(ret.c_str());
 }
 

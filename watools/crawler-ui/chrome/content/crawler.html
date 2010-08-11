@@ -4,6 +4,12 @@
 <link rel="stylesheet" href="../skin/classic/jquery.treeview.css" type="text/css" />
 <link type="text/css" href="layout.css" rel="stylesheet" />
 <link href="prettify/prettify.css" type="text/css" rel="stylesheet" />
+<style>
+.help_link { border-bottom: 1px dotted; }
+.samples { width: 100%; border: 1px dotted; background: #ffffff; color: #000000; font-family: monospace; padding: 10px;}
+table.help_table { width: 100%; border: 1px dotted; border-collapse: collapse; }
+table.help_table tr td { border-width: 1px; border-style: dotted; border-collapse: collapse; padding: 5px; }
+</style>
 <script src="jquery.js"></script>
 <script src="jquery-ui.js"></script>
 <script src="jquery.layout.js"></script>
@@ -298,7 +304,7 @@
 			<div class="ui-layout-south"></div>
 			<div class="ui-layout-west">
 				<div class="ui-layout-center">
-					<div class="ui-widget-header" style="padding: 0px;"><div style="padding: 5px;">Profiles</div>
+					<div class="ui-widget-header" style="padding: 0px; margin: 0px; border: 0px;"><div class="ui-widget-header" style="padding: 5px;">Profiles</div>
 						<div class="ui-widget-content ui-state-default" style="margin: 0px;padding: 3px;">
 							<a href="#" onclick="return addProfile();"><span class="ui-icon ui-icon-plusthick ui-icon-btn" title="Add profile" style="white-space: nowrap;"></span></a>
 							<a href="#" onclick="return delProfile();"><span class="ui-icon ui-icon-close ui-icon-btn" title="Delete profile" style="white-space: nowrap;"></span></a>
@@ -509,7 +515,7 @@
 							<input type="file" class="file_input" id="sqlite_file_btn" onchange="OpenDBFile('sqlite_file_btn', 'sqlite_file');"/>
 						</label></td><td></td>
 					</tr>
-					<tr name="dbd_sqlite"><td style="width: 5%; white-space: nowrap;">Page chache size:</td><td><input type="text" id="sqlite_chache" value="2048"></td><td>&nbsp;</td></tr>
+					<tr name="dbd_sqlite"><td style="width: 5%; white-space: nowrap;">Page cache size:</td><td><input type="text" id="sqlite_chache" value="2048"></td><td>&nbsp;</td></tr>
 					<tr name="dbd_sqlite"><td style="width: 5%; white-space: nowrap;">Database Version:</td><td><span id="sqlite_version"></span></td><td>&nbsp;</td></tr>
 					<tr name="dbd_mysql"><td style="width: 5%; white-space: nowrap;">Database host:</td><td style="white-space: nowrap;" width="70%"><input type="text" id="mysql_host"></td><td>&nbsp;</td></tr>
 					<tr name="dbd_mysql"><td style="width: 5%; white-space: nowrap;">Database name:</td><td><input type="text" id="mysql_dbname"></td><td>&nbsp;</td></tr>
@@ -525,95 +531,199 @@
 				<div id="tabHelpAccordion"> 
 					<H3><A href="#">Introduction</A></H3> 
 					<DIV> 
-						<P>Mauris mauris ante, blandit et, ultrices a, suscipit eget, quam. 
-							Integer ut neque. Vivamus nisi metus, molestie vel, gravida in, condimentum sit amet, nunc.</P> 
-						<P>Nam a nibh. Donec suscipit eros. Nam mi. Proin viverra leo ut odio. Curabitur malesuada. 
-							Vestibulum a velit eu ante scelerisque vulputate.</P> 
+						<P><b>Crawler</b> is a utility designed for testing and demonstration of the WebEngine library
+						features. This program gathers information about the resources of a specified web server
+						by analyzing references in the HTML markup, text, and JavaScript code. Additionally, a
+						query is sent to the <a target="_blank" class="help_link" href="http://www.mywot.com/">Web Of Trust</a> 
+						knowledge base to obtain information about the analyzed site. This check demonstrates analysis
+						of web application vulnerabilities.</p>
+						<p>First and foremost, please do not be evil. Use <b>crawler</b> only against services you own, or
+						have a permission to test. The given application is not a full-fledged analyzer of web
+						application security. Furthermore, the library is currently not meant for scanning
+						of rogue and misbehaving HTTP servers; in these cases, correct and stable operation
+						cannot be guaranteed.</P> 
+						<P>The main features provided by the application are listed below:</P> 
+						<ul>
+							<li>Access to the contents of web servers via HTTP.</li>
+							<li>Support of the Basic, Digest, and NTLM authorization schemes.</li>
+							<li>Operation via proxy servers with various authorization schemes.</li>
+							<li>JavaScript analysis aimed at receiving references with simulation of a DOM structure.</li>
+							<li>A wide variety of options to describe the scan target (lists of scanned domains, restriction of scanning to a host, a domain, or a web server directory, etc.)</li>
+							<li>Modular structure, which allows one to implement plug-ins.</li>
+						</ul>
 					</DIV> 
 			 
 					<H3><A href="#">Package structure</A></H3> 
 					<DIV> 
-						<P style="font-weight: bold;">Sed Non Urna</P> 
-						<P>Donec et ante. Phasellus eu ligula. Vestibulum sit amet purus.
-							Vivamus hendrerit, dolor at aliquet laoreet, mauris turpis porttitor velit,
-							faucibus interdum tellus libero ac justo.</P> 
-						<P>Vivamus non quam. In suscipit faucibus urna.</P> 
+						<P>The package consists of two main components: the <b>crawler</b> utility and a XUL-based GUI.
+						To display the GUI, one can use the Firefox browser or a specialized application
+						(e.g. xulrunner or prism).</p>
+						<p>The application root directory contains the utility binary files and the XUL configuration
+						file (application.ini). The nested-directories structure is defined by the rules of
+						formation of applications based on XUL. A user may be interested in the <b>chrome/skin</b> directory,
+						which contains files describing the application appearance. The package offers several
+						pre-installed themes. To change the appearance, it is sufficiently to replace
+						the contents of the <b>chrome/skin/classic</b> directory with the chosen theme.
+						A new theme can be created on the basis of an existing one or by modifying themes
+						from the site <a target="_blank" class="help_link" href="http://jqueryui.com/themeroller/">http://jqueryui.com/themeroller/</a>.
+						The themes downloaded from this site should be supplemented with some images
+						and CSS descriptions by analogy with the existing ones.</P> 
 					</DIV> 
 			 
 					<H3><A href="#">Command-line arguments</A></H3> 
 					<DIV> 
-						<P>Nam enim risus, molestie et, porta ac, aliquam ac, risus. Quisque lobortis.
-							Phasellus pellentesque purus in massa. Aenean in pede.</P> 
-						<P>Phasellus ac libero ac tellus pellentesque semper. Sed ac felis. Sed commodo, 
-							magna quis lacinia ornare, quam ante aliquam nisi, eu iaculis leo purus venenatis dui.</P> 
-						<UL> 
-							<LI>List item one</LI> 
-							<LI>List item two</LI> 
-							<LI>List item three</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-							<LI>Another Item</LI> 
-						</UL> 
+						<P>To run the <b>crawler</b> utility, it is necessary to set certain command line arguments.
+						The following arguments are processed:</P> 
+						<table class="ui-widget help_table">
+							<tr><td width="10%"><b>--help</b></td><td>Displays the list of available arguments</td></tr>
+							<tr><td><b>--target <i>arg</i></b></td><td>Defines the scan target (a required parameter)</td></tr>
+							<tr><td><b>--profile <i>arg</i></b></td><td>Defines the scan profile. The profile is specified with
+										a numeric identifier and should be preliminarily saved in the application database.
+										If this argument is used, other arguments defining the scan mode are ignored;
+										the <b>name</b> argument is an exception</td></tr>
+							<tr><td><b>--name <i>arg</i></b></td><td>Defines the name of the scan task. The string “Crawling &lt;<b>target</b>&gt;” is used by default</td></tr>
+							<tr><td><b>--output <i>arg</i></b></td><td>Defines the mode of generation of a text scan report. The following values are available:<br/>
+0 – total information about all detected objects<br/>
+1 – a list of references only<br/>
+2 – a brief overview (URL, HTTP response code, load time, data amount,  and contents type separated by tabs)<br/>
+The mode 0 is applied by default
+</td></tr>
+							<tr><td><b>--depth <i>arg</i></b></td><td>The scan depth. Only references that are not farther than a specified number of steps away from the initial reference are analyzed</td></tr>
+							<tr><td><b>--dir</b></td><td>Scanning doesn’t go beyond the scope of the specified start directory and  nested directories</td></tr>
+							<tr><td><b>--host</b></td><td>Scanning doesn’t go beyond the scope of the specified host</td></tr>
+							<tr><td><b>--domain</b></td><td>The specified domain and its sub-domains of the following levels are scanned</td></tr>
+							<tr><td><b>--dlist</b></td><td>Only domains from the specified list are scanned</td></tr>
+							<tr><td><b>--ip</b></td><td>Only hosts located at the IP address of the initial request are scanned (not implemented)</td></tr>
+							<tr><td><b>--url_param</b></td><td>Application of this argument results in ignoring of URL parameters during analysis of visited links</td></tr>
+							<tr><td><b>--parallel <i>arg</i></b></td><td>The number of simultaneous requests to the server. The default value is 10</td></tr>
+							<tr><td><b>--no_jscript</b></td><td>Do not use the JavaScript analyzer during page processing</td></tr>
+							<tr><td><b>--content <i>arg</i></b></td><td>The mode of contents type analysis. The following values are available:<br/>
+0 – analyze any contents type<br/>
+1 – analyze empty content type and "text/*"<br/>
+2 – analyze only only "text/*"<br/>
+3 – analyze empty content type and "text/html"<br/>
+4 – analyze only only "text/html"<br/>
+The default value is 0</td></tr>
+							<tr><td><b>--config <i>arg</i></b></td><td>Use the specified configuration type. By default, the crawler.conf file located in the current directory is used</td></tr>
+							<tr><td><b>--result <i>arg</i></b></td><td>Write the text scan report to the specified file. If this argument is not used, then the report is displayed</td></tr>
+							<tr><td><b>--trace <i>arg</i></b></td><td>Use the specified logging system configuration file. Details are given in documentation to the 
+									<a target="_blank" class="help_link" href="http://logging.apache.org/log4cxx/index.html">log4cxx</a> library.</td></tr>
+							<tr><td><b>--generate <i>arg</i></b></td><td>Create a configuration file with the specified name and default values.</td></tr>
+							<tr><td><b>--init_db</b></td><td>Database initialization and updating of information about plug-ins.</td></tr>
+						</table>
 					</DIV> 
 			 
 					<H3><A href="#">Configuration</A></H3> 
 					<DIV> 
-						<P>Cras dictum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames 
-							ac turpis egestas.</P> 
-						<P>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;
-							Aenean lacinia mauris vel est.</P> 
-						<P>Suspendisse eu nisl. Nullam ut libero. Integer dignissim consequat lectus.
-							Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</P> 
+						<P>The crawler utility is configured by changing parameters in the text file of settings.
+						If the file is not particularly specified, then the crawler.conf file located in the current
+						work directory is used. A configuration file can contain the following parameters:</P> 
+						<table class="ui-widget help_table">
+							<tr><td width="10%"><b>keepalive_timeout</b></td><td>The lifetime of the scan process. On the expiry of this period, the task is considered to be hung</td></tr>
+							<tr><td><b>log_file</b></td><td>The log file name</td></tr>
+							<tr><td><b>log_level</b></td><td>The logging mode<br/>
+0=FATAL<br/>1=ERROR<br/>2=WARN<br/>3=INFO<br/>4=DEBUG<br/>5=TRACE</td></tr>
+							<tr><td><b>log_layout</b></td><td>The format of entries in the log file. Details are given in documentation to the 
+									<a target="_blank" class="help_link" href="http://logging.apache.org/log4cxx/index.html">log4cxx</a> library.</td></tr>
+							<tr><td><b>plugin_dir</b></td><td>The directory to search the system plug-ins (*.plg) to </td></tr>
+							<tr><td><b>db_interface</b></td><td>The database interface. Currently, only <b>sqlite_storage</b> is supported</td></tr>
+							<tr><td><b>db_parameters</b></td><td>The absolute path to the database file. The GUI should be configured to work with this file</td></tr>
+						</table>
+						<P>Other parameters are described with comments in the configuration file and duplicate the
+						values of the scan profile and command line arguments. These parameters can be used if a
+						scan profile is not specified and the command line doesn’t contain the given argument.</P> 
+						<P>The GUI is configured by changing settings on the Settings tab. The following settings
+						are used by the system:</P> 
+						<table class="ui-widget help_table">
+							<tr><td width="10%"><b>Crawler executable</b></td><td>The absolute path to the executable file of the crawler utility (including the file name and extension)</td></tr>
+							<tr><td><b>Crawler configuration</b></td><td>Currently, is not used. The system searches for the configuration file crawler.conf in the directory containing the executable utility file</td></tr>
+							<tr><td><b>Select database</b></td><td>Is reserved for the next versions. Currently, only SQLite version 3 is supported</td></tr>
+							<tr><td><b>Database file</b></td><td>The absolute path to the database file. The crawler utility should be configured to work with this file</td></tr>
+							<tr><td><b>Page cache size</b></td><td>The cache size of the SQLite database</td></tr>
+						</table>
 					</div> 
 					<h3><a href="#">Samples</a></h3> 
 					<div> 
-						<P>Cras dictum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames 
-							ac turpis egestas.</P> 
-						<P>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;
-							Aenean lacinia mauris vel est.</P> 
-						<P>Suspendisse eu nisl. Nullam ut libero. Integer dignissim consequat lectus.
-							Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</P> 
+						<P>First of all, it is necessary to create a configuration file for the utility. You can receive a sample file by calling the utility with the <b>--generate</b> parameter:</P> 
+						<div class="samples">crawler --generate crawler.conf</div>
+						<p>The obtained file can be modified using any text editor to specify
+						the necessary operation parameters. Firstly, set the path to the database file,
+						the work directory containing *.plg files, and the logging mode.</p>
+						<p>After the utility is configured, it is necessary to create a database and initialize
+						the information about the applied plug-ins. For this purpose, the following command can be used:<p>
+						<div class="samples">crawler --init_db</div>
+						<p>If a database has been already created, the given command will merely update the
+						information about the plug-ins and will not affect other information
+						(such as profiles and scan results).</p>
+						<p>Here is the simplest way to run the utility:</p>
+						<div class="samples">crawler --target my.sample.host</div>
+						<p>This command will launch unrestricted gathering of references starting from the main
+						page of the site http://my.sample.host. The arguments <b>--depth</b>, <b>--dir</b>,
+						<b>--host</b>, <b>--domain</b>, etc. can be used to restrict scanning.</p>
+						<p>If the database contains a configured scan profile (e.g. with the identifier 0),
+						then you can use it:</p>
+						<div class="samples">crawler --target  my.sample.host --profile 0</div>
+						<p>Furthermore, you can change the task name (is will be saved in the database
+						and used in the GUI when displaying the list of tasks):</p>
+						<div class="samples">crawler --target  my.sample.host --profile 0 –name "First sample task"</div>
+						<p>If it is required to obtain the scan results not only in the database, but also in
+						the form of a separate text file, then you can apply the arguments <b>--result</b>
+						and <b>--output</b>:</p>
+						<div class="samples">crawler --target  my.sample.host --profile 0 –name "First sample task" --result report.txt --output 2</div>
+						<p>The file similar to the report in the mode 2 can be obtained from the GUI by clicking the 
+						&laquo;Export to text&raquo; button when viewing a separate task.</p>
 					</div> 
 					<h3><a href="#">ToDo</a></h3> 
 					<div> 
-						<P>Cras dictum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames 
-							ac turpis egestas.</P> 
-						<P>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;
-							Aenean lacinia mauris vel est.</P> 
-						<P>Suspendisse eu nisl. Nullam ut libero. Integer dignissim consequat lectus.
-							Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</P> 
+						<h4>GUI</h4>
+						<ul>
+							<li>Broaden the settings on the Settings tab to avoid necessity of manual utility configuration.</li>
+							<li>Implement the feature of viewing log files with filtering and highlighting of the message levels.</li>
+						</ul>
+						<h4>The Crawler utility and WebEngine library</h4>
+						<ul>
+							<li>Improve the operation stability and performance.</li>
+							<li>Broaden the JavaScript support.</li>
+							<li>Tests for web application vulnerabilities.</li>
+							<li>And a number of others :)</li>
+						</ul>
 					</div> 
 					<h3><a href="#">About</a></h3> 
 					<div> 
-						<P>Cras dictum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames 
-							ac turpis egestas.</P> 
-						<P>Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae;
-							Aenean lacinia mauris vel est.</P> 
-						<P>Suspendisse eu nisl. Nullam ut libero. Integer dignissim consequat lectus.
-							Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.</P> 
+						<P>This utility was designed by the <a target="_blank" class="help_link" href="http://en.securitylab.ru/lab/">Positive Technologies Research Lab</a>
+						team within the bounds of development of a web application analyzer for the MaxPatrol system.
+						The product is developed as open-source software according to the terms of the GNU Lesser
+						General Public License. You can find the source code of the program and its components at
+						<a target="_blank" class="help_link" href="http://webapptools.googlecode.com/">http://webapptools.googlecode.com/</a>.</p>
+						<p>You can redistribute it and/or modify it under the terms of the GNU Lesser General Public
+						License as published by the Free Software Foundation, either version 3 of the License,
+						or (at your option) any later version.</p>
+						<p>WebEngine library and Crawler utility is distributed in the hope that it will be useful,
+						but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+						FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>
+						<p>You should have received a copy of the GNU Lesser General Public License along with
+						this software. If not, see <a target="_blank" class="help_link" href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
+						<p>The following components and libraries were used during development:</p>
+						<h4>WebEngine library and Crawler application:</h4>
+						<ul>
+							<li><a target="_blank" class="help_link" href="http://www.boost.org/">Boost library</a></li>
+							<li><a target="_blank" class="help_link" href="http://curl.haxx.se/libcurl/">cURL library</a></li>
+							<li><a target="_blank" class="help_link"href="http://code.google.com/p/v8/">Coogle V8 JavaScript Engine</a></li>
+							<li><a target="_blank" class="help_link" href="http://logging.apache.org/log4cxx/index.html">Apache log4cxx library</a></li>
+							<li><a target="_blank" class="help_link" href="http://code.google.com/p/dtl-cpp/">Diff Template Library</a></li>
+							<li>DOM implementation inspired by <a target="_blank" class="help_link" href="http://www.envjs.com/">Env-JS</a> project</li>
+						</ul>
+						<h4>Crawler GUI</h4>
+						<ul>
+							<li><a target="_blank" class="help_link" href="https://developer.mozilla.org/en/xul">Mozilla's XUL</a> and <a target="_blank" class="help_link" href="https://developer.mozilla.org/en/XPCOM">XPCOM</a></li>
+							<li><a target="_blank" class="help_link" href="http://jquery.com/">jQuery</a> and <a target="_blank" class="help_link" href="http://jqueryui.com/">jQuery UI</a></li>
+							<li><a target="_blank" class="help_link" href="http://layout.jquery-dev.net/">jQuery.layout</a> plugin</li>
+							<li><a target="_blank" class="help_link" href="http://docs.jquery.com/Plugins/Treeview">jQuery Treeview</a> plugin</li>
+							<li>Client-side <a target="_blank" class="help_link" href="http://johannburkard.de/software/xsltjs/">XSLT transformation routine</a></li>
+							<li>Some code from <a target="_blank" class="help_link" href="http://sqlite-manager.googlecode.com/">SQLite Manager</a> plugin for FireFox</li>
+							<li><a target="_blank" class="help_link" href="http://code.google.com/p/google-code-prettify/">Prettify</a> syntax highlighting module</li>
+						</ul>
+						<p>The project coordinator: Andrew Abramov &lt;<a class="help_link" href="mailto:aabramov@ptsecurity.ru">aabramov@ptsecurity.ru</a>&gt;</P> 
 					</div> 
 				</div> 
 			</div>

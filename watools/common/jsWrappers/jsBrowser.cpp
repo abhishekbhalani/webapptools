@@ -15,6 +15,13 @@ bool jsNavigator::is_init = false;
 Persistent<FunctionTemplate> jsScreen::object_template;
 bool jsScreen::is_init = false;
 
+static Handle<Value> NavigatorJavaEnabled( const Arguments& args )
+{
+    HandleScope scope;
+    Local<Value> val = Local<Value>::New(Boolean::New(false));
+    return scope.Close(val);
+}
+
 static Handle<Value> NavigatorGet(Local<String> name, const AccessorInfo &info)
 {
     HandleScope scope;
@@ -39,15 +46,19 @@ static Handle<Value> NavigatorGet(Local<String> name, const AccessorInfo &info)
 
 static Handle<Value> NavigatorSet(Local<String> name, Local<Value> value, const AccessorInfo& info)
 {
-    Local<Object> self = info.This();
-    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-    void* ptr = wrap->Value();
-    jsNavigator* el = static_cast<jsNavigator*>(ptr);
-    // Convert the JavaScript string to a std::string.
+    Handle<Value> retval;
     std::string key = value_to_string(name);
 
-    el->props[key] = Persistent<Value>::New(value);
-    return value;
+    if (key != "javaEnabled") {
+        Local<Object> self = info.This();
+        Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+        void* ptr = wrap->Value();
+        jsNavigator* el = static_cast<jsNavigator*>(ptr);
+        // Convert the JavaScript string to a std::string.
+        el->props[key] = Persistent<Value>::New(value);
+        Handle<Value> retval = value;
+    }
+    return retval;
 }
 
 jsNavigator::jsNavigator()
@@ -57,7 +68,7 @@ jsNavigator::jsNavigator()
     props["appName"] = Persistent<Value>::New(String::New("Netscape"));
     props["appVersion"] = Persistent<Value>::New(String::New("5.0 (Windows; ru)"));
     props["cookieEnabled"] = Persistent<Value>::New(Boolean::New(true));
-    props["javaEnabled"] = Persistent<Value>::New(Boolean::New(false));
+//    props["javaEnabled"] = Persistent<Value>::New(Boolean::New(false));
     props["cpuClass"] = Persistent<Value>::New(String::New(""));
     props["onLine"] = Persistent<Value>::New(Boolean::New(true));
     props["platform"] = Persistent<Value>::New(String::New("Win32"));
@@ -74,6 +85,7 @@ jsNavigator::jsNavigator()
         //set its internal field count to one (we'll put references to the C++ point here later)
         _proto->SetInternalFieldCount(1);
 
+        _proto->Set(String::New("javaEnabled"), FunctionTemplate::New(NavigatorJavaEnabled));
         // Add accessors for each of the fields of the Location.
         _proto->SetNamedPropertyHandler(NavigatorGet, NavigatorSet);
 

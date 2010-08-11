@@ -356,6 +356,8 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
             }
         }
         ClearEntityList(lst);
+        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts check for jQuery");
+        js_exec->execute_string("jQuery.ready();", "", true, true);
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts process events");
         //html_document* doc_entity = sc->parsed_data.get();
         process_events(ctx, parser);
