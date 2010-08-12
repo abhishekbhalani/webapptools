@@ -109,9 +109,7 @@ namespace webEngine {
         virtual void process_response(i_response_ptr resp);
 
         virtual void parse_scripts(scan_data_ptr sc, boost::shared_ptr<webEngine::html_document> parser);
-        virtual void process_events(v8::Persistent<v8::Context> ctx, base_entity_ptr entity);
-
-        jsBrowser* js_exec;
+        virtual void process_events(jsBrowser* jse, v8::Persistent<v8::Context> ctx, base_entity_ptr entity, bool is_jquery);
 
     protected:
         void add_url( transport_url link, scan_data_ptr sc );
@@ -130,6 +128,7 @@ namespace webEngine {
         string opt_preloads;
         bool opt_use_js;
         bool opt_allow_network;
+        char* preloads_data;
     };
 
 } // namespace webEngine

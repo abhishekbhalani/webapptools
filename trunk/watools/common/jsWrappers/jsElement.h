@@ -35,6 +35,7 @@ namespace webEngine {
         static v8::Handle<v8::Value> GetElemsByName(const v8::Arguments& args);
         static v8::Handle<v8::Value> CloneNode(const v8::Arguments& args);
         static v8::Handle<v8::Value> RemoveChild(const v8::Arguments& args);
+        static v8::Handle<v8::Value> InsertBefore(const v8::Arguments& args);
 
         static v8::Handle<v8::Value> PlaceHolder(const v8::Arguments& args);
     protected:

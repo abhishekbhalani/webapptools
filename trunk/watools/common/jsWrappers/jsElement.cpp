@@ -18,6 +18,7 @@ static char* func_list[] = {
     "blur",
     "click",
     "cloneNode",
+    "detachEvent", // from jQuery - event processing
     "focus",
     "getAttribute",
     "getElementsByTagName",
@@ -184,11 +185,13 @@ void jsElement::init()
     _proto->Set(String::New("blur"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("click"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("cloneNode"), FunctionTemplate::New(jsElement::CloneNode));
+    // from jQuery - event processing
+    _proto->Set(String::New("detachEvent"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("focus"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("getAttribute"), FunctionTemplate::New(jsElement::GetAttribute));
     _proto->Set(String::New("getElementsByTagName"), FunctionTemplate::New(jsElement::GetElemsByName));
     _proto->Set(String::New("hasChildNodes"), FunctionTemplate::New(jsElement::PlaceHolder));
-    _proto->Set(String::New("insertBefore"), FunctionTemplate::New(jsElement::PlaceHolder));
+    _proto->Set(String::New("insertBefore"), FunctionTemplate::New(jsElement::InsertBefore));
     _proto->Set(String::New("item"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("normalize"), FunctionTemplate::New(jsElement::PlaceHolder));
     _proto->Set(String::New("removeAttribute"), FunctionTemplate::New(jsElement::PlaceHolder));
@@ -272,6 +275,26 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
                     val = wrap_entity(boost::shared_dynamic_cast<html_entity>(entity()->Child(idx)));
                 }
             }
+            else if (key == "nextSibling") {
+                LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::nextSibling");
+                if (!entity()->Parent().expired()) {
+                    entity_list::iterator bg, en, rf;
+                    base_entity_ptr prnt = entity()->Parent().lock();
+                    bg = prnt->Children().begin();
+                    en = prnt->Children().end();
+                    rf = find(bg, en, entity());
+                    if (rf != en) {
+                        LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::nextSibling - fount itself");
+                        ++rf; // get next sibling
+                        if (rf != en) {
+                            val = wrap_entity(boost::shared_dynamic_cast<html_entity>(*rf));
+                        }
+                    }
+                }
+                else {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsElement::nextSibling - parent reference is expired!");
+                }
+            }
             else if (key == "nodeName") {
                 string sval = entity()->Name();
                 boost::to_upper(sval);
@@ -330,7 +353,7 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
         }
         else {
             // check special entry for event processing
-            if (key == "__event__") {
+            if (boost::istarts_with(key, "__event__")) {
                 val = Local<Value>::New(evt_handler);
             }
             else {
@@ -391,7 +414,7 @@ Handle<Value> jsElement::SetProperty( Local<String> name, Local<Value> value, co
         }
         else {
             // check special entry for event processing
-            if (key == "__event__") {
+            if (boost::istarts_with(key, "__event__")) {
                 evt_handler = Persistent<Value>::New(value);
             }
             else {
@@ -548,6 +571,8 @@ Handle<Value> jsElement::ToString( const Arguments& args )
         ret += attr;
     }
     ret += "]";
+    boost::replace_all(ret, "\n", "\\n");
+    boost::replace_all(ret, "\r", "");
     return String::New(ret.c_str());
 }
 
@@ -658,18 +683,29 @@ Handle<Value> jsElement::RemoveChild( const Arguments& args )
             Local<Object> child = args[0].As<Object>();
             Local<External> wch = Local<External>::Cast(child->GetInternalField(0));
             jsElement* ch = static_cast<jsElement*>(wch->Value());
-            if (el->html_ent && ch->html_ent) {
-                base_entity_ptr pptr = ch->html_ent->Parent().lock();
+            if (el->entity() && ch->entity()) {
+                base_entity_ptr pptr = ch->entity()->Parent().lock();
                 html_entity_ptr chp = boost::shared_dynamic_cast<html_entity>(pptr);
-                if (chp == el->html_ent) {
+                if (chp == el->entity()) {
                     // todo - remove it!
+                    entity_list::iterator bg, en, rf;
+                    bg = el->entity()->Children().begin();
+                    en = el->entity()->Children().end();
+                    rf = find(bg, en, ch->entity());
+                    if (rf != en) {
+                        LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::RemoveChild remove it");
+                        el->entity()->Children().erase(rf);
+                    }
+                    else {
+                        LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::RemoveChild child not found :(");
+                    }
                 }
                 else {
                     LOG4CXX_WARN(iLogger::GetLogger(), "jsElement::RemoveChild argument isn't a child!");
                 }
             }
             else {
-                LOG4CXX_WARN(iLogger::GetLogger(), "jsElement::RemoveChild objects are not valid! parent=" << el->html_ent.get() << "; child=" << ch->html_ent.get() );
+                LOG4CXX_WARN(iLogger::GetLogger(), "jsElement::RemoveChild objects are not valid! parent=" << el->entity().get() << "; child=" << ch->entity().get() );
             }
         }
         catch(...) {
@@ -678,6 +714,62 @@ Handle<Value> jsElement::RemoveChild( const Arguments& args )
     }
 
     return args[0];
+}
+
+Handle<Value> jsElement::InsertBefore( const Arguments& args )
+{
+    LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::InsertBefore");
+    HandleScope scope;
+
+    Handle<Value> retval;
+
+    Local<Object> self = args.This();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+
+    jsElement* el = static_cast<jsElement*>(ptr);
+    if (args.Length() > 0 && args[0]->IsObject()) {
+        if (args.Length() > 1 && args[1]->IsObject()) {
+            // insert
+            Local<Object> aref = args[0]->ToObject();
+            Local<External> awrap = Local<External>::Cast(aref->GetInternalField(0));
+            void* aptr = awrap->Value();
+            jsElement* chld = static_cast<jsElement*>(aptr);
+
+            Local<Object> rref = args[1]->ToObject();
+            Local<External> rwrap = Local<External>::Cast(rref->GetInternalField(0));
+            void* rptr = rwrap->Value();
+            jsElement* refer = static_cast<jsElement*>(rptr);
+
+            entity_list::iterator bg, en, rf;
+            bg = el->entity()->Children().begin();
+            en = el->entity()->Children().end();
+            rf = find(bg, en, refer->entity());
+            if(rf != en) {
+                //insert
+                LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::InsertBefore - insert newChild");
+                el->entity()->Children().insert(rf, chld->entity());
+                chld->entity()->Parent(el->entity());
+            }
+            else {
+                //append
+                LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::InsertBefore - refChild doesn't found, append newChild");
+                el->entity()->Children().push_back(chld->entity());
+                chld->entity()->Parent(el->entity());
+            }
+        }
+        else {
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "jsElement::InsertBefore - refChild isn't an object, append newChild");
+            AppendChild(args);
+        }
+        retval = args[0];
+    }
+    else {
+        LOG4CXX_ERROR(iLogger::GetLogger(), "jsElement::InsertBefore exception: argument must be an object!");
+    }
+
+    return scope.Close(retval);
+
 }
 
 jsAttribute::jsAttribute(jsElement* _prnt, string nm)
@@ -726,6 +818,8 @@ Handle<Value> jsAttribute::ToString( const Arguments& args )
     }
 
     retval += "]";
+    boost::replace_all(retval, "\n", "\\n");
+    boost::replace_all(retval, "\r", "");
     res = String::New(retval.c_str());
     return scope.Close(res);
 }
@@ -742,6 +836,8 @@ Handle<Value> jsAttribute::ValueGet( Local<String> name, const AccessorInfo &inf
 
     if (el->parent && el->parent->entity()) {
         string val = el->parent->entity()->attr(el->name);
+        boost::replace_all(val, "\n", "\\n");
+        boost::replace_all(val, "\r", "");
         res = String::New(val.c_str());;
     }
 

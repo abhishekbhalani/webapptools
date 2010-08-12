@@ -52,10 +52,6 @@ jsExecutor::jsExecutor(void)
 
     init_globals();
 
-    // init global objects
-    global->SetAccessor(v8::String::NewSymbol("v8_objects"), result_object);
-    global->SetAccessor(v8::String::NewSymbol("v8_results"), get_result_string, set_result_string);
-
     num_objects++;
     context = Context::New(NULL, global);
     {
@@ -65,6 +61,8 @@ jsExecutor::jsExecutor(void)
         Context::Scope context_scope(context);
         Handle<Object> _instance = wrap_object<jsExecutor>(this);
         context->Global()->Set(String::New("v8_context"), _instance);
+        context->Global()->SetAccessor(v8::String::NewSymbol("v8_objects"), result_object);
+        context->Global()->SetAccessor(v8::String::NewSymbol("v8_results"), get_result_string, set_result_string);
     }
 }
 
@@ -242,10 +240,12 @@ string jsExecutor::obj_dump(Local<Value> val, const string& name, const string& 
 
 v8::Persistent<v8::Context> jsExecutor::get_child_context()
 {
-/*    HandleScope handle_scope;
+    HandleScope handle_scope;
 
-    v8::Persistent<v8::Context> ctx = v8::Context::New(NULL, global);
-    {
+    /*Local<Object> glob = context->Global();
+
+    v8::Persistent<v8::Context> ctx = v8::Context::New(NULL, global, glob);
+    /*{
         // make executor accessible in the JS
         LOG4CXX_TRACE(iLogger::GetLogger(), "jsExecutor: try to wrap object");
 

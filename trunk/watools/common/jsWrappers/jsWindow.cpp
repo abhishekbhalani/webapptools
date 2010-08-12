@@ -5,6 +5,8 @@
 #include "jsGlobal.h"
 #include "jsBrowser.h"
 #include "jsWindow.h"
+
+#include <boost/algorithm/string/trim.hpp>
 // from common/
 #include <boost/lexical_cast.hpp>
 #include "boost/uuid.hpp"
@@ -353,7 +355,7 @@ const bool jsWindow::is_property(string key)
 }
 
 #ifdef V8_DOMSHELL
-void process_events( jsBrowser* js_exec, base_entity_ptr entity )
+void process_events( jsBrowser* js_exec, base_entity_ptr entity, bool is_jquery )
 {
     /* simplest variant - recursive descent through DOM-tree */
     Local<Context> ctx = Context::GetCurrent();
@@ -373,19 +375,30 @@ void process_events( jsBrowser* js_exec, base_entity_ptr entity )
         if (boost::istarts_with(name, "on")) {
             // attribute name started with "on*" - this is the event
             LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
-            src = "__evt_target__.__event__=function(){" + src + "}";
+            boost::trim(src);
+            if (! boost::istarts_with(src, "function")) {
+                src = "__evt_target__.__event__" + name + "=function(){" + src + "}";
+            }
+            else {
+                src = "__evt_target__.__event__" + name + "=" + src;
+            }
             js_exec->execute_string(src, "", true, true);
-            js_exec->execute_string("__evt_target__.__event__()", "", true, true);
+            js_exec->execute_string("__evt_target__.__event__" + name + "()", "", true, true);
         }
         if (boost::istarts_with(src, "javascript:")) {
-            LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events - " << name << " source = " << src);
+            LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events (proto) - " << name << " source = " << src);
             src = src.substr(11); // skip "javascript:"
-            src = "__evt_target__.event=function(){ " + src + " }";
+            src = "__evt_target__.__event__=function(){ " + src + " }";
             js_exec->execute_string(src, "", true, true);
             js_exec->execute_string("__evt_target__.__event__()", "", true, true);
         }
 
+
         ++attrib;
+    }
+
+    if (is_jquery) {
+        js_exec->execute_string("RunJqueryEvents(__evt_target__)", "", true, true);
     }
 
     // and process all children
@@ -394,8 +407,8 @@ void process_events( jsBrowser* js_exec, base_entity_ptr entity )
 
     for(size_t i = 0; i < chld.size(); i++) {
         std::string nm = chld[i]->Name();
-        if (nm[0] != '#') {
-            process_events(js_exec, chld[i]);
+        if (nm != "#text" && nm != "#comment") {
+            process_events(js_exec, chld[i], is_jquery);
         }
     }
     // all results will be processed in the caller parse_scripts function
@@ -453,7 +466,13 @@ void jsWindow::load( const string& url )
         }
         ClearEntityList(scrs);
         HandleScope handle_scope;
-        process_events(browser, document->doc);
+        bool jquery_enabled = false;
+        Local<Value> jqo = browser->v8_get(String::New("jQuery"));
+        if (jqo->IsObject()) {
+            browser->execute_string("jQuery.ready()", "", true, true);
+            jquery_enabled = true;
+        }
+        process_events(browser, document->doc, jquery_enabled);
         assign_document( document->doc );
 #endif
     }

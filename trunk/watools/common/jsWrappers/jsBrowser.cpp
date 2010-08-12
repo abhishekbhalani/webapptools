@@ -217,37 +217,37 @@ jsBrowser::jsBrowser(void)
     if (!is_init) {
         is_init = true;
         init_globals();
-        // assign extensions
-        Handle<Value> self = External::New(this);
-        global->SetNamedPropertyHandler(BrowserGet, BrowserSet, NULL, NULL, NULL, self);
-        //global->SetAccessor(String::New("window"), GetWindow, NULL, self);
-        //global->Set(String::New("Location"), FunctionTemplate::New(Location));
-        global->Set(String::New("Window"), FunctionTemplate::New(Window));
-        global->Set(String::New("Element"), FunctionTemplate::New(Element));
-        global->Set(String::New("Image"), FunctionTemplate::New(Image));
-
-        // intercept window's functions
-        global->Set(String::NewSymbol("blur"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("clearInterval"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("clearTimeout"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("close"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("confirm"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("createPopup"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("focus"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("moveBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("moveTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("open"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("print"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("prompt"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("resizeBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("resizeTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("scroll"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("scrollBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("scrollTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("setInterval"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-        global->Set(String::NewSymbol("setTimeout"), FunctionTemplate::New(jsBrowser::WinInterceptor));
-
     }
+    // assign extensions
+    Handle<Value> self = External::New(this);
+    global->SetNamedPropertyHandler(BrowserGet, BrowserSet, NULL, NULL, NULL, self);
+    //global->SetAccessor(String::New("window"), GetWindow, NULL, self);
+    //global->Set(String::New("Location"), FunctionTemplate::New(Location));
+    global->Set(String::New("Window"), FunctionTemplate::New(Window));
+    global->Set(String::New("Element"), FunctionTemplate::New(Element));
+    global->Set(String::New("Image"), FunctionTemplate::New(Image));
+
+    // intercept window's functions
+    global->Set(String::NewSymbol("blur"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("clearInterval"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("clearTimeout"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("close"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("confirm"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("createPopup"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("focus"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("moveBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("moveTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("open"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("print"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("prompt"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("resizeBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("resizeTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("scroll"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("scrollBy"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("scrollTo"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("setInterval"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+    global->Set(String::NewSymbol("setTimeout"), FunctionTemplate::New(jsBrowser::WinInterceptor));
+
     // delete default context from jsExecutor
     context.Dispose();
     // init values
