@@ -66,6 +66,8 @@ namespace webEngine {
         i_response_ptr http_request(i_request_ptr req);
         bool http_request_async(i_request_ptr req);
 
+        v8::Local<v8::Value> v8_get(v8::Local<v8::Value> val) { return context->Global()->Get(val); }
+
         vector<v8::Persistent<v8::Value>> objects;
     protected:
         task* net_access;

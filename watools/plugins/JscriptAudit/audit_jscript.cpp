@@ -51,15 +51,14 @@ audit_jscript::audit_jscript(engine_dispatcher* krnl, void* handle /*= NULL*/) :
     pluginInfo.plugin_icon = WeXpmToStringList(jscript_xpm, sizeof(jscript_xpm) / sizeof(char*) );
     js_logger = logger;
     thread_running = false;
-    js_exec = NULL;
+    preloads_data = NULL;
     LOG4CXX_DEBUG(logger, "audit_jscript plugin created; version " << VERSION_PRODUCTSTR);
 }
 
 audit_jscript::~audit_jscript(void)
 {
-    if (js_exec != NULL) {
-        //LOG4CXX_DEBUG(scan_logger, "V8 results: " << jsExec->get_results());
-        delete js_exec;
+    if (preloads_data != NULL) {
+        delete preloads_data;
     }
 }
 
@@ -94,39 +93,33 @@ void audit_jscript::init( task* tsk )
 
     if (opt_use_js) {
         v8::HandleScope handle_scope;
-        js_exec = new webEngine::jsBrowser;
-        js_exec->execute_string("echo('V8 Engine version is: ' + version())", "", true, true);
+        jsBrowser js_exec;
+        js_exec.execute_string("echo('V8 Engine version is: ' + version())", "", true, true);
         if (opt_preloads != "") {
 #ifdef WIN32
             boost::replace_all(opt_preloads, "/", "\\");
 #else
             boost::replace_all(opt_preloads, "\\", "/");
 #endif
-            char* buff = NULL;
             LOG4CXX_DEBUG(logger, "Execute JavaScript preloads from " << opt_preloads);
             try{
                 size_t fsize = fs::file_size(fs::path(opt_preloads));
                 ifstream ifs(opt_preloads.c_str());
-                buff = new char[fsize + 10];
-                if(buff != NULL)
+                preloads_data = new char[fsize + 10];
+                if(preloads_data != NULL)
                 {
-                    memset(buff, 0, fsize+10);
-                    ifs.read(buff, fsize);
-                    js_exec->execute_string(buff, "", true, true);
-                    delete buff;
+                    memset(preloads_data, 0, fsize+10);
+                    ifs.read(preloads_data, fsize);
+                    js_exec.execute_string(preloads_data, "", true, true);
 #ifdef _DEBUG
-                    LOG4CXX_TRACE(logger, "JavaScript preloads execution result: " << js_exec->get_results());
-                    LOG4CXX_TRACE(logger, "JavaScript preloads execution result (dump): " << js_exec->dump("Object"));
+                    LOG4CXX_TRACE(logger, "JavaScript preloads execution result: " << js_exec.get_results());
+                    LOG4CXX_TRACE(logger, "JavaScript preloads execution result (dump): " << js_exec.dump("Object"));
 #endif // _DEBUG
                 }
             }
             catch(std::exception& e)
             {
                 LOG4CXX_WARN(logger, "JavaScript preloads execution failed " << e.what());
-                if (buff != NULL)
-                {
-                    delete buff;
-                }
             }
         }
     }
@@ -165,7 +158,7 @@ void audit_jscript::process( task* tsk, boost::shared_ptr<ScanData>scData )
         return;
     }
 
-    if (js_exec != NULL && opt_use_js) {
+    if (opt_use_js) {
         base_path = scData->object_url;
         parent_task = tsk;
         if (parsed) {
@@ -317,88 +310,17 @@ void audit_jscript::add_url( webEngine::transport_url link, boost::shared_ptr<Sc
     }
 }
 
-void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_ptr<webEngine::html_document> parser)
-{
-    LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts for " << sc->parsed_data);
-    entity_list lst;
-    string source;
-
-    if (js_exec == NULL) {
-        LOG4CXX_ERROR(logger, "No JsExecutor given - exit");
-        return;
-    }
-    parent_task->add_thread();
-    if (parser) {
-        v8::Persistent<v8::Context> ctx = js_exec->get_child_context();
-        v8::HandleScope scope;
-        // fix location object
-        js_exec->window->history->push_back(sc->object_url);
-        js_exec->window->location->url.assign_with_referer(sc->object_url);
-        // fix document object
-        js_exec->window->assign_document(parser);
-        // execute all scripts
-        if (opt_allow_network) {
-            js_exec->allow_network(parent_task);
-        }
-        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts execute scripts for parsed_data " << parser);
-        lst = parser->FindTags("script");
-        for (size_t i = 0; i < lst.size(); i++) {
-            base_entity_ptr ent = lst[i];
-            if (ent != NULL) {
-                source = ent->attr("#code");
-#ifdef _DEBUG
-                LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts execute script #" << i << "; Source:\n" << source);
-#endif
-                // @todo: add V8 synchronization - only one script can be processed at same time
-                js_exec->execute_string(source, "", true, true);
-#ifdef _DEBUG
-                LOG4CXX_TRACE(logger, "ExecuteScript results: " << js_exec->get_results());
-#endif
-            }
-        }
-        ClearEntityList(lst);
-        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts check for jQuery");
-        js_exec->execute_string("jQuery.ready();", "", true, true);
-        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts process events");
-        //html_document* doc_entity = sc->parsed_data.get();
-        process_events(ctx, parser);
-
-        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts search for new scripts");
-        /*int obj_size = 0; 
-        int obj_size_n = 0;
-        do {
-            obj_size = js_exec->objects.size();
-            for (size_t i = obj_size_n; i < obj_size; ++i) {
-                //
-            }
-            obj_size_n = js_exec->objects.size();
-        }
-        while (obj_size_n > obj_size);*/
-        // process results
-        string res;
-        res = js_exec->get_results();
-        res += js_exec->dump_results();
-        js_exec->reset_results();
-        // disable network operations
-        js_exec->allow_network(NULL);
-        js_exec->close_child_context(ctx);
-#ifdef _DEBUG
-        LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts results:\n" << res);
-#endif
-        extract_links(res, sc);
-    }
-    parent_task->remove_thread();
-    LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts finished");
-}
-
 void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
 {
     boost::smatch mres;
     std::string::const_iterator strt, end; 
     boost::match_flag_type flags = boost::match_default; 
     transport_url lurl;
+    transport_url burl;
 
     try {
+        burl.assign(sc->object_url);
+
         strt = text.begin(); 
         end = text.end();
         // 1. search strings that looks like URL
@@ -406,8 +328,8 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
 
         while(regex_search(strt, end, mres, re1, flags)) {
             string tres = mres[2];
-            LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found url=" << tres);
-            lurl.assign_with_referer(tres, &base_path);
+            lurl.assign_with_referer(tres, &burl);
+            LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found url=" << tres << "; " << lurl.tostring());
             add_url(lurl, sc);
 
             // update search position: 
@@ -425,8 +347,8 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
 
         while(regex_search(strt, end, mres, re2, flags)) {
             string tres = mres[2];
-            LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found <a...> url=" << tres);
-            lurl.assign_with_referer(tres, &base_path);
+            lurl.assign_with_referer(tres, &burl);
+            LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found <a...> url=" << tres << "; " << lurl.tostring());
             add_url(lurl, sc);
 
             // update search position: 
@@ -444,8 +366,8 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
 
         while(regex_search(strt, end, mres, re3, flags)) {
             string tres = mres[1];
-            LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found 'href' url=" << tres);
-            lurl.assign_with_referer(tres, &base_path);
+            lurl.assign_with_referer(tres, &burl);
+            LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found 'href' url=" << tres << "; " << lurl.tostring());
             add_url(lurl, sc);
 
             // update search position: 
@@ -460,7 +382,92 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
     }
 }
 
-void audit_jscript::process_events(v8::Persistent<v8::Context> ctx, webEngine::base_entity_ptr entity )
+void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_ptr<webEngine::html_document> parser)
+{
+    LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts for " << sc->parsed_data);
+    entity_list lst;
+    string source;
+
+    if (!opt_use_js) {
+        LOG4CXX_ERROR(logger, "No JsExecutor given - exit");
+        return;
+    }
+    parent_task->add_thread();
+    if (parser) {
+        v8::HandleScope hscope;
+        jsBrowser jse;
+        v8::Persistent<v8::Context> ctx = jse.get_child_context();
+        v8::Context::Scope scope(ctx);
+        // execute preloads
+        LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts execute preloads");
+        jse.execute_string(preloads_data, "", true, true);
+        // fix location object
+        jse.window->history->push_back(sc->object_url);
+        jse.window->location->url.assign_with_referer(sc->object_url);
+        // fix document object
+        jse.window->assign_document(parser);
+        // execute all scripts
+        if (opt_allow_network) {
+            jse.allow_network(parent_task);
+        }
+        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts execute scripts for parsed_data " << parser);
+        lst = parser->FindTags("script");
+        for (size_t i = 0; i < lst.size(); i++) {
+            base_entity_ptr ent = lst[i];
+            if (ent != NULL) {
+                source = ent->attr("#code");
+#ifdef _DEBUG
+                LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts execute script #" << i << "; Source:\n" << source);
+#endif
+                // @todo: add V8 synchronization - only one script can be processed at same time
+                jse.execute_string(source, "", true, true);
+#ifdef _DEBUG
+                LOG4CXX_TRACE(logger, "ExecuteScript results: " << jse.get_results());
+#endif
+            }
+        }
+        ClearEntityList(lst);
+        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts check for jQuery");
+        bool jquery_enabled = false;
+        v8::Handle<v8::Value> jqo;
+        LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts check for jQuery checker created");
+        jqo = jse.v8_get(v8::String::New("jQuery"));
+        LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts check for jQuery, symbol accured");
+        if (jqo->IsObject()) {
+            LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts check for jQuery is the Object");
+            jse.execute_string("jQuery.ready()", "", true, true);
+            jquery_enabled = true;
+        }
+        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts process events");
+        //html_document* doc_entity = sc->parsed_data.get();
+        process_events(&jse, ctx, parser, jquery_enabled);
+
+        LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts search for new scripts");
+        /*int obj_size = 0; 
+        int obj_size_n = 0;
+        do {
+            obj_size = js_exec->objects.size();
+            for (size_t i = obj_size_n; i < obj_size; ++i) {
+                //
+            }
+            obj_size_n = js_exec->objects.size();
+        }
+        while (obj_size_n > obj_size);*/
+        // process results
+        string res;
+        res = jse.get_results();
+        res += jse.dump_results();
+        jse.close_child_context(ctx);
+#ifdef _DEBUG
+        LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts results:\n" << res);
+#endif
+        extract_links(res, sc);
+    }
+    parent_task->remove_thread();
+    LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts finished");
+}
+
+void audit_jscript::process_events(jsBrowser* jse, v8::Persistent<v8::Context> ctx, webEngine::base_entity_ptr entity, bool is_jquery )
 {
     v8::Context::Scope scope(ctx);
     /* simplest variant - recursive descent through DOM-tree */
@@ -480,26 +487,30 @@ void audit_jscript::process_events(v8::Persistent<v8::Context> ctx, webEngine::b
 
         if (boost::istarts_with(name, "on")) {
             // attribute name started with "on*" - this is the event
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
+            LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
             boost::trim(src);
             if (! boost::istarts_with(src, "function")) {
-                src = "__evt_target__.__event__=function(){" + src + "}";
+                src = "__evt_target__.__event__" + name + "=function(){" + src + "}";
             }
             else {
-                src = "__evt_target__.__event__=" + src;
+                src = "__evt_target__.__event__" + name + "=" + src;
             }
-            js_exec->execute_string(src, "", true, true);
-            js_exec->execute_string("__evt_target__.__event__()", "", true, true);
+            jse->execute_string(src, "", true, true);
+            jse->execute_string("__evt_target__.__event__" + name + "()", "", true, true);
         }
         if (boost::istarts_with(src, "javascript:")) {
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
+            LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events (proto) - " << name << " source = " << src);
             src = src.substr(11); // skip "javascript:"
-            src = "__evt_target__.event=function(){ " + src + " }";
-            js_exec->execute_string(src, "", true, true);
-            js_exec->execute_string("__evt_target__.__event__()", "", true, true);
+            src = "__evt_target__.__event__=function(){ " + src + " }";
+            jse->execute_string(src, "", true, true);
+            jse->execute_string("__evt_target__.__event__()", "", true, true);
         }
 
         ++attrib;
+    }
+
+    if (is_jquery) {
+        jse->execute_string("RunJqueryEvents(__evt_target__)", "", true, true);
     }
 
     // and process all children
@@ -509,7 +520,7 @@ void audit_jscript::process_events(v8::Persistent<v8::Context> ctx, webEngine::b
     for(size_t i = 0; i < chld.size(); i++) {
         std::string nm = chld[i]->Name();
         if (nm[0] != '#') {
-            process_events(ctx, chld[i]);
+            process_events(jse, ctx, chld[i], is_jquery);
         }
     }
     // all results will be processed in the caller parse_scripts function

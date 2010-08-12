@@ -100,6 +100,8 @@ int RunMain(int argc, char* argv[]) {
     tsk->store_plugins(scan_plugins);
     tsk->set_profile_id(string("0")); // todo - take it from params
 
+    // Create a new execution environment containing the built-in
+    // functions
     shellExecutor::init_globals();
     shellExecutor::global_object()->Set(v8::String::New("read"), v8::FunctionTemplate::New(Read));
     // Bind the global 'load' function to the C++ Load callback.
@@ -107,7 +109,7 @@ int RunMain(int argc, char* argv[]) {
     // Bind the 'quit' function
     shellExecutor::global_object()->Set(v8::String::New("quit"), v8::FunctionTemplate::New(Quit));
     // Bind the 'version' function
-    // shellExecutor::global_object()->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
+    shellExecutor::global_object()->Set(v8::String::New("version"), v8::FunctionTemplate::New(Version));
     // Bind the 'echo' function
     shellExecutor::global_object()->Set(v8::String::New("echo2"), v8::FunctionTemplate::New(Print));
     // init global objects
@@ -115,12 +117,8 @@ int RunMain(int argc, char* argv[]) {
 
     shellExecutor executor;
     executor.allow_network(tsk);
-
-    // Bind the global 'read' function to the C++ Read callback.
     v8::Persistent<v8::Context> context = executor.get_child_context();
 
-    // Create a new execution environment containing the built-in
-    // functions
     // Enter the newly created execution environment.
     v8::Context::Scope context_scope(context);
     executor.window->history->push_back("http://www.ru");
