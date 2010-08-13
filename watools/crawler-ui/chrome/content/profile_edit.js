@@ -22,7 +22,7 @@ function toggleShow2(view)
 		id = domElem.id;
 		$("#"+id).hide();
 	});
-	$("#plugin_settings_title").text($('#sets_'+view+'_title').text());
+	$("#plugin_settings_title").html($('#sets_'+view+'_title').html());
 	$('#sets_'+view+'_code').show();
 	return false;
 }
@@ -50,20 +50,33 @@ function saveProfile()
 	});
 	$("#data_types").val("");
 
-	$("#settings_panel input").each(function (idx, domElem) {
+	$("#profile_editor input").each(function (idx, domElem) {
 		var vn = domElem.name;
 		var vv = domElem.value;
+		var vt = domElem.type;
 		tp = types[vn];
 		if (tp == undefined || tp == "") {
 			tp = 4;
 		}
-		if (tp == 2 && vv == 'on') {
-			vv = 1;
+		if (vt == "radio") {
+			if (!domElem.checked) {
+				vn = ""; // not need to save
+			}
 		}
-		if (v[0] != 'action' && v[0] != 'prof_id' && v[0] != 'data_types') {
-			top.setProfileVar(selectedProfile, v[0], tp, v[1]);
+		if (vt == "checkbox") {
+			if (tp == 2 && domElem.checked) {
+				vv = 1;
+			}
+			else {
+				vv = 0;
+			}
+		}
+//alert(vt + "(" + selectedProfile + "): " + vn + ", " + tp + ", " + vv);
+		if (vn != 'action' && vn != 'prof_id' && vn != 'data_types' && vn != "") {
+			top.setProfileVar(selectedProfile, vn, tp, vv);
 		}
 	});
+	drawProfiles();
 	return false;
 }
 

@@ -47,7 +47,6 @@ function selectProfile(idx, name) {
 //alert ("Selected profile #" + idx + " - " + name);
 	str = parent.getProfileVar(idx, 'profile_name');
 	$("#profile_name").val(str);
-	$("#prof_id").val(idx);
 	plg_active = parent.getProfileVar(idx, 'plugin_list');
 	if (plg_active != undefined) {
 		plg_active = plg_active.split(';');
@@ -67,9 +66,19 @@ function selectProfile(idx, name) {
 		else {
 			plg_status = "";
 		}
-		str = '<input type="checkbox" id="plg_' + p_id + '" ' + plg_status + '><span onclick="toggleShow2(\'' + p_id + '\')" class="tr_link"><b>' + p_nm + '</b></span><br/>';
+		icon = plg_list[i][2];
+		if (icon == null || icon == "") {
+			icon = "";
+		}
+		else {
+			icon = writeXpm(icon);
+			if (icon != "") {
+				icon += "&nbsp;";
+			}
+		}
+		str = '<input type="checkbox" id="plg_' + p_id + '" ' + plg_status + '><span onclick="toggleShow2(\'' + p_id + '\')" class="tr_link"><b>' + icon + p_nm + '</b></span><br/>';
 		$("#plg_checks").append(str);
-		str = '<div class="ui-widget-header" style="padding-left: 10px; display: none;" id="sets_'+p_id+'_title">'+p_nm+'</div>';
+		str = '<div class="ui-widget-header" style="padding-left: 10px; display: none;" id="sets_'+p_id+'_title">'+icon+p_nm+'</div>';
 		str += '<div class="ui-widget-content" style="width 100%; display: none;" id="sets_'+p_id+'_code"></div>';
 		$("#settings_view").append(str);
 		str = parent.getPluginUI(p_id);
@@ -83,7 +92,7 @@ function selectProfile(idx, name) {
 	// set profile values to controls
 	// xslt transformation is async process, so - wait for completion
 	setTimeout(function() {
-		vals = top.geProfileValues(idx);
+		vals = top.getProfileValues(idx);
 		for (i in vals) {
 			v = escape(vals[i][1]);
 			//alert(vals[i][0]+" = "+v);
@@ -185,15 +194,15 @@ function delProfile() {
 								$(this).dialog('close');
 							};
 		$("#msgBox").dialog({
-			autoOpen: true,
-			width: 400,
-			modal: true,
+					autoOpen: true,
+					width: 400,
+					modal: true,
 			open: function() {
 				$(this).parent().css("overflow", "hidden");
 				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
 			},
-			buttons: dialog_buttons
-		});
+					buttons: dialog_buttons
+				});
 		selectedProfile = -1;
 	}
 }

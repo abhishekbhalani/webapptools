@@ -41,10 +41,23 @@ function SavePrefs() {
 }
 
 function LoadPrefs() {
-	$("#crawler_file").val(parent.getPref("crawler_executable", ""));
-	$("#crawler_cfg").val(parent.getPref("crawler_configuration", ""));
+	path = top.GetWD();
+	os = top.GetOS();
+	
+	if (os == "WINNT") {
+		exec = path+"\\crawler.exe";
+		conf = path+"\\crawler.conf";
+		dbfile = path+"\\database.sqlite";
+	} else {
+		exec = path+"/crawler";
+		conf = "/etc/watools/crawler.conf";
+		dbfile = path+"/database.sqlite";
+	}
+
+	$("#crawler_file").val(parent.getPref("crawler_executable", exec));
+	$("#crawler_cfg").val(parent.getPref("crawler_configuration", conf));
 	$("#db_drv").val(parent.getPref("db_driver", "sqlite"));
-	$("#sqlite_file").val(parent.getPref("sqlite_database", "file.sqlite"));
+	$("#sqlite_file").val(parent.getPref("sqlite_database", dbfile));
 	$("#sqlite_chache").val(parent.getPref("sqlite_chache", "2048"));
 
 	/* reload data*/
@@ -113,7 +126,7 @@ function __alert(txt, title) {
 		modal: true,
 		open: function() {
 				$(this).parent().css("overflow", "hidden");
-				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
+				$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden");
 		},
 		buttons: {
 			"Ok": function() { $(this).dialog('close'); }

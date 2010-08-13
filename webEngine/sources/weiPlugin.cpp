@@ -106,7 +106,7 @@ void i_plugin::release()
 string_list WeXpmToStringList( char** xpm, int lines )
 {
     string_list retval;
-    retval.resize(lines);
+    retval.reserve(lines);
 
     for (int i = 0; i < lines; i++)
     {

@@ -273,6 +273,8 @@ int main(int argc, char* argv[])
 	if (vm.count("generate")) {
 		cout << "WAT Crawler " << scaner_version << endl;
 		cout << "write config file " << vm["generate"].as<string>() << endl;
+        store(parse_command_line(0, argv, cfg_file), vm);
+        notify(vm);
 		save_config(vm["generate"].as<string>(), vm, cfg_file, true);
 		return 0;
 	}
