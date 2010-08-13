@@ -15,6 +15,18 @@ function __alert(txt, title) {
 	cnt.__alert(txt, title);
 }
 
+function GetWD() {
+	var file = Components.classes["@mozilla.org/file/directory_service;1"].
+					getService(Components.interfaces.nsIProperties).
+					get("CurProcD", Components.interfaces.nsIFile);
+	return file.path;
+}
+
+function GetOS() {
+	return osString = Components.classes["@mozilla.org/xre/app-info;1"]
+					.getService(Components.interfaces.nsIXULRuntime).OS;
+}
+
 function setDatabase(nsiFileObj) {
 	//try connecting to database
 	bConnected = false;
@@ -79,11 +91,17 @@ function openDatabase(fName, chSize) {
 		//check whether the file still exists
     var sPath = dbFile.path;
     if(!dbFile.exists()) {
-		__alert("File not found: " + sPath);
+		//__alert("File not found: " + sPath);
+		try {
+			dbFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, 0644);
+		}
+		catch(e) {
+			__alert("Can't create file " + sPath + "\n" + e.message);
+			return true;
+		}
 		//this.closeDatabase(false);
 		//SmGlobals.mru.remove(sPath);
 		//this.setDatabase(null);
-		return true;
     }
     openDatabaseWithPath(sPath);
 	return false;
@@ -170,7 +188,7 @@ function runCrawler(exe, args) {
 function getProfiles () {
 	var __profs = new Array();
 	if (bConnected) {
-		mDB.selectQuery("SELECT profile_id, value FROM profile WHERE name='profile_name'");
+		mDB.selectQuery("SELECT profile_id, value FROM profile WHERE name='profile_name' ORDER BY value ASC");
 		for (var i = 0; i < mDB.aTableData.length; i++) {
 			__profs.push(new Array(mDB.aTableData[i][0], mDB.aTableData[i][1]));
 		}
@@ -203,7 +221,7 @@ function setProfileVar (id, name, type, value) {
 	}
 }
 
-function geProfileValues (id) {
+function getProfileValues (id) {
 	var __profs = new Array();
 	if (bConnected) {
 		mDB.selectQuery("SELECT name, value FROM profile WHERE profile_id="+id);
@@ -225,9 +243,9 @@ function profileDropBooleanValues(id) {
 function getPluginList() {
 	var __profs = new Array();
 	if (bConnected) {
-		mDB.selectQuery("SELECT plugin_id,plugin_name FROM profile_ui WHERE locale='en' ORDER BY plugin_name");
+		mDB.selectQuery("SELECT plugin_id,plugin_name,ui_icon FROM profile_ui WHERE locale='en' ORDER BY plugin_name");
 		for (var i = 0; i < mDB.aTableData.length; i++) {
-			__profs.push(new Array(mDB.aTableData[i][0], mDB.aTableData[i][1]));
+			__profs.push(new Array(mDB.aTableData[i][0], mDB.aTableData[i][1], mDB.aTableData[i][2]));
 		}
 	}
 	return __profs;
@@ -316,7 +334,7 @@ function cloneProfile(src, name) {
 function getTaskList() {
 	var __profs = new Array();
 	if (bConnected) {
-		mDB.selectQuery("SELECT * FROM task");
+		mDB.selectQuery("SELECT id,profile_id,status,completion,start_time,finish_time,ping_time,processed_urls,name,requests  FROM task");
 		for (var i = 0; i < mDB.aTableData.length; i++) {
 			__profs.push(new Array(mDB.aTableData[i][0], mDB.aTableData[i][1], mDB.aTableData[i][2], mDB.aTableData[i][3], mDB.aTableData[i][4], mDB.aTableData[i][5], mDB.aTableData[i][6], mDB.aTableData[i][7], mDB.aTableData[i][8], mDB.aTableData[i][9]));
 		}
@@ -330,7 +348,7 @@ function getTaskList() {
 function getTask(id) {
 	var __profs = new Array();
 	if (bConnected) {
-		mDB.selectQuery("SELECT * FROM task WHERE id="+id);
+		mDB.selectQuery("SELECT id,profile_id,status,completion,start_time,finish_time,ping_time,processed_urls,name,requests FROM task WHERE id="+id);
 		if (mDB.aTableData.length > 0) {
 			__profs = new Array(mDB.aTableData[0][0], mDB.aTableData[0][1], mDB.aTableData[0][2], mDB.aTableData[0][3], mDB.aTableData[0][4], mDB.aTableData[0][5], mDB.aTableData[0][6], mDB.aTableData[0][7], mDB.aTableData[0][8], mDB.aTableData[0][9]);
 			__profs = fixTaskInfo(__profs);
@@ -352,9 +370,9 @@ function deleteTask(id) {
 function getTaskObjects(id) {
 	var __profs = new Array();
 	if (bConnected) {
-		mDB.selectQuery("SELECT * FROM scan_data WHERE task_id="+id);
+		mDB.selectQuery("SELECT id,parent_id,object_url,scan_depth,resp_code,data_size,dnld_time,content_type FROM scan_data WHERE task_id="+id);
 		for (var i = 0; i < mDB.aTableData.length; i++) {
-			__profs.push(new Array(mDB.aTableData[i][0], mDB.aTableData[i][2], mDB.aTableData[i][3], mDB.aTableData[i][4], mDB.aTableData[i][5], mDB.aTableData[i][6], mDB.aTableData[i][7], mDB.aTableData[i][8]));
+			__profs.push(new Array(mDB.aTableData[i][0], mDB.aTableData[i][1], mDB.aTableData[i][2], mDB.aTableData[i][3], mDB.aTableData[i][4], mDB.aTableData[i][5], mDB.aTableData[i][6], mDB.aTableData[i][7]));
 		}
 	}
 	return __profs;
@@ -363,9 +381,9 @@ function getTaskObjects(id) {
 function getScanObject(tsk_id, obj_id) {
 	var __profs = new Array();
 	if (bConnected) {
-		mDB.selectQuery("SELECT * FROM scan_data WHERE task_id="+tsk_id+" AND id="+obj_id);
+		mDB.selectQuery("SELECT id,parent_id,object_url,scan_depth,resp_code,data_size,dnld_time,content_type FROM scan_data WHERE task_id="+tsk_id+" AND id="+obj_id);
 		if (mDB.aTableData.length > 0) {
-			__profs = new Array(mDB.aTableData[0][0], mDB.aTableData[0][2], mDB.aTableData[0][3], mDB.aTableData[0][4], mDB.aTableData[0][5], mDB.aTableData[0][6], mDB.aTableData[0][7], mDB.aTableData[0][8]);
+			__profs = new Array(mDB.aTableData[0][0], mDB.aTableData[0][1], mDB.aTableData[0][2], mDB.aTableData[0][3], mDB.aTableData[0][4], mDB.aTableData[0][5], mDB.aTableData[0][6], mDB.aTableData[0][7]);
 			if (__profs[1] > 0) {
 				mDB.selectQuery("SELECT * FROM scan_data WHERE task_id="+tsk_id+" AND id="+__profs[1]);
 				if (mDB.aTableData.length > 0) {
@@ -383,9 +401,9 @@ function getScanObject(tsk_id, obj_id) {
 function getVulner(tsk_id, vuln_id) {
 	var __profs = new Array();
 	if (bConnected) {
-		mDB.selectQuery("SELECT * FROM vulners WHERE task_id="+tsk_id+" AND id="+vuln_id);
+		mDB.selectQuery("SELECT id,object_id,plugin_id,severity,vulner_id,params FROM vulners WHERE task_id="+tsk_id+" AND id="+vuln_id);
 		if (mDB.aTableData.length > 0) {
-			__profs = new Array(mDB.aTableData[0][0], mDB.aTableData[0][2], mDB.aTableData[0][3], mDB.aTableData[0][4], mDB.aTableData[0][5], mDB.aTableData[0][6]);
+			__profs = new Array(mDB.aTableData[0][0], mDB.aTableData[0][1], mDB.aTableData[0][2], mDB.aTableData[0][3], mDB.aTableData[0][4], mDB.aTableData[0][5]);
 			if (__profs[0] > 0) {
 				req = "SELECT title FROM vulner_desc WHERE plugin_id='"+__profs[2]+"' AND id="+__profs[4]+ " AND locale='en'";
 				mDB.selectQuery(req);
@@ -404,9 +422,9 @@ function getVulner(tsk_id, vuln_id) {
 function getTaskVulners(id) {
 	var __profs = new Array();
 	if (bConnected) {
-		mDB.selectQuery("SELECT * FROM vulners WHERE task_id="+id);
+		mDB.selectQuery("SELECT id,object_id,plugin_id,severity,vulner_id,params FROM vulners WHERE task_id="+id);
 		for (var i = 0; i < mDB.aTableData.length; i++) {
-			__profs.push(new Array(mDB.aTableData[i][0], mDB.aTableData[i][2], mDB.aTableData[i][3], mDB.aTableData[i][4], mDB.aTableData[i][5], mDB.aTableData[i][6]));
+			__profs.push(new Array(mDB.aTableData[i][0], mDB.aTableData[i][1], mDB.aTableData[i][2], mDB.aTableData[i][3], mDB.aTableData[i][4], mDB.aTableData[i][5]));
 		}
 		for (var i in __profs) {
 			req = "SELECT title FROM vulner_desc WHERE plugin_id='"+__profs[i][2]+"' AND id="+__profs[i][4]+ " AND locale='en'";
