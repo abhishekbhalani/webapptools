@@ -70,6 +70,9 @@ void wot_check::process( webEngine::task* tsk, webEngine::scan_data_ptr scData )
     parent_task = tsk;
     dom_url.assign(scData->object_url);
     domain = dom_url.host;
+    if (istarts_with(domain, "www.")) {
+        domain = domain.substr(4);
+    }
     sit = req_list.find(domain);
     if (sit == req_list.end() || sit->second == false) {
         req_list[domain] = false;

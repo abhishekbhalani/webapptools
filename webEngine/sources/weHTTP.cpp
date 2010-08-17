@@ -29,7 +29,8 @@
 #include <weTask.h>
 
 static string xrc = "<plugin id='httpTransport'>\
-<option name='httpTransport/port' label='Port number' type='1' control='text'>80</option>\
+<option name='httpTransport/port' label='HTTP Port number' type='1' control='text'>80</option>\
+<option name='httpTransport/sport' label='HTTPS Port number' type='1' control='text'>443</option>\
 <option name='httpTransport/protocol' label='Protocol' type='4' control='text'>http</option>\
 <option name='httpTransport/timeout' label='Timeout (sec.)' type='1' control='text'>10</option>\
 <option name='httpTransport/size_Limit' label='Document size limit' type='1' control='text'>-1</option>\
@@ -166,6 +167,7 @@ http_transport::http_transport(engine_dispatcher* krnl, void* handle /*= NULL*/)
     pluginInfo.plugin_id = "A44A9A1E7C25";
 
     default_port = 80;
+    default_sport = 443;
     proto_name = "http";
     default_timeout = 10;
     options.clear();
@@ -209,6 +211,11 @@ i_plugin* http_transport::get_interface( const string& ifName )
     return i_transport::get_interface(ifName);
 }
 
+bool http_transport::is_own_protocol( string& proto )
+{
+    // return TRUE for http & https
+    return istarts_with(proto_name, proto);
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn i_response_ptr http_transport::request( i_request* req, i_response_ptr resp )
 ///
@@ -237,7 +244,12 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
             req->RequestUrl().protocol = proto_name;
         }
         if (req->RequestUrl().port < 1 || req->RequestUrl().port > 65535) {
-            req->RequestUrl().port = default_port;
+            if (iequals(proto_name, req->RequestUrl().protocol)) {
+                req->RequestUrl().port = default_port;
+            }
+            else {
+                req->RequestUrl().port = default_sport;
+            }
         }
     }
     LOG4CXX_DEBUG(iLogger::GetLogger(), "http_transport::request: url=" << req->RequestUrl().tostring());
@@ -544,6 +556,9 @@ void http_transport::init( task *data_provider )
 
     opt = data_provider->Option(weoHttpPort);
     SAFE_GET_OPTION_VAL(opt, default_port, 80);
+
+    opt = data_provider->Option(weoHttpsPort);
+    SAFE_GET_OPTION_VAL(opt, default_sport, 443);
 
     opt = data_provider->Option(weoHttpProto);
     SAFE_GET_OPTION_VAL(opt, proto_name, "http");

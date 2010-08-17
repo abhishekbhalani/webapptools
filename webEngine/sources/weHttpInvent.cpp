@@ -141,20 +141,7 @@ void http_inventory::init( task* tsk )
                 SAFE_GET_OPTION_VAL(opt, path, 1);
                 if (path != "")
                 {
-                    size_t pos = path.find(';');
-                    domain_allow.clear();
-                    while(pos != string::npos) {
-                        string ext = path.substr(0, pos);
-                        domain_allow.push_back(ext);
-                        if (pos < path.length())
-                        {
-                            path = path.substr(pos+1);
-                        }
-                        else {
-                            path = "";
-                        }
-                        pos = path.find(';');
-                    }
+                    boost::split(domain_allow, path, boost::is_any_of("\r\n"),  token_compress_on);
                 }
 
                 // processing options
@@ -418,22 +405,41 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
 void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::shared_ptr< ScanData > scData )
 {
     bool allowed = true;
-    if (!link.is_host_equal(htResp->RealUrl()))
+    if (opt_in_host)
     {
-        if (opt_in_host)
+        if (!link.is_host_equal(htResp->RealUrl()))
         {
             allowed = false;
         }
         LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInHost check " << allowed << " (" << link.tostring() << ")");
     }
-    if (!link.is_domain_equal(htResp->RealUrl()))
+    if (opt_in_domain)
     {
-        if (opt_in_domain)
+        if (!link.is_domain_equal(htResp->RealUrl()))
         {
             allowed = false;
         }
         LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInDomain check << " << allowed << " (" << link.tostring() << ")");
     }
+    if (opt_in_dlist) {
+        allowed = false;
+        for (size_t i = 0; i < domain_allow.size(); ++i) {
+            string host = link.host;
+            string doms = domain_allow[i];
+            if (istarts_with(host, "www.")) {
+                host = host.substr(4);
+            }
+            if (istarts_with(doms, "www.")) {
+                doms = doms.substr(4);
+            }
+            if (iequals(host, doms)) {
+                allowed = true;
+                LOG4CXX_DEBUG(logger, "http_inventory::add_url: found allowed domain " << domain_allow[i]);
+                break;
+            }
+        } // foreach domain
+        LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInDomainList check << " << allowed << " (" << link.tostring() << ")");
+    } // if filter by domain list 
     if ( opt_max_depth > 0 && htResp->depth() >= opt_max_depth) {
         LOG4CXX_DEBUG(logger, "http_inventory::add_url: maximum scanning depth reached! (" << opt_max_depth << ")");
         allowed = false;

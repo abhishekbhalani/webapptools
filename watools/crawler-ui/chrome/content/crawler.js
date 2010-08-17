@@ -367,6 +367,15 @@ function deleteTask(id) {
 	}
 }
 
+function setTskStatus(id, st) {
+	if (bConnected) {
+		qers = new Array();
+		qers.push("UPDATE task SET status=" + st + " WHERE id=" + id);
+		dump("UPDATE task SET status=" + st + " WHERE id=" + id + "\n");
+		mDB.executeSimpleSQLs(qers);
+	}
+}
+
 function getTaskObjects(id) {
 	var __profs = new Array();
 	if (bConnected) {

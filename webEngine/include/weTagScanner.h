@@ -81,7 +81,12 @@ namespace webEngine {
 
         virtual char get_char()
 		{
-			return current_ == end_ ? 0 : *current_++;
+            char ret = 0;
+            if (current_ != end_) {
+                ret = *current_;
+                ++current_;
+            }
+			return ret;
 		}
 
         virtual void step_back()

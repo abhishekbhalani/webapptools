@@ -548,6 +548,7 @@ void dispatcher_routine(po::variables_map& vm)
                 cout << endl << "Total requests: " << sz << "; processed: " << dn << " (" << rps << " requests per second)" << endl;
                 break;
             case 'Q':
+                cout << endl << "Request task to stop. Press 'Q' again to force stop the task." << endl;
                 inLoop = false;
                 break;
             case ' ':
@@ -572,11 +573,31 @@ void dispatcher_routine(po::variables_map& vm)
     }
     while(inLoop);
     tsk->Stop();
-    tsk->save_to_db();
     cout << endl;
 
+    while (tsk->IsReady()) {
+        si = tsk->get_scan();
+        int compl = tsk->completion();
+        scan_curr = btm::second_clock::local_time();
+        btm::time_period scan_elapsed(scan_start, scan_curr);
+        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << si->size() << " objects found... " << compl << "% complete\r";
+        boost::this_thread::sleep(boost::posix_time::seconds(1));
+        if (kbhit()) {
+            ch = getch();
+            ch = toupper(ch);
+            switch (ch)
+            {
+            case 'Q':
+                cout << endl << "Force stop the task!" << endl;
+                tsk->Stop(true);
+                break;
+            };
+        }
+    }
+    tsk->save_to_db();
+
     webEngine::db_filter flt;
-    webEngine::db_condition tc;//("scan_data.resp_code >= 400");
+    webEngine::db_condition tc;//("scan_data.task_id == id");
     webEngine::db_condition lc;//("scan_data.resp_code >= 400");
     webEngine::db_condition gc;//("scan_data.resp_code < 500");
     cout << "Remove errors from results... ";

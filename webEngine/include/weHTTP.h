@@ -232,13 +232,14 @@ namespace webEngine {
         virtual const int process_requests(void);
 
         virtual string& get_name()                   { return proto_name; };
-        virtual bool is_own_protocol(string& proto)  { return iequals(proto, proto_name); };
+        virtual bool is_own_protocol(string& proto);
 
 #ifndef __DOXYGEN__
     protected:
         CURLM*      transferHandle;
         CURLMcode   lastError;
         int         default_port;
+        int         default_sport;
         int         default_timeout;
         string      proto_name;
         int         max_doc_size;
@@ -272,6 +273,7 @@ namespace webEngine {
 
 // HttpTransport options
 #define weoHttpPort "httpTransport/port"
+#define weoHttpsPort "httpTransport/sport"
 #define weoHttpProto "httpTransport/protocol"
 #define weoHttpTimeout "httpTransport/timeout"
 #define weoHttpSizeLimit "httpTransport/size_Limit"
