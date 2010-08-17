@@ -76,6 +76,30 @@ function saveProfile()
 			top.setProfileVar(selectedProfile, vn, tp, vv);
 		}
 	});
+	$("#profile_editor textarea").each(function (idx, domElem) {
+		var vn = domElem.name;
+		var vv = domElem.value;
+		var vt = domElem.type;
+		tp = types[vn];
+		if (tp == undefined || tp == "") {
+			tp = 4;
+		}
+		if (vn != 'action' && vn != 'prof_id' && vn != 'data_types' && vn != "") {
+			top.setProfileVar(selectedProfile, vn, tp, vv);
+		}
+	});
+	$("#profile_editor select").each(function (idx, domElem) {
+		var vn = domElem.name;
+		var vv = domElem.value;
+		var vt = domElem.type;
+		tp = types[vn];
+		if (tp == undefined || tp == "") {
+			tp = 4;
+		}
+		if (vn != 'action' && vn != 'prof_id' && vn != 'data_types' && vn != "") {
+			top.setProfileVar(selectedProfile, vn, tp, vv);
+		}
+	});
 	drawProfiles();
 	return false;
 }

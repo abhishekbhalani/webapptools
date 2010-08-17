@@ -229,7 +229,10 @@ BOOST_CLASS_TRACKING(webEngine::we_option, boost::serialization::track_never)
 #define WI_TSK_IDLE     0
 #define WI_TSK_RUN      1
 #define WI_TSK_PAUSED   2
-#define WI_TSK_MAX      3
+#define WI_TSK_FINISHED 3
+#define WI_TSK_STOPPED  4
+#define WI_TSK_HANGS    5
+#define WI_TSK_MAX      6
 //////////////////////////////////////////////////////////////////////////
 
 #endif //__WEOPTIONS_H__

@@ -410,44 +410,29 @@ const bool transport_url::is_host_equal( const transport_url& url )
 
 const bool transport_url::is_domain_equal( const string& url )
 {
-    transport_url tmp;
-    tmp.assign(url);
-    return is_domain_equal(tmp);
-}
-
-const bool transport_url::is_domain_equal( const transport_url& url )
-{
     bool retval = true;
     string second_level;
-    boost::iterator_range<string::iterator> dot_pos;
 
-    if (protocol != url.protocol)
-    {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - protocols doesn't match");
-        retval = false;
-    }
-    dot_pos = find_nth(host, ".", -2);
-    if (dot_pos.size() != 0) {
-        string::iterator pos = dot_pos.begin();
-        pos++; // skip the dot
-        second_level = "";
-        while(pos != host.end())
-        {
-            second_level += *pos;
-            pos++;
-        }
+    if (istarts_with(url, "www.")) {
+        second_level = url.substr(4);
     }
     else {
-        second_level = host;
+        second_level = url;
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - compare " << second_level << " and " << url.host);
-    if (!iends_with(url.host, second_level))
+
+    LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - compare " << host << " and " << second_level);
+    if (!iends_with(host, second_level))
     {
         LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - iends_with returns fasle");
         retval = false;
     }
 
     return retval;
+}
+
+const bool transport_url::is_domain_equal( const transport_url& url )
+{
+    return is_domain_equal(url.host);
 }
 
 string transport_url::tostring(bool noDefPort /*= true*/)

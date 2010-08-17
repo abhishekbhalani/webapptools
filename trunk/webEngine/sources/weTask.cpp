@@ -83,7 +83,14 @@ void task_processor(task* tsk)
         // send request if slots available
         {
             boost::unique_lock<boost::mutex> lock(tsk->tsk_mutex);
-            while (tsk->taskQueueSize > tsk->taskQueue.size()) {
+            if (tsk->tsk_status == WI_TSK_STOPPED) {
+                // if task was stopped - clear requests queue
+                for (i = 0; i < tsk->taskList.size(); ++i) {
+                    tsk->taskList[i]->abort_request();
+                }
+                tsk->taskList.clear();
+            }
+            while (tsk->taskQueueSize > tsk->taskQueue.size() && tsk->tsk_status == WI_TSK_RUN) {
                 if (!tsk->taskList.empty())
                 {
                     curr_url = tsk->taskList[0];
@@ -150,12 +157,12 @@ void task_processor(task* tsk)
                 if ((*rIt)->Processed()) {
                     LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: received! Queue: " << tsk->taskQueue.size() << " done: " << tsk->total_done);
                     tsk->total_done++;
-                    if ((*rIt)->processor) {
+                    if ((*rIt)->processor && tsk->tsk_status == WI_TSK_RUN) {
                         // send to owner
                         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to owner");
                         (*rIt)->processor((*rIt), (*rIt)->context);
                     }
-                    else {
+                    else if (tsk->tsk_status == WI_TSK_RUN) { // process response only if task is running
                         // process response by task queue
                         // 1. Parse data
                         i_document_ptr parsed_doc;
@@ -210,24 +217,26 @@ void task_data_process(task* tsk)
             tsk->sc_process.erase(tsk->sc_process.begin());
         }
         if (sc_data) {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "task_data_process: response for " << sc_data->object_url << " id = " << sc_data->data_id );
-            // send to all inventories
-            for (size_t i = 0; i < tsk->inventories.size(); i++)
-            {
-                LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->inventories[i]->get_description());
-                tsk->inventories[i]->process(tsk, sc_data);
-            }
-            // send to all auditors
-            for (size_t i = 0; i < tsk->auditors.size(); i++)
-            {
-                LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->auditors[i]->get_description());
-                tsk->auditors[i]->process(tsk, sc_data);
-            }
-            // send to all vulner detectors
-            for (size_t i = 0; i < tsk->vulners.size(); i++)
-            {
-                LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->vulners[i]->get_description());
-                tsk->vulners[i]->process(tsk, sc_data);
+            if (tsk->tsk_status == WI_TSK_RUN) {
+                LOG4CXX_TRACE(iLogger::GetLogger(), "task_data_process: response for " << sc_data->object_url << " id = " << sc_data->data_id );
+                // send to all inventories
+                for (size_t i = 0; i < tsk->inventories.size(); i++)
+                {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->inventories[i]->get_description());
+                    tsk->inventories[i]->process(tsk, sc_data);
+                }
+                // send to all auditors
+                for (size_t i = 0; i < tsk->auditors.size(); i++)
+                {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->auditors[i]->get_description());
+                    tsk->auditors[i]->process(tsk, sc_data);
+                }
+                // send to all vulner detectors
+                for (size_t i = 0; i < tsk->vulners.size(); i++)
+                {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->vulners[i]->get_description());
+                    tsk->vulners[i]->process(tsk, sc_data);
+                }
             }
             /// @todo !!! REMOVE THIS!!! It's only debug! need to implement clever clean-up scheme
             tsk->free_scan_data(sc_data);
@@ -330,23 +339,29 @@ i_response_ptr task::get_request( i_request_ptr req )
 void task::get_request_async( i_request_ptr req )
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async");
-    if (!processThread) {
-        processThread = true;
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::get_request_async: create WeTaskProcessor");
-        boost::thread process(task_processor, this);
-        tsk_status = WI_TSK_RUN;
-    }
-    // wake-up task_processor
-    boost::unique_lock<boost::mutex> lock(tsk_mutex);
-    if (req->processor != NULL) {
-        taskList.insert(taskList.begin(), req);
+    if (tsk_status == WI_TSK_RUN || tsk_status == WI_TSK_IDLE) {
+        if (!processThread) {
+            processThread = true;
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::get_request_async: create WeTaskProcessor");
+            boost::thread process(task_processor, this);
+            tsk_status = WI_TSK_RUN;
+        }
+        // wake-up task_processor
+        boost::unique_lock<boost::mutex> lock(tsk_mutex);
+        if (req->processor != NULL) {
+            taskList.insert(taskList.begin(), req);
+        }
+        else {
+            taskList.push_back(req);
+        }
+        total_reqs++;
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
+        tsk_event.notify_all();
     }
     else {
-        taskList.push_back(req);
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: task isn't running (status="<< tsk_status << "), skip the request to " << req->BaseUrl().tostring());
+        req->abort_request();
     }
-    total_reqs++;
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
-    tsk_event.notify_all();
     return;
 }
 
@@ -356,7 +371,7 @@ bool task::IsReady()
     int active_threads = LockedGetValue(&thread_count);
 
     result = !(taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0);
-    result = result || (tsk_status != WI_TSK_IDLE);
+    result = result || (tsk_status == WI_TSK_RUN);
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsReady - " << result);
     return result;
 }
@@ -531,7 +546,7 @@ void task::Run(void)
     else {
         scan_id = "";
     }
-    tsk_status = WI_TSK_PAUSED;
+    tsk_status = WI_TSK_RUN;
     start_tm = btm::second_clock::local_time();
     if (!processThread)
     {
@@ -599,7 +614,7 @@ void task::Pause(const bool& state /*= true*/)
     tsk_event.notify_all();
 }
 
-void task::Stop()
+void task::Stop(bool force /*= false*/)
 {
     int active_threads = LockedGetValue(&thread_count);
 
@@ -631,10 +646,25 @@ void task::Stop()
         parsers[i]->stop(this);
     }
 
-    while (active_threads > 0) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Stop: " << active_threads << " threads still active, waiting...");
+    if (active_threads > 0) {
+        LOG4CXX_INFO(iLogger::GetLogger(), "task::Stop: " << active_threads << " threads still active, waiting...");
         boost::this_thread::sleep(boost::posix_time::millisec(100));
-        active_threads = LockedGetValue(&thread_count);
+    }
+
+    tsk_status = WI_TSK_STOPPED;
+    if (force) {
+        while (active_threads > 0 && processThread) {
+            tsk_status = WI_TSK_STOPPED;
+            boost::this_thread::sleep(boost::posix_time::millisec(100));
+            {
+                LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop notify all about TaskStatus change");
+                boost::unique_lock<boost::mutex> lock(tsk_mutex);
+                tsk_event.notify_all();
+            }
+            active_threads = LockedGetValue(&thread_count);
+        }
+        taskList.clear();
+        taskQueue.clear();
     }
     //processThread = false;
     {
@@ -644,8 +674,7 @@ void task::Stop()
     }
     // switch context to finalize TaskProcessor
     boost::this_thread::sleep(boost::posix_time::millisec(10));
-    taskList.clear();
-    taskQueue.clear();
+
     if (tsk_status == WI_TSK_RUN) {
         calc_status();
     }
@@ -670,7 +699,9 @@ void task::calc_status()
         idata = 99;
     }
     tsk_completion = idata;
-    tsk_status = WI_TSK_RUN;
+    if (tsk_status == WI_TSK_IDLE) {
+        tsk_status = WI_TSK_RUN;
+    }
 
     // set task status
     if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
@@ -980,6 +1011,8 @@ void task::add_vulner( const string& vId, const string& params, const string& pa
 int task::add_thread()
 {
     int nt = LockedIncrement(&thread_count);
+    tsk_status = WI_TSK_RUN;
+    tsk_completion = 99;
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_thread " << nt << " threads active");
     return nt; 
 }

@@ -59,7 +59,7 @@ function drawTasks() {
 			st = boostToDate(tskList[i][4]);
 			ft = boostToDate(tskList[i][5]);
 			pt = boostToDate(tskList[i][6]);
-			if (ts == 0 && ft > st && tskList[i][3] == 100) {
+			if (ts != 1 && ft > st && tskList[i][3] == 100) {
 				ts = 3; // completed
 			}
 			if (ts < 3 && ft > st && pt < ft && tskList[i][3] < 100) {
@@ -151,6 +151,9 @@ function showInfo(tsk_id) {
 	var sd = boostToDate(tsks[4]);
 	var fd = boostToDate(tsks[5]);
 	var pd = boostToDate(tsks[6]);
+	if (pd > fd) {
+		fd = pd;
+	}
 	if (fd > sd) {
 		sd = fd - sd;
 		sd = sd / 1000;
@@ -224,39 +227,10 @@ function showInfo(tsk_id) {
 
 function stopTaskOk(tsk_id)
 {
-	var dialog_buttons = {};
-	dialog_buttons[btnOk] = function() {
-						$(this).dialog('close');
-					};
-	$('#task_notify').load('taskActions.php', {'action': 'stop', 'task': tsk_id},
-		function(resp, status, xreq) {
-			if (status != "success") {
-				$("#task_notify_text").html(xreq.status + " " + xreq.statusText);
-				$("#task_notify").dialog({
-					autoOpen: true,
-					width: 400,
-					modal: true,
-					open: function() {
-							$(this).parent().css("overflow", "hidden");
-							$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
-					},
-					buttons: dialog_buttons
-				});
-			}
-			else if (resp != "OK") {
-				$("#task_notify_text").html(resp);
-				$("#task_notify").dialog({
-					autoOpen: true,
-					width: 400,
-					modal: true,
-					open: function() {
-							$(this).parent().css("overflow", "hidden");
-							$(this).parent().find(".ui-dialog-buttonpane").css("overflow", "hidden")
-					},
-					buttons: dialog_buttons
-				});
-			}
-		});
+	__alert("... Just change task's status in the database...");
+dump("stopTaskOk for " + tsk_id + "\n");
+	top.setTskStatus(tsk_id, 4); //set to stopped
+	drawTasks();
 	return false;
 }
 
@@ -320,6 +294,7 @@ function deleteTask(tsk_id)
 
 function pauseTask(tsk_id)
 {
+	__alert("Not implemented yet!");
 	return false;
 }
 
@@ -446,13 +421,13 @@ function addTaskOK()
 		dbg += args.join(" ");
 //__alert(dbg);
 		try {
-
 			top.runCrawler(exe, args);
 		}
 		catch (e) {
 			__alert("Can't start crawler task:\n" + dbg + "\n" + e);
 		}
 	}
+	drawTasks();
 }
 
 function addTask()
@@ -661,6 +636,9 @@ function showObj(obj_id) {
 				var sd = boostToDate(obj[4]);
 				var fd = boostToDate(obj[5]);
 				var pd = boostToDate(obj[6]);
+				if (pd > fd) {
+					fd = pd;
+				}
 				if (fd > sd) {
 					sd = fd - sd;
 					sd = sd / 1000;

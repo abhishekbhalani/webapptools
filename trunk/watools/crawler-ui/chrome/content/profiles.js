@@ -41,12 +41,58 @@ function drawProfiles() {
 	}
 }
 
+function setCntlValue(nm, val) {
+	var tp = $('#settings_view [name='+nm+']').attr('type');
+	var vl = unescape(val);
+	if (tp == undefined) {
+		tp = $('#settings_view [name='+nm+']').attr('nodeName');
+	}
+	if (tp != undefined) {
+		if (tp == 'checkbox' || tp == 'CHECKBOX') {
+			if (val != '' && val != '0') {
+				$("#settings_view [name="+nm+"]").attr('checked', true);
+			}
+			else {
+				$("#settings_view [name="+nm+"]").attr('checked', false);
+			}
+		}
+		else if (tp == 'radio') {
+			var $radios = $('#settings_view [name='+nm+']');
+			$radios.filter('[value='+vl+']').attr('checked', true);
+		}
+		else {
+			$("#settings_view [name="+nm+"]").val(vl);
+		}
+	}
+	var r = tp + ": " + nm + "=" + vl;
+	return r;
+}
+
+var toTransform = 0;
+
+function transformCallback (t) {
+	if (toTransform > 0) {
+		toTransform = toTransform - 1;
+	}
+	if (toTransform == 0) {
+		setTimeout(function () {
+			vals = top.getProfileValues(selectedProfile);
+			for (i in vals) {
+				v = escape(vals[i][1]);
+				n = vals[i][0];
+				var x = setCntlValue(n, v);
+			}
+		}, 500);
+	}
+}
+
 function selectProfile(idx, name) {
 	selectedProfile = idx;
 	profileName = name;
 //alert ("Selected profile #" + idx + " - " + name);
 	str = parent.getProfileVar(idx, 'profile_name');
 	$("#profile_name").val(str);
+	$("#prof_id").val(selectedProfile);
 	plg_active = parent.getProfileVar(idx, 'plugin_list');
 	if (plg_active != undefined) {
 		plg_active = plg_active.split(';');
@@ -56,6 +102,7 @@ function selectProfile(idx, name) {
 	}
 	plg_list = parent.getPluginList();
 	$("#plg_checks").children().remove();
+	toTransform = plg_list.length;
 	for (i in plg_list) {
 		p_id = plg_list[i][0];
 		p_nm = plg_list[i][1];
@@ -78,49 +125,27 @@ function selectProfile(idx, name) {
 		}
 		str = '<input type="checkbox" id="plg_' + p_id + '" ' + plg_status + '><span onclick="toggleShow2(\'' + p_id + '\')" class="tr_link"><b>' + icon + p_nm + '</b></span><br/>';
 		$("#plg_checks").append(str);
-		str = '<div class="ui-widget-header" style="padding-left: 10px; display: none;" id="sets_'+p_id+'_title">'+icon+p_nm+'</div>';
+		str = '<div class="ui-widget-header" style="padding-left: 10px; display: none;" id="sets_'+p_id+'_title">' +icon+p_nm +'</div>';
 		str += '<div class="ui-widget-content" style="width 100%; display: none;" id="sets_'+p_id+'_code"></div>';
 		$("#settings_view").append(str);
 		str = parent.getPluginUI(p_id);
 		if (str != "") {
-			new Transformation().setXml(str).setXslt('ui_transform.xslt').transform('sets_'+p_id+'_code');
+			new Transformation().setXml(str).setXslt('ui_transform.xslt').setCallback(transformCallback).transform('sets_'+p_id+'_code');
 		}
 		else {
 			$('#sets_'+p_id+'_code').html("<div class='ui-state-highlight' width='100%' align='center'>Plugin doesn't provide settings.</div>");
+			toTransform--;
 		}
 	}
 	// set profile values to controls
 	// xslt transformation is async process, so - wait for completion
-	setTimeout(function() {
-		vals = top.getProfileValues(idx);
-		for (i in vals) {
-			v = escape(vals[i][1]);
-			//alert(vals[i][0]+" = "+v);
-			setControlValue(vals[i][0], v);
-		}
-	}, 500);
-}
-
-function setControlValue(nm, val) {
-	var type = $('[name='+nm+']').attr('type');
-	var value = unescape(val);
-	if (type == undefined) {
-		type = $('[name='+nm+']').attr('nodeName');
-	}
-	if (type != undefined) {
-		if (type == 'checkbox') {
-			if (val != '' && val != '0') {
-				$("[name="+nm+"]").attr('checked', 'checked');
-			}
-		}
-		else if (type == 'radio') {
-			var $radios = $('[name='+nm+']');
-			$radios.filter('[value='+value+']').attr('checked', true);
-		}
-		else {
-			$("[name="+nm+"]").val(value);
-		}
-	}
+	//setTimeout(function() {
+	//	vals = top.getProfileValues(idx);
+	//	for (i in vals) {
+	//		v = escape(vals[i][1]);
+	//		setControlValue(vals[i][0], v);
+	//	}
+	//}, 1000);
 }
 
 function addProfileOk() {

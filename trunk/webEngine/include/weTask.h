@@ -142,7 +142,7 @@ namespace webEngine {
 
         void Run();
         void Pause(const bool& state = true);
-        void Stop();
+        void Stop(bool force = false);
 
         bool IsReady();
         virtual i_response_ptr get_request(i_request_ptr req);
