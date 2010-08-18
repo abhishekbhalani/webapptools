@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>Web "A" Tools Instalation</title>
+	<link type="text/css" href="/theme/wat.css" rel="stylesheet" />	
+	<script type="text/javascript" src="/scripts/jquery.js"></script>
+	<script type="text/javascript" src="/scripts/jquery-ui.js"></script>
+	<script type="text/javascript" src="chkMatch.js"></script>
+	<script type="text/javascript">
+    $(function(){
+        // Dialog
+        $('#dialog').dialog({
+            autoOpen: true,
+            draggable: false,
+            resizable: false,
+            closeOnEscape:false,
+            modal: false,
+            width: 500,
+            open: function(event, ui) { $(".ui-dialog-titlebar-close").hide(); },
+            buttons: {
+                "Done": function() {
+					document.location = "/";
+                }
+            }
+        });
+        $('#tips').hide();
+    });
+	</script>
+</head>
+<html>
+<body background="/theme/images/ui-bg_diagonals-thick_90_eeeeee_40x40.png">
+	<div id="dialog" title="Step 2. Save settings.">
+	<table border="0"><tr><td valign="middle"><img src="img/stage3.png"></td><td>
+    <form action="stage3.php" method="POST" id="form1">
+        <fieldset width="0">
+            <legend><b>Save these settings</b></legend>
+			Save code below to the file <b>globals.php</b> at <b>[{$srvpath}]</b>. And make it inaccessible from internet.
+            <div>[{$code}]</div>
+			After this you may press <b>Done</b>. You'll be redirected to the login page.
+			<div class="ui-state-error" id="msg" style="display: none; width: 100%; text-align: center;"></div>
+        </fieldset>
+    </form></td></tr></table>
+	</div>
+</body>
+</html>

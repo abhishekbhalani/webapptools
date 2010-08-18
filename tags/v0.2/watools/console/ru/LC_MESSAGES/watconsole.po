@@ -1,0 +1,185 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WATools\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-07-15 12:07+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Andrew Abramov <stinger911@gmail.com>\n"
+"Language-Team: Lab18 <team@lab18.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Russian\n"
+"X-Poedit-Country: RUSSIAN FEDERATION\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: c:\\Work\\Projects\\WAT\\trunk\\watools\\console\\theme\\\n"
+"X-Poedit-SearchPath-0: c:\\Work\\Projects\\WAT\\trunk\\watools\\console\n"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/dashboard.php:41
+#: c:\Work\Projects\WAT\trunk\watools\console/dashboard.php:42
+#: c:\Work\Projects\WAT\trunk\watools\console/dashboard.php:43
+msgid "Unknown"
+msgstr "Не определено"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/login.php:15
+msgid "Incorrect username or password!"
+msgstr "Неправильное имя пользователя или пароль!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/login.php:40
+msgid "Database connection error! "
+msgstr "Ошибка соединения с базой даных!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/modActions.php:60
+msgid "<unknown>"
+msgstr "<не определено>"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/profEdit.php:9
+msgid "Access denied!"
+msgstr "Доступ запрещен!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/profEdit.php:15
+msgid "Database access error!"
+msgstr "Ошибка доступа к БД!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/profEdit.php:19
+msgid "Invalid request!"
+msgstr "Ошибочный запрос!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/setsPersonal.php:29
+#: c:\Work\Projects\WAT\trunk\watools\console/setsSystem.php:31
+msgid "No description provided"
+msgstr "Нет описания"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:54
+msgid "day(s)"
+msgstr "дн."
+
+#: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:61
+#: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:64
+#: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:93
+msgid "Undefined"
+msgstr "Не определено"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:68
+msgid "request(s);"
+msgstr "запрос(ов)"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:68
+msgid "requests per second"
+msgstr "запросов в секунду"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/taskInfo.php:127
+msgid "Can't find selected task!"
+msgstr "Указаная задача не найдена!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/tasks.php:7
+msgid "IDLE"
+msgstr "ОЖИДАНИЕ"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/tasks.php:8
+msgid "RUNNING"
+msgstr "ВЫПОЛНЕНИЕ"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/tasks.php:9
+msgid "PAUSED"
+msgstr "ПАУЗА"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/tasks.php:10
+msgid "FINISHED"
+msgstr "ЗАВЕРШЕНО"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/tasks.php:11
+msgid "STOPPED"
+msgstr "ОСТАНОВЛЕНО"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/tasks.php:12
+msgid "HANGS"
+msgstr "ЗАВИСАНИЕ"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/tasks.php:14
+msgid "UNDEFINED"
+msgstr "НЕИЗВЕСТНО"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:47
+msgid "Access denied for user "
+msgstr "Доступ запрещен для пользователя"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:47
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:98
+msgid "!<br>Contact your system administrator!"
+msgstr "!<br>Обратитесь к администратору системы!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:96
+msgid "Visualisation broken"
+msgstr "Проблемы визуализации"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:97
+msgid "Can't display page "
+msgstr "Нет возможности отобразить страницу "
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themes.php:97
+msgid " in theme "
+msgstr " в теме "
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:55
+msgid "Unknown language!"
+msgstr "Неизвестный язык!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:59
+msgid "Theme doesn't exist!"
+msgstr "Тема не существует!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:122
+msgid "Theme already installed!"
+msgstr "Тема уже установлена!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/themesModyfy.php:126
+msgid "Can't read theme description!"
+msgstr "Не удалось получить описание темы!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:34
+msgid "User with same name already exist: "
+msgstr "Пользователь с таким именем уже существует:"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:37
+msgid "Can't create user!"
+msgstr "Не удалось создать пользователя!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:77
+msgid "Group with same name already exist: "
+msgstr "Группа с таким названием уже существует:"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:80
+msgid "Can't create group!"
+msgstr "Не удалось создать группу!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:107
+msgid "Can't delete system owner!"
+msgstr "Нельзя удалить владельца системы!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:127
+msgid "Can't delete system group!"
+msgstr "Нельзя удалить системную группу!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:160
+msgid "New password doesn't match the confirmation!"
+msgstr "Новый пароль не совпадает с подтверждением!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/uagModify.php:164
+msgid "Invalid password!"
+msgstr "Неправильный пароль!"
+
+#: c:\Work\Projects\WAT\trunk\watools\console/usermgmt.php:159
+#: c:\Work\Projects\WAT\trunk\watools\console/usermgmt.php:191
+msgid "Can't find User or Group!"
+msgstr "Не удалось найти пользователя или группу!"
+
+#~ msgid "Access Denied"
+#~ msgstr "Доступ запрещен"
+#~ msgid "Access denied"
+#~ msgstr "Доступ запрещен"
+
+#, fuzzy
+#~ msgid "Invalid request"
+#~ msgstr "Ошибочный запрос!"
+

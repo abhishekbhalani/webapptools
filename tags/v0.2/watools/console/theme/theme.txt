@@ -1,0 +1,2 @@
+en;English|ru;Russian
+Simple and lightweight interface.

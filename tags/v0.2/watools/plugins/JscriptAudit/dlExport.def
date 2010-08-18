@@ -1,0 +1,2 @@
+LIBRARY	"aJscript.plg"
+EXPORTS WePluginFactory
