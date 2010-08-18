@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
 <?xml-stylesheet href="chrome://crawler/skin/classic/jquery-ui.css" type="text/css"?>
-<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml" sizemode="normal" title="WAT Crawler UI" class="ui-widget-gradient" style="font-size:9px;" width="900" height="650">
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:html="http://www.w3.org/1999/xhtml" sizemode="normal" title="WAT Crawler UI &lt;BETA&gt;" class="ui-widget-gradient" style="font-size:9px;" width="900" height="650">
 	<script type="application/x-javascript" src="jquery.js"/>
 	<script type="application/x-javascript" src="jquery-ui.js"/>
 	<script type="application/x-javascript" src="sqlite.js"/>

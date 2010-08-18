@@ -245,6 +245,7 @@ int main(int argc, char* argv[])
 #ifdef _DEBUG
 			" " << VERSION_TIME <<
 #endif
+            " BETA" <<
 #ifdef WIN32
 			" (Windows)" <<
 #else
