@@ -1,4 +1,5 @@
 #summary Главная страница на русском языке
+#labels Phase-Support,Phase-Requirements
 
 *!WebAppTools* - комплекс программ и база знаний по анализу уязвимостей реализации и настройки web-приложений и web-серверов.
 
@@ -27,6 +28,9 @@
     * [Documentation Документация по проекту] 
     * [Sponsorship Информация для разработчиков и инвесторов]
     * [http://code.google.com/p/webapptools/wiki/ProjectStatus Статус проекта]
-<table border="1" width="100%"><tr><td><a href="http://code.google.com/p/webapptools">English Version</a></td></tr></table>
+
+*Если у Вас есть пожелания по функциональности или Вы обнаружили ошибку - воспользуйтесь  нашим [http://code.google.com/p/webapptools/issues/list Трекером].*
+
 <table border="0" width="100%" cellspacing="0" cellpadding="0"><tr><td width="145px"><a href="http://www.ptsecurity.com"><img src="http://webapptools.googlecode.com/svn/wiki/images/logo0.png" width="145px" heigth="50px" border="0"/></a></td><td><img src="http://webapptools.googlecode.com/svn/wiki/images/logo_bg.png" width="100%" height="50px" /></td></tr></table>
+<table border="1" width="100%"><tr><td><a href="http://code.google.com/p/webapptools">English Version</a></td></tr></table>
 <wiki:gadget url="http://www.ohloh.net/p/401602/widgets/project_thin_badge.xml" height="36"  border="0" />
