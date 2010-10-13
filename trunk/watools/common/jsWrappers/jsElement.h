@@ -6,64 +6,65 @@
 #include "jsGlobal.h"
 
 namespace webEngine {
-    class jsCssStyle;
+class jsCssStyle;
 
-    class jsElement
-    {
-    public:
-        jsElement(html_document_ptr document);
-        jsElement(html_entity_ptr ent);
-        ~jsElement(void);
+class jsElement {
+public:
+    jsElement(html_document_ptr document);
+    jsElement(html_entity_ptr ent);
+    ~jsElement(void);
 
-        virtual html_entity_ptr entity() { return html_ent; }
+    virtual html_entity_ptr entity() {
+        return html_ent;
+    }
 
-        virtual v8::Handle<v8::Value> GetProperty(v8::Local<v8::String> name, const v8::AccessorInfo &info);
-        virtual v8::Handle<v8::Value> SetProperty(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
-        v8::Persistent<v8::Value> evt_handler;
+    virtual v8::Handle<v8::Value> GetProperty(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+    virtual v8::Handle<v8::Value> SetProperty(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
+    v8::Persistent<v8::Value> evt_handler;
 
-        static bool is_init;
-        static v8::Persistent<v8::FunctionTemplate> object_template;
+    static bool is_init;
+    static v8::Persistent<v8::FunctionTemplate> object_template;
 
-        static void init();
-        static v8::Handle<v8::Value> PropertyGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
-        static v8::Handle<v8::Value> PropertySet(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
-        static v8::Handle<v8::Array> PropertyEnum(const v8::AccessorInfo &info);
-        static v8::Handle<v8::Value> ToString(const v8::Arguments& args);
-        static v8::Handle<v8::Value> AppendChild(const v8::Arguments& args);
-        static v8::Handle<v8::Value> GetAttribute(const v8::Arguments& args);
-        static v8::Handle<v8::Value> SetAttribute(const v8::Arguments& args);
-        static v8::Handle<v8::Value> GetElemsByName(const v8::Arguments& args);
-        static v8::Handle<v8::Value> CloneNode(const v8::Arguments& args);
-        static v8::Handle<v8::Value> RemoveChild(const v8::Arguments& args);
-        static v8::Handle<v8::Value> InsertBefore(const v8::Arguments& args);
+    static void init();
+    static v8::Handle<v8::Value> PropertyGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+    static v8::Handle<v8::Value> PropertySet(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo& info);
+    static v8::Handle<v8::Array> PropertyEnum(const v8::AccessorInfo &info);
+    static v8::Handle<v8::Value> ToString(const v8::Arguments& args);
+    static v8::Handle<v8::Value> AppendChild(const v8::Arguments& args);
+    static v8::Handle<v8::Value> GetAttribute(const v8::Arguments& args);
+    static v8::Handle<v8::Value> SetAttribute(const v8::Arguments& args);
+    static v8::Handle<v8::Value> GetElemsByName(const v8::Arguments& args);
+    static v8::Handle<v8::Value> CloneNode(const v8::Arguments& args);
+    static v8::Handle<v8::Value> RemoveChild(const v8::Arguments& args);
+    static v8::Handle<v8::Value> InsertBefore(const v8::Arguments& args);
 
-        static v8::Handle<v8::Value> PlaceHolder(const v8::Arguments& args);
-    protected:
-        html_entity_ptr html_ent;
-        jsCssStyle* css_style;
+    static v8::Handle<v8::Value> PlaceHolder(const v8::Arguments& args);
+protected:
+    html_entity_ptr html_ent;
+    jsCssStyle* css_style;
 
-        static std::vector<std::string> rw_props;
-        static std::vector<std::string> ro_props;
-        static std::vector<std::string> funcs;
-    };
+    static std::vector<std::string> rw_props;
+    static std::vector<std::string> ro_props;
+    static std::vector<std::string> funcs;
+};
 
-    class jsAttribute {
-    public:
-        jsAttribute(jsElement* _prnt, string nm);
+class jsAttribute {
+public:
+    jsAttribute(jsElement* _prnt, string nm);
 
-        static bool is_init;
-        static v8::Persistent<v8::FunctionTemplate> object_template;
+    static bool is_init;
+    static v8::Persistent<v8::FunctionTemplate> object_template;
 
-        static void init();
+    static void init();
 
-        static v8::Handle<v8::Value> ToString(const v8::Arguments& args);
-        static v8::Handle<v8::Value> ValueGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
-        static void ValueSet(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
-        static v8::Handle<v8::Value> NameGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+    static v8::Handle<v8::Value> ToString(const v8::Arguments& args);
+    static v8::Handle<v8::Value> ValueGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
+    static void ValueSet(v8::Local<v8::String> name, v8::Local<v8::Value> value, const v8::AccessorInfo &info);
+    static v8::Handle<v8::Value> NameGet(v8::Local<v8::String> name, const v8::AccessorInfo &info);
 
-        jsElement* parent;
-        string name;
-    };
+    jsElement* parent;
+    string name;
+};
 
 } //namespace webEngine
 

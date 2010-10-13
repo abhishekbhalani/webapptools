@@ -58,36 +58,33 @@ extern int dispatcher_routine(po::variables_map& vm);
 
 bool get_bool_option(const string& value, bool noLogging = false)
 {
-	bool retval = false;
-	string val = value;
+    bool retval = false;
+    string val = value;
 
-	boost::to_lower(val);
-	if (val == "yes") {
-		retval = true;
-	}
-    else if (val == "true") {
-		retval = true;
-	}
-    else {
+    boost::to_lower(val);
+    if (val == "yes") {
+        retval = true;
+    } else if (val == "true") {
+        retval = true;
+    } else {
         int i = 0;
         try {
-	        i = boost::lexical_cast<int>(val);
+            i = boost::lexical_cast<int>(val);
         } catch (std::exception &e) {
             if (noLogging) {
                 cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false." << endl;
-            }
-            else {
+            } else {
                 LOG4CXX_WARN(module_logger, "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.");
             }
         }
-	    if (i != 0) {
-		    retval = true;
-	    }
+        if (i != 0) {
+            retval = true;
+        }
     }
     if (!noLogging) {
-	    LOG4CXX_DEBUG(module_logger, "get_bool_option(" << value << ") = " << retval);
+        LOG4CXX_DEBUG(module_logger, "get_bool_option(" << value << ") = " << retval);
     }
-	return retval;
+    return retval;
 }
 
 std::wstring string_to_wstring(const std::string& s)
@@ -100,71 +97,62 @@ std::wstring string_to_wstring(const std::string& s)
 template <typename T>
 inline bool is_any(const boost::any& op)
 {
-  return (op.type() == typeid(T));
+    return (op.type() == typeid(T));
 }
 
 void save_config(const string& fname, po::variables_map& vm, po::options_description& desc, bool noLogging = false )
 {
-	if (!noLogging) {
-		LOG4CXX_INFO(module_logger, "Save configuration to " << fname);
-	}
+    if (!noLogging) {
+        LOG4CXX_INFO(module_logger, "Save configuration to " << fname);
+    }
 
-    try{
+    try {
         ofstream ofs(fname.c_str());
-		vector< boost::shared_ptr<po::option_description>> opts = desc.options();
-		for ( unsigned i = 0; i < opts.size(); i++) {
-			string comment = "#";
-			string value = "";
-			string name = opts[i]->long_name();
-			if (!noLogging) {
-				LOG4CXX_DEBUG(module_logger, "Save variable " << name);
-			}
-			ofs << "#" << opts[i]->description() << endl;
-			if (vm.count(name)) {
-				comment = "";
-				boost::any val = vm[name].value();
+        vector< boost::shared_ptr<po::option_description>> opts = desc.options();
+        for ( unsigned i = 0; i < opts.size(); i++) {
+            string comment = "#";
+            string value = "";
+            string name = opts[i]->long_name();
+            if (!noLogging) {
+                LOG4CXX_DEBUG(module_logger, "Save variable " << name);
+            }
+            ofs << "#" << opts[i]->description() << endl;
+            if (vm.count(name)) {
+                comment = "";
+                boost::any val = vm[name].value();
                 if (is_any<string>(val)) {
                     value = boost::any_cast<string>(val);
-                }
-                else if (is_any<const char*>(val)) {
+                } else if (is_any<const char*>(val)) {
                     value = boost::any_cast<const char*>(val);
-                }
-                else if (is_any<double>(val)) {
-					value = boost::lexical_cast<string>(boost::any_cast<double>(val));
-                }
-                else if (is_any<int>(val)) {
+                } else if (is_any<double>(val)) {
+                    value = boost::lexical_cast<string>(boost::any_cast<double>(val));
+                } else if (is_any<int>(val)) {
                     value = boost::lexical_cast<string>(boost::any_cast<int>(val));
-                }
-                else if (is_any<bool>(val)) {
+                } else if (is_any<bool>(val)) {
                     value = boost::lexical_cast<string>(boost::any_cast<bool>(val));
+                } else {
+                    if (noLogging) {
+                        cerr << "Unknown variable type " << val.type().name() << endl;
+                    } else {
+                        LOG4CXX_ERROR(module_logger, "Unknown variable type " << val.type().name());
+                    }
                 }
-				else {
-					if (noLogging) {
-						cerr << "Unknown variable type " << val.type().name() << endl;
-					}
-					else {
-						LOG4CXX_ERROR(module_logger, "Unknown variable type " << val.type().name());
-					}
-				}
-			}
-			else {
-				// get the default value
-			}
-			ofs << comment << name << "=" << value << endl << endl;
-		}
-    }
-    catch(std::exception& e) {
-		if (noLogging) {
-			cerr << "Configuration not saved: " << e.what() << endl;
-		}
-		else {
-			LOG4CXX_ERROR(module_logger, "Configuration not saved: " << e.what());
-		}
+            } else {
+                // get the default value
+            }
+            ofs << comment << name << "=" << value << endl << endl;
+        }
+    } catch(std::exception& e) {
+        if (noLogging) {
+            cerr << "Configuration not saved: " << e.what() << endl;
+        } else {
+            LOG4CXX_ERROR(module_logger, "Configuration not saved: " << e.what());
+        }
         return;
     }
-	if (!noLogging) {
-		LOG4CXX_INFO(module_logger, "Configuration saved successfully");
-	}
+    if (!noLogging) {
+        LOG4CXX_INFO(module_logger, "Configuration saved successfully");
+    }
 }
 
 int main(int argc, char* argv[])
@@ -177,104 +165,101 @@ restart:
     string db1_stage;
 
     cfg_file.add_options()
-        ("identity", po::value<string>(), "installation identifier")
-        ("instances",  po::value<int>()->default_value(int(1)), "number of instances")
-		("keepalive_timeout", po::value<int>()->default_value(int(5)), "keep-alive timeout in seconds")
-		("sysinfo_timeout", po::value<int>()->default_value(int(60)), "system information timeout in seconds")
-		("reporter_name", po::value<string>()->default_value(string("default report generator")), "human-readable identifier of the module installation")
-        ("log_file",  po::value<string>(), "file to store log information")
-        ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
-        ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
-        ("plugin_dir",  po::value<string>()->default_value(string("./")), "directory, where plug-ins are placed")
-        ("db_interface",  po::value<string>()->default_value(string("sqlite_storage")), "plug-in identifier to connect to Storage DB")
-        ("db_parameters",  po::value<string>(), "plug-in configuration to connect to Storage DB")
-		("daemonize",  po::value<string>(), "run program as daemon (yes|no or true|false)")
+    ("identity", po::value<string>(), "installation identifier")
+    ("instances",  po::value<int>()->default_value(int(1)), "number of instances")
+    ("keepalive_timeout", po::value<int>()->default_value(int(5)), "keep-alive timeout in seconds")
+    ("sysinfo_timeout", po::value<int>()->default_value(int(60)), "system information timeout in seconds")
+    ("reporter_name", po::value<string>()->default_value(string("default report generator")), "human-readable identifier of the module installation")
+    ("log_file",  po::value<string>(), "file to store log information")
+    ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
+    ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
+    ("plugin_dir",  po::value<string>()->default_value(string("./")), "directory, where plug-ins are placed")
+    ("db_interface",  po::value<string>()->default_value(string("sqlite_storage")), "plug-in identifier to connect to Storage DB")
+    ("db_parameters",  po::value<string>(), "plug-in configuration to connect to Storage DB")
+    ("daemonize",  po::value<string>(), "run program as daemon (yes|no or true|false)")
     ;
 
     cmd_line_vis.add_options()
-        ("help", "this help message")
-        ("config",  po::value<string>()->default_value(default_config), "configuration file")
-        ("trace",  po::value<string>(), "trace configuration file")
-		("generate", po::value<string>(), "make config file with current values")
+    ("help", "this help message")
+    ("config",  po::value<string>()->default_value(default_config), "configuration file")
+    ("trace",  po::value<string>(), "trace configuration file")
+    ("generate", po::value<string>(), "make config file with current values")
     ;
-	// hidden options
+    // hidden options
     cmd_line.add_options()
-        ("instance", "used to run instance")
-	;
+    ("instance", "used to run instance")
+    ;
 
-	cmd_line.add(cmd_line_vis);
+    cmd_line.add(cmd_line_vis);
 
     store(parse_command_line(argc, argv, cmd_line), vm);
     notify(vm);
 
-	{
-		stringstream ost;
-		ost << VERSION_MAJOR << "." << VERSION_MINOR << "." <<
-			VERSION_BUILDNO << "." << VERSION_EXTEND << 
-			" build at " << VERSION_DATE <<
+    {
+        stringstream ost;
+        ost << VERSION_MAJOR << "." << VERSION_MINOR << "." <<
+            VERSION_BUILDNO << "." << VERSION_EXTEND <<
+            " build at " << VERSION_DATE <<
 #ifdef _DEBUG
-			" " << VERSION_TIME << " " << VERSION_SVN <<
+            " " << VERSION_TIME << " " << VERSION_SVN <<
 #endif
 #ifdef WIN32
-			" (Windows)" <<
+            " (Windows)" <<
 #else
-			" (Linux)" <<
+            " (Linux)" <<
 #endif
-			" ";
-		reporter_version = ost.str();
-	}
+            " ";
+        reporter_version = ost.str();
+    }
 
     if (vm.count("help")) {
         cout << cmd_line_vis << endl;
         return 0;
     }
-	// create config file
-	if (vm.count("generate")) {
-		cout << "WAT reporter " << reporter_version << endl;
-		cout << "write config file " << vm["generate"].as<string>() << endl;
+    // create config file
+    if (vm.count("generate")) {
+        cout << "WAT reporter " << reporter_version << endl;
+        cout << "write config file " << vm["generate"].as<string>() << endl;
         basic_random_generator<boost::mt19937> gen;
         uuid tag = gen();
         module_uuid = boost::lexical_cast<string>(tag);
         string value = "identity=" + module_uuid;
-        {   
+        {
             istrstream ss(value.c_str());
-			store(parse_config_file(ss, cfg_file), vm);
-			notify(vm);
+            store(parse_config_file(ss, cfg_file), vm);
+            notify(vm);
         }
-		save_config(vm["generate"].as<string>(), vm, cfg_file, true);
-		return 0;
-	}
+        save_config(vm["generate"].as<string>(), vm, cfg_file, true);
+        return 0;
+    }
 
-	// parse configuration
+    // parse configuration
     if (vm.count("config")) {
         ifstream ifs;
         ifs.open(vm["config"].as<string>().c_str());
         if (ifs.rdbuf()->is_open() ) {
-            try{
+            try {
                 store(parse_config_file(ifs, cfg_file, true), vm);
                 notify(vm);
-            }
-            catch(std::exception &e) {
+            } catch(std::exception &e) {
                 cerr << "Can't load config file: " << vm["config"].as<string>() << "! " << e.what() << endl;
                 return 1;
             }
-        }
-        else {
+        } else {
             cerr << "Can't open config file: " << vm["config"].as<string>() << "!" << endl;
             return 1;
         }
-    }
-    else {
+    } else {
         cerr << "Config file must be specified!" << endl;
         return 1;
     }
 
     // init log subsystem
-	bool traceFile = false;
-	bool traceLevel = false;
+    bool traceFile = false;
+    bool traceLevel = false;
     if (vm.count("trace")) {
-		if ( bfs::exists(vm["trace"].as<string>()) ){
-			// try to load given trace configuration
+        if ( bfs::exists(vm["trace"].as<string>()) ) {
+            // try to load given trace configuration
             try {
 #ifdef WIN32
                 PropertyConfigurator::configure(log4cxx::File(vm["trace"].as<string>()), LOG4CXX_STR("webEngine"));
@@ -282,105 +267,100 @@ restart:
                 PropertyConfigurator::configure(log4cxx::File(cfgFile));
 #endif
                 traceFile = true;
-		        traceLevel = true;
-            }
-            catch (...) {
+                traceLevel = true;
+            } catch (...) {
                 traceFile = false;
-		        traceLevel = false;
+                traceLevel = false;
             }
-		}
+        }
     }
 
-	// check daemonize
-	if (vm.count("daemonize")) {
-		daemonize = get_bool_option(vm["daemonize"].as<string>(), true);
-	}
+    // check daemonize
+    if (vm.count("daemonize")) {
+        daemonize = get_bool_option(vm["daemonize"].as<string>(), true);
+    }
 
     // no trace configuration file - make configuration programmatically
     if (vm.count("log_layout")) {
         default_layout = string_to_wstring(vm["log_layout"].as<string>());
     }
-	LayoutPtr layout(new PatternLayout(default_layout));
-	if (!traceFile) {
-		// set log file from config file
+    LayoutPtr layout(new PatternLayout(default_layout));
+    if (!traceFile) {
+        // set log file from config file
         if (vm.count("log_file")) {
             FileAppenderPtr appender(new FileAppender(layout, string_to_wstring(vm["log_file"].as<string>()), true));
             module_logger->addAppender(appender);
             traceFile = true;
-        }
-        else {
-		    // set trace destination by default
+        } else {
+            // set trace destination by default
 
-		    if(daemonize) {
+            if(daemonize) {
                 FileAppenderPtr appender(new FileAppender(layout, default_trace, true));
                 module_logger->addAppender(appender);
                 traceFile = true;
-		    }
-		    else {
-			    // set trace to console
+            } else {
+                // set trace to console
                 ConsoleAppenderPtr appender(new ConsoleAppender(layout));
                 module_logger->addAppender(appender);
                 traceFile = true;
-		    }
+            }
         }
-	}
-	if (!traceLevel) {
-		// set trace level from config file
+    }
+    if (!traceLevel) {
+        // set trace level from config file
         int lvl = default_trace_level;
         if (vm.count("log_level")) {
             lvl = vm["log_level"].as<int>();
         }
         switch (lvl) {
-            case 0:
-                module_logger->setLevel(Level::getFatal());
-                break;
-            case 1:
-                module_logger->setLevel(Level::getError());
-                break;
-            case 2:
-                module_logger->setLevel(Level::getWarn());
-                break;
-            case 3:
-                module_logger->setLevel(Level::getInfo());
-                break;
-            case 4:
-                module_logger->setLevel(Level::getDebug());
-                break;
-            default: // TRACE and bad values
-                module_logger->setLevel(Level::getTrace());
+        case 0:
+            module_logger->setLevel(Level::getFatal());
+            break;
+        case 1:
+            module_logger->setLevel(Level::getError());
+            break;
+        case 2:
+            module_logger->setLevel(Level::getWarn());
+            break;
+        case 3:
+            module_logger->setLevel(Level::getInfo());
+            break;
+        case 4:
+            module_logger->setLevel(Level::getDebug());
+            break;
+        default: // TRACE and bad values
+            module_logger->setLevel(Level::getTrace());
         };
         traceLevel = true;
-	}
+    }
     LOG4CXX_INFO(module_logger, "\n\n");
-	LOG4CXX_INFO(module_logger, "WAT Reporter started. Version: " << reporter_version);
-	LOG4CXX_INFO(module_logger, "Loaded configuration from " << vm["config"].as<string>());
+    LOG4CXX_INFO(module_logger, "WAT Reporter started. Version: " << reporter_version);
+    LOG4CXX_INFO(module_logger, "Loaded configuration from " << vm["config"].as<string>());
 
-	// init webEngine library
+    // init webEngine library
     if (vm.count("trace")) {
         // init library with the given trace configuration
         webEngine::LibInit(vm["trace"].as<string>());
-    }
-    else {
+    } else {
         // init library with the existing logger
         AppenderList appList = module_logger->getAllAppenders();
-		webEngine::LibInit(appList[0], module_logger->getLevel());
+        webEngine::LibInit(appList[0], module_logger->getLevel());
     }
     // verify installation UUID
     if (vm.count("identity")) {
         module_uuid = vm["identity"].as<string>();
-    }
-    else {
+    } else {
         LOG4CXX_INFO(module_logger, "WAT Reporter identificator is undefined, create new");
         basic_random_generator<boost::mt19937> gen;
         uuid tag = gen();
         module_uuid = boost::lexical_cast<string>(tag);
         // todo: save config
         string value = "identity=" + module_uuid;
-		{
-			istrstream ss(value.c_str());
-			store(parse_config_file(ss, cfg_file), vm);
-			notify(vm);
-		}
+        {
+            istrstream ss(value.c_str());
+            store(parse_config_file(ss, cfg_file), vm);
+            notify(vm);
+        }
         LOG4CXX_TRACE(module_logger, "New config value for identity is " << vm["identity"].as<string>());
         save_config(vm["config"].as<string>(), vm, cfg_file);
     }
@@ -394,11 +374,11 @@ restart:
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != NO_ERROR) {
         LOG4CXX_FATAL(module_logger, "WSAStartup failed: " << iResult);
-		return 1;
+        return 1;
     }
 #endif
 
-	// demonize and run instances
+    // demonize and run instances
 #ifdef WIN32
     // prevent instance to fall into endless "run-the-instances" loop
     // only on Win32, 'cause the *NIX have the fork() syscall, which do all this work
@@ -408,12 +388,12 @@ restart:
         LOG4CXX_DEBUG(module_logger, "Win32 - already daemonized instance");
     }
 #endif
-	if (daemonize) {
-		int instances = vm["instances"].as<int>();
-		LOG4CXX_INFO(module_logger, "daemonize. try to run " << instances << " instances");
-		bool master = true;
-		for (int i = 0; i < instances; i++) {
-			LOG4CXX_TRACE(module_logger, "Start instance");
+    if (daemonize) {
+        int instances = vm["instances"].as<int>();
+        LOG4CXX_INFO(module_logger, "daemonize. try to run " << instances << " instances");
+        bool master = true;
+        for (int i = 0; i < instances; i++) {
+            LOG4CXX_TRACE(module_logger, "Start instance");
 #ifdef WIN32
             char** cmd = new char*[argc+1];
             for (int j = 1; j < argc; j++) {
@@ -428,10 +408,9 @@ restart:
 #else
             pid_t pid = vfork();
             if (pid < 0) {
-                // error 
+                // error
                 LOG4CXX_ERROR(module_logger, "vfork returns error: " << pid);
-            }
-            else if (pid == 0) {
+            } else if (pid == 0) {
                 // child process
                 LOG4CXX_INFO(module_logger, "instance started!");
                 master = false;
@@ -439,12 +418,12 @@ restart:
             }
 #endif
             LOG4CXX_DEBUG(module_logger, "running instance #" << i+1);
-		}
+        }
         if (master) {
             LOG4CXX_INFO(module_logger, "All instances started, exit launcher");
             goto finish;
         }
-	}
+    }
 
     // run dispatcher
     int retcode = dispatcher_routine(vm);
@@ -465,10 +444,9 @@ restart:
 #else
         pid_t pid = vfork();
         if (pid < 0) {
-            // error 
+            // error
             LOG4CXX_ERROR(module_logger, "vfork returns error: " << pid);
-        }
-        else if (pid == 0) {
+        } else if (pid == 0) {
             // child process
             LOG4CXX_INFO(module_logger, "instance started!");
             master = false;
@@ -479,7 +457,7 @@ restart:
             goto restart;
         }
     }
-    
+
 
 finish:
     // cleanup

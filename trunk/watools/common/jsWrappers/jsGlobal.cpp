@@ -10,7 +10,8 @@ using namespace webEngine;
 
 // Functions
 // Extracts a C string from a V8 Utf8Value.
-string value_to_string(const Local<Value>& val) {
+string value_to_string(const Local<Value>& val)
+{
 
     if (*val) {
         String::Utf8Value utf8(val);
@@ -19,7 +20,8 @@ string value_to_string(const Local<Value>& val) {
     return string("<string conversion failed>");
 }
 
-Handle<Value> alert(const Arguments& args) {
+Handle<Value> alert(const Arguments& args)
+{
     bool first = true;
     string res = "";
     for (int i = 0; i < args.Length(); i++) {
@@ -35,7 +37,8 @@ Handle<Value> alert(const Arguments& args) {
     return Undefined();
 }
 
-Handle<Value> print(const Arguments& args) {
+Handle<Value> print(const Arguments& args)
+{
     bool first = true;
     string res = "";
     for (int i = 0; i < args.Length(); i++) {
@@ -52,7 +55,8 @@ Handle<Value> print(const Arguments& args) {
     return Undefined();
 }
 
-Handle<Value> version(const Arguments& args) {
+Handle<Value> version(const Arguments& args)
+{
     return String::New(V8::GetVersion());
 }
 
@@ -67,8 +71,7 @@ void append_results(const std::string& data)
     Local<Context> ctx = v8::Context::GetCurrent();
     Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
 //     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::append_results: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
 //         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::append_results: gets v8_context object");
         v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));
@@ -91,8 +94,7 @@ void append_object(v8::Handle<v8::Object> data)
     Local<Context> ctx = v8::Context::GetCurrent();
     Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
 //     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::append_object: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
 //         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::append_object: gets v8_context object");
         v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));
@@ -113,33 +115,26 @@ Handle<Value> dump_object(const Arguments& args)
     Local<Context> ctx = v8::Context::GetCurrent();
     Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
 //     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::DumpObject: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
 //         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::DumpObject: gets v8_context object");
         v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));
 //         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::DumpObject: gets v8_context wrapper");
         webEngine::jsExecutor* jsExec = static_cast<webEngine::jsExecutor*>(wrap->Value());
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::DumpObject: gets jsExecutor");
-        if (args.Length() > 1)
-        {
+        if (args.Length() > 1) {
             nm = value_to_string(*args[1]);
-        }
-        else {
+        } else {
             nm = "";
         }
-        if (args.Length() > 2)
-        {
+        if (args.Length() > 2) {
             id = value_to_string(*args[2]);
-        }
-        else {
+        } else {
             id = "";
         }
-        if (args.Length() > 3)
-        {
+        if (args.Length() > 3) {
             dp = args[3]->Int32Value();
-        }
-        else {
+        } else {
             dp = 0;
         }
         string dat = jsExec->obj_dump(args[0], nm, id, dp, ctx);
@@ -156,8 +151,7 @@ Handle<Object> wrap_entity( html_entity_ptr objToWrap )
     string tagname = objToWrap->Name();
     if (tagname == "form") {
         res = wrap_object<jsForm>(new jsForm(objToWrap));
-    }
-    else {
+    } else {
         res = wrap_object<jsElement>(new jsElement(objToWrap));
     }
 

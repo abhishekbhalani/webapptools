@@ -18,15 +18,15 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
+			InheritedPropertySheets="..\..\wetools.vsprops"
 			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increase builds count"
-				CommandLine="..\..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t600"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\webEngine\include;..\..\common"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DEMO_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -64,10 +64,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib webEngine.lib libboost_regex-vc90-mt-gd-1_38.lib curllib.lib ws2_32.lib v8.lib winmm.lib"
+				AdditionalDependencies="log4cxx.lib webEngine.lib libcurl.lib ws2_32.lib v8.lib winmm.lib wldap32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\webEngine\libs\debug"
+				AdditionalLibraryDirectories=""
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				ModuleDefinitionFile="dlExport.def"
 				GenerateDebugInformation="true"
@@ -101,16 +101,16 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
+			InheritedPropertySheets="..\..\wetools.vsprops"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increment build number"
-				CommandLine="..\..\..\verbuild.exe version.h *.*.+.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t120"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -126,7 +126,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\webEngine\include;..\..\common"
+				AdditionalIncludeDirectories=""
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DEMO_EXPORTS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -145,7 +145,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="log4cxx.lib curllib.lib webEngine.lib libboost_regex-vc90-mt-1_38.lib ws2_32.lib v8.lib winmm.lib"
+				AdditionalDependencies="log4cxx.lib libcurl.lib webEngine.lib ws2_32.lib v8.lib winmm.lib wldap32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).plg"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\webEngine\libs\release"

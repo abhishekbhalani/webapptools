@@ -36,7 +36,7 @@ static void init_namespaces();
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @property   char* webEngine::idb_struct[]
 ///
-/// @brief   Defines database structure (tables) 
+/// @brief   Defines database structure (tables)
 ///
 /// Each value in this array is the definition for one database namespace (table). Last value MUST
 /// be NULL to detect the end of definitions. This array must be used to database initialization
@@ -50,8 +50,7 @@ static void init_namespaces();
 /// @b columnN_type is not the required, but should be used. @n
 /// @b columnN_attributes is the optional attribute(s) and may repeat as need. @n
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-char* webEngine::idb_struct[] =
-{
+char* webEngine::idb_struct[] = {
 
     "profile:profile_id INT:name TEXT:type INT:value VARIANT",
     "profile_ui:plugin_id TEXT NOT NULL:plugin_name TEXT NOT NULL:locale TEXT NOT NULL:ui_settings BLOB NOT NULL:ui_icon BLOB NOT NULL",
@@ -63,6 +62,7 @@ char* webEngine::idb_struct[] =
     "modules_info:module_id TEXT NOT NULL  UNIQUE:osname TEXT:mem_size TEXT:cpu_usage TEXT:disk_size TEXT:max_tasks INT:stamp INT NOT NULL DEFAULT 0:timeout INT NOT NULL DEFAULT 0",
     "module_cmds:module_id TEXT NOT NULL:timestamp INT NOT NULL:cmd BLOB",
     "auth_data:task_id INT NOT NULL:data_type INT NOT NULL:name TEXT NOT NULL:value TEXT:timeout INT:path TEXT:domain TEXT",
+    "task_list:id INTEGER PRIMARY KEY NOT NULL:scan_id TEXT NOT NULL:request_type TEXT NOT NULL:request TEXT NOT NULL",
     NULL
 };
 
@@ -84,8 +84,7 @@ i_storage::~i_storage(void)
 
 i_plugin* i_storage::get_interface( const string& ifName )
 {
-    if (iequals(ifName, "i_storage"))
-    {
+    if (iequals(ifName, "i_storage")) {
         usageCount++;
         return ((i_storage*)this);
     }
@@ -101,8 +100,7 @@ std::vector<std::string> i_storage::get_namespace_struct( const std::string& ns 
 {
     if (namespaces_structs.find(ns) != namespaces_structs.end()) {
         return namespaces_structs[ns];
-    }
-    else {
+    } else {
         return namespaces_structs[""];
     }
 }

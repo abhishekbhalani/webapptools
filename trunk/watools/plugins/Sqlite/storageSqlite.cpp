@@ -28,8 +28,7 @@
 #include "sqliteStorage.xpm"
 #include "sqlite3.h"
 
-struct sqlite_handle
-{
+struct sqlite_handle {
     sqlite3 *db;
     int resp_size;
     log4cxx::LoggerPtr logger;
@@ -59,7 +58,6 @@ static int sqlite_query_to_rs(sqlite_handle* handle, const string& query, db_rec
     int rc, dtype;
     sqlite3_stmt *pStmt;
     int rcs, cls, i;
-    db_cursor rec;
     string sval;
 
     rc = sqlite3_prepare(handle->db, query.c_str(), query.length() + 1, &pStmt, NULL);
@@ -73,25 +71,25 @@ static int sqlite_query_to_rs(sqlite_handle* handle, const string& query, db_rec
         // extract rows
         rc = sqlite3_step(pStmt);
         while (rc == SQLITE_ROW) {
-            rec = results.push_back();
+            db_cursor rec = results.push_back();
             for (i = 0; i < rcs; ++i) {
                 dtype = sqlite3_column_type(pStmt, i);
                 switch(dtype) {
-                    case SQLITE_INTEGER:
-                        rec[i] = sqlite3_column_int(pStmt, i);
-                        break;
-                    case SQLITE_FLOAT:
-                        rec[i] = sqlite3_column_double(pStmt, i);
-                        break;
-                    case SQLITE_NULL:
-                        rec[i] = boost::blank();
-                        break;
+                case SQLITE_INTEGER:
+                    rec[i] = sqlite3_column_int(pStmt, i);
+                    break;
+                case SQLITE_FLOAT:
+                    rec[i] = sqlite3_column_double(pStmt, i);
+                    break;
+                case SQLITE_NULL:
+                    rec[i] = boost::blank();
+                    break;
                     // case SQLITE_BLOB:
                     // case SQLITE_TEXT:
-                    default:
-                        sval = (const char*)sqlite3_column_text(pStmt, i);
-                        rec[i] = sval;
-                        break;
+                default:
+                    sval = (const char*)sqlite3_column_text(pStmt, i);
+                    rec[i] = sval;
+                    break;
                 }
             }
             retval++;
@@ -111,8 +109,7 @@ static int sqlite_query_to_rs(sqlite_handle* handle, const string& query, db_rec
             LOG4CXX_ERROR(handle->logger, "sqlite_query_to_rs sqlite3_finalize error: " << rc << "; " << sqlite3_errmsg(handle->db));
             LOG4CXX_DEBUG(handle->logger, "sqlite_query_to_rs sqlite3_finalize error SQL: " << query);
         }
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(handle->logger, "sqlite_query_to_rs sqlite3_prepare error: " << rc << "; " << sqlite3_errmsg(handle->db));
         LOG4CXX_DEBUG(handle->logger, "sqlite_query_to_rs sqlite3_prepare error SQL: " << query);
     }
@@ -219,8 +216,7 @@ sqlite_storage::sqlite_storage( engine_dispatcher* krnl, void* handle /*= NULL*/
         db_handle->db = NULL;
         db_handle->logger = logger;
         db_handle->resp_size = 0;
-    }
-    else {
+    } else {
         boost::throw_exception(bad_alloc("sqlite_storage: can't create internal storage"));
     }
     LOG4CXX_TRACE(logger, "sqlite_storage plugin created; version " << VERSION_PRODUCTSTR);
@@ -242,13 +238,11 @@ sqlite_storage::~sqlite_storage(void)
 
 i_plugin* sqlite_storage::get_interface( const string& ifName )
 {
-	if (boost::iequals(ifName, "i_storage"))
-    {
+    if (boost::iequals(ifName, "i_storage")) {
         usageCount++;
         return ((i_storage*)this);
     }
-    if (boost::iequals(ifName, "sqlite_storage"))
-    {
+    if (boost::iequals(ifName, "sqlite_storage")) {
         usageCount++;
         return ((sqlite_storage*)this);
     }
@@ -282,8 +276,7 @@ int sqlite_storage::get(db_query& query, db_recordset& results)
             }
             qstr += " WHERE " + sqlite_fix_filter(query.where.tostring());
             retval = sqlite_query_to_rs(db_handle, qstr, results);
-        }
-        else {
+        } else {
             LOG4CXX_ERROR(logger, "sqlite_storage::get can't determine tables for query");
         }
     }
@@ -422,14 +415,14 @@ int sqlite_storage::del(db_filter& filter)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn bool sqlite_storage::init_storage( const string& params )
 ///
-/// @brief  Initializes the storage_db. 
+/// @brief  Initializes the storage_db.
 ///
 /// @param  params - Pathname for the storage_db file.
-/// @retval	true if it succeeds, false if it fails. 
+/// @retval	true if it succeeds, false if it fails.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool sqlite_storage::init_storage( const string& params )
 {
-	bool result = false;
+    bool result = false;
     int rc;
     char *err_msg;
     string sval;
@@ -441,17 +434,14 @@ bool sqlite_storage::init_storage( const string& params )
         LOG4CXX_FATAL(logger, "sqlite_storage::init_storage can't open database: " << sqlite3_errmsg(db_handle->db));
         sqlite3_close(db_handle->db);
         db_handle->db = NULL;
-    }
-    else {
+    } else {
         // loads existing tables
-        db_recordset rs;
         vector<string> tables;
         vector<string> names;
 
-        names.push_back("name");
-        rs.set_names(names);
-        sqlite_query_to_rs(db_handle, "SELECT name FROM sqlite_master WHERE type='table';", rs);
-        for (db_fw_cursor c = rs.fw_begin(); c != rs.fw_end(); ++c) {
+        auto_ptr<db_recordset> rs = get_recordset_by_fields(names);
+        sqlite_query_to_rs(db_handle, "SELECT name FROM sqlite_master WHERE type='table';", *rs);
+        for (db_fw_cursor c = rs->fw_begin(); c != rs->fw_end(); ++c) {
             tables.push_back(c["name"].get<string>());
         }
 
@@ -493,8 +483,7 @@ bool sqlite_storage::init_storage( const string& params )
                     if (rc != SQLITE_OK) {
                         LOG4CXX_ERROR(logger, "sqlite_storage::init_storage sqlite3_exec error: " << rc << "; " << err_msg);
                     }
-                }
-                else {
+                } else {
                     /// @todo check the table consistence
                 }
             }
@@ -522,47 +511,41 @@ bool sqlite_storage::init_storage( const string& params )
 
         names.clear();
         names.push_back("value");
-        rs.clear();
-        rs.set_names(names);
+        rs->clear();
+        rs->set_names(names);
         tbl_query = "SELECT [value] FROM [_internals_] WHERE [name] = 'last_id'";
-        sqlite_query_to_rs(db_handle, tbl_query, rs);
-        if (rs.size() < 1) {
+        sqlite_query_to_rs(db_handle, tbl_query, *rs);
+        if (rs->size() < 1) {
             last_id = 0;
             tbl_query = "INSERT INTO _internals_ ([name], [value]) VALUES ('last_id', 0)";
             sqlite3_exec(db_handle->db, tbl_query.c_str(), sqlite_callback, (void*)db_handle, &err_msg);
-        }
-        else {
-            last_id = boost::lexical_cast<int>(rs.begin()[0]);
+        } else {
+            last_id = boost::lexical_cast<int>(rs->begin()[0]);
         }
 
     }
-	return result;
+    return result;
 }
 
 string sqlite_storage::generate_id( const string& objType /*= ""*/ )
 {
-    db_recordset rs;
     vector<string> names;
     string tbl_query;
     char *err_msg;
     db_cursor cur;
-
-    names.clear();
     names.push_back("value");
-    rs.clear();
-    rs.set_names(names);
+    auto_ptr<db_recordset> rs = get_recordset_by_fields(names);
     boost::unique_lock<boost::mutex> locker(data_access);
     sqlite3_exec(db_handle->db, "BEGIN EXCLUSIVE TRANSACTION", sqlite_callback, (void*)db_handle, &err_msg);
     sqlite3_exec(db_handle->db, "UPDATE _internals_ SET value=value+1 WHERE name == 'last_id'", sqlite_callback, (void*)db_handle, &err_msg);
     tbl_query = "SELECT [value] FROM [_internals_] WHERE [name] == 'last_id'";
-    sqlite_query_to_rs(db_handle, tbl_query, rs);
+    sqlite_query_to_rs(db_handle, tbl_query, *rs);
     if (rs.size() < 1) {
         // this must never happens
         cur = rs.push_back();
         cur[0] = ++last_id;
         sqlite3_exec(db_handle->db, "INSERT INTO _internals_ ([name], [value]) VALUES ('last_id', 0)", sqlite_callback, (void*)db_handle, &err_msg);
-    }
-    else {
+    } else {
         cur = rs.begin();
         last_id = cur[0].get<int>();
     }

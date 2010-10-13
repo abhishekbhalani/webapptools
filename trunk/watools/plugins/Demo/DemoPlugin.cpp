@@ -55,8 +55,7 @@ DemoPlugin::~DemoPlugin(void)
 
 void* DemoPlugin::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "demoPlugin"))
-    {
+    if (iequals(ifName, "demoPlugin")) {
         usageCount++;
         return (void*)(this);
     }

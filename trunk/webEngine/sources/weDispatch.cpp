@@ -1,21 +1,21 @@
 /*
-    webEngine is the HTML processing library
-    Copyright (C) 2009 Andrew Abramov aabramov@ptsecurity.ru
+webEngine is the HTML processing library
+Copyright (C) 2009 Andrew Abramov aabramov@ptsecurity.ru
 
-    This file is part of webEngine
+This file is part of webEngine
 
-    webEngine is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+webEngine is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    webEngine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+webEngine is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <webEngine.h>
 
@@ -42,16 +42,12 @@ static string_list find_files ( path baseDir)
     if ( exists( baseDir ) ) {
         directory_iterator end_itr; // default construction yields past-the-end
         for ( directory_iterator itr( baseDir );
-            itr != end_itr;
-            ++itr )
-        {
-            if ( is_directory(itr->status()) )
-            {
+                itr != end_itr;
+                ++itr ) {
+            if ( is_directory(itr->status()) ) {
                 subs = find_files( itr->path() );
                 files.insert(files.end(), subs.begin(), subs.end());
-            }
-            else if ( ends_with(itr->leaf(), ".plg") ) // see below
-            {
+            } else if ( ends_with(itr->leaf(), ".plg") ) { // see below
                 files.push_back(itr->path().string());
             }
         }
@@ -74,37 +70,15 @@ null_storage::~null_storage()
 
 i_plugin* null_storage::get_interface( const string& ifName )
 {
-    if (iequals(ifName, "i_storage"))
-    {
+    if (iequals(ifName, "i_storage")) {
         usageCount++;
         return ((i_storage*)this);
     }
-    if (iequals(ifName, "null_storage"))
-    {
+    if (iequals(ifName, "null_storage")) {
         usageCount++;
         return ((null_storage*)this);
     }
     return i_storage::get_interface(ifName);
-}
-
-int null_storage::get(db_query& query, db_recordset& results)
-{
-    return 0;
-}
-
-int null_storage::set(db_query& query, db_recordset& data)
-{
-    return 0;
-}
-
-int null_storage::set(db_recordset& data)
-{
-    return 0;
-}
-
-int null_storage::del(db_filter& filter)
-{
-    return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,8 +92,7 @@ engine_dispatcher::engine_dispatcher(void)
 
 engine_dispatcher::~engine_dispatcher(void)
 {
-    if (plg_storage != NULL)
-    {
+    if (plg_storage != NULL) {
         flush();
         plg_storage->release();
     }
@@ -137,8 +110,6 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
 
     plg_list.clear();
 
-    mem_storage memStore(this);
-    plg_list.push_back(*(plugin_info*)memStore.info());
     http_transport httpTrans(this);
     plg_list.push_back(*(plugin_info*)httpTrans.info());
     http_inventory httpInvent(this);
@@ -149,17 +120,14 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
     // search for dynamic libraries with plugin interface
     string_list files = find_files(baseDir.string());
     string_list::iterator fl;
-    for (fl = files.begin(); fl != files.end(); fl++)
-    {
+    for (fl = files.begin(); fl != files.end(); fl++) {
         // load library, get info, free library
-        try
-        {
+        try {
             dyn::shared_object* so = new dyn::shared_object((*fl).c_str());
             fnWePluginFactory ptr = NULL;
             so->get_symbol("WePluginFactory", ptr);
             plg = (i_plugin*)ptr(this, NULL); // not need to store SO link
-            if (plg != NULL)
-            {
+            if (plg != NULL) {
                 info = (plugin_info*)plg->info();
                 info->plugin_path = *fl;
                 plg_list.push_back(*info);
@@ -169,14 +137,11 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
                 plg = NULL;
                 //plg_factory.add_plugin_class(info->plugin_id, ptr);
                 //plg_factory.add_plugin_class(info->interface_name, ptr);
-            }
-            else {
+            } else {
                 LOG4CXX_WARN(iLogger::GetLogger(), "engine_dispatcher::refresh_plugin_list: can't get information from plugin " <<*fl);
             }
             delete so;
-        }
-        catch (std::exception& e)
-        {
+        } catch (std::exception& e) {
             LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::refresh_plugin_list: can't load plugin " << *fl << ". Error: " << e.what());
         }
     }
@@ -212,29 +177,24 @@ i_plugin* engine_dispatcher::load_plugin( string id )
         // external plugins
         // go through loop and search plugin
         // if found - loads shared library and create instance
-        for (size_t i = 0; i < plg_list.size(); i++)
-        {
+        for (size_t i = 0; i < plg_list.size(); i++) {
             if (plg_list[i].plugin_id == id || plg_list[i].interface_name == id) {
                 LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::load_plugin - found plugin: " << plg_list[i].plugin_desc << "; " << plg_list[i].plugin_path);
-                try
-                {
+                try {
                     //char* pth = strdup(plg_list[i].plugin_path.c_str());
                     dyn::shared_object* so = new dyn::shared_object(plg_list[i].plugin_path.c_str());
                     fnWePluginFactory ptr = NULL;
                     so->get_symbol("WePluginFactory", ptr);
                     retval = (i_plugin*)ptr(this, so);
                     //delete pth;
-                }
-                catch (std::exception& e)
-                {
+                } catch (std::exception& e) {
                     LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::load_plugin: can't load plugin " << plg_list[i].plugin_path << ". Error: " << e.what());
                 }
                 break;
             }
         }
     }
-    if (retval == NULL)
-    {
+    if (retval == NULL) {
         LOG4CXX_WARN(iLogger::GetLogger(), "engine_dispatcher::load_plugin: '" << id << "' not found!");
     }
     return retval;
@@ -242,14 +202,12 @@ i_plugin* engine_dispatcher::load_plugin( string id )
 
 void engine_dispatcher::storage( const i_storage* store )
 {
-    if (plg_storage != NULL)
-    {
+    if (plg_storage != NULL) {
         plg_storage->release();
     }
 
     plg_storage = (i_storage*)store;
-    if (plg_storage == NULL)
-    {
+    if (plg_storage == NULL) {
         plg_storage = new null_storage(this);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::SetStorage - plugin: " << plg_storage->get_description());
@@ -273,8 +231,6 @@ void engine_dispatcher::add_plugin_class( string name, fnWePluginFactory func )
 
 we_option engine_dispatcher::Option( const string& name )
 {
-    db_recordset res;
-    db_query flt;
     we_option opt;
     char c;
     int i;
@@ -287,9 +243,9 @@ we_option engine_dispatcher::Option( const string& name )
 
     opt = i_options_provider::empty_option;
     if (plg_storage != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoTypeID);
-        flt.what.push_back(weObjTypeProfile "." weoValue);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoTypeID);
+        fields.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -302,17 +258,15 @@ we_option engine_dispatcher::Option( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where.set(p_cond).and(n_cond);
-        plg_storage->get(flt, res);
+        db_filter where;
+        where.set(p_cond).and(n_cond);
 
-        if (res.size() > 0) {
-            db_cursor rec = res.begin();
-            try{
+        for(db_cursor rec = plg_storage->get(where, fields); rec.is_not_end(); ++rec) {
+            try {
                 if (!rec[1].empty()) {
                     int tp = boost::lexical_cast<int>(rec[0]);
                     opt.name(name);
-                    switch(tp)
-                    {
+                    switch(tp) {
                     case 0: // char
                         c = rec[weObjTypeProfile "." weoValue].get<char>();
                         opt.SetValue(c);
@@ -337,8 +291,7 @@ we_option engine_dispatcher::Option( const string& name )
                         opt.SetValue(boost::blank());
                     }
                 } // if result not <empty>
-            }
-            catch(std::exception &e) {
+            } catch(std::exception &e) {
                 opt = i_options_provider::empty_option;
                 LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") can't get option value: " << e.what());
             }
@@ -350,16 +303,15 @@ we_option engine_dispatcher::Option( const string& name )
 
 void engine_dispatcher::Option( const string& name, we_variant val )
 {
-    db_query flt;
     string parentID = "0";
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") set value=" << val);
     if (plg_storage != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoProfileID);
-        flt.what.push_back(weObjTypeProfile "." weoName);
-        flt.what.push_back(weObjTypeProfile "." weoTypeID);
-        flt.what.push_back(weObjTypeProfile "." weoValue);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoProfileID);
+        fields.push_back(weObjTypeProfile "." weoName);
+        fields.push_back(weObjTypeProfile "." weoTypeID);
+        fields.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -372,32 +324,29 @@ void engine_dispatcher::Option( const string& name, we_variant val )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where.set(p_cond).and(n_cond);
+        db_filter flt;
+        flt.set(p_cond).and(n_cond);
 
-        db_recordset data(flt.what);
-        db_cursor rec = data.push_back();
+        db_cursor rec = plg_storage->set(flt, fields);
 
         rec[0] = parentID;
         rec[1] = name;
         rec[2] = val.which();
         rec[3] = val;
-
-        plg_storage->set(flt, data);
+        rec.close();
     }
 }
 
 bool engine_dispatcher::IsSet( const string& name )
 {
     bool retval;
-    db_recordset res;
-    db_query flt;
     string parentID = "0";
 
     retval = false;
     if (plg_storage != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoTypeID);
-        flt.what.push_back(weObjTypeProfile "." weoValue);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoTypeID);
+        fields.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -410,24 +359,21 @@ bool engine_dispatcher::IsSet( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where.set(p_cond).and(n_cond);
-        plg_storage->get(flt, res);
+        db_filter flt;
+        flt.set(p_cond).and(n_cond);
 
-        if (res.size() > 0) {
-            db_cursor rec = res.begin();
-            try{
+        for(db_cursor rec = plg_storage->get(flt, fields); rec.is_not_end(); ++rec) {
+            try {
                 if (!rec[1].empty()) {
                     int tp = boost::lexical_cast<int>(rec[0]);
                     if ( tp == 2) {
                         // we_variant::which(bool)
                         retval = boost::lexical_cast<bool>(rec[1]);
-                    }
-                    else {
+                    } else {
                         retval = true;
                     }
                 } // if result not <empty>
-            }
-            catch(bad_cast &e) {
+            } catch(bad_cast &e) {
                 retval = false;
                 LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") can't get option value: " << e.what());
             }
@@ -474,30 +420,25 @@ void engine_dispatcher::Clear()
 string_list engine_dispatcher::OptionsList()
 {
     string_list retval;
-    db_recordset res;
-    db_query flt;
     string name;
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoName);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
         p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
+        db_filter flt;
+        flt.set(p_cond);
 
-        flt.where.set(p_cond);
-        plg_storage->get(flt, res);
-
-        db_cursor rec = res.begin();
-        while(rec != res.end()) {
+        for(db_cursor rec = plg_storage->get(flt, fields); rec.is_not_end(); ++rec) {
             name = rec[0].get<string>();
             if (name != "") {
                 retval.push_back(name);
             } // if name present
-            ++rec;
         } // foreach record
     } // if plg_storage != NULL
 
@@ -507,22 +448,20 @@ string_list engine_dispatcher::OptionsList()
 size_t engine_dispatcher::OptionSize()
 {
     int retval = 0;
-    db_recordset res;
-    db_query flt;
     string parentID = "0";
 
     if (plg_storage != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoName);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
         p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = parentID;
 
-        flt.where.set(p_cond);
-        plg_storage->get(flt, res);
-        retval = res.size();
+        db_filter flt;
+        flt.set(p_cond);
+        retval = plg_storage->count(flt, fields);
     }
     return retval;
 }
@@ -553,16 +492,21 @@ i_plugin* engine_dispatcher::get_interface( string iface )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void engine_dispatcher::flush()
 {
-    if (plg_storage != NULL)
-    {
+    if (plg_storage != NULL) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::flush ");
-        db_recordset* rs = NULL; /*i_options_provider::ToRS();*/
-        if (rs != NULL) {
-            plg_storage->set(*rs);
-            delete rs;
-        }
     }
 }
+
+i_request_ptr engine_dispatcher::restore_request(const string& request_class, we_iarchive& ar) const{
+    i_request_ptr result;
+    std::map<string, request_constructor*>::const_iterator it = m_request_map.find(request_class);
+    if(it != m_request_map.end() )
+    {
+        result = it->second(ar);
+    }
+    return result;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -570,12 +514,6 @@ static void* create_null_storage(void* krnl, void* handle = NULL)
 {
     return (void*) (new null_storage((engine_dispatcher*)krnl, handle));
 }
-
-static void* create_mem_storage(void* krnl, void* handle = NULL)
-{
-    return (void*) (new mem_storage((engine_dispatcher*)krnl, handle));
-}
-
 static void* create_http_transport(void* krnl, void* handle = NULL)
 {
     return (void*) (new http_transport((engine_dispatcher*)krnl, handle));
@@ -604,8 +542,6 @@ plugin_factory::plugin_factory()
     // add "default" plugins
     add_plugin_class("7CB7A5F18348", create_null_storage);
     add_plugin_class("null_storage", create_null_storage);      // copy for interface name
-    add_plugin_class("D82B31419339", create_mem_storage);
-    add_plugin_class("mem_storage", create_mem_storage);        // copy for interface name
     add_plugin_class("A44A9A1E7C25", create_http_transport);
     add_plugin_class("http_transport", create_http_transport);  // copy for interface name
     add_plugin_class("AB7ED6E5A7B3", create_http_inventory);
@@ -621,14 +557,13 @@ plugin_factory::~plugin_factory()
 void plugin_factory::add_plugin_class( string name, fnWePluginFactory func )
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "new plugin_factory added for " << name);
-	factories_[name] = func;
+    factories_[name] = func;
 }
 
 void* plugin_factory::create_plugin( string pluginID, engine_dispatcher* krnl )
 {
-	map<string, fnWePluginFactory>::const_iterator it = factories_.find(pluginID);
-	if (it == factories_.end())
-	{
+    map<string, fnWePluginFactory>::const_iterator it = factories_.find(pluginID);
+    if (it == factories_.end()) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "plugin_factory::create_plugin plugin doesn't register in memory");
         return NULL;
     }

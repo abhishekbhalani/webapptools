@@ -20,7 +20,7 @@
 #include <webEngine.h>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/thread.hpp>
+#include <boost/archive/text_iarchive.hpp>
 #include <algorithm>
 #include <weHelper.h>
 #include <weHTTP.h>
@@ -110,6 +110,13 @@ HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*
     //LOG4CXX_WARN(iLogger::GetLogger(), "HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented");
 }
 
+i_request_ptr HttpRequest::restore_request(we_iarchive& ar){
+    HttpRequest* result = new HttpRequest();
+    ar >> boost::serialization::make_nvp("HttpRequest", *result);
+    return i_request_ptr(result);
+    //return i_request_ptr();
+}
+
 void HttpRequest::RequestUrl( const string &ReqUrl, i_operation* resp /*= NULL*/ )
 {
     transport_url   weurl;
@@ -188,9 +195,7 @@ http_transport::~http_transport()
             try {
                 point = dynamic_cast<HttpResponse*>((*hnd).get());
                 curl_multi_remove_handle(transferHandle, point->CURLHandle());
-                delete point;
-            }
-            catch (...) {}; // just skip
+            } catch (...) {}; // just skip
         }
         curl_multi_cleanup(transferHandle);
     }
@@ -198,13 +203,11 @@ http_transport::~http_transport()
 
 i_plugin* http_transport::get_interface( const string& ifName )
 {
-    if (iequals(ifName, "http_transport"))
-    {
+    if (iequals(ifName, "http_transport")) {
         usageCount++;
         return this;
     }
-    if (iequals(ifName, "i_transport"))
-    {
+    if (iequals(ifName, "i_transport")) {
         usageCount++;
         return this;
     }
@@ -246,8 +249,7 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
         if (req->RequestUrl().port < 1 || req->RequestUrl().port > 65535) {
             if (iequals(proto_name, req->RequestUrl().protocol)) {
                 req->RequestUrl().port = default_port;
-            }
-            else {
+            } else {
                 req->RequestUrl().port = default_sport;
             }
         }
@@ -264,8 +266,7 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
         retval = i_response_ptr(ht_retval);
         retval->BaseUrl(req->RequestUrl());
         retval->RelocCount(0);
-    }
-    else {
+    } else {
         retval = resp;
         ht_retval = dynamic_cast<HttpResponse*>(retval.get());
         if (!ht_retval->BaseUrl().is_valid()) {
@@ -281,8 +282,7 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
     try {
         HttpRequest* r = dynamic_cast<HttpRequest*>(req);
         ht_retval->CurlSetOpts(r);
-    }
-    catch (...) {}; // just skip
+    } catch (...) {}; // just skip
     ht_retval->Processed(false);
 
     responces.push_back(i_response_ptr(retval));
@@ -296,37 +296,37 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
                 // set appropriate proxy
                 int p_type = CURLPROXY_HTTP;
                 switch (use_proxy) {
-                    case weoHttpProxyTypeHTTP:
-                        p_type = CURLPROXY_HTTP;
-                        break;
-                    case weoHttpProxyTypeSocks4:
-                        p_type = CURLPROXY_SOCKS4;
-                        break;
-                    case weoHttpProxyTypeSocks4a:
-                        p_type = CURLPROXY_SOCKS4A;
-                        break;
-                    case weoHttpProxyTypeSocks5:
-                        p_type = CURLPROXY_SOCKS5;
-                        break;
+                case weoHttpProxyTypeHTTP:
+                    p_type = CURLPROXY_HTTP;
+                    break;
+                case weoHttpProxyTypeSocks4:
+                    p_type = CURLPROXY_SOCKS4;
+                    break;
+                case weoHttpProxyTypeSocks4a:
+                    p_type = CURLPROXY_SOCKS4A;
+                    break;
+                case weoHttpProxyTypeSocks5:
+                    p_type = CURLPROXY_SOCKS5;
+                    break;
                 }
                 curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYTYPE, p_type);
                 curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXY, proxy_host.c_str());
                 curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYPORT, proxy_port);
                 string uname = proxy_username;
                 switch (proxy_auth_type) {
-                    case weoHttpProxyAuthBasic:
-                        p_type = CURLAUTH_BASIC;
-                        break;
-                    case weoHttpProxyAuthDigest:
-                        p_type = CURLAUTH_DIGEST;
-                        break;
-                    case weoHttpProxyAuthNTLM:
-                        p_type = CURLAUTH_NTLM;
-                        uname = proxy_domain + "\\" + proxy_username;
-                        break;
-                    default:
-                        p_type = CURLAUTH_ANY;
-                        break;
+                case weoHttpProxyAuthBasic:
+                    p_type = CURLAUTH_BASIC;
+                    break;
+                case weoHttpProxyAuthDigest:
+                    p_type = CURLAUTH_DIGEST;
+                    break;
+                case weoHttpProxyAuthNTLM:
+                    p_type = CURLAUTH_NTLM;
+                    uname = proxy_domain + "\\" + proxy_username;
+                    break;
+                default:
+                    p_type = CURLAUTH_ANY;
+                    break;
                 }
                 curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYAUTH, p_type);
                 curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_PROXYUSERNAME, uname.c_str());
@@ -339,8 +339,6 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
             // set cookies
             // CURLOPT_COOKIE
             if (options[weoHttpAcceptCookies]) {
-                db_recordset rs;
-                db_query cookie_query;
                 time_t cookie_time = time(NULL);
                 db_condition cq, ct1, ct2, cp;
                 db_filter ctm;
@@ -359,19 +357,17 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
                 ctm.set(ct1).or(ct2);
                 string cookie_value = "";
                 if (kernel != NULL && kernel->storage() != NULL) {
-                    cookie_query.what = kernel->storage()->get_namespace_struct("auth_data");
-                    cookie_query.where.set(cq).and(ctm);
-                    kernel->storage()->get(cookie_query, rs);
-                    db_cursor cur;
+                    db_filter cookie_query;
+                    cookie_query.set(cq).and(ctm);
                     transport_url cookie_dom;
-                    for (cur = rs.begin(); cur != rs.end(); ++cur) {
+                    for (db_cursor cur = kernel->storage()->get(cookie_query, "auth_data"); cur.is_not_end(); ++cur) {
                         if (cookie_value != "") {
                             cookie_value += "; ";
                         }
                         /// @todo verify domain and path for cookie
                         cookie_dom.assign("http://" + cur["auth_data.domain"].get<string>());
                         if (ht_retval->BaseUrl().is_domain_equal(cookie_dom) ||
-                            ht_retval->BaseUrl().is_host_equal(cookie_dom)) {
+                                ht_retval->BaseUrl().is_host_equal(cookie_dom)) {
                             cookie_value += cur["auth_data.name"].get<string>();
                             cookie_value += "=";
                             cookie_value += cur["auth_data.value"].get<string>();
@@ -389,14 +385,12 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
             curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_USERAGENT, uag.c_str());
             curl_multi_add_handle(transferHandle, ht_retval->CURLHandle());
             process_requests();
-        }
-        catch (std::exception &e) {
+        } catch (std::exception &e) {
             LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request - curl_multi_add_handle failed: " << e.what());
         }
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request curl_transfer_handle: " << transferHandle <<
-            "; curl_request_handle: " << ht_retval->CURLHandle());
+                      "; curl_request_handle: " << ht_retval->CURLHandle());
     }
     return retval;
 }
@@ -477,8 +471,7 @@ const int http_transport::process_requests( void )
         LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_info_read");
 #endif
         cmsg = curl_multi_info_read(transferHandle, &msgs_in_queue);
-        while (cmsg != NULL)
-        {
+        while (cmsg != NULL) {
             if (cmsg->msg == CURLMSG_DONE) {
                 // find the response
                 for (hnd = responces.begin(); hnd != responces.end();) {
@@ -495,8 +488,7 @@ const int http_transport::process_requests( void )
                             hnd = responces.begin();
                             break;
                         }
-                    }
-                    catch (std::exception &e) {
+                    } catch (std::exception &e) {
                         LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::process_requests - curl exception: " << e.what());
                     }; // just skip
                     hnd++;
@@ -508,8 +500,7 @@ const int http_transport::process_requests( void )
 #endif
             cmsg = curl_multi_info_read(transferHandle, &msgs_in_queue);
         }
-    }
-    else {
+    } else {
         lastError = CURLM_BAD_HANDLE;
     }
 
@@ -527,8 +518,7 @@ const int http_transport::process_requests( void )
             // ... and remove from processing queue
             responces.erase(hnd);
             hnd = responces.begin();
-        }
-        else {
+        } else {
             hnd++;
         }
     }
@@ -553,6 +543,8 @@ void http_transport::init( task *data_provider )
     uagent += " (cURL: ";
     uagent += curl_version();
     uagent += ")";
+
+    kernel->register_request<HttpRequest>();
 
     opt = data_provider->Option(weoHttpPort);
     SAFE_GET_OPTION_VAL(opt, default_port, 80);
@@ -625,8 +617,7 @@ bool http_transport::is_set( const string& name )
     bool retval = false;
 
     it = options.find(name);
-    if (it != options.end())
-    {
+    if (it != options.end()) {
         retval = it->second;
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::is_set(" << name << ") value=" << retval);

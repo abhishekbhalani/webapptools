@@ -66,14 +66,12 @@ Handle<Value> jsCssStyle::GetProperty( Local<String> name, const AccessorInfo &i
     iter = find(rw_props.begin(), rw_props.end(), key);
     if (iter != rw_props.end()) {
         // get the RW property
-    }
-    else {
+    } else {
         // Look up the value in the RO propeties list.
         iter = find(ro_props.begin(), ro_props.end(), key);
         if (iter != ro_props.end()) {
             // get the RO property
-        }
-        else {
+        } else {
             // Look up the value in the attributes list.
             val = props[key];
         } // RO property search
@@ -95,8 +93,7 @@ Handle<Value> jsCssStyle::SetProperty( Local<String> name, Local<Value> value, c
         iter = find(rw_props.begin(), rw_props.end(), key);
         if (iter != rw_props.end()) {
             // set RW property
-        }
-        else {
+        } else {
             // set the attribute
             string sval = value_to_string(value);
             props[key] = Persistent<Value>::New(value);
@@ -189,7 +186,7 @@ Handle<Value> jsCssStyle::PropertySet( Local<String> name, Local<Value> value, c
         Local<Object> self = info.This();
         Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
         void* ptr = wrap->Value();
-        jsCssStyle* el = static_cast<jsCssStyle*>(ptr); 
+        jsCssStyle* el = static_cast<jsCssStyle*>(ptr);
         retval = el->SetProperty(name, value, info);
     }
     return retval;
@@ -203,7 +200,7 @@ Handle<Array> jsCssStyle::PropertyEnum( const AccessorInfo &info )
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsCssStyle* el = static_cast<jsCssStyle*>(ptr); 
+    jsCssStyle* el = static_cast<jsCssStyle*>(ptr);
 
     Handle<Array> retval = el->EnumProps(info);
     return scope.Close(retval);
@@ -214,7 +211,7 @@ Handle<Value> jsCssStyle::ToString( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsCssStyle* el = static_cast<jsCssStyle*>(ptr); 
+    jsCssStyle* el = static_cast<jsCssStyle*>(ptr);
 
     string ret = "[CssStyle]";
     return String::New(ret.c_str());
@@ -225,7 +222,7 @@ Handle<Value> jsCssStyle::ToString( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     string ret;
     string attr;

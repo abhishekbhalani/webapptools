@@ -31,7 +31,7 @@ namespace webEngine {
 /// boost::less_than_comparable and boost::equivalent extends this operator and allows the
 /// we_variant to be an totally ordered class.
 ///
-/// @return true if lhs is less than rhs, false if not. 
+/// @return true if lhs is less than rhs, false if not.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool operator<( const we_variant& lhs, const we_variant& rhs )
 {

@@ -61,23 +61,21 @@ void StringLinks::Parse( string data, string sep /*= ""*/, string delim /*= ""*/
         if (regex_match(head, spRes, sp)) {
             k = spRes[1];
             v = spRes[2];
-        }
-        else {
+        } else {
             k = head;
             v = head;
         }
-		data_.push_back(std::make_pair(k, v));
+        data_.push_back(std::make_pair(k, v));
     }
     if (!process.empty()) {
         if (regex_match(process, spRes, sp)) {
             k = spRes[1];
             v = spRes[2];
-        }
-        else {
+        } else {
             k = head;
             v = head;
         }
-		data_.push_back(std::make_pair(k, v));
+        data_.push_back(std::make_pair(k, v));
     }
 }
 
@@ -90,28 +88,27 @@ string StringLinks::Compose( string sep /*= ""*/, string delim /*= ""*/ )
         sep = separator;
     }
 
-	string retval;
-	data_list::const_iterator it = data_.begin();
-	if (it != data_.end())
-	{
-		retval = it->first + sep + it->second;
-		++it;
+    string retval;
+    data_list::const_iterator it = data_.begin();
+    if (it != data_.end()) {
+        retval = it->first + sep + it->second;
+        ++it;
 
-		for (; it != data_.end(); ++it)
-			retval += delim + it->first + sep + it->second;
-        }
-    return retval;
+        for (; it != data_.end(); ++it)
+            retval += delim + it->first + sep + it->second;
     }
+    return retval;
+}
 
 std::string StringLinks::find_first(const string& name)
 {
-	for (data_list::iterator it = data_.begin(); it != data_.end(); ++it) {
+    for (data_list::iterator it = data_.begin(); it != data_.end(); ++it) {
         if (it->first == name) {
             return it->second;
         }
     }
 
-	return std::string();
+    return std::string();
 }
 
 std::string StringLinks::ifind_first( const string& name )
@@ -144,8 +141,7 @@ void StringLinks::erase( std::string name )
         if (it->first == name) {
             data_.erase(it);
             it = data_.begin();
-        }
-        else {
+        } else {
             ++it;
         }
     }
@@ -157,8 +153,7 @@ void StringLinks::ierase( std::string name )
         if (iequals(it->first, name)) {
             data_.erase(it);
             it = data_.begin();
-        }
-        else {
+        } else {
             ++it;
         }
     }
@@ -168,8 +163,7 @@ string SListToString(string_list& lst)
 {
     string retval;
 
-    for (size_t i = 0; i < lst.size(); i++)
-    {
+    for (size_t i = 0; i < lst.size(); i++) {
         retval += lst[i];
         retval += '\x02';
     }
@@ -187,17 +181,14 @@ string_list* StringToSList(const string& lst)
     while(pos != string::npos) {
         string val = parse.substr(0, pos);
         retval->push_back(val);
-        if (pos < parse.length())
-        {
+        if (pos < parse.length()) {
             parse = parse.substr(pos+1);
-        }
-        else {
+        } else {
             parse = "";
         }
         pos = parse.find('\x02');
     }
-    if (parse != "")
-    {
+    if (parse != "") {
         retval->push_back(parse);
     }
     return retval;

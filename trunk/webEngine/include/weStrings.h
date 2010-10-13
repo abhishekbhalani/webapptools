@@ -29,65 +29,77 @@ using namespace std;
 
 namespace webEngine {
 
-    typedef map<string, string> StringMap;
-    typedef orderedmap<string, string> AttrMap;
-    typedef vector<string> string_list;
+typedef map<string, string> StringMap;
+typedef orderedmap<string, string> AttrMap;
+typedef vector<string> string_list;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  StringLinks
-    ///
-    /// @brief  Operations with linked list of strings.
-    ///
-    /// Separator and delimiter are regular expressions to process input string. Delimiter is used to
-    /// break string onto the parts of key-value, and separator is used to detach key from value.
-    ///
-    /// @author A. Abramov
-    /// @date   27.05.2009
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class StringLinks
-    {
-    public:
-        typedef std::list<std::pair<std::string, std::string> > data_list;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  StringLinks
+///
+/// @brief  Operations with linked list of strings.
+///
+/// Separator and delimiter are regular expressions to process input string. Delimiter is used to
+/// break string onto the parts of key-value, and separator is used to detach key from value.
+///
+/// @author A. Abramov
+/// @date   27.05.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class StringLinks {
+public:
+    typedef std::list<std::pair<std::string, std::string> > data_list;
 
-        StringLinks(string sep = "=", string delim = "\n\r");
+    StringLinks(string sep = "=", string delim = "\n\r");
 
-        void Parse(string data, string sep = "", string delim = "");
-        string Compose(string sep = "", string delim = "");
+    void Parse(string data, string sep = "", string delim = "");
+    string Compose(string sep = "", string delim = "");
 
-        // Access the Separator
-        const string &Separator(void) const { return(separator);}
-        void Separator(const string &sep)   { separator = sep;  }
+    // Access the Separator
+    const string &Separator(void) const {
+        return(separator);
+    }
+    void Separator(const string &sep)   {
+        separator = sep;
+    }
 
-        // Access the Delimiter
-        const string &Delimiter(void) const { return(delimiter);    }
-        void Delimiter(const string &delim) { delimiter = delim;    }
+    // Access the Delimiter
+    const string &Delimiter(void) const {
+        return(delimiter);
+    }
+    void Delimiter(const string &delim) {
+        delimiter = delim;
+    }
 
-		std::string find_first(const string& name);
-        std::string ifind_first(const string& name);
+    std::string find_first(const string& name);
+    std::string ifind_first(const string& name);
 
-        void append(std::string key, std::string val);
+    void append(std::string key, std::string val);
 
-        void erase(std::string name);
-        void ierase(std::string name);
+    void erase(std::string name);
+    void ierase(std::string name);
 
-        data_list::iterator begin() { return data_.begin(); }
-        data_list::iterator end() { return data_.end(); }
+    data_list::iterator begin() {
+        return data_.begin();
+    }
+    data_list::iterator end() {
+        return data_.end();
+    }
 
-		void clear() { data_.clear(); }
-    protected:
+    void clear() {
+        data_.clear();
+    }
+protected:
 #ifndef __DOXYGEN__
-        string separator;
-        string delimiter;
-		data_list data_;
+    string separator;
+    string delimiter;
+    data_list data_;
 #endif //__DOXYGEN__
-    private:
-        DECLARE_SERIALIZATOR
-        {
-            ar & BOOST_SERIALIZATION_NVP(data_);
-            ar & BOOST_SERIALIZATION_NVP(separator);
-            ar & BOOST_SERIALIZATION_NVP(delimiter);
-        };
+private:
+    DECLARE_SERIALIZATOR {
+        ar & BOOST_SERIALIZATION_NVP(data_);
+        ar & BOOST_SERIALIZATION_NVP(separator);
+        ar & BOOST_SERIALIZATION_NVP(delimiter);
     };
+};
 
 string SListToString(string_list& lst);
 string_list* StringToSList(const string& lst);

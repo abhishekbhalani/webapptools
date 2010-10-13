@@ -24,7 +24,7 @@
 #include <weUrl.h>
 #include <weTask.h>
 #include <weScan.h>
-// for options: 
+// for options:
 #include <weHttpInvent.h>
 // redefine audit_jscript options
 #define weoAuditJSenable    "audit_jscript/enable_jscript"
@@ -42,14 +42,19 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 namespace btm = boost::posix_time;
 
-class ScanRes : public webEngine::ScanInfo
-{
+class ScanRes : public webEngine::ScanInfo {
 public:
     typedef scan_map::iterator iterator;
 
-    int GetScanSize(){ return scan_data.size(); }
-    iterator begin() { return scan_data.begin(); }
-    iterator end() { return scan_data.end(); }
+    int GetScanSize() {
+        return scan_data.size();
+    }
+    iterator begin() {
+        return scan_data.begin();
+    }
+    iterator end() {
+        return scan_data.end();
+    }
 
     boost::shared_ptr<webEngine::ScanData> GetData(int i) {
         iterator mit = scan_data.begin();
@@ -79,7 +84,7 @@ enum _keep_alive_fileds {
     //instance,
     scanner_name,
     keepalive_timeout,
-	running_task,
+    running_task,
     status,
     scan_version,
 
@@ -88,14 +93,14 @@ enum _keep_alive_fileds {
 string keep_alive_packet[last_keep_alive_field];
 
 enum _sys_info_fields {
-	os_name,
-	memory_size,
-	disk_size,
-	cpu_usage,
-	max_tasks,
-	sysinfo_timeout,
+    os_name,
+    memory_size,
+    disk_size,
+    cpu_usage,
+    max_tasks,
+    sysinfo_timeout,
 
-	last_sys_info_field
+    last_sys_info_field
 } sys_info_fields;
 string sys_info_packet[last_sys_info_field];
 
@@ -111,31 +116,28 @@ void signal_halt(int sig)
     //! todo: pause all tasks
     if (sig == 0) {
         LOG4CXX_INFO(scan_logger, "Received software request to exit");
-    }
-    else {
+    } else {
         LOG4CXX_INFO(scan_logger, "Signal received - exit scanner");
     }
 }
 
-bool sort_results(const webEngine::db_record& left, const webEngine::db_record& right) {
+bool sort_results(const webEngine::db_record& left, const webEngine::db_record& right)
+{
     return (left[weObjTypeScanData "." "object_url"] < right[weObjTypeScanData "." "object_url"]);
 }
- 
+
 void save_results(int format, string fname, webEngine::task* tsk)
 {
-    if (tsk != NULL)
-    {
-        std::auto_ptr<webEngine::db_recordset> si = tsk->get_scan();
+    if (tsk != NULL) {
         ofstream out;
         bool file = false;
         std::streambuf *old_buffer;
         if (fname != "") {
-            try{
+            try {
                 out.open(fname.c_str(), ios_base::out | ios_base::trunc);
                 old_buffer = std::cout.rdbuf(out.rdbuf());
                 file = true;
-            }
-            catch (std::exception &e) {
+            } catch (std::exception &e) {
                 LOG4CXX_ERROR(scan_logger, "Can't redirect output to file " << fname << ": " << e.what());
                 file = false;
             }
@@ -145,7 +147,7 @@ void save_results(int format, string fname, webEngine::task* tsk)
         cout << "Scan finish:   " << tsk->finish_time() << endl;
         btm::time_period scan_elapsed(tsk->start_time(), tsk->finish_time());
         cout << "Scan duration: " << btm::to_simple_string(scan_elapsed.length()) << endl;
-        cout << "Scan size:     " << si->size() << endl;
+        cout << "Scan size:     " << tsk->get_scan_size() << endl;
         if (tsk->total_requests() > 0) {
             double rps = (double)tsk->total_requests()  / scan_elapsed.length().total_seconds();
             cout.setf(ios::fixed,ios::floatfield);
@@ -155,13 +157,11 @@ void save_results(int format, string fname, webEngine::task* tsk)
         }
         cout << endl;
 
-        std::sort(si->begin(), si->end(), sort_results);
-        webEngine::db_fw_cursor i;
-
         if (format == 2) {
             cout << "URL\tHTTP code\tDownload time\tSize" << endl;
         }
-        for( i = si->fw_begin(); i != si->fw_end(); ++i ) {
+
+        for( webEngine::db_cursor i = tsk->get_scan(); i.is_not_end(); ++i ) {
             try {
                 if (format == 0) {
                     cout << "Requested:     " << i[weObjTypeScanData "." "object_url"] << endl;
@@ -170,16 +170,13 @@ void save_results(int format, string fname, webEngine::task* tsk)
                     cout << "Download time: " << i[weObjTypeScanData "." "dnld_time"] << endl;
                     cout << "Tree level:    " << i[weObjTypeScanData "." "scan_depth"] << endl;
                     cout << endl;
-                }
-                else if (format == 1) {
+                } else if (format == 1) {
                     cout << i[weObjTypeScanData "." "object_url"] << endl;
-                }
-                else if (format == 2) {
+                } else if (format == 2) {
                     cout << i[weObjTypeScanData "." "object_url"] << "\t" << i[weObjTypeScanData "." "resp_code"] << "\t" <<
-                        i[weObjTypeScanData "." "dnld_time"] << "\t" << i[weObjTypeScanData "." "data_size"] << endl;
+                         i[weObjTypeScanData "." "dnld_time"] << "\t" << i[weObjTypeScanData "." "data_size"] << endl;
                 }
-            }
-            catch (out_of_range) {}
+            } catch (out_of_range) {}
         }
     }
 }
@@ -197,9 +194,7 @@ void save_plugin_ui(webEngine::i_storage* store)
     string db_data;
     string db_icon;
     webEngine::string_list str_data;
-    webEngine::db_recordset packet(store->get_namespace_struct("profile_ui"));
-    webEngine::db_cursor rec = packet.push_back();
-    webEngine::db_query c_query;
+    webEngine::db_filter c_query;
     webEngine::db_condition c_plugin, c_locale;
 
     c_locale.field() = "profile_ui.locale";
@@ -209,26 +204,15 @@ void save_plugin_ui(webEngine::i_storage* store)
     c_plugin.field() = "profile_ui.plugin_id";
     c_plugin.operation() = webEngine::db_condition::equal;
 
-    rec["profile_ui.locale"] = string("en");
-
-    //     pos = args.find(' ');
-    //     if (pos == string::npos) {
-    //         pos = args.find('\t');
-    //     }
-    //     if (pos != string::npos) {
-    //         args = args.substr(0, pos);
-    //     }
     webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
-    for (int i = 0; i < plgs.size(); i++)
-    {
+    for (unsigned int i = 0; i < plgs.size(); i++) {
         webEngine::string_list::iterator it;
         it = find(plgs[i].interface_list.begin(), plgs[i].interface_list.end(), "i_storage");
         if (it == plgs[i].interface_list.end()) {
             // not a storage plugin
             // get plugin icon
             db_icon = "";
-            for (int j = 0; j < plgs[i].plugin_icon.size(); j++)
-            {
+            for (unsigned int j = 0; j < plgs[i].plugin_icon.size(); j++) {
                 db_icon += plgs[i].plugin_icon[j];
                 db_icon += "\n";
             }
@@ -239,14 +223,15 @@ void save_plugin_ui(webEngine::i_storage* store)
                 plg->release();
                 // save information
                 c_plugin.value() = plgs[i].interface_name;
-                c_query.where.set(c_plugin).and(c_locale);
+                c_query.set(c_plugin).and(c_locale);
+                webEngine::db_cursor rec = store->set(c_query, "profile_ui");
                 rec["profile_ui.plugin_id"] = plgs[i].interface_name;
                 rec["profile_ui.plugin_name"] = plgs[i].plugin_desc;
                 rec["profile_ui.ui_settings"] = db_data;
                 rec["profile_ui.ui_icon"] = db_icon;
-                store->set(c_query, packet);
-            }
-            else {
+                rec["profile_ui.locale"] = string("en");
+                rec.close();
+            } else {
                 LOG4CXX_ERROR(scan_logger, "Can't load plugin " << plgs[i].plugin_id << "; " << plgs[i].plugin_desc);
             }
         } // if not a storage plugin
@@ -288,7 +273,7 @@ void dispatcher_routine(po::variables_map& vm)
         LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
         return;
     }
-    // no need to keep plugin - it can be removed by the dispatcher 
+    // no need to keep plugin - it can be removed by the dispatcher
     storage->release();
 
     string params = "";
@@ -312,8 +297,7 @@ void dispatcher_routine(po::variables_map& vm)
 
     webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
     vector<webEngine::i_plugin*> scan_plugins;
-    for (size_t i = 0; i < plgs.size(); i++)
-    {
+    for (size_t i = 0; i < plgs.size(); i++) {
         string info = plgs[i].interface_name + "|";
         info += plgs[i].interface_list[1] + "|";
         info += plgs[i].plugin_id + "|";
@@ -324,20 +308,17 @@ void dispatcher_routine(po::variables_map& vm)
 
     }
 
-    // init values 
+    // init values
     sys_cpu();
     queue_key = "ScanModule:Queue:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
     keep_alive_timeout = vm["keepalive_timeout"].as<int>();
 
     keep_alive_packet[ip_addr] = "";
     // find all ip's of machine
-    if (gethostname(ac, sizeof(ac)) != SOCKET_ERROR) 
-    {
+    if (gethostname(ac, sizeof(ac)) != SOCKET_ERROR) {
         struct hostent *phe = gethostbyname(ac);
-        if (phe != 0) 
-        {
-            for (int i = 0; phe->h_addr_list[i] != 0; ++i) 
-            {
+        if (phe != 0) {
+            for (int i = 0; phe->h_addr_list[i] != 0; ++i) {
                 struct in_addr addr;
                 string saddr;
                 memcpy(&addr, phe->h_addr_list[i], sizeof(struct in_addr));
@@ -354,13 +335,11 @@ void dispatcher_routine(po::variables_map& vm)
                     break;
                 }
             }
-        }
-        else {
+        } else {
             LOG4CXX_ERROR(scan_logger, "gethostbyname failed");
             keep_alive_packet[ip_addr] = "<unknown>";
         }
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(scan_logger, "gethostname failed");
         keep_alive_packet[ip_addr] = "<unknown>";
     }
@@ -392,19 +371,16 @@ void dispatcher_routine(po::variables_map& vm)
                     } // if plugin loaded
                 } // if name given
             } // foreach plugin
-        }
-        else {
+        } else {
             LOG4CXX_ERROR(scan_logger, "No plugins attached to profile " << ival << ". Nothing to do, exit.");
             return;
         }
-    }
-    else {
+    } else {
         // initialize task from configuration
         tsk->set_profile_id(string("0")); // todo - take it from params
         // set scanning options
         bool is_jscript = true;
-        if (vm.count("jscript"))
-        {
+        if (vm.count("jscript")) {
             try {
                 is_jscript = vm["jscript"].as<bool>();
             } catch (...) { } // just skip
@@ -484,7 +460,7 @@ void dispatcher_routine(po::variables_map& vm)
             LOG4CXX_DEBUG(scan_logger, "Set "weoDeniedFileTypes" to " << val);
         }
     }
-    
+
     tsk->store_plugins(scan_plugins);
     // reconstruct URL to scan
     string url = vm["target"].as<string>();
@@ -494,8 +470,7 @@ void dispatcher_routine(po::variables_map& vm)
     if (vm.count("name")) {
         string val = vm["name"].as<string>();
         tsk->set_name(val);
-    }
-    else {
+    } else {
         tsk->set_name("Crawling " + url);
     }
     webEngine::transport_url t_url(url);
@@ -504,12 +479,14 @@ void dispatcher_routine(po::variables_map& vm)
     tsk->Option(weoBaseURL,  url);
 
     // run endless loop for the task
+    //tsk->Run("1613");
     tsk->Run();
+
+    cout << "Running task (scan_id: \"" << tsk->get_scan_id() << "\") starts from \"" << t_url.tostring() << "\"" << endl;
 
     // init scan-time vars
     inLoop = true;
     char ch;
-    std::auto_ptr<webEngine::db_recordset> si;
     size_t sz, dn;
     double rps;
     string fname = "";
@@ -522,23 +499,25 @@ void dispatcher_routine(po::variables_map& vm)
     btm::ptime scan_curr;
     int kp_tm = 0;
     cout << "Scanning... 0 objects found... 0% complete\r";
-    do
-    {
+    do {
         if (!tsk->IsReady()) {
             inLoop = false;
         }
         boost::this_thread::sleep(boost::posix_time::seconds(1));
-        si = tsk->get_scan();
         int compl = tsk->completion();
         scan_curr = btm::second_clock::local_time();
         btm::time_period scan_elapsed(scan_start, scan_curr);
-        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << si->size() << " objects found... " << compl << "% complete\r";
+        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << tsk->get_scan_size() << " objects found... " << compl << "% complete; " 
+#ifdef _DEBUG
+            << "tL: " << tsk->get_taskList_size() << "; tQ: " << tsk->get_taskQueue_size() << "; st: " << tsk->get_status_name()
+        << "; pT: " << (tsk->get_processThread() ? "r" : "s")
+#endif
+            << "   \n";
         LOG4CXX_TRACE(scan_logger, "Memory information: " << sys_meminfo());
         if (kbhit()) {
             ch = getch();
             ch = toupper(ch);
-            switch (ch)
-            {
+            switch (ch) {
             case 'S':
                 sz = tsk->total_requests();
                 dn = tsk->total_processed();
@@ -547,22 +526,37 @@ void dispatcher_routine(po::variables_map& vm)
                 cout.precision(3);
                 cout << endl << "Total requests: " << sz << "; processed: " << dn << " (" << rps << " requests per second)" << endl;
                 break;
+            case 'P':
+                cout << endl << "Pausing... ";
+                tsk->Pause();
+                cout << endl << "Done" << endl;
+                break;
+            case 'U':
+                cout << endl << "Suspending... ";
+                tsk->Suspend();
+                cout << endl << "Done" << endl;
+                break;
+            case 'R':
+                cout << endl << "Resume..." << endl;
+                tsk->Resume();
+                break;
             case 'Q':
-                cout << endl << "Request task to stop. Press 'Q' again to force stop the task." << endl;
+                cout << endl << "Stopping..." << endl;
+                tsk->Stop();
+                cout << endl << "Done" << endl;
                 inLoop = false;
                 break;
             case ' ':
                 if (fname == "") {
                     cout << endl << "Can't save intermediate information - no results file given" << endl;
-                } 
-                else {
+                } else {
                     cout << endl << "Saving intermediate information ...";
                     //save_results(format, fname, tsk);
                     cout << " done!" << endl;
                 }
             }
         }
-        tsk->calc_status();
+        //tsk->calc_status();
         kp_tm++;
         if (kp_tm > keep_alive_timeout) {
             tsk->save_to_db();
@@ -570,29 +564,14 @@ void dispatcher_routine(po::variables_map& vm)
                 we_dispatcer->storage()->flush();
             }
         }
-    }
-    while(inLoop);
-    tsk->Stop();
-    cout << endl;
+    } while(inLoop);
 
     while (tsk->IsReady()) {
-        si = tsk->get_scan();
         int compl = tsk->completion();
         scan_curr = btm::second_clock::local_time();
         btm::time_period scan_elapsed(scan_start, scan_curr);
-        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << si->size() << " objects found... " << compl << "% complete\r";
+        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << tsk->get_scan_size() << " objects found... " << compl << "% complete\r";
         boost::this_thread::sleep(boost::posix_time::seconds(1));
-        if (kbhit()) {
-            ch = getch();
-            ch = toupper(ch);
-            switch (ch)
-            {
-            case 'Q':
-                cout << endl << "Force stop the task!" << endl;
-                tsk->Stop(true);
-                break;
-            };
-        }
     }
     tsk->save_to_db();
 
@@ -637,22 +616,20 @@ void dispatcher_routine(po::variables_map& vm)
     }
     cout << "done" << endl;
 
-    vector<string> fupd;
-    fupd.push_back("task.processed_urls");
-    webEngine::db_recordset upd(fupd);
-    webEngine::db_cursor rec = upd.push_back();
-    rec[0] = string("");
-    tc.field() = "task.id";
-    tc.operation() = webEngine::db_condition::equal;
-    tc.value() = tsk->get_scan_id();
-    
-    webEngine::db_query query;
-    query.what.push_back("task.processed_urls");
-    query.where.set(tc);
-    cout << "Remove URL's usage... ";
     if (we_dispatcer->storage() != NULL) {
-        int r = we_dispatcer->storage()->set(query, upd);
-        cout << r << " records ";
+        vector<string> fupd;
+        fupd.push_back("task.processed_urls");
+        webEngine::db_filter query;
+        tc.field() = "task.id";
+        tc.operation() = webEngine::db_condition::equal;
+        tc.value() = tsk->get_scan_id();
+        query.set(tc);
+        webEngine::db_cursor rec = we_dispatcer->storage()->set(query, fupd);
+        rec[0] = string("");
+
+        cout << "Remove URL's usage... ";
+        rec.close();
+        cout << rec.get_affected_rows() << " records ";
     }
     cout << "done" << endl;
 

@@ -21,7 +21,9 @@
 #define __WEBLOB_H__
 #include <vector>
 #include "weTagScanner.h"
+#include <weiBase.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
 
 using namespace std;
 
@@ -30,31 +32,42 @@ namespace webEngine {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  blob
 ///
-/// @brief  BLOB manipulations 
+/// @brief  BLOB manipulations
 ///
 /// Specialization of the std::vector to store unstructured data.
 /// @author A. Abramov
 /// @date   27.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class blob : public vector<unsigned char>
-{
+class blob : public vector<unsigned char> {
 public:
     blob() {}
     ~blob() {}
-    explicit blob(unsigned int cb) : vector<unsigned char>(cb, 0) {}    
+    explicit blob(unsigned int cb) : vector<unsigned char>(cb, 0) {}
     explicit blob(char* s) : vector<unsigned char>(s, s + strlen(s) + 1) {}
     blob(unsigned char* p, unsigned int cb) : vector<unsigned char>(p, p + cb) {}
 
-    void zero()                     { vector<unsigned char>::assign(size(), 0); }
+    void zero()                     {
+        vector<unsigned char>::assign(size(), 0);
+    }
     void assign(unsigned char* p,
-        unsigned int cb)            { resize(cb); vector<unsigned char>::assign(p, p+cb); }
-    void assign(const blob& b)    { vector<unsigned char>::assign(b.begin(), b.end()); }
-    void assign(char* s)            { vector<unsigned char>::assign(s, s + strlen(s)+1); }
+                unsigned int cb)            {
+        resize(cb);
+        vector<unsigned char>::assign(p, p+cb);
+    }
+    void assign(const blob& b)    {
+        vector<unsigned char>::assign(b.begin(), b.end());
+    }
+    void assign(char* s)            {
+        vector<unsigned char>::assign(s, s + strlen(s)+1);
+    }
     bool read(istream& file);
     bool write(ostream& file);
-	boost::shared_ptr<tag_stream> stream();
-    template<class Archive>
-    void serialize(Archive &ar, const unsigned int version);
+    boost::shared_ptr<tag_stream> stream();
+
+private:
+    DECLARE_SERIALIZATOR {
+        ar & boost::serialization::make_nvp("blob", boost::serialization::base_object< vector<unsigned char> >(*this));
+    };
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,8 +80,7 @@ public:
 /// @author	A. Abramov
 /// @date   02.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class blob_stream : public tag_stream_impl<blob::const_iterator>
-{
+class blob_stream : public tag_stream_impl<blob::const_iterator> {
 public:
     blob_stream(const blob& src) : tag_stream_impl<blob::const_iterator>(src.begin(), src.end()) {}
     ~blob_stream() {}

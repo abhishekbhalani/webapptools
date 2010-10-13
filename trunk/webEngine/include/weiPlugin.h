@@ -21,16 +21,13 @@
 #define __WEIPLUGIN_H__
 #include "weiBase.h"
 #include <string>
-//#include <boost/shared_ptr.hpp>
 #include "weStrings.h"
 
-//using namespace boost;
 using namespace std;
 
 namespace webEngine {
 
-struct plugin_info
-{
+struct plugin_info {
     string  plugin_id;
     string  plugin_desc;
     string  interface_name;
@@ -63,18 +60,17 @@ class task;
 /// @author A. Abramov
 /// @date   19.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class i_plugin
-{
+class i_plugin {
 public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn i_plugin(engine_dispatcher* krnl,
     /// 	void* handle = NULL)
     ///
-    /// @brief  Constructor. 
+    /// @brief  Constructor.
     ///
     /// @param  krnl   - Back link to the kernel
-    /// @param  handle - The handle to the contained library. 
+    /// @param  handle - The handle to the contained library.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     i_plugin(engine_dispatcher* krnl, void* handle = NULL);
 
@@ -113,16 +109,16 @@ public:
     ///
     /// @brief  Gets the final Interface name.
     ///
-    /// @retval	string. 
+    /// @retval	string.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual const string interface_name();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual string_list interface_list()
     ///
-    /// @brief  Gets the list of supported Interfaces. 
+    /// @brief  Gets the list of supported Interfaces.
     ///
-    /// @retval strings list. 
+    /// @retval strings list.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual string_list interface_list();
 
@@ -161,27 +157,31 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn	const plugin_info* info(void)
     ///
-    /// @brief	Returns information about this object. 
+    /// @brief	Returns information about this object.
     ///
-    /// @retval	null if it fails, plugin_info else. 
+    /// @retval	null if it fails, plugin_info else.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    const plugin_info* info(void) { return &pluginInfo; };
+    const plugin_info* info(void) {
+        return &pluginInfo;
+    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual const string get_setup_ui( void )
     ///
-    /// @brief  Gets the user interface for the setup dialog. 
+    /// @brief  Gets the user interface for the setup dialog.
     ///
-    /// @retval The user interface in the XML-based format or empty string if no setup dialog. 
+    /// @retval The user interface in the XML-based format or empty string if no setup dialog.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual const string get_setup_ui( void ) { return ""; };
+    virtual const string get_setup_ui( void ) {
+        return "";
+    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual void apply_settings( const string& xmlData )
     ///
     /// @brief  Applies the settings described by xmlData.
     ///
-    /// @param  xmlData	 - Plugin settings describing the XML. 
+    /// @param  xmlData	 - Plugin settings describing the XML.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void apply_settings( const string& xmlData ) {};
 
@@ -190,7 +190,9 @@ public:
     ///
     /// @brief  Gets the plugin's priority (0 - 100, default: 50).
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int get_priority() { return priority; };
+    virtual int get_priority() {
+        return priority;
+    };
 
     virtual void init(task* tsk) = 0;
     virtual void pause(task* tsk, bool paused = true) = 0;
@@ -207,7 +209,9 @@ protected:
 
 private:
     i_plugin(i_plugin&) {};               ///< Avoid object copying
-    i_plugin& operator=(i_plugin&) { return *this; };    ///< Avoid object copying
+    i_plugin& operator=(i_plugin&) {
+        return *this;
+    };    ///< Avoid object copying
 #endif // __DOXYGEN__
 };
 
@@ -227,15 +231,15 @@ typedef void* (*fnWePluginFactory)(void* kernel, void* handle);
 /// @fn string_list WeXpmToStringList(char** xpm,
 /// 	int lines)
 ///
-/// @brief  Convetrs XPM to string list. 
+/// @brief  Convetrs XPM to string list.
 ///
 /// @author A. Abramov
 /// @date   20.07.2009
 ///
-/// @param  xpm   - The XPM image. 
-/// @param  lines - The number of lines in the XPM. 
+/// @param  xpm   - The XPM image.
+/// @param  lines - The number of lines in the XPM.
 ///
-/// @retval	. 
+/// @retval	.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 string_list WeXpmToStringList(char** xpm, int lines);
 

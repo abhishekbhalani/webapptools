@@ -4,11 +4,10 @@
 // for add_http_url
 #include <weHttpInvent.h>
 
-//! @todo: upgrade to the boost_1.42 to use native version
 // from common/
-#include "boost/uuid.hpp"
-#include "boost/uuid_generators.hpp"
-#include "boost/uuid_io.hpp"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include <boost/regex.hpp>
 #include <boost/thread.hpp>
@@ -65,8 +64,7 @@ audit_jscript::~audit_jscript(void)
 i_plugin* audit_jscript::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "audit_jscript::get_interface " << ifName);
-    if (iequals(ifName, "audit_jscript"))
-    {
+    if (iequals(ifName, "audit_jscript")) {
         LOG4CXX_DEBUG(logger, "audit_jscript::get_interface found!");
         usageCount++;
         return (this);
@@ -102,12 +100,11 @@ void audit_jscript::init( task* tsk )
             boost::replace_all(opt_preloads, "\\", "/");
 #endif
             LOG4CXX_DEBUG(logger, "Execute JavaScript preloads from " << opt_preloads);
-            try{
+            try {
                 size_t fsize = fs::file_size(fs::path(opt_preloads));
                 ifstream ifs(opt_preloads.c_str());
                 preloads_data = new char[fsize + 10];
-                if(preloads_data != NULL)
-                {
+                if(preloads_data != NULL) {
                     memset(preloads_data, 0, fsize+10);
                     ifs.read(preloads_data, fsize);
                     js_exec.execute_string(preloads_data, "", true, true);
@@ -116,9 +113,7 @@ void audit_jscript::init( task* tsk )
                     LOG4CXX_TRACE(logger, "JavaScript preloads execution result (dump): " << js_exec.dump("Object"));
 #endif // _DEBUG
                 }
-            }
-            catch(std::exception& e)
-            {
+            } catch(std::exception& e) {
                 LOG4CXX_WARN(logger, "JavaScript preloads execution failed " << e.what());
             }
         }
@@ -133,7 +128,7 @@ void audit_jscript::stop(task* tsk)
         boost::unique_lock<boost::mutex> lock(data_access);
         if (jscript_tasks.process_list.size() > 0 || jscript_tasks.task_list.size() > 0) {
             LOG4CXX_WARN(logger, "audit_jscript::stop - stop requested, but " << jscript_tasks.task_list.size() <<
-                " task(s) and " << jscript_tasks.process_list.size() << " process(es) are still in the queue");
+                         " task(s) and " << jscript_tasks.process_list.size() << " process(es) are still in the queue");
         }
         jscript_tasks.process_list.clear();
         jscript_tasks.task_list.clear();
@@ -152,8 +147,7 @@ void audit_jscript::process( task* tsk, boost::shared_ptr<ScanData>scData )
 
     try {
         parsed = boost::shared_dynamic_cast<html_document>(scData->parsed_data);
-    }
-    catch(bad_cast) {
+    } catch(bad_cast) {
         LOG4CXX_ERROR(logger, "audit_jscript::process - can't process given document as html_document");
         return;
     }
@@ -164,8 +158,7 @@ void audit_jscript::process( task* tsk, boost::shared_ptr<ScanData>scData )
         if (parsed) {
             lst = parsed->FindTags("script");
             LOG4CXX_DEBUG(logger, "audit_jscript: found " << lst.size() << " scripts in " << scData->object_url);
-            if (lst.size() > 0)
-            {
+            if (lst.size() > 0) {
                 // something to process
                 ajs_to_process_ptr tp(new ajs_to_process(scData, parsed));
 
@@ -196,15 +189,14 @@ void audit_jscript::process( task* tsk, boost::shared_ptr<ScanData>scData )
                 ClearEntityList(lst);
                 if (tp->pending_requests > 0) {
                     LOG4CXX_DEBUG(logger, "audit_jscript: need to download " << tp->pending_requests << " scripts, deffered processing");
-                }
-                else { // to_process must be processed on next thread iteration
+                } else { // to_process must be processed on next thread iteration
                     boost::unique_lock<boost::mutex> lock(data_access);
                     jscript_tasks.add(tp);
                 }
 
                 LOG4CXX_DEBUG(js_logger, "audit_jscript::process - tasks in queue: " << jscript_tasks.task_list.size());
                 LOG4CXX_DEBUG(js_logger, "audit_jscript::process - processes in queue: " << jscript_tasks.process_list.size());
-                
+
                 if (tp->pending_requests == 0) {
                     // run thread, if it not started yet
                     if (!thread_running) {
@@ -232,12 +224,12 @@ void audit_jscript::process_response( i_response_ptr resp )
     LOG4CXX_DEBUG(logger, "audit_jscript::process_response: " << rurl);
     LOG4CXX_TRACE(logger, "audit_jscript::process_response: ENTER; to download: " << jscript_tasks.task_list.size() << "; documents: " << jscript_tasks.process_list.size() );
 
-    { // auto-release mutex scope
+    {
+        // auto-release mutex scope
         boost::unique_lock<boost::mutex> lock(data_access);
         ajs_download_queue::iterator mit = jscript_tasks.task_list.find(rurl);
 
-        if (ht_resp->HttpCode() > 399)
-        {
+        if (ht_resp->HttpCode() > 399) {
             LOG4CXX_WARN(logger, "audit_jscript::process_response - bad respose: " << ht_resp->HttpCode() << " " << rurl);
         }
         if (mit == jscript_tasks.task_list.end()) {
@@ -263,8 +255,7 @@ void audit_jscript::process_response( i_response_ptr resp )
                 AJS_DOWNLOAD_LIST(mit)[i].second->pending_requests--;
             }
             jscript_tasks.task_list.erase(mit);
-        }
-        else {
+        } else {
             LOG4CXX_WARN(logger, "audit_jscript::process_response: unregistered URL " << resp->RealUrl().tostring());
             string dmp = "";
             for (mit = jscript_tasks.task_list.begin(); mit != jscript_tasks.task_list.end(); mit++) {
@@ -304,8 +295,7 @@ void audit_jscript::add_url( webEngine::transport_url link, boost::shared_ptr<Sc
         fake.depth(sc->scan_depth);
         LOG4CXX_TRACE(logger, "audit_jscript::add_url - fall into the http_inventory::add_url");
         inv->add_url(link, &fake, sc);
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(logger, "audit_jscript::add_url can't find http_inventory plugin, can't add url " << link.tostring());
     }
 }
@@ -313,15 +303,15 @@ void audit_jscript::add_url( webEngine::transport_url link, boost::shared_ptr<Sc
 void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
 {
     boost::smatch mres;
-    std::string::const_iterator strt, end; 
-    boost::match_flag_type flags = boost::match_default; 
+    std::string::const_iterator strt, end;
+    boost::match_flag_type flags = boost::match_default;
     transport_url lurl;
     transport_url burl;
 
     try {
         burl.assign(sc->object_url);
 
-        strt = text.begin(); 
+        strt = text.begin();
         end = text.end();
         // 1. search strings that looks like URL
         boost::regex re1("(\\s|^)(\\w+://[^\\s\"\']+)(\\s|$)"); //, boost::regex_constants::icase
@@ -332,14 +322,14 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
             LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found url=" << tres << "; " << lurl.tostring());
             add_url(lurl, sc);
 
-            // update search position: 
-            strt = mres[0].second; 
-            // update flags: 
-            /*flags |= boost::match_prev_avail; 
-            flags |= boost::match_not_bob;*/ 
+            // update search position:
+            strt = mres[0].second;
+            // update flags:
+            /*flags |= boost::match_prev_avail;
+            flags |= boost::match_not_bob;*/
         }
 
-        strt = text.begin(); 
+        strt = text.begin();
         end = text.end();
         flags = boost::match_default;
         // 2. search for <a...> tags
@@ -351,14 +341,14 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
             LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found <a...> url=" << tres << "; " << lurl.tostring());
             add_url(lurl, sc);
 
-            // update search position: 
-            strt = mres[0].second; 
-            // update flags: 
-            /*flags |= boost::match_prev_avail; 
+            // update search position:
+            strt = mres[0].second;
+            // update flags:
+            /*flags |= boost::match_prev_avail;
             flags |= boost::match_not_bob;*/
         }
 
-        strt = text.begin(); 
+        strt = text.begin();
         end = text.end();
         flags = boost::match_default;
         // 2. search for "href: ..." output
@@ -370,14 +360,13 @@ void audit_jscript::extract_links( string text, boost::shared_ptr<ScanData> sc )
             LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found 'href' url=" << tres << "; " << lurl.tostring());
             add_url(lurl, sc);
 
-            // update search position: 
-            strt = mres[0].second; 
-            // update flags: 
-            /*flags |= boost::match_prev_avail; 
+            // update search position:
+            strt = mres[0].second;
+            // update flags:
+            /*flags |= boost::match_prev_avail;
             flags |= boost::match_not_bob;*/
         }
-    }
-    catch (std::exception &e) {
+    } catch (std::exception &e) {
         LOG4CXX_ERROR(logger, "audit_jscript::extract_links - exception: " << e.what())
     }
 }
@@ -443,7 +432,7 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
         process_events(&jse, ctx, parser, jquery_enabled);
 
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts search for new scripts");
-        /*int obj_size = 0; 
+        /*int obj_size = 0;
         int obj_size_n = 0;
         do {
             obj_size = js_exec->objects.size();
@@ -491,8 +480,7 @@ void audit_jscript::process_events(jsBrowser* jse, v8::Persistent<v8::Context> c
             boost::trim(src);
             if (! boost::istarts_with(src, "function")) {
                 src = "__evt_target__.__event__" + name + "=function(){" + src + "}";
-            }
-            else {
+            } else {
                 src = "__evt_target__.__event__" + name + "=" + src;
             }
             jse->execute_string(src, "", true, true);
@@ -538,7 +526,8 @@ void webEngine::parser_thread( audit_jscript* object )
 
     local_list.clear();
     while (in_loop) {
-        { // wait scope: check for completion
+        {
+            // wait scope: check for completion
             boost::unique_lock<boost::mutex> lock(object->data_access);
             task_list = object->jscript_tasks.task_list.size() + object->jscript_tasks.process_list.size();
             if (task_list == 0) {
@@ -552,7 +541,8 @@ void webEngine::parser_thread( audit_jscript* object )
 
         // perform actions
 
-        { // wait scope: extract data from process_list
+        {
+            // wait scope: extract data from process_list
             boost::unique_lock<boost::mutex> lock(object->data_access);
             for (size_t i = 0; i < object->jscript_tasks.process_list.size(); i++) {
                 if (object->jscript_tasks.process_list[i]->pending_requests == 0) {
@@ -562,22 +552,20 @@ void webEngine::parser_thread( audit_jscript* object )
             object->jscript_tasks.clean_done();
         } // wait scope - auto release mutex
         LOG4CXX_DEBUG(js_logger, "audit_jscript::parser_thread: to download: " << object->jscript_tasks.task_list.size() <<
-            "; documents: " << object->jscript_tasks.process_list.size() );
+                      "; documents: " << object->jscript_tasks.process_list.size() );
 
-        if (local_list.size() > 0)
-        {
+        if (local_list.size() > 0) {
             LOG4CXX_DEBUG(js_logger, "audit_jscript::parser_thread: " << local_list.size() << " documents to process");
             for (size_t i = 0; i < local_list.size(); i++) {
                 object->parse_scripts(local_list[i]->sc_data, local_list[i]->parsed_data);
             }
             local_list.clear();
-        }
-        else {
+        } else {
             // we don't found any documents to process
             boost::unique_lock<boost::mutex> lock(object->data_access);
             task_list = object->jscript_tasks.task_list.size() + object->jscript_tasks.process_list.size();
             LOG4CXX_DEBUG(js_logger, "audit_jscript::parser_thread waiting for data: " << object->jscript_tasks.task_list.size() <<
-                " to download and " << object->jscript_tasks.process_list.size() << " documents still in the list");
+                          " to download and " << object->jscript_tasks.process_list.size() << " documents still in the list");
             in_loop = false;
         }
         if (!in_loop) {
@@ -626,8 +614,7 @@ i_request_ptr ajs_download_queue::add( string url, ajs_to_process_ptr tp, webEng
         // save download task
         task_list[url] = ajs_download_task(req_uuid, ajs_download_list(1, ajs_download(ent, tp)));
 
-    }
-    else {
+    } else {
         AJS_DOWNLOAD_LIST(mit).push_back(ajs_download(ent, tp));
     }
     LOG4CXX_DEBUG(js_logger, "ajs_download_queue::add - processes in queue: " << process_list.size());

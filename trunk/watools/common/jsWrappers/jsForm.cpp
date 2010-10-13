@@ -15,7 +15,7 @@ bool jsForm::is_init = false;
 
 jsForm::jsForm( html_entity_ptr ent ) : jsElement(ent)
 {
-    if (!is_init){
+    if (!is_init) {
         init();
     }
 }
@@ -93,7 +93,7 @@ Handle<Value> jsForm::PropertySet( Local<String> name, Local<Value> value, const
         Local<Object> self = info.This();
         Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
         void* ptr = wrap->Value();
-        jsForm* el = static_cast<jsForm*>(ptr); 
+        jsForm* el = static_cast<jsForm*>(ptr);
         retval = el->SetProperty(name, value, info);
     }
     return retval;
@@ -104,7 +104,7 @@ Handle<Value> jsForm::ToString( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     string attr;
     string ret = "[Form";

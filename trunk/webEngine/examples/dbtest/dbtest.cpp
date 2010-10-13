@@ -40,8 +40,7 @@ int main(int argc, char* argv[])
     cout << "Try to use uninitialized cursor..." << endl;
     try {
         cout << "Value of [0][0] is " << cursor[0] << endl;
-    }
-    catch(std::exception &e) {
+    } catch(std::exception &e) {
         cout << "Exception: " << e.what() << endl;
     }
     cout << endl;
@@ -57,16 +56,14 @@ int main(int argc, char* argv[])
     ++cursor;
     try {
         cout << "Value of [0][0] is " << cursor[0] << endl;
-    }
-    catch(out_of_range &e) {
+    } catch(out_of_range &e) {
         cout << "Exception: " << e.what() << endl;
     }
 
     // insert record
     cursor = rs.begin();
     cout << "Before insert:" << endl << "Size: " << rs.size() << endl;
-    for (r = 0; r < rs.size(); r++)
-    {
+    for (r = 0; r < rs.size(); r++) {
         cout << "Record [" << r << "] is:" << endl;
         for (size_t i = 0; i < cursor.record_size(); i ++) {
             cout << "\t[" << i << "] = " << cursor[i] << endl;
@@ -79,12 +76,11 @@ int main(int argc, char* argv[])
     rec = rs.insert(cursor);
     rec["id"] = 2;
     rec["name"] = string("values");
-    rec[2] = 3.1415;   
+    rec[2] = 3.1415;
 
     cursor = rs.begin();
     cout << "After first insert:" << endl << "Size: " << rs.size() << endl;
-    for (r = 0; r < rs.size(); r++)
-    {
+    for (r = 0; r < rs.size(); r++) {
         cout << "Record [" << r << "] is:" << endl;
         for (size_t i = 0; i < cursor.record_size(); i ++) {
             cout << "\t[" << i << "] = " << cursor[i] << endl;
@@ -104,14 +100,12 @@ int main(int argc, char* argv[])
     cursor = rs.begin();
     cout << "After second insert:" << endl << "Size: " << rs.size() << endl;
     r = 0;
-    while (cursor != rs.end())
-    {
+    while (cursor != rs.end()) {
         cout << "Record [" << r << "] is:" << endl;
         for (size_t i = 0; i < cursor.record_size(); i ++) {
             if (cursor[i].empty()) {
                 cout << "\t[" << i << "] = <empty>" << endl;
-            }
-            else {
+            } else {
                 cout << "\t[" << i << "] = " << cursor[i] << endl;
             }
         }
@@ -128,12 +122,10 @@ int main(int argc, char* argv[])
     cond.value() = 1;
     cursor = rs.begin();
     cout << "Condition: " << cond.tostring() << endl;
-    for (r = 0; r < rs.size(); r++)
-    {
-        try{
+    for (r = 0; r < rs.size(); r++) {
+        try {
             cout << "Record " << r << " condition is " << cond.eval(cursor) << endl;
-        }
-        catch (bad_cast &e) {
+        } catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
         ++cursor;
@@ -145,12 +137,10 @@ int main(int argc, char* argv[])
     cond.value() = 2.3;
     cursor = rs.begin();
     cout << "Condition: " << cond.tostring() << endl;
-    for (r = 0; r < rs.size(); r++)
-    {
-        try{
+    for (r = 0; r < rs.size(); r++) {
+        try {
             cout << "Record " << r << " condition is " << cond.eval(cursor) << endl;
-        }
-        catch (bad_cast &e) {
+        } catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
         ++cursor;
@@ -162,12 +152,10 @@ int main(int argc, char* argv[])
     cond.value() = string("es");
     cursor = rs.begin();
     cout << "Condition: " << cond.tostring() << endl;
-    for (r = 0; r < rs.size(); r++)
-    {
-        try{
+    for (r = 0; r < rs.size(); r++) {
+        try {
             cout << "Record " << r << " condition is " << cond.eval(cursor) << endl;
-        }
-        catch (bad_cast &e) {
+        } catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
         ++cursor;
@@ -177,13 +165,11 @@ int main(int argc, char* argv[])
     cond.field() = "value";
     cond.operation() = db_condition::is_null;
     cursor = rs.begin();
-	cout << "Condition: " << cond.tostring() << endl;
-    for (r = 0; r < rs.size(); r++)
-    {
-        try{
+    cout << "Condition: " << cond.tostring() << endl;
+    for (r = 0; r < rs.size(); r++) {
+        try {
             cout << "Record " << r << " condition is " << cond.eval(cursor) << endl;
-        }
-        catch (bad_cast &e) {
+        } catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
         ++cursor;
@@ -198,12 +184,10 @@ int main(int argc, char* argv[])
     filter.set(db_condition("name like es")).or(c1);
     cursor = rs.begin();
     cout << "Filter: " << filter.tostring() << endl;
-    for (r = 0; r < rs.size(); r++)
-    {
-        try{
+    for (r = 0; r < rs.size(); r++) {
+        try {
             cout << "Record " << r << " condition is " << filter.eval(cursor) << endl;
-        }
-        catch (bad_cast &e) {
+        } catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
         ++cursor;
@@ -214,12 +198,10 @@ int main(int argc, char* argv[])
     filter2.set(cond).and(filter);
     cursor = rs.begin();
     cout << "Filter: " << filter2.tostring() << endl;
-    for (r = 0; r < rs.size(); r++)
-    {
-        try{
+    for (r = 0; r < rs.size(); r++) {
+        try {
             cout << "Record " << r << " condition is " << filter2.eval(cursor) << endl;
-        }
-        catch (bad_cast &e) {
+        } catch (bad_cast &e) {
             cout << "Record " << r << " can't compare: " << e.what() << endl;
         }
         ++cursor;
@@ -233,8 +215,7 @@ int main(int argc, char* argv[])
         for (size_t i = 0; i < rs.record_size(); i ++) {
             if ((*flt)[i].empty()) {
                 cout << "\t[" << i << "] = <empty>" << endl;
-            }
-            else {
+            } else {
                 cout << "\t[" << i << "] = " << (*flt)[i] << endl;
             }
         }
@@ -243,29 +224,25 @@ int main(int argc, char* argv[])
     // delete record
     filter.set(db_condition("id == 2")).or(db_condition("id == 4"));
     cursor = rs.begin();
-    while (cursor != rs.end())
-    {
+    while (cursor != rs.end()) {
         size_t nxt = cursor - rs.begin();
         if (filter.eval(cursor)) {
             rs.erase(cursor);
             cursor = rs.begin();
             cursor += nxt;
-        }
-        else {
+        } else {
             ++cursor;
         }
     }
     cout << "After deletion " << filter.tostring() << endl << "Size: " << rs.size() << endl;
     cursor = rs.begin();
     r = 0;
-    while (cursor != rs.end())
-    {
+    while (cursor != rs.end()) {
         cout << "Record [" << r << "] is:" << endl;
         for (size_t i = 0; i < cursor.record_size(); i ++) {
             if (cursor[i].empty()) {
                 cout << "\t[" << i << "] = <empty>" << endl;
-            }
-            else {
+            } else {
                 cout << "\t[" << i << "] = " << cursor[i] << endl;
             }
         }
@@ -306,15 +283,13 @@ int main(int argc, char* argv[])
     db_fw_cursor fwcur = rs.fw_begin();
     //fwcur[1] = "lalal";
     r = 0;
-    while (fwcur != rs.fw_end())
-    {
+    while (fwcur != rs.fw_end()) {
         cout << "Record [" << r << "] is:" << endl;
         for (size_t i = 0; i < fwcur.record_size(); i ++) {
             const we_variant v = fwcur[i];
             if (fwcur[i].empty()) {
                 cout << "\t[" << i << "] = <empty>" << endl;
-            }
-            else {
+            } else {
                 cout << "\t[" << i << "] = " << fwcur[i] << endl;
             }
         }

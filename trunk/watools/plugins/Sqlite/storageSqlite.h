@@ -29,8 +29,7 @@ using namespace webEngine;
 struct sqlite_handle;
 
 class sqlite_storage :
-    public i_storage
-{
+    public i_storage {
 public:
     sqlite_storage(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~sqlite_storage(void);
@@ -40,7 +39,7 @@ public:
 
     // i_storage functions
     virtual bool init_storage(const string& params);
-	virtual void flush(const string& params = "") {};
+    virtual void flush(const string& params = "") {};
     virtual string generate_id(const string& objType = "");
     virtual int get(db_query& query, db_recordset& results);
     virtual int set(db_query& query, db_recordset& data);
@@ -48,7 +47,7 @@ public:
     virtual int del(db_filter& filter);
 
 protected:
-	sqlite_handle*	db_handle;
+    sqlite_handle*	db_handle;
     boost::mutex data_access;
 };
 

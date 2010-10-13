@@ -12,19 +12,23 @@
 #include <weHelper.h>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/regex.hpp>
 #include <weDispatch.h>
 #include <weTask.h>
+
+__declspec(dllexport) double _HUGE;
 
 using namespace webEngine;
 namespace bfs = boost::filesystem;
 
 // from common/
-#include "jsWrappers/JsBrowser.h"
+#include <jsWrappers/jsBrowser.h>
 
-class shellExecutor : public jsBrowser
-{
+class shellExecutor : public jsBrowser {
 public:
-    static v8::Persistent<v8::ObjectTemplate> global_object() { return global; }
+    static v8::Persistent<v8::ObjectTemplate> global_object() {
+        return global;
+    }
 };
 
 void RunShell(v8::Handle<v8::Context> context);
@@ -65,20 +69,22 @@ v8::Handle<v8::Value> GetAnyObject(v8::Local<v8::String> name, const v8::Accesso
 }
 
 // Extracts a C string from a V8 Utf8Value.
-const char* ToCString(const v8::String::Utf8Value& value) {
+const char* ToCString(const v8::String::Utf8Value& value)
+{
     return *value ? *value : "<string conversion failed>";
 }
 
-int RunMain(int argc, char* argv[]) {
+int RunMain(int argc, char* argv[])
+{
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
     v8::HandleScope handle_scope;
     // init global objects
     engine_dispatcher we_dispatcer;
     bfs::path plg_path = ".";
     we_dispatcer.refresh_plugin_list(plg_path);
-    i_plugin* plg = we_dispatcer.load_plugin("sqlite_storage");
+    i_plugin* plg = we_dispatcer.load_plugin("soci_storage");
     if (plg == NULL) {
-        LOG4CXX_FATAL(iLogger::GetLogger(), "Can't load plug-in for Storage DB connection: sqlite_storage");
+        LOG4CXX_FATAL(iLogger::GetLogger(), "Can't load plug-in for Storage DB connection: soci_storage");
         return 0;
     }
     i_storage* storage = (i_storage*)plg->get_interface("i_storage");
@@ -86,13 +92,12 @@ int RunMain(int argc, char* argv[]) {
         LOG4CXX_FATAL(iLogger::GetLogger(), "No iStorage interface in the plugin " << plg->get_id() << "(ID="  << plg->get_id() );
         return 0;
     }
-    string params = "v8_domshell.sqlite";
+	string params = "sqlite3://v8_domshell.sqlite";
     storage->init_storage(params);
     we_dispatcer.storage(storage);
     plugin_list plgs = we_dispatcer.get_plugin_list();
     vector<i_plugin*> scan_plugins;
-    for (size_t i = 0; i < plgs.size(); i++)
-    {
+    for (size_t i = 0; i < plgs.size(); i++) {
         plg = we_dispatcer.load_plugin(plgs[i].plugin_id);
         scan_plugins.push_back(plg->get_interface("i_plugin")); //(webEngine::i_plugin*)
     }
@@ -164,7 +169,8 @@ int RunMain(int argc, char* argv[]) {
 }
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     webEngine::LibInit(".\\trace.config");
     int result = RunMain(argc, argv);
     v8::V8::Dispose();
@@ -175,7 +181,8 @@ int main(int argc, char* argv[]) {
 // The callback that is invoked by v8 whenever the JavaScript 'print'
 // function is called.  Prints its arguments on stdout separated by
 // spaces and ending with a newline.
-v8::Handle<v8::Value> Print(const v8::Arguments& args) {
+v8::Handle<v8::Value> Print(const v8::Arguments& args)
+{
     bool first = true;
     for (int i = 0; i < args.Length(); i++) {
         v8::HandleScope handle_scope;
@@ -197,7 +204,8 @@ v8::Handle<v8::Value> Print(const v8::Arguments& args) {
 // The callback that is invoked by v8 whenever the JavaScript 'read'
 // function is called.  This function loads the content of the file named in
 // the argument into a JavaScript string.
-v8::Handle<v8::Value> Read(const v8::Arguments& args) {
+v8::Handle<v8::Value> Read(const v8::Arguments& args)
+{
     if (args.Length() != 1) {
         return v8::ThrowException(v8::String::New("Bad parameters"));
     }
@@ -216,7 +224,8 @@ v8::Handle<v8::Value> Read(const v8::Arguments& args) {
 // The callback that is invoked by v8 whenever the JavaScript 'load'
 // function is called.  Loads, compiles and executes its argument
 // JavaScript file.
-v8::Handle<v8::Value> Load(const v8::Arguments& args) {
+v8::Handle<v8::Value> Load(const v8::Arguments& args)
+{
     for (int i = 0; i < args.Length(); i++) {
         v8::HandleScope handle_scope;
         v8::String::Utf8Value file(args[i]);
@@ -237,7 +246,8 @@ v8::Handle<v8::Value> Load(const v8::Arguments& args) {
 
 // The callback that is invoked by v8 whenever the JavaScript 'quit'
 // function is called.  Quits.
-v8::Handle<v8::Value> Quit(const v8::Arguments& args) {
+v8::Handle<v8::Value> Quit(const v8::Arguments& args)
+{
     // If not arguments are given args[0] will yield undefined which
     // converts to the integer value 0.
     int exit_code = args[0]->Int32Value();
@@ -246,12 +256,14 @@ v8::Handle<v8::Value> Quit(const v8::Arguments& args) {
 }
 
 
-v8::Handle<v8::Value> Version(const v8::Arguments& args) {
+v8::Handle<v8::Value> Version(const v8::Arguments& args)
+{
     return v8::String::New(v8::V8::GetVersion());
 }
 
 // Reads a file into a v8 string.
-v8::Handle<v8::String> ReadFile(const char* name) {
+v8::Handle<v8::String> ReadFile(const char* name)
+{
     FILE* file = fopen(name, "rb");
     if (file == NULL) return v8::Handle<v8::String>();
 
@@ -273,7 +285,8 @@ v8::Handle<v8::String> ReadFile(const char* name) {
 
 
 // The read-eval-execute loop of the shell.
-void RunShell(v8::Handle<v8::Context> context) {
+void RunShell(v8::Handle<v8::Context> context)
+{
     printf("V8 version %s\n", v8::V8::GetVersion());
     static const int kBufferSize = 256;
     while (true) {
@@ -283,9 +296,9 @@ void RunShell(v8::Handle<v8::Context> context) {
         if (str == NULL) break;
         v8::HandleScope handle_scope;
         ExecuteString(v8::String::New(str),
-            v8::String::New("(shell)"),
-            true,
-            true);
+                      v8::String::New("(shell)"),
+                      true,
+                      true);
     }
     printf("\n");
 }
@@ -295,37 +308,39 @@ void RunShell(v8::Handle<v8::Context> context) {
 bool ExecuteString(v8::Handle<v8::String> source,
                    v8::Handle<v8::Value> name,
                    bool print_result,
-                   bool report_exceptions) {
-                       v8::HandleScope handle_scope;
-                       v8::TryCatch try_catch;
-                       v8::Handle<v8::Script> script = v8::Script::Compile(source, name);
-                       if (script.IsEmpty()) {
-                           // Print errors that happened during compilation.
-                           if (report_exceptions)
-                               ReportException(&try_catch);
-                           return false;
-                       } else {
-                           v8::Handle<v8::Value> result = script->Run();
-                           if (result.IsEmpty()) {
-                               // Print errors that happened during execution.
-                               if (report_exceptions)
-                                   ReportException(&try_catch);
-                               return false;
-                           } else {
-                               if (print_result && !result->IsUndefined()) {
-                                   // If all went well and the result wasn't undefined then print
-                                   // the returned value.
-                                   v8::String::Utf8Value str(result);
-                                   const char* cstr = ToCString(str);
-                                   printf("%s\n", cstr);
-                               }
-                               return true;
-                           }
-                       }
+                   bool report_exceptions)
+{
+    v8::HandleScope handle_scope;
+    v8::TryCatch try_catch;
+    v8::Handle<v8::Script> script = v8::Script::Compile(source, name);
+    if (script.IsEmpty()) {
+        // Print errors that happened during compilation.
+        if (report_exceptions)
+            ReportException(&try_catch);
+        return false;
+    } else {
+        v8::Handle<v8::Value> result = script->Run();
+        if (result.IsEmpty()) {
+            // Print errors that happened during execution.
+            if (report_exceptions)
+                ReportException(&try_catch);
+            return false;
+        } else {
+            if (print_result && !result->IsUndefined()) {
+                // If all went well and the result wasn't undefined then print
+                // the returned value.
+                v8::String::Utf8Value str(result);
+                const char* cstr = ToCString(str);
+                printf("%s\n", cstr);
+            }
+            return true;
+        }
+    }
 }
 
 
-void ReportException(v8::TryCatch* try_catch) {
+void ReportException(v8::TryCatch* try_catch)
+{
     v8::HandleScope handle_scope;
     v8::String::Utf8Value exception(try_catch->Exception());
     const char* exception_string = ToCString(exception);

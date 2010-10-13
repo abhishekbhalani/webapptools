@@ -19,8 +19,7 @@ static Handle<Value> GetProto(Local<String> name, const AccessorInfo& info)
     if(url->url.is_valid()) {
         string path = url->url.protocol + ":";
         return String::New(path.c_str());
-    }
-    else {
+    } else {
         return String::New("http:");
     }
 }
@@ -71,8 +70,7 @@ static Handle<Value> GetLocationHost(Local<String> name, const AccessorInfo& inf
     if(url->url.is_valid()) {
         string path = url->url.host;
         return String::New(path.c_str());
-    }
-    else {
+    } else {
         return String::New("", 0);
     }
 }
@@ -98,8 +96,7 @@ static Handle<Value> GetLocationHostname(Local<String> name, const AccessorInfo&
     if(url->url.is_valid()) {
         string path = url->url.host;
         return String::New(path.c_str());
-    }
-    else {
+    } else {
         return String::New("", 0);
     }
 }
@@ -125,8 +122,7 @@ static Handle<Value> GetLocationPath(Local<String> name, const AccessorInfo& inf
     if(url->url.is_valid()) {
         string path = url->url.request;
         return String::New(path.c_str());
-    }
-    else {
+    } else {
         return String::New("", 0);
     }
 }
@@ -173,8 +169,7 @@ static Handle<Value> GetLocationSearch(Local<String> name, const AccessorInfo& i
     if(url->url.is_valid()) {
         string path = url->url.params;
         return String::New(path.c_str());
-    }
-    else {
+    } else {
         return String::New("", 0);
     }
 }
@@ -200,8 +195,7 @@ static Handle<Value> GetLocationHref(Local<String> name, const AccessorInfo& inf
     if(url->url.is_valid()) {
         string path = url->url.tostring();
         return String::New(path.c_str(), path.length());
-    }
-    else {
+    } else {
         return String::New("", 0);
     }
 }
@@ -217,16 +211,14 @@ static void SetLocationHref(Local<String> name, Local<Value> val, const Accessor
     std::string log_info = "Location changed from '";
     if(url->url.is_valid()) {
         log_info += url->url.tostring();
-    }
-    else {
+    } else {
         log_info += "undefined";
     }
     log_info += "' to \n\thref: ";
     url->url.assign_with_referer(value_to_string(val), &url->url);
     if(url->url.is_valid()) {
         log_info += url->url.tostring();
-    }
-    else {
+    } else {
         log_info += "undefined";
     }
     append_results(log_info);
@@ -255,13 +247,11 @@ static Handle<Value> LocationReplace(const v8::Arguments& args)
         url->url.assign_with_referer(value_to_string(args[0]), &url->url);
         url->win->history->push_back(url->url.tostring());
         url->win->load(url->url.tostring());
-    }
-    else {
+    } else {
         std::string log_info = "Location changed from '";
         if(url->url.is_valid()) {
             log_info += url->url.tostring();
-        }
-        else {
+        } else {
             log_info += "undefined";
         }
         log_info += "' to \n\thref: ";
@@ -269,16 +259,13 @@ static Handle<Value> LocationReplace(const v8::Arguments& args)
             url->url.assign_with_referer(value_to_string(args[0]), &url->url);
             if(url->url.is_valid()) {
                 log_info += url->url.tostring();
-            }
-            else {
+            } else {
                 log_info += "undefined";
             }
-        }
-        else {
+        } else {
             if(url->url.is_valid()) {
                 log_info += url->url.tostring();
-            }
-            else {
+            } else {
                 log_info += "undefined";
             }
         }
@@ -296,8 +283,7 @@ static Handle<Value> LocationReload(const v8::Arguments& args)
     jsLocation* url = static_cast<jsLocation*>(ptr);
     if (url->win != NULL) {
         url->win->load(url->url.tostring());
-    }
-    else {
+    } else {
         std::string log_info = "Location reloaded for ";
         log_info += url->url.tostring();
         append_results(log_info);

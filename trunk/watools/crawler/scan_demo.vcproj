@@ -18,15 +18,15 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\wetools.vsprops"
 			CharacterSet="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increment build number"
-				CommandLine="..\..\verbuild.exe version.h *.*.*.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t600"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -64,7 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Psapi.lib log4cxx.lib ws2_32.lib libboost_regex-vc90-mt-gd-1_38.lib webEngine.lib curllib.lib ssleay32.lib libeay32.lib v8.lib winmm.lib"
+				AdditionalDependencies="Psapi.lib log4cxx.lib ws2_32.lib webEngine.lib libcurl.lib v8.lib winmm.lib  wldap32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\webEngine\libs\Debug"
 				EnableUAC="true"
@@ -98,16 +98,16 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)build\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="..\wetools.vsprops"
 			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Increment build number"
-				CommandLine="..\..\verbuild.exe version.h *.*.+.+ -xFPfp -b0.1.0.0 -e99.99.9999.9999 -s -t120"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -146,7 +146,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/IGNORE:4748"
-				AdditionalDependencies="Psapi.lib log4cxx.lib webEngine.lib curllib.lib ws2_32.lib ssleay32.lib libeay32.lib openldap.lib libboost_regex-vc90-mt-1_38.lib v8.lib Winmm.lib"
+				AdditionalDependencies="Psapi.lib log4cxx.lib webEngine.lib libcurl.lib ws2_32.lib v8.lib Winmm.lib  wldap32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\webEngine\libs\release"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"

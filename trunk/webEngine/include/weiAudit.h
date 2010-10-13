@@ -25,8 +25,6 @@
 #include <weiPlugin.h>
 #include <weiTransport.h>
 
-//using namespace boost;
-
 namespace webEngine {
 
 // forward declarations
@@ -37,14 +35,13 @@ class i_response;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  i_audit
 ///
-/// @brief  Interface for the audit plugins. 
+/// @brief  Interface for the audit plugins.
 ///
 /// @author A. Abramov
 /// @date   19.08.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class i_audit :
-    public i_plugin
-{
+    public i_plugin {
 public:
     i_audit(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~i_audit(void);
@@ -52,19 +49,19 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void init(task* tsk)
     ///
-    /// @brief  Initialize plugin for given task. 
+    /// @brief  Initialize plugin for given task.
     ///
-    /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
+    /// @param  tsk	   - If non-null, the pointer to task what handles the process.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void init(task* tsk) = 0;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void process(task* tsk, boost::shared_ptr<ScanData> scData)
     ///
-    /// @brief  Starts the audit process for given ScanData object. 
+    /// @brief  Starts the audit process for given ScanData object.
     ///
-    /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
-    /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
+    /// @param  tsk	   - If non-null, the pointer to task what handles the process.
+    /// @param  scData - If non-null, the pointer to scan data what contains values to audit.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void process(task* tsk, boost::shared_ptr<ScanData> scData) = 0;
     virtual void pause(task* tsk, bool paused = true) {}
@@ -74,8 +71,8 @@ public:
     /// @fn void process_response(i_response_ptr resp)
     ///
     /// @brief  Process the transport response described by resp.
-    /// 		
-    /// @param  resp - If non-null, the resp. 
+    ///
+    /// @param  resp - If non-null, the resp.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void process_response(i_response_ptr resp) = 0;
 
@@ -85,8 +82,8 @@ public:
     /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
     ///         by the context
     ///
-    /// @param  resp	 - If non-null, the resp. 
-    /// @param  context	 - If non-null, the context. 
+    /// @param  resp	 - If non-null, the resp.
+    /// @param  context	 - If non-null, the context.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     static void response_dispatcher(i_response_ptr resp, void* context);
 

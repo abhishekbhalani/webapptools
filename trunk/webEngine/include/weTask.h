@@ -22,30 +22,30 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <map>
-#include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_map.hpp>
-//#include <boost/any.hpp>
+#include <boost/preprocessor.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <weiBase.h>
 #include <weOptions.h>
 #include <weiTransport.h>
 
-//using boost::any_cast;
-//using namespace boost;
 using namespace std;
 
 namespace webEngine {
 
-    // forward declarations
-    class i_transport;
-    class i_inventory;
-    class i_audit;
-    class i_vulner;
-    class i_request;
-    class i_parser;
-    class ScanData;
-    class ScanInfo;
-    class engine_dispatcher;
+// forward declarations
+class i_transport;
+class i_inventory;
+class i_audit;
+class i_vulner;
+class i_request;
+class i_parser;
+class ScanData;
+class ScanInfo;
+class engine_dispatcher;
+class db_cursor;
 
 #define WE_TASK_SIGNAL_NO       0
 #define WE_TASK_SIGNAL_RUN      1
@@ -53,192 +53,240 @@ namespace webEngine {
 #define WE_TASK_SIGNAL_STOP     3
 #define WE_TASK_SIGNAL_SUSSPEND 4
 
+//////////////////////////////////////////////////////////////////////////
+// Task statuses
+//////////////////////////////////////////////////////////////////////////
+
+#define SEQ_TASK_STATUSES (WI_TSK_INIT)(WI_TSK_RUNNING)(WI_TSK_PAUSING)(WI_TSK_PAUSED)(WI_TSK_SUSPENDING)(WI_TSK_FINISHED)(WI_TSK_STOPPED)(WI_TSK_SUSPENDED)
+enum TaskStatus { BOOST_PP_SEQ_ENUM(SEQ_TASK_STATUSES) };
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  task
+///
+/// @brief  Entry point to execute any actions with webEngine
+///
+/// @author A. Abramov
+/// @date   09.06.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class task : public i_options_provider {
+public:
+    task(engine_dispatcher *krnl = NULL);
+    task(task& cpy);
+    ~task();
+
+#ifdef _DEBUG
+    inline size_t get_taskQueue_size() const {return taskQueue.size();}
+    inline size_t get_taskList_size() const {return taskList.size();}
+    inline bool get_processThread() const {return processThread;}
+    const char * get_status_name() const;
+#endif 
+
+    // i_options_provider functions
+    virtual we_option Option(const string& name);
+    virtual void Option(const string& name, we_variant val);
+    virtual bool IsSet(const string& name);
+    virtual void Erase(const string& name);
+    virtual void Clear();
+    // void CopyOptions(i_options_provider* cpy);
+    string_list OptionsList();
+    size_t OptionSize();
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  task
+    /// @fn void add_plg_parser(i_parser* plugin)
     ///
-    /// @brief  Entry point to execute any actions with webEngine
-    ///
-    /// @author A. Abramov
-    /// @date   09.06.2009
+    /// @brief  Adds a parser plugin to the task object.
+    /// @param  plugin   - Plugin with i_parser interface.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class task : public i_options_provider
-    {
-    public:
-        task(engine_dispatcher *krnl = NULL);
-        task(task& cpy);
-        ~task();
+    void add_plg_parser(i_parser* plugin);
 
-        // i_options_provider functions
-        virtual we_option Option(const string& name);
-        virtual void Option(const string& name, we_variant val);
-        virtual bool IsSet(const string& name);
-        virtual void Erase(const string& name);
-        virtual void Clear();
-        // void CopyOptions(i_options_provider* cpy);
-        string_list OptionsList();
-        size_t OptionSize();
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void add_plg_transport(i_transport* plugin)
+    ///
+    /// @brief  Adds a transport plugin to the task object.
+    /// @param  plugin   - Plugin with i_transport interface.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    void add_plg_transport(i_transport* plugin);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void add_plg_parser(i_parser* plugin)
-        ///
-        /// @brief  Adds a parser plugin to the task object.
-        /// @param  plugin   - Plugin with i_parser interface. 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void add_plg_parser(i_parser* plugin);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void add_plg_inventory(i_inventory* plugin)
+    ///
+    /// @brief  Adds a inventory plugin to the task object.
+    /// @param  plugin   - Plugin with i_inventory interface.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    void add_plg_inventory(i_inventory* plugin);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void add_plg_transport(i_transport* plugin)
-        ///
-        /// @brief  Adds a transport plugin to the task object.
-        /// @param  plugin   - Plugin with i_transport interface. 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void add_plg_transport(i_transport* plugin);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void add_plg_auditor(i_audit* plugin)
+    ///
+    /// @brief  Adds a auditor plugin to the task object.
+    /// @param  plugin   - Plugin with i_audit interface.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    void add_plg_auditor(i_audit* plugin);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void add_plg_inventory(i_inventory* plugin)
-        ///
-        /// @brief  Adds a inventory plugin to the task object.
-        /// @param  plugin   - Plugin with i_inventory interface. 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void add_plg_inventory(i_inventory* plugin);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn void add_plg_vulner(i_vulner* plugin)
+    ///
+    /// @brief  Adds a vulnerability search plugin to the task object.
+    /// @param  plugin   - Plugin with i_vulner interface.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    void add_plg_vulner(i_vulner* plugin);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void add_plg_auditor(i_audit* plugin)
-        ///
-        /// @brief  Adds a auditor plugin to the task object.
-        /// @param  plugin   - Plugin with i_audit interface. 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void add_plg_auditor(i_audit* plugin);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn	void store_plugins(vector<i_plugin*>& plugins)
+    ///
+    /// @brief	Adds plugins to the task object. Plugins will be separated to categories and sorted by
+    ///         priority.
+    ///
+    /// @param [in,out]	plugins	 - if non-null, the plugins.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    void store_plugins(vector<i_plugin*>& plugins);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn void add_plg_vulner(i_vulner* plugin)
-        ///
-        /// @brief  Adds a vulnerability search plugin to the task object.
-        /// @param  plugin   - Plugin with i_vulner interface. 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void add_plg_vulner(i_vulner* plugin);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn	i_plugin* get_active_plugin(const string& iface_name, bool autoload = false)
+    ///
+    /// @brief	Returns pointer to the existing plugin instance. If no plugin with such interface name
+    ///         loaded, may be attempt to load this plugin on depends of @b autoload parameter.
+    ///         Function returns NULL if automatic loading isn't allowed or no such plugin.
+    ///
+    /// @param [in]	iface_name	 - requested interface name.
+    /// @param [in]	autoload	 - perform automatic loading or not.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    i_plugin* get_active_plugin(const string& iface_name, bool autoload = false);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn	void store_plugins(vector<i_plugin*>& plugins)
-        ///
-        /// @brief	Adds plugins to the task object. Plugins will be separated to categories and sorted by
-        ///         priority.
-        ///
-        /// @param [in,out]	plugins	 - if non-null, the plugins. 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void store_plugins(vector<i_plugin*>& plugins);
+    void Run(const string &task_id = string());
+    TaskStatus Pause(bool wait = true);
+    void Resume();
+    bool Suspend();
+    bool Stop();
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn	i_plugin* get_active_plugin(const string& iface_name, bool autoload = false)
-        ///
-        /// @brief	Returns pointer to the existing plugin instance. If no plugin with such interface name
-        ///         loaded, may be attempt to load this plugin on depends of @b autoload parameter.
-        ///         Function returns NULL if automatic loading isn't allowed or no such plugin.
-        ///
-        /// @param [in]	iface_name	 - requested interface name. 
-        /// @param [in]	autoload	 - perform automatic loading or not. 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        i_plugin* get_active_plugin(const string& iface_name, bool autoload = false);
+    bool IsReady();
+    virtual i_response_ptr get_request(i_request_ptr req);
+    virtual void get_request_async(i_request_ptr req);
 
-        void Run();
-        void Pause(const bool& state = true);
-        void Stop(bool force = false);
+    bool save_to_db( );
+    bool load_from_db( string& id );
 
-        bool IsReady();
-        virtual i_response_ptr get_request(i_request_ptr req);
-        virtual void get_request_async(i_request_ptr req);
+    void WaitForData();
 
-        bool save_to_db( );
-        bool load_from_db( string& id );
+    virtual webEngine::db_cursor get_scan();
+    virtual int get_scan_size();
+    virtual boost::shared_ptr<ScanData> get_scan_data(const string& baseUrl);
+    virtual void set_scan_data(const string& baseUrl, boost::shared_ptr<ScanData> scData);
+    virtual void free_scan_data(boost::shared_ptr<ScanData> scData);
 
-        void WaitForData();
-        void calc_status();
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn virtual void add_vulner(const string& vId,
+    /// 	const string& params,
+    /// 	const string& parentId, int vLevel = -1)
+    ///
+    /// @brief  Adds a vulnerability to the scan results.
+    ///
+    /// This function may be reimplemented in the descendant class to implement specific features.
+    /// First parameter points the vulnerability description in the database to obtain visualization
+    /// information and rules. Second parameter describes vulnerability details in XML. This information
+    /// may be used to build reports through XSL transformation. parentId points to the ScanData object
+    /// containing this vulnerability. And the last parameter allows to control the vulnerability level.
+    /// Default value (-1) doesn't affect the severity level which stored in the vulnerability
+    /// description. Any other value will overwrite the severity level.
+    ///
+    /// @param  vId      - vulnerability identifier.
+    /// @param  params   - Additional information about vulnerability in XML.
+    /// @param  parentId - Identifier of the parent object (ScanData).
+    /// @param  vLevel   - Control the vulnerability level.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    virtual void add_vulner(const string& vId, const string& params, const string& parentId, int vLevel = -1);
 
-        virtual std::auto_ptr<db_recordset> get_scan();
-        virtual boost::shared_ptr<ScanData> get_scan_data(const string& baseUrl);
-        virtual void set_scan_data(const string& baseUrl, boost::shared_ptr<ScanData> scData);
-        virtual void free_scan_data(boost::shared_ptr<ScanData> scData);
+    virtual int add_thread();
+    virtual int remove_thread();
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @fn virtual void add_vulner(const string& vId,
-        /// 	const string& params,
-        /// 	const string& parentId, int vLevel = -1)
-        ///
-        /// @brief  Adds a vulnerability to the scan results.
-        ///
-        /// This function may be reimplemented in the descendant class to implement specific features.
-        /// First parameter points the vulnerability description in the database to obtain visualization
-        /// information and rules. Second parameter describes vulnerability details in XML. This information
-        /// may be used to build reports through XSL transformation. parentId points to the ScanData object
-        /// containing this vulnerability. And the last parameter allows to control the vulnerability level.
-        /// Default value (-1) doesn't affect the severity level which stored in the vulnerability
-        /// description. Any other value will overwrite the severity level.
-        ///
-        /// @param  vId      - vulnerability identifier.
-        /// @param  params   - Additional information about vulnerability in XML.
-        /// @param  parentId - Identifier of the parent object (ScanData). 
-        /// @param  vLevel   - Control the vulnerability level. 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        virtual void add_vulner(const string& vId, const string& params, const string& parentId, int vLevel = -1);
+    virtual bool is_url_processed(string& url);
+    virtual void register_url(string& url);
+    size_t total_requests() const {
+        return total_reqs;
+    }
+    size_t total_processed() const {
+        return total_done;
+    }
 
-        virtual int add_thread();
-        virtual int remove_thread();
-
-        virtual bool is_url_processed(string& url);
-        virtual void register_url(string& url);
-        size_t total_requests() const { return total_reqs; }
-        size_t total_processed() const { return total_done; }
-
-        const string& get_profile_id() const { return profile_id; }
-        const string& get_scan_id() const { return scan_id; }
-        void set_profile_id(const string& id) { profile_id = id; }
-        const string& get_name() const { return task_name; }
-        void set_name(const string& name) { task_name = name; }
-        int status() const { return tsk_status; }
-        int completion() const { return tsk_completion; }
-        const boost::posix_time::ptime& start_time() const { return start_tm; }
-        const boost::posix_time::ptime& finish_time() const { return finish_tm; }
-        const boost::posix_time::ptime& ping_time() const { return ping_tm; }
-        boost::posix_time::ptime& ping() { return ping_tm = boost::posix_time::second_clock::local_time(); }
+    const string& get_profile_id() const {
+        return profile_id;
+    }
+    const string& get_scan_id() const {
+        return scan_id;
+    }
+    void set_profile_id(const string& id) {
+        profile_id = id;
+    }
+    const string& get_name() const {
+        return task_name;
+    }
+    void set_name(const string& name) {
+        task_name = name;
+    }
+    TaskStatus status() const {
+        return tsk_status;
+    }
+    int completion() const {
+        return tsk_completion;
+    }
+    const boost::posix_time::ptime& start_time() const {
+        return start_tm;
+    }
+    const boost::posix_time::ptime& finish_time() const {
+        return finish_tm;
+    }
+    const boost::posix_time::ptime& ping_time() const {
+        return ping_tm;
+    }
+    boost::posix_time::ptime& ping() {
+        return ping_tm = boost::posix_time::second_clock::local_time();
+    }
 
 #ifndef __DOXYGEN__
-    protected:
-        typedef map< string, i_request* > WeRequestMap;
-        typedef boost::unordered_map< string, int > we_url_map;
+protected:
+    typedef map< string, i_request* > WeRequestMap;
+    typedef boost::unordered_map< string, int > we_url_map;
 
-        int tsk_status;
-        int tsk_completion;
-        string profile_id;
-        string scan_id;
-        string task_name;
-        boost::posix_time::ptime start_tm;
-        boost::posix_time::ptime finish_tm;
-        boost::posix_time::ptime ping_tm;
-        vector<i_parser*> parsers;
-        vector<i_transport*> transports;
-        vector<i_inventory*> inventories;
-        vector<i_audit*> auditors;
-        vector<i_vulner*> vulners;
-        vector< boost::shared_ptr<ScanData> > sc_process;
-        bool dataThread;
-        bool processThread;
-        boost::mutex tsk_mutex;
-        boost::condition_variable tsk_event;
-        boost::mutex scandata_mutex;
-        size_t taskQueueSize;
-        vector<i_request_ptr> taskList;
-        vector< boost::shared_ptr<i_response> > taskQueue;
-        int thread_count;
-        size_t total_reqs;
-        size_t total_done;
-        engine_dispatcher *kernel;
-        we_url_map processed_urls;
+    volatile TaskStatus tsk_status;
+    int tsk_completion;
+    string profile_id;
+    string scan_id;
+    string task_name;
+    boost::posix_time::ptime start_tm;
+    boost::posix_time::ptime finish_tm;
+    boost::posix_time::ptime ping_tm;
+    vector<i_parser*> parsers;
+    vector<i_transport*> transports;
+    vector<i_inventory*> inventories;
+    vector<i_audit*> auditors;
+    vector<i_vulner*> vulners;
+    vector< boost::shared_ptr<ScanData> > sc_process;
+    bool dataThread;
+    bool processThread;
+    boost::mutex tsk_mutex;
+    boost::condition_variable tsk_event;
+    boost::mutex scandata_mutex;
+    size_t taskQueueSize;
+    vector<i_request_ptr> taskList;
+    vector< boost::shared_ptr<i_response> > taskQueue;
+    int thread_count;
+    size_t total_reqs;
+    size_t total_done;
+    engine_dispatcher *kernel;
+    we_url_map processed_urls;
 #endif //__DOXYGEN__
 
-    private:
-        friend void task_processor(task* tsk);
-        friend void task_data_process(task* tsk);
-    };
+private:
+    friend void task_processor(task* tsk);
+    friend void task_data_process(task* tsk);
+
+    /// wake-up task_processor
+    void check_task_processor();
+    void save_task_list();
+    void load_task_list();
+
+    void calc_status();
+};
 
 } // namespace webEngine
 

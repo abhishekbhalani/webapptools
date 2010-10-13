@@ -35,70 +35,91 @@ using namespace std;
 
 namespace webEngine {
 
-    class db_recordset;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  we_option
+///
+/// @brief  Options for the WeTask and whole process
+///
+/// @author A. Abramov
+/// @date   09.06.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class we_option {
+public:
+    we_option() {
+        val = boost::blank();
+    }
+    we_option(const we_option& c) {
+        oname = c.oname;
+        val = c.val;
+    }
+    we_option(string n) {
+        oname = n;
+        val = boost::blank();
+    }
+    we_option(string n, we_variant v) {
+        oname = n;
+        val = v;
+    }
+    ~we_option() {};
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  we_option
-    ///
-    /// @brief  Options for the WeTask and whole process
-    ///
-    /// @author A. Abramov
-    /// @date   09.06.2009
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class we_option
-    {
-    public:
-        we_option() { val = boost::blank(); }
-        we_option(const we_option& c) { oname = c.oname; val = c.val; }
-        we_option(string n) { oname = n; val = boost::blank(); }
-        we_option(string n, we_variant v) { oname = n; val = v; }
-        ~we_option() {};
+    //@{
+    /// @brief  Access the name property
+    const string &name(void) const      {
+        return(oname);
+    };
+    void name(const string &nm)         {
+        oname = nm;
+    };
+    //@}
 
-        //@{
-        /// @brief  Access the name property
-        const string &name(void) const      { return(oname); };
-        void name(const string &nm)         { oname = nm;    };
-        //@}
+    //@{
+    /// @brief  Access the TypeId property
+    // const type_info &Value(void) const     { return(tpId);     };
+    template <typename T>
+    void GetValue(T& dt) {
+        dt = val.get<T>();
+    }
 
-        //@{
-        /// @brief  Access the TypeId property
-        // const type_info &Value(void) const     { return(tpId);     };
-        template <typename T>
-        void GetValue(T& dt)
-        { dt = val.get<T>(); }
+    template <typename T>
+    void SetValue(T dt) {
+        val = dt;
+    }
+    //@}
+    we_variant& Value() {
+        return val;
+    }
 
-        template <typename T>
-        void SetValue(T dt)
-        { val = dt; }
-        //@}
-        we_variant& Value() { return val; }
+    bool IsEmpty(void)                          {
+        return val.empty();    ///< Is the value empty
+    }
+    string GetTypeName(void)                    {
+        return val.type().name();    ///< Gets the value type name
+    }
+    const std::type_info& GetType(void) const   {
+        return val.type();     ///< Gets the value type
+    }
 
-        bool IsEmpty(void)                          { return val.empty(); }         ///< Is the value empty
-        string GetTypeName(void)                    { return val.type().name(); }   ///< Gets the value type name
-        const std::type_info& GetType(void) const   { return val.type();  }         ///< Gets the value type
+    /// @brief Assignment operator
+    we_option& operator=(we_option& cpy) {
+        oname = cpy.oname;
+        val = cpy.val;
+        return *this;
+    }
 
-        /// @brief Assignment operator
-        we_option& operator=(we_option& cpy)
-        {   oname = cpy.oname;
-            val = cpy.val;
-            return *this;
-        }
-
-        bool operator==(we_option& cpy)
-        {
-            bool result = (oname == cpy.oname);
-            result = result && (val == cpy.val);
-            return result;
-        }
+    bool operator==(we_option& cpy) {
+        bool result = (oname == cpy.oname);
+        result = result && (val == cpy.val);
+        return result;
+    }
 
 #ifndef __DOXYGEN__
-    protected:
-        string      oname;
-        we_variant  val;
+protected:
+    string      oname;
+    we_variant  val;
 #endif //__DOXYGEN__
-    };
+};
 
-    typedef map<string, we_option> wOptions;
+typedef map<string, we_option> wOptions;
 
 #define SAFE_GET_OPTION_VAL(opt, var, def) try { (opt).GetValue((var));} catch (boost::bad_lexical_cast &) { (var) = (def); };
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,8 +130,7 @@ namespace webEngine {
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class i_options_provider
-{
+class i_options_provider {
 public:
     i_options_provider() {};
     virtual ~i_options_provider() {};
@@ -136,8 +156,7 @@ public:
 /// @author A. Abramov
 /// @date   29.04.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class options_provider : public i_options_provider
-{
+class options_provider : public i_options_provider {
 public:
     options_provider() {};
     virtual ~options_provider();
@@ -145,20 +164,20 @@ public:
     virtual we_option Option(const string& name);
     virtual bool IsSet(const string& name);
     virtual void Option(const string& name, we_variant val);
-    virtual void Erase(const string& name)
-    {
+    virtual void Erase(const string& name) {
         wOptions::iterator it;
         it = options.find(name);
         if (it != options.end()) {
             options.erase(it);
         }
     };
-    virtual void Clear() { options.clear(); };
+    virtual void Clear() {
+        options.clear();
+    };
     virtual string_list OptionsList();
-    virtual size_t OptionSize() { return options.size(); };
-
-    db_recordset* ToRS( const string& parentID = "" );
-    void FromRS( db_recordset *rs );
+    virtual size_t OptionSize() {
+        return options.size();
+    };
 
     // simplified serialization
     string ToXml( void );
@@ -223,16 +242,6 @@ BOOST_CLASS_TRACKING(webEngine::we_option, boost::serialization::track_never)
 #define weoTypeBool          "2"
 #define weoTypeDouble        "3"
 #define weoTypeString        "4"
-//////////////////////////////////////////////////////////////////////////
-// Define task statuses
-//////////////////////////////////////////////////////////////////////////
-#define WI_TSK_IDLE     0
-#define WI_TSK_RUN      1
-#define WI_TSK_PAUSED   2
-#define WI_TSK_FINISHED 3
-#define WI_TSK_STOPPED  4
-#define WI_TSK_HANGS    5
-#define WI_TSK_MAX      6
 //////////////////////////////////////////////////////////////////////////
 
 #endif //__WEOPTIONS_H__

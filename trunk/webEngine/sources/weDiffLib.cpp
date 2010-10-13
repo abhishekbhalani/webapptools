@@ -45,8 +45,7 @@ DiffLibWordList* DiffLibTextToList(string txt, weCmpMode mode)
             // process spaces
             if (mode & weCmpCollapseSpace) {
                 word += " ";    // add single whitespace
-            }
-            else {
+            } else {
                 word += txt.substr(last, idx - 1 - last);
             }
             wObj = new DiffLibWord;
@@ -56,8 +55,7 @@ DiffLibWordList* DiffLibTextToList(string txt, weCmpMode mode)
             word = "";
             last = idx - 1;
             currSpace = std::isspace(txt[last], std::locale());
-        }
-        else {
+        } else {
             // process word
             word += txt.substr(last, idx - 1 - last);
             last = idx - 1;
@@ -70,7 +68,7 @@ DiffLibWordList* DiffLibTextToList(string txt, weCmpMode mode)
         wObj->word = word;
         lst->push_back(*wObj);
     }
-    return lst;    
+    return lst;
 }
 
 CmpResults* TextDiff(string txt1, string txt2, weCmpMode mode/* = weCmpDefault*/)
@@ -97,12 +95,10 @@ CmpResults* TextDiff(string txt1, string txt2, weCmpMode mode/* = weCmpDefault*/
             retval->push_back(new WeCmpBlock());
             retval->back()->state = (weCmpState)ses_v[idx].second.type;
             txt = ses_v[idx].first.word;
-        }
-        else {
+        } else {
             if(retval->back()->state == ses_v[idx].second.type) {
                 txt += ses_v[idx].first.word;
-            }
-            else {
+            } else {
                 retval->back()->entity = txt;
                 retval->push_back(new WeCmpBlock());
                 retval->back()->state = (weCmpState)ses_v[idx].second.type;

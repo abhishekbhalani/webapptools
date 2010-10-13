@@ -23,8 +23,7 @@
 using namespace webEngine;
 
 class NmapDiscovery :
-    public iInventory
-{
+    public iInventory {
 public:
     NmapDiscovery(Dispatch* krnl, void* handle = NULL);
     virtual ~NmapDiscovery(void);

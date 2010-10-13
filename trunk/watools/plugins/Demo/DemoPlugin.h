@@ -23,8 +23,7 @@
 using namespace webEngine;
 
 class DemoPlugin :
-    public iPlugin
-{
+    public iPlugin {
 public:
     DemoPlugin(Dispatch* krnl, void* handle = NULL);
     virtual ~DemoPlugin(void);

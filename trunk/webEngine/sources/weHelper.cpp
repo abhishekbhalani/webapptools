@@ -45,8 +45,7 @@ static void LibInitCommon()
     CURLcode    cCode;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "LibInit status = " << isLibInited);
-    if (!isLibInited)
-    {
+    if (!isLibInited) {
         weHtmlFactory.Init();
         cCode = curl_global_init(CURL_GLOBAL_ALL);
         if (cCode != 0) {
@@ -75,24 +74,20 @@ void LibInit(const string& config /*= ""*/)
             cfgFile = "trace.config";
         }
         path p(cfgFile);
-        if (exists(p))
-        {
+        if (exists(p)) {
 #ifdef WIN32
             PropertyConfigurator::configure(log4cxx::File(cfgFile), LOG4CXX_STR("webEngine"));
 #else
             PropertyConfigurator::configure(log4cxx::File(cfgFile));
 #endif
-        }
-        else {
+        } else {
             // file not exist - default init
             BasicConfigurator::configure();
         }
-    }
-    catch (...) {
+    } catch (...) {
         try {
             BasicConfigurator::configure();
-        }
-        catch (...) {
+        } catch (...) {
             throw WeError("Can't initialize logging subsystem!");
         }
     };
@@ -126,11 +121,11 @@ void LibClose(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn string ScreenXML(const string& xml)
 ///
-/// @brief  Screens the XML entities in the input string. 
+/// @brief  Screens the XML entities in the input string.
 ///
-/// @param  xml - The input. 
+/// @param  xml - The input.
 ///
-/// @retval	string - screened data. 
+/// @retval	string - screened data.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 string ScreenXML( const string& xml )
 {
@@ -148,11 +143,11 @@ string ScreenXML( const string& xml )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn string UnscreenXML(const string& xml)
 ///
-/// @brief  Unscreens the XML entities in the input string.  
+/// @brief  Unscreens the XML entities in the input string.
 ///
-/// @param  xml - The input. 
+/// @param  xml - The input.
 ///
-/// @retval	string - unscreened data. 
+/// @retval	string - unscreened data.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 string UnscreenXML(const string& xml)
 {
@@ -220,7 +215,7 @@ HtmlFactory::HtmlFactory()
 void HtmlFactory::Add( string name, fnEntityFactory func )
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "new EntityFactory added for " << name);
-	factories_[name] = func;
+    factories_[name] = func;
 }
 
 void HtmlFactory::Init()
@@ -250,10 +245,10 @@ void HtmlFactory::Init()
 base_entity_ptr HtmlFactory::CreateEntity( string tagName, base_entity_ptr prnt )
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory::CreateEntity => " << tagName);
-	std::map<string, fnEntityFactory>::const_iterator it = factories_.find(tagName);
-	if (it == factories_.end())
-		return base_entity_ptr(new html_entity(prnt));
-	return it->second(prnt);
+    std::map<string, fnEntityFactory>::const_iterator it = factories_.find(tagName);
+    if (it == factories_.end())
+        return base_entity_ptr(new html_entity(prnt));
+    return it->second(prnt);
 }
 
 void HtmlFactory::Clean()

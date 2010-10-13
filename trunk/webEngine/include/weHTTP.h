@@ -20,243 +20,314 @@
 #ifndef __WEHTTP_H__
 #define __WEHTTP_H__
 
+#include "weiBase.h"
 #include "weStrings.h"
 #include "weBlob.h"
 #include "weUrl.h"
 #include "weiTransport.h"
+#include <weDispatch.h>
 #include <curl/curl.h>
+#include <boost/serialization/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <string>
 
 using namespace boost::algorithm;
 
 namespace webEngine {
 
-    class http_transport;
-    class HttpRequest;
+class http_transport;
+class HttpRequest;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  HttpResponse
+///
+/// @brief  HTTP response.
+///
+/// Just the HTTP response - code and header and unstructured data. To structure the response data
+/// use the WeDocument instead.
+/// @author A. Abramov
+/// @date   29.05.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class HttpResponse : public i_response {
+public:
+    HttpResponse();
+    ~HttpResponse();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  HttpResponse
-    ///
-    /// @brief  HTTP response.
-    ///
-    /// Just the HTTP response - code and header and unstructured data. To structure the response data
-    /// use the WeDocument instead.
-    /// @author A. Abramov
-    /// @date   29.05.2009
+    /// @brief  HTTP headers of the document.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class HttpResponse : public i_response
-    {
-    public:
-        HttpResponse();
-        ~HttpResponse();
+    StringLinks& Headers(void)     {
+        return (headers);
+    }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief  HTTP headers of the document.
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        StringLinks& Headers(void)     { return (headers); }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @brief  HTTP cookies of the document.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    StringLinks& Cookies(void)     {
+        return (cookies);
+    }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief  HTTP cookies of the document.
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        StringLinks& Cookies(void)     { return (cookies); }
+    //@{
+    /// @brief  HTTP response code for the document.
+    ///
+    ///
+    int HttpCode(void)      {
+        return httpCode;
+    }
+    void HttpCode(int code) {
+        httpCode = code;
+    }
+    //@}
 
-        //@{
-        /// @brief  HTTP response code for the document.
-        ///
-        ///
-        int HttpCode(void)      { return httpCode;  }
-        void HttpCode(int code) { httpCode = code;  }
-        //@}
+    //@{
+    /// @brief  cURL transfer handle
+    ///
+    CURL* CURLHandle(void)  {
+        return curlHandle;
+    }
+    //@}
 
-        //@{
-        /// @brief  cURL transfer handle
-        ///
-        CURL* CURLHandle(void)  { return curlHandle; }
-        //@}
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @brief Sets the options of CURL handle
+    /// @param req  - The HttpRequest, if not NULL - sets the request options, else sets only
+    ///               default options
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    void CurlSetOpts(HttpRequest* req = NULL);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief Sets the options of CURL handle
-        /// @param req  - The HttpRequest, if not NULL - sets the request options, else sets only
-        ///               default options
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        void CurlSetOpts(HttpRequest* req = NULL);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @brief  Gets the CURLcode - the last cURL operation status.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    const CURLcode &GetLastError(void) const   {
+        return(lastError);
+    }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief  Gets the CURLcode - the last cURL operation status.
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        const CURLcode &GetLastError(void) const   { return(lastError);    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @brief  Gets the human readable error message.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    const char* GetErrorMessage(void) const   {
+        return(errorBuff);
+    }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief  Gets the human readable error message.
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        const char* GetErrorMessage(void) const   { return(errorBuff);    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @brief  Gets the human readable error message.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    bool CurlInit(void);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief  Gets the human readable error message.
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        bool CurlInit(void);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @brief  Gets the content type.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    const string ContentType(void) const {
+        return(contentType);
+    }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief  Gets the content type.
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        const string ContentType(void) const { return(contentType); }
+    const string GetUseragent(void) const {
+        return(useragent);
+    }
 
-        const string GetUseragent(void) const { return(useragent); }
+    void Process(i_transport* proc);
+    virtual void timeout();
 
-        void Process(i_transport* proc);
-        virtual void timeout();
-
-    protected:
-        static size_t Receiver(void *ptr, size_t size, size_t nmemb, void *ourpointer);
-        static size_t HeadersRecv(void *ptr, size_t size, size_t nmemb, void *ourpointer);
+protected:
+    static size_t Receiver(void *ptr, size_t size, size_t nmemb, void *ourpointer);
+    static size_t HeadersRecv(void *ptr, size_t size, size_t nmemb, void *ourpointer);
 
 #ifndef __DOXYGEN__
-    protected:
-        StringLinks headers;
-        StringLinks cookies;
-        int httpCode;
-        blob headData;
-        string contentType;
-        CURL* curlHandle;
-        CURLcode lastError;
-        string useragent;
-        char errorBuff[CURL_ERROR_SIZE];
+protected:
+    StringLinks headers;
+    StringLinks cookies;
+    int httpCode;
+    blob headData;
+    string contentType;
+    CURL* curlHandle;
+    CURLcode lastError;
+    string useragent;
+    char errorBuff[CURL_ERROR_SIZE];
 
-        // private:
-        //     HttpResponse(HttpResponse&) {};             ///< Avoid object coping
-        //     HttpResponse& operator=(HttpResponse&) {};  ///< Avoid object coping
+    // private:
+    //     HttpResponse(HttpResponse&) {};             ///< Avoid object coping
+    //     HttpResponse& operator=(HttpResponse&) {};  ///< Avoid object coping
 #endif //__DOXYGEN__
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  HttpRequest
+///
+/// @brief  HTTP request.
+///
+/// @author A. Abramov
+/// @date   29.05.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class HttpRequest : public i_request {
+public:
+    /* types and constants */
+    enum weHttpMethod {wemGet, wemPost, wemPut, wemHead, wemTrace};
+    enum {composeOverwrite, composeAdd};
+public:
+    HttpRequest();
+    HttpRequest(string url, weHttpMethod meth = wemGet, HttpResponse* resp = NULL);
+
+    static i_request_ptr restore_request(we_iarchive& ar);
+
+    virtual transport_url  &RequestUrl(void)  {
+        return(reqUrl);
+    };
+    virtual void RequestUrl(const string &ReqUrl, i_operation* resp = NULL);
+    virtual void RequestUrl(const transport_url &ReqUrl, i_operation* resp = NULL);
+
+    void ComposePost(int method = composeOverwrite);
+
+    void SetAuth(int auth_, string uname, string pswd) {
+        auth_method = auth_;
+        username = uname;
+        password = pswd;
+    }
+    const int GetAuthMethod() const {
+        return auth_method;
+    }
+    const string GetAuthUname() const {
+        return username;
+    }
+    const string GetAuthPassword() const {
+        return password;
+    }
+
+    const string GetUseragent(void) const {
+        return(useragent);
+    }
+    void SetUseragent(const string& uag) {
+        useragent = uag;
+    }
+
+    const string GetReferer(void) const {
+        return(referer);
+    }
+    void SetReferer(const string& refr) {
+        referer = refr;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @brief Unstructured data for the request
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    blob& Data()  {
+        return data;
     };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  HttpRequest
-    ///
-    /// @brief  HTTP request.
-    ///
-    /// @author A. Abramov
-    /// @date   29.05.2009
+    /// @brief POST method structured data
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class HttpRequest : public i_request
-    {
-    public:
-        /* types and constants */
-        enum weHttpMethod {wemGet, wemPost, wemPut, wemHead, wemTrace};
-        enum {composeOverwrite, composeAdd};
-    public:
-        HttpRequest();
-        HttpRequest(string url, weHttpMethod meth = wemGet, HttpResponse* resp = NULL);
-
-        virtual transport_url  &RequestUrl(void)  { return(reqUrl);   };
-        virtual void RequestUrl(const string &ReqUrl, i_operation* resp = NULL);
-        virtual void RequestUrl(const transport_url &ReqUrl, i_operation* resp = NULL);
-
-        void ComposePost(int method = composeOverwrite);
-
-        void SetAuth(int auth_, string uname, string pswd) { auth_method = auth_; username = uname; password = pswd; }
-        const int GetAuthMethod() const { return auth_method; }
-        const string GetAuthUname() const { return username; }
-        const string GetAuthPassword() const { return password; }
-
-        const string GetUseragent(void) const { return(useragent); }
-        void SetUseragent(const string& uag) { useragent = uag; }
-
-        const string GetReferer(void) const { return(referer); }
-        void SetReferer(const string& refr) { referer = refr; }
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief Unstructured data for the request
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        blob& Data()  { return data;  };
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// @brief POST method structured data
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        StringLinks& PostData()    { return postData;  };
-
-        //@{
-        /// @brief  Access the Method property.
-        ///
-        ///
-        const weHttpMethod &Method(void) const  { return(method);   };
-        void Method(const weHttpMethod &meth)   { method = meth;    };
-        //@}
-
-        virtual i_response_ptr abort_request();
-
-#ifndef __DOXYGEN__
-    protected:
-        weHttpMethod    method;
-        int             auth_method;
-        string          username;
-        string          password;
-        string          useragent;
-        string          referer;
-        transport_url   reqUrl;
-        blob            data;
-        StringLinks     postData;
-#endif //__DOXYGEN__
+    StringLinks& PostData()    {
+        return postData;
     };
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @class  http_transport
+    //@{
+    /// @brief  Access the Method property.
     ///
-    /// @brief  The HTTP processor.
     ///
-    /// @author A. Abramov
-    /// @date   29.05.2009
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    class http_transport : public i_transport
-    {
-    public:
-        http_transport(engine_dispatcher* krnl, void* handle = NULL);
-        ~http_transport();
+    const weHttpMethod &Method(void) const  {
+        return(method);
+    };
+    void Method(const weHttpMethod &meth)   {
+        method = meth;
+    };
+    //@}
 
-        virtual i_plugin* get_interface( const string& ifName );
-        virtual const string get_setup_ui( void );
-        virtual void pause(task* tsk, bool paused = true) {}
-        virtual void stop(task* tsk) {}
-
-        // @brief Initialize default values
-        virtual void init(task *data_provider);
-        virtual bool is_set(const string& name);
-
-
-        virtual i_response_ptr request(i_request* req, i_response_ptr resp = i_response_ptr((i_response*)NULL) );
-        virtual i_response_ptr request(string url, i_response_ptr resp = i_response_ptr((i_response*)NULL) );
-        virtual i_response_ptr request(transport_url& url, i_response_ptr resp = i_response_ptr((i_response*)NULL) );
-
-        /// @brief  Gets the CURLMcode - the last cURL operation status.
-        const CURLMcode &get_last_error(void) const   { return(lastError);    };
-
-        /// @brief  Process pending requests
-        virtual const int process_requests(void);
-
-        virtual string& get_name()                   { return proto_name; };
-        virtual bool is_own_protocol(string& proto);
+    virtual i_response_ptr abort_request();
+    virtual void to_archive(we_oarchive &ar){
+        HttpRequest &request = *this;
+        ar << BOOST_SERIALIZATION_NVP(request);
+    }
 
 #ifndef __DOXYGEN__
-    protected:
-        CURLM*      transferHandle;
-        CURLMcode   lastError;
-        int         default_port;
-        int         default_sport;
-        int         default_timeout;
-        string      proto_name;
-        int         max_doc_size;
-        string      useragent;
-        bool        use_localport;
-        int         local_port;
-        int         local_range;
-        int         use_proxy; /// one of weoHttpProxyType* constant
-        int         proxy_auth_type;  /// 0 - none, 1 - basic, 2 - digest, 3 - NTLM
-        string      proxy_host;
-        int         proxy_port;
-        string      proxy_domain;
-        string      proxy_username;
-        string      proxy_password;
-        map<string, bool>   options;
+protected:
+    weHttpMethod    method;
+    int             auth_method;
+    string          username;
+    string          password;
+    string          useragent;
+    string          referer;
+    transport_url   reqUrl;
+    blob            data;
+    StringLinks     postData;
 #endif //__DOXYGEN__
+private:
+    DECLARE_SERIALIZATOR {
+        ar 
+            & BOOST_SERIALIZATION_NVP(method)
+            & BOOST_SERIALIZATION_NVP(auth_method)
+            & BOOST_SERIALIZATION_NVP(username) 
+            & BOOST_SERIALIZATION_NVP(password)
+            & BOOST_SERIALIZATION_NVP(useragent) 
+            & BOOST_SERIALIZATION_NVP(referer) 
+            & BOOST_SERIALIZATION_NVP(reqUrl) 
+            & BOOST_SERIALIZATION_NVP(data) 
+            & BOOST_SERIALIZATION_NVP(postData);
     };
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  http_transport
+///
+/// @brief  The HTTP processor.
+///
+/// @author A. Abramov
+/// @date   29.05.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+class http_transport : public i_transport {
+public:
+    http_transport(engine_dispatcher* krnl, void* handle = NULL);
+    ~http_transport();
+
+    virtual i_plugin* get_interface( const string& ifName );
+    virtual const string get_setup_ui( void );
+    virtual void pause(task* tsk, bool paused = true) {}
+    virtual void stop(task* tsk) {}
+
+    // @brief Initialize default values
+    virtual void init(task *data_provider);
+    virtual bool is_set(const string& name);
+
+
+    virtual i_response_ptr request(i_request* req, i_response_ptr resp = i_response_ptr() );
+    virtual i_response_ptr request(string url, i_response_ptr resp = i_response_ptr() );
+    virtual i_response_ptr request(transport_url& url, i_response_ptr resp = i_response_ptr() );
+
+    /// @brief  Gets the CURLMcode - the last cURL operation status.
+    const CURLMcode &get_last_error(void) const   {
+        return(lastError);
+    };
+
+    /// @brief  Process pending requests
+    virtual const int process_requests(void);
+
+    virtual string& get_name()                   {
+        return proto_name;
+    };
+    virtual bool is_own_protocol(string& proto);
+
+#ifndef __DOXYGEN__
+protected:
+    CURLM*      transferHandle;
+    CURLMcode   lastError;
+    int         default_port;
+    int         default_sport;
+    int         default_timeout;
+    string      proto_name;
+    int         max_doc_size;
+    string      useragent;
+    bool        use_localport;
+    int         local_port;
+    int         local_range;
+    int         use_proxy; /// one of weoHttpProxyType* constant
+    int         proxy_auth_type;  /// 0 - none, 1 - basic, 2 - digest, 3 - NTLM
+    string      proxy_host;
+    int         proxy_port;
+    string      proxy_domain;
+    string      proxy_username;
+    string      proxy_password;
+    map<string, bool>   options;
+#endif //__DOXYGEN__
+};
 
 } // namespace webEngine
 

@@ -27,8 +27,7 @@ class task;
 class i_response;
 
 class i_inventory :
-    public i_plugin
-{
+    public i_plugin {
 public:
     i_inventory(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~i_inventory(void);
@@ -51,9 +50,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void init(task* tsk)
     ///
-    /// @brief  Starts the inventory process. 
+    /// @brief  Starts the inventory process.
     ///
-    /// @param  tsk	 - If non-null, the pointer to task what handles the process. 
+    /// @param  tsk	 - If non-null, the pointer to task what handles the process.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void init(task* tsk) = 0;
 
@@ -61,9 +60,9 @@ public:
     /// @fn void process(task* tsk, scan_data_ptr scData)
     ///
     /// @brief  Process the transport response described by resp.
-    /// 		
-    /// @param  tsk     - parent task object. 
-    /// @param  scData  - data to process. 
+    ///
+    /// @param  tsk     - parent task object.
+    /// @param  scData  - data to process.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void process(task* tsk, scan_data_ptr scData) = 0;
 
@@ -73,8 +72,8 @@ public:
     /// @brief  Response dispatcher. Sends the response to process into the appropriate object pointed
     ///         by the context
     ///
-    /// @param  resp	 - If non-null, the resp. 
-    /// @param  context	 - If non-null, the context. 
+    /// @param  resp	 - If non-null, the resp.
+    /// @param  context	 - If non-null, the context.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     static void response_dispatcher(boost::shared_ptr<i_response> resp, void* context);
 

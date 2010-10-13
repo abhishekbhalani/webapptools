@@ -29,8 +29,7 @@ audit_comment::~audit_comment(void)
 i_plugin* audit_comment::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "audit_comment::get_interface " << ifName);
-    if (iequals(ifName, "audit_comment"))
-    {
+    if (iequals(ifName, "audit_comment")) {
         LOG4CXX_DEBUG(logger, "audit_comment::get_interface found!");
         usageCount++;
         return (this);
@@ -54,32 +53,27 @@ void audit_comment::process( task* tsk, shared_ptr<ScanData> scData )
     baseUrl.assign(scData->object_url);
     string cType = scData->content_type;
     bool ctype_process = false;
-    switch(ctype_method)
-    {
+    switch(ctype_method) {
     case 0: // any content-type
         ctype_process = true;
         break;
     case 1: // empty and "text/*"
-        if (cType == "" || starts_with(cType, "text/"))
-        {
+        if (cType == "" || starts_with(cType, "text/")) {
             ctype_process = true;
         }
         break;
     case 2: // only "text/*"
-        if (starts_with(cType, "text/"))
-        {
+        if (starts_with(cType, "text/")) {
             ctype_process = true;
         }
         break;
     case 3: // empty and "text/html"
-        if (cType == "" || starts_with(cType, "text/html"))
-        {
+        if (cType == "" || starts_with(cType, "text/html")) {
             ctype_process = true;
         }
         break;
     case 4: // only "text/*"
-        if (starts_with(cType, "text/html"))
-        {
+        if (starts_with(cType, "text/html")) {
             ctype_process = true;
         }
         break;
@@ -93,8 +87,7 @@ void audit_comment::process( task* tsk, shared_ptr<ScanData> scData )
         if (scData->parsed_data) {
             //scData->parsed_data->add_ref();
             lst = scData->parsed_data->FindTags("#comment");
-            if (lst.size() > 0)
-            {
+            if (lst.size() > 0) {
                 webEngine::base_entity* ent = NULL;
                 webEngine::entity_list::iterator iEnt;
                 for (iEnt = lst.begin(); iEnt != lst.end(); iEnt++) {
@@ -143,8 +136,7 @@ void audit_comment::add_url( transport_url link, transport_url *base_url, shared
         fake.depth(sc->scan_depth);
         LOG4CXX_TRACE(logger, "audit_comment::add_url - fall into the http_inventory::add_url");
         inv->add_url(link, &fake, sc);
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(logger, "audit_comment::add_url can't find http_inventory plugin, can't add url " << link.tostring());
     }
 }
@@ -152,29 +144,29 @@ void audit_comment::add_url( transport_url link, transport_url *base_url, shared
 void audit_comment::extract_links( string text, webEngine::transport_url *base_url, shared_ptr<ScanData> scData )
 {
     boost::smatch mres;
-    std::string::const_iterator strt, end; 
-    boost::match_flag_type flags = boost::match_default; 
+    std::string::const_iterator strt, end;
+    boost::match_flag_type flags = boost::match_default;
     webEngine::transport_url lurl;
 
-    strt = text.begin(); 
+    strt = text.begin();
     end = text.end();
     // 1. search strings that looks like URL
     boost::regex re1("(\\s|^)(\\w+://[^\\s\"\'\\)\\(]+)(\\s|$)"); //, boost::regex_constants::icase
-    
+
     while(regex_search(strt, end, mres, re1, flags)) {
         string tres = mres[2];
         LOG4CXX_DEBUG(logger, "audit_comment::extract_links: found url=" << tres);
         lurl.assign_with_referer(tres, base_url);
         add_url(lurl, base_url, scData);
 
-        // update search position: 
-        strt = mres[0].second; 
-        // update flags: 
-        /*flags |= boost::match_prev_avail; 
-        flags |= boost::match_not_bob;*/ 
+        // update search position:
+        strt = mres[0].second;
+        // update flags:
+        /*flags |= boost::match_prev_avail;
+        flags |= boost::match_not_bob;*/
     }
 
-    strt = text.begin(); 
+    strt = text.begin();
     end = text.end();
     flags = boost::match_default;
     // 2. search for <a...> tags
@@ -187,11 +179,11 @@ void audit_comment::extract_links( string text, webEngine::transport_url *base_u
         lurl.assign_with_referer(tres, base_url);
         add_url(lurl, base_url, scData);
 
-        // update search position: 
-        strt = mres[0].second; 
-        // update flags: 
-        /*flags |= boost::match_prev_avail; 
-        flags |= boost::match_not_bob;*/ 
+        // update search position:
+        strt = mres[0].second;
+        // update flags:
+        /*flags |= boost::match_prev_avail;
+        flags |= boost::match_not_bob;*/
     }
 }
 
@@ -205,18 +197,15 @@ void audit_comment::init( task* tsk )
     // create list of the blocked extension
     opt = tsk->Option(weoDeniedFileTypes);
     SAFE_GET_OPTION_VAL(opt, text, 1);
-    if (text != "")
-    {
+    if (text != "") {
         size_t pos = text.find(';');
         ext_deny.clear();
         while(pos != string::npos) {
             string ext = text.substr(0, pos);
             ext_deny.push_back(ext);
-            if (pos < text.length())
-            {
+            if (pos < text.length()) {
                 text = text.substr(pos+1);
-            }
-            else {
+            } else {
                 text = "";
             }
             pos = text.find(';');

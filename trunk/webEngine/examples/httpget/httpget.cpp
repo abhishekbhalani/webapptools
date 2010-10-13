@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
     @file   httpget.cpp
-    @brief  Example for WeHTTP and related classes usage. 
+    @brief  Example for WeHTTP and related classes usage.
 */
 
 #include "weHtmlEntity.h"
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     webEngine::engine_dispatcher kernel;
     boost::shared_ptr<webEngine::html_document> doc(new webEngine::html_document());
     boost::shared_ptr< webEngine::i_response > resp;
-    boost::shared_ptr<webEngine::HttpResponse> htresp; 
+    boost::shared_ptr<webEngine::HttpResponse> htresp;
     webEngine::HttpRequest  *req = NULL;
     webEngine::task tsk;
     webEngine::i_plugin* plg;
@@ -65,16 +65,14 @@ int main(int argc, char* argv[])
                 printf("Document parsing: %s\n", (sc?"success":"failed"));
                 printf("%s\n", &(doc->Data()[0]));
             }
-        }
-        else {
+        } else {
             printf("task::get_request failed!\n");
         }
         // finish receiver thread
         // must be done automatically, by task destructor
         // but for example we call this function manually
         tsk.Stop();
-    }
-    else {
+    } else {
         printf("Can't find transport!\n");
     }
 

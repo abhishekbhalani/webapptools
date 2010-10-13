@@ -27,44 +27,43 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace webEngine {
 
-    class http_inventory :
-        public i_inventory
-    {
-    public:
-        http_inventory(engine_dispatcher* krnl, void* handle = NULL);
-        virtual ~http_inventory(void);
+class http_inventory :
+    public i_inventory {
+public:
+    http_inventory(engine_dispatcher* krnl, void* handle = NULL);
+    virtual ~http_inventory(void);
 
-        // i_plugin functions
-        virtual i_plugin* get_interface(const string& ifName);
-        virtual const string get_setup_ui( void );
-        virtual void init(task* tsk);
-        virtual void pause(task* tsk, bool paused = true) {}
-        virtual void stop(task* tsk) {}
+    // i_plugin functions
+    virtual i_plugin* get_interface(const string& ifName);
+    virtual const string get_setup_ui( void );
+    virtual void init(task* tsk);
+    virtual void pause(task* tsk, bool paused = true) {}
+    virtual void stop(task* tsk) {}
 
-        // i_inventory functions
-        void process(task* tsk, scan_data_ptr scData);
-        void add_url(transport_url link, HttpResponse *htResp, boost::shared_ptr<ScanData> scData);
+    // i_inventory functions
+    void process(task* tsk, scan_data_ptr scData);
+    void add_url(transport_url link, HttpResponse *htResp, boost::shared_ptr<ScanData> scData);
 
-    protected:
-        string_list ext_deny;
-        string_list domain_allow;
+protected:
+    string_list ext_deny;
+    string_list domain_allow;
 
-        // processing options
-        bool opt_in_dlist;
-        bool opt_in_dir;
-        bool opt_in_ip;
-        bool opt_in_host;
-        bool opt_in_domain;
-        int opt_auth_methods;
-        string opt_auth_username;
-        string opt_auth_password;
-        string opt_auth_domain;
-        vector<string> opt_auth_form_params;
-        int  opt_ignore_param;
-        int  opt_max_depth;
-        int  opt_ctype_method;
+    // processing options
+    bool opt_in_dlist;
+    bool opt_in_dir;
+    bool opt_in_ip;
+    bool opt_in_host;
+    bool opt_in_domain;
+    int opt_auth_methods;
+    string opt_auth_username;
+    string opt_auth_password;
+    string opt_auth_domain;
+    vector<string> opt_auth_form_params;
+    int  opt_ignore_param;
+    int  opt_max_depth;
+    int  opt_ctype_method;
 
-    };
+};
 } // namespace webEngine
 
 #define CURLAUTH_FORMS      (1<<15)

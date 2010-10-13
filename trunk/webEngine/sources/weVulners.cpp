@@ -25,19 +25,6 @@
 
 namespace webEngine {
 
-db_recordset* VulnerDesc::ToRS( const string& parentID /*= ""*/ )
-{
-    db_recordset* retval = new db_recordset;
-    db_record* rec = new db_record;
-
-    return retval;
-}
-
-void VulnerDesc::FromRS( db_recordset *rs )
-{
-
-}
-
 string VulnerDesc::ToXML()
 {
     string retval;

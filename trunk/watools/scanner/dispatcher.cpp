@@ -42,7 +42,7 @@ enum _keep_alive_fileds {
     //instance,
     scanner_name,
     keepalive_timeout,
-	running_task,
+    running_task,
     status,
     scan_version,
 
@@ -51,14 +51,14 @@ enum _keep_alive_fileds {
 string keep_alive_packet[last_keep_alive_field];
 
 enum _sys_info_fields {
-	os_name,
-	memory_size,
-	disk_size,
-	cpu_usage,
-	max_tasks,
-	sysinfo_timeout,
+    os_name,
+    memory_size,
+    disk_size,
+    cpu_usage,
+    max_tasks,
+    sysinfo_timeout,
 
-	last_sys_info_field
+    last_sys_info_field
 } sys_info_fields;
 string sys_info_packet[last_sys_info_field];
 
@@ -73,8 +73,7 @@ void signal_halt(int sig)
     //! todo: pause all tasks
     if (sig == 0) {
         LOG4CXX_INFO(scan_logger, "Received software request to exit");
-    }
-    else {
+    } else {
         LOG4CXX_INFO(scan_logger, "Signal received - exit scanner");
     }
 }
@@ -109,16 +108,14 @@ void save_plugin_ui(webEngine::i_storage* store)
 //         args = args.substr(0, pos);
 //     }
     webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
-    for (int i = 0; i < plgs.size(); i++)
-    {
+    for (int i = 0; i < plgs.size(); i++) {
         webEngine::string_list::iterator it;
         it = find(plgs[i].interface_list.begin(), plgs[i].interface_list.end(), "i_storage");
         if (it == plgs[i].interface_list.end()) {
             // not a storage plugin
             // get plugin icon
             db_icon = "";
-            for (int j = 0; j < plgs[i].plugin_icon.size(); j++)
-            {
+            for (int j = 0; j < plgs[i].plugin_icon.size(); j++) {
                 db_icon += plgs[i].plugin_icon[j];
                 db_icon += "\n";
             }
@@ -135,17 +132,17 @@ void save_plugin_ui(webEngine::i_storage* store)
                 rec["profile_ui.ui_settings"] = db_data;
                 rec["profile_ui.ui_icon"] = db_icon;
                 store->set(c_query, packet);
-            }
-            else {
+            } else {
                 LOG4CXX_ERROR(scan_logger, "Can't load plugin " << plgs[i].plugin_id << "; " << plgs[i].plugin_desc);
             }
         } // if not a storage plugin
     } // foreach plugins
 }
 
-void send_keepalive(webEngine::i_storage* store, int timeout) {
+void send_keepalive(webEngine::i_storage* store, int timeout)
+{
     LOG4CXX_TRACE(scan_logger, "Send keep-alive signal");
-	keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
+    keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
     webEngine::db_recordset packet(store->get_namespace_struct("modules"));
     webEngine::db_cursor rec = packet.push_back();
     rec["modules.id"] = scaner_uuid;
@@ -174,30 +171,31 @@ void send_keepalive(webEngine::i_storage* store, int timeout) {
     store->set(scan_query, packet);
 }
 
-void send_plugins_list(int timeout) {
+void send_plugins_list(int timeout)
+{
     LOG4CXX_TRACE(scan_logger, "Save plugins list");
     string db_key = "ScanModule:PlugIns:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
     webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
-    for (int i = 0; i < plgs.size(); i++)
-    {
+    for (int i = 0; i < plgs.size(); i++) {
         string info = plgs[i].interface_name + "|";
         info += plgs[i].interface_list[1] + "|";
         info += plgs[i].plugin_id + "|";
         info += plgs[i].plugin_desc;
         LOG4CXX_TRACE(scan_logger, "Save info [" << i << "]: " << info);
-		// save info
+        // save info
     }
 }
 
-void send_sysinfo(webEngine::i_storage* store, int timeout) {
+void send_sysinfo(webEngine::i_storage* store, int timeout)
+{
     LOG4CXX_TRACE(scan_logger, "Send system information");
-	// not divide to instances - whole system information
+    // not divide to instances - whole system information
     webEngine::db_recordset packet(store->get_namespace_struct("modules_info"));
     webEngine::db_cursor rec = packet.push_back();
 
     rec["modules_info.module_id"] = scaner_uuid;
     rec["modules_info.osname"] = sys_info_packet[os_name];
-	LOG4CXX_TRACE(scan_logger, "Get memory information");
+    LOG4CXX_TRACE(scan_logger, "Get memory information");
     sys_info_packet[memory_size] = sys_meminfo();
     rec["modules_info.mem_size"] = sys_info_packet[memory_size];
     LOG4CXX_TRACE(scan_logger, "Get CPU information");
@@ -209,7 +207,7 @@ void send_sysinfo(webEngine::i_storage* store, int timeout) {
     sys_info_packet[max_tasks] = boost::lexical_cast<string>(max_tasks_count);
     rec["modules_info.max_tasks"] = max_tasks_count;
     rec["modules_info.stamp"] = (int)time(NULL);
-	rec["modules_info.timeout"] = timeout;
+    rec["modules_info.timeout"] = timeout;
     // save info
 
     // save to DB1 information about plugins.
@@ -255,14 +253,14 @@ string get_command(webEngine::i_storage* store)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn int dispatcher_routine(po::variables_map& vm)
 ///
-/// @brief  Dispatcher routine. 
+/// @brief  Dispatcher routine.
 ///
 /// @author A. Abramov
 /// @date   20.07.2010
 ///
-/// @param [in,out] vm  The configuration variables map. 
+/// @param [in,out] vm  The configuration variables map.
 ///
-/// @return code - 0 - graceful shutdown; 1 - need restart. 
+/// @return code - 0 - graceful shutdown; 1 - need restart.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int dispatcher_routine(po::variables_map& vm)
@@ -339,8 +337,8 @@ int dispatcher_routine(po::variables_map& vm)
         LOG4CXX_FATAL(scan_logger, "Can't run instance " << scaner_instance << " 'cause the limit is " << max_inst);
         return retcode;
     }
-    
-    // init values 
+
+    // init values
     sys_cpu();
     queue_key = "ScanModule:Queue:" + scaner_uuid + ":" + boost::lexical_cast<string>(scaner_instance);
     keep_alive_timeout = vm["keepalive_timeout"].as<int>();
@@ -348,13 +346,10 @@ int dispatcher_routine(po::variables_map& vm)
 
     keep_alive_packet[ip_addr] = "";
     // find all ip's of machine
-    if (gethostname(ac, sizeof(ac)) != SOCKET_ERROR) 
-    {
+    if (gethostname(ac, sizeof(ac)) != SOCKET_ERROR) {
         struct hostent *phe = gethostbyname(ac);
-        if (phe != 0) 
-        {
-            for (int i = 0; phe->h_addr_list[i] != 0; ++i) 
-            {
+        if (phe != 0) {
+            for (int i = 0; phe->h_addr_list[i] != 0; ++i) {
                 struct in_addr addr;
                 string saddr;
                 memcpy(&addr, phe->h_addr_list[i], sizeof(struct in_addr));
@@ -371,13 +366,11 @@ int dispatcher_routine(po::variables_map& vm)
                     break;
                 }
             }
-        }
-        else {
+        } else {
             LOG4CXX_ERROR(scan_logger, "gethostbyname failed");
             keep_alive_packet[ip_addr] = "<unknown>";
         }
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(scan_logger, "gethostname failed");
         keep_alive_packet[ip_addr] = "<unknown>";
     }
@@ -390,7 +383,7 @@ int dispatcher_routine(po::variables_map& vm)
     LOG4CXX_DEBUG(scan_logger, "Register instance #" << scaner_instance);
     send_keepalive(storage, keep_alive_timeout);
 
-	sys_info_packet[os_name] = sys_uname();
+    sys_info_packet[os_name] = sys_uname();
     sys_info_packet[sysinfo_timeout] = boost::lexical_cast<string>(sys_info_timeout);
     send_sysinfo(storage, sys_info_timeout);
 
@@ -430,8 +423,7 @@ int dispatcher_routine(po::variables_map& vm)
             if (pos != string::npos) {
                 args = cmd.substr(pos + 1);
                 cmd = cmd.substr(0, pos);
-            }
-            else {
+            } else {
                 args = "";
             }
             boost::to_upper(cmd);
@@ -441,23 +433,19 @@ int dispatcher_routine(po::variables_map& vm)
                 signal_halt(0);
                 // need to exit and save other commands in the queue
                 break;
-            }
-            else if (cmd == "RESTART") {
+            } else if (cmd == "RESTART") {
                 // need to exit this copy and run new instance
                 signal_halt(0);
                 LOG4CXX_INFO(scan_logger, "Restart request recieved");
                 retcode = 1; // restart need
                 break;
-            }
-            else if (cmd == "PLUGINS") {
+            } else if (cmd == "PLUGINS") {
                 // refresh plugins list
                 send_plugins_list(sys_info_timeout);
-            }
-            else if (cmd == "SAVE_PLUGIN_UI") {
+            } else if (cmd == "SAVE_PLUGIN_UI") {
                 // refresh plugins list
                 save_plugin_ui(storage);
-            }
-            else if (cmd == "") {
+            } else if (cmd == "") {
                 // other cmd's
             }
             cmd = get_command(storage);

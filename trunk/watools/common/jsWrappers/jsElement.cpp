@@ -106,8 +106,7 @@ Handle<Value> Image(const Arguments& args)
     Local<Context> ctx = v8::Context::GetCurrent();
     Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
         v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));
         jsBrowser* jsExec = static_cast<jsBrowser*>(wrap->Value());
@@ -127,8 +126,7 @@ Handle<Value> Element(const Arguments& args)
     Local<Context> ctx = Context::GetCurrent();
     Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
         v8::Local<v8::External> wrap = Local<External>::Cast(eObj->GetInternalField(0));
         jsBrowser* jsExec = static_cast<jsBrowser*>(wrap->Value());
@@ -216,21 +214,17 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
             // "attributes" properties
             string sval = entity()->attr(key);
             val = Local<Value>::New(String::New(sval.c_str()));
-        }
-        else if (key == "className") {
+        } else if (key == "className") {
             // "attributes" property, but fix name
             string sval = entity()->attr("class");
             val = Local<Value>::New(String::New(sval.c_str()));
-        }
-        else if (key == "style") {
+        } else if (key == "style") {
             val = wrap_object<jsCssStyle>(css_style);
-        }
-        else if (key == "innerHTML") {
+        } else if (key == "innerHTML") {
             string sval = entity()->InnerHtml();
             val = Local<Value>::New(String::New(sval.c_str()));
         }
-    }
-    else {
+    } else {
         // Look up the value in the RO propeties list.
         iter = find(ro_props.begin(), ro_props.end(), key);
         if (iter != ro_props.end()) {
@@ -253,8 +247,7 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
                     ++attrib;
                 }
                 val = elems;
-            }
-            else if (key == "childNodes") {
+            } else if (key == "childNodes") {
                 Handle<Array> elems = Local<Array>::New(Array::New());
 
                 entity_list ptrs = entity()->Children();
@@ -263,19 +256,16 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
                     elems->Set(Number::New(i), w);
                 }
                 val = elems;
-            }
-            else if (key == "firstChild") {
+            } else if (key == "firstChild") {
                 if (entity()->Children().size() > 0) {
                     val = wrap_entity(boost::shared_dynamic_cast<html_entity>(entity()->Child(0)));
                 }
-            }
-            else if (key == "lastChild") {
+            } else if (key == "lastChild") {
                 if (entity()->Children().size() > 0) {
                     int idx = entity()->Children().size() - 1;
                     val = wrap_entity(boost::shared_dynamic_cast<html_entity>(entity()->Child(idx)));
                 }
-            }
-            else if (key == "nextSibling") {
+            } else if (key == "nextSibling") {
                 LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::nextSibling");
                 if (!entity()->Parent().expired()) {
                     entity_list::iterator bg, en, rf;
@@ -290,47 +280,37 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
                             val = wrap_entity(boost::shared_dynamic_cast<html_entity>(*rf));
                         }
                     }
-                }
-                else {
+                } else {
                     LOG4CXX_DEBUG(iLogger::GetLogger(), "jsElement::nextSibling - parent reference is expired!");
                 }
-            }
-            else if (key == "nodeName") {
+            } else if (key == "nodeName") {
                 string sval = entity()->Name();
                 boost::to_upper(sval);
                 val = String::New(sval.c_str());
-            }
-            else if (key == "nodeType") {
+            } else if (key == "nodeType") {
                 string sval = entity()->Name();
                 int ntp = ELEMENT_NODE;
                 if (sval == "#document") {
                     ntp = DOCUMENT_NODE;
-                }
-                else if (sval == "#text") {
+                } else if (sval == "#text") {
                     ntp = TEXT_NODE;
-                }
-                else if (sval == "#comment") {
+                } else if (sval == "#comment") {
                     ntp = COMMENT_NODE;
-                }
-                else if (sval == "#cdata") {
+                } else if (sval == "#cdata") {
                     ntp = CDATA_SECTION_NODE;
-                }
-                else if (sval == "#fragment") {
+                } else if (sval == "#fragment") {
                     ntp = DOCUMENT_FRAGMENT_NODE;
                 }
                 val = Number::New(ntp);
-            }
-            else if (key == "nodeValue") {
+            } else if (key == "nodeValue") {
                 string sval = entity()->Name();
                 if (sval == "#text" || sval == "#cdata") {
                     sval = entity()->attr("");
-                }
-                else {
+                } else {
                     sval = entity()->attr("value");
                 }
                 val = String::New(sval.c_str());
-            }
-            else if (key == "ownerDocument") {
+            } else if (key == "ownerDocument") {
                 html_document* d = (html_document*)entity()->GetRootDocument();
                 if (d == NULL) {
                     // get main window's document
@@ -345,23 +325,19 @@ Handle<Value> jsElement::GetProperty( Local<String> name, const AccessorInfo &in
                 jsDocument* jd = new jsDocument(NULL);
                 jd->doc.reset(d);
                 val = wrap_object<jsDocument>(jd);
-            }
-            else if (key == "tagName") {
+            } else if (key == "tagName") {
                 string sval = entity()->Name();
                 val = String::New(sval.c_str());
             }
-        }
-        else {
+        } else {
             // check special entry for event processing
             if (boost::istarts_with(key, "__event__")) {
                 val = Local<Value>::New(evt_handler);
-            }
-            else {
+            } else {
                 // Look up the value in the attributes list.
                 AttrMap::iterator itmp;
                 itmp = entity()->attr_list().find(key);
-                if (itmp != entity()->attr_list().end())
-                {
+                if (itmp != entity()->attr_list().end()) {
                     val = Local<Value>::New(String::New((*itmp).second.c_str()));
                 } // attribute found
             }
@@ -387,17 +363,14 @@ Handle<Value> jsElement::SetProperty( Local<String> name, Local<Value> value, co
                 // "attributes" properties
                 string sval = value_to_string(value);
                 entity()->attr(key, sval);
-            }
-            else if (key == "className") {
+            } else if (key == "className") {
                 // "attributes" property, but fix name
                 string sval = value_to_string(value);
                 entity()->attr("class", sval);
-            }
-            else if (key == "style" && value->IsString()) {
+            } else if (key == "style" && value->IsString()) {
                 string code = value_to_string(value);
                 css_style->computeStyle(code);
-            }
-            else if (key == "innerHTML" && value->IsString()) {
+            } else if (key == "innerHTML" && value->IsString()) {
                 // clear previous values
                 entity()->ClearChildren();
                 string code = value_to_string(value);
@@ -411,13 +384,11 @@ Handle<Value> jsElement::SetProperty( Local<String> name, Local<Value> value, co
                 }
                 ClearEntityList(chld);
             }
-        }
-        else {
+        } else {
             // check special entry for event processing
             if (boost::istarts_with(key, "__event__")) {
                 evt_handler = Persistent<Value>::New(value);
-            }
-            else {
+            } else {
                 // set the attribute
                 string sval = value_to_string(value);
                 entity()->attr(key, sval);
@@ -452,7 +423,7 @@ Handle<Value> jsElement::PropertySet( Local<String> name, Local<Value> value, co
         Local<Object> self = info.This();
         Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
         void* ptr = wrap->Value();
-        jsElement* el = static_cast<jsElement*>(ptr); 
+        jsElement* el = static_cast<jsElement*>(ptr);
         retval = el->SetProperty(name, value, info);
     }
     return retval;
@@ -468,7 +439,7 @@ Handle<Array> jsElement::PropertyEnum( const AccessorInfo &info )
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     map<string, int> prop_list;
     size_t i;
@@ -498,7 +469,7 @@ Handle<Value> jsElement::PlaceHolder( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     string ret;
     string attr;
@@ -541,8 +512,7 @@ Handle<Value> jsElement::AppendChild( const Arguments& args )
         el->entity()->Children().push_back(chld->entity());
         chld->entity()->Parent(el->entity());
         retval = args[0];
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "jsElement::AppendChild exception: argument must be an object!\n");
     }
 
@@ -554,7 +524,7 @@ Handle<Value> jsElement::ToString( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     string attr;
     string ret = "[Element; tag=";
@@ -584,7 +554,7 @@ Handle<Value> jsElement::GetAttribute( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     string attr;
     string key;
@@ -606,7 +576,7 @@ Handle<Value> jsElement::SetAttribute( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     string attr;
     string key;
@@ -631,7 +601,7 @@ Handle<Value> jsElement::GetElemsByName( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     string key;
 
@@ -658,7 +628,7 @@ Handle<Value> jsElement::CloneNode( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsElement* el = static_cast<jsElement*>(ptr); 
+    jsElement* el = static_cast<jsElement*>(ptr);
 
     /// @todo Warning! Fake clone! Implement real clone operation for entity
     html_entity_ptr hte(new html_entity());
@@ -679,7 +649,7 @@ Handle<Value> jsElement::RemoveChild( const Arguments& args )
             void* ptr = wrap->Value();
             jsElement* el = static_cast<jsElement*>(ptr);
 
-            // get the object to remove 
+            // get the object to remove
             Local<Object> child = args[0].As<Object>();
             Local<External> wch = Local<External>::Cast(child->GetInternalField(0));
             jsElement* ch = static_cast<jsElement*>(wch->Value());
@@ -695,20 +665,16 @@ Handle<Value> jsElement::RemoveChild( const Arguments& args )
                     if (rf != en) {
                         LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::RemoveChild remove it");
                         el->entity()->Children().erase(rf);
-                    }
-                    else {
+                    } else {
                         LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::RemoveChild child not found :(");
                     }
-                }
-                else {
+                } else {
                     LOG4CXX_WARN(iLogger::GetLogger(), "jsElement::RemoveChild argument isn't a child!");
                 }
-            }
-            else {
+            } else {
                 LOG4CXX_WARN(iLogger::GetLogger(), "jsElement::RemoveChild objects are not valid! parent=" << el->entity().get() << "; child=" << ch->entity().get() );
             }
-        }
-        catch(...) {
+        } catch(...) {
             LOG4CXX_ERROR(iLogger::GetLogger(), "jsElement::RemoveChild - exception!");
         }
     }
@@ -750,21 +716,18 @@ Handle<Value> jsElement::InsertBefore( const Arguments& args )
                 LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::InsertBefore - insert newChild");
                 el->entity()->Children().insert(rf, chld->entity());
                 chld->entity()->Parent(el->entity());
-            }
-            else {
+            } else {
                 //append
                 LOG4CXX_TRACE(iLogger::GetLogger(), "jsElement::InsertBefore - refChild doesn't found, append newChild");
                 el->entity()->Children().push_back(chld->entity());
                 chld->entity()->Parent(el->entity());
             }
-        }
-        else {
+        } else {
             LOG4CXX_DEBUG(iLogger::GetLogger(), "jsElement::InsertBefore - refChild isn't an object, append newChild");
             AppendChild(args);
         }
         retval = args[0];
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(iLogger::GetLogger(), "jsElement::InsertBefore exception: argument must be an object!");
     }
 

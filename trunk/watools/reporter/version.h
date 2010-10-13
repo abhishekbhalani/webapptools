@@ -1,10 +1,10 @@
 /*-----------------------------------------------------------
-  VERSION CONTROL BUILD SYSTEM                               
-  This header file was created by VERBUILD v1.0.1            
+  VERSION CONTROL BUILD SYSTEM
+  This header file was created by VERBUILD v1.0.1
   -----------------------------------------------------------
-  help : verbuild -?                                         
-  info : http://www.yeamaec.com                              
-         yeamaec@hanafos.com ,krkim@yeamaec.com              
+  help : verbuild -?
+  info : http://www.yeamaec.com
+         yeamaec@hanafos.com ,krkim@yeamaec.com
 -----------------------------------------------------------*/
 
 #ifndef VERSIONNO__H
