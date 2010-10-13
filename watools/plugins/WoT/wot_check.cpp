@@ -24,6 +24,8 @@
 #include <weTagScanner.h>
 #include "wot.xpm"
 
+#include <boost/regex.hpp>
+
 wot_check::wot_check( webEngine::engine_dispatcher* krnl, void* handle /*= NULL*/ ):
     i_vulner(krnl, handle)
 {
@@ -43,8 +45,7 @@ wot_check::~wot_check( void )
 i_plugin* wot_check::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "wot_check::get_interface " << ifName);
-    if (iequals(ifName, "wot_check"))
-    {
+    if (iequals(ifName, "wot_check")) {
         LOG4CXX_DEBUG(logger, "wot_check::get_interface found!");
         usageCount++;
         return (this);
@@ -97,8 +98,7 @@ void wot_check::pause( task* tsk, bool paused /*= true*/ )
 {
     if (paused) {
         is_on_run = false;
-    }
-    else {
+    } else {
         is_on_run = true;
     }
 }

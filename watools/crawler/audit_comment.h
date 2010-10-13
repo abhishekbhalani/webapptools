@@ -3,8 +3,7 @@
 #include <weScan.h>
 
 class audit_comment :
-    public webEngine::i_audit
-{
+    public webEngine::i_audit {
 public:
     audit_comment(webEngine::engine_dispatcher* krnl, void* handle = NULL);
     ~audit_comment(void);
@@ -27,28 +26,28 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn virtual const string get_setup_ui( void )
     ///
-    /// @brief  Gets the user interface for the setup dialog. 
+    /// @brief  Gets the user interface for the setup dialog.
     ///
-    /// @retval The user interface in the XML-based format or empty string if no setup dialog. 
+    /// @retval The user interface in the XML-based format or empty string if no setup dialog.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual const string get_setup_ui( void );
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void init(task* tsk)
     ///
-    /// @brief  Initialize plugin for given task. 
+    /// @brief  Initialize plugin for given task.
     ///
-    /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
+    /// @param  tsk	   - If non-null, the pointer to task what handles the process.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void init(webEngine::task* tsk);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn void process(task* tsk, ScanData* scData)
     ///
-    /// @brief  Starts the audit process for given ScanData object. 
+    /// @brief  Starts the audit process for given ScanData object.
     ///
-    /// @param  tsk	   - If non-null, the pointer to task what handles the process. 
-    /// @param  scData - If non-null, the pointer to scan data what contains values to audit. 
+    /// @param  tsk	   - If non-null, the pointer to task what handles the process.
+    /// @param  scData - If non-null, the pointer to scan data what contains values to audit.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void process(webEngine::task* tsk, boost::shared_ptr<webEngine::ScanData> scData);
 
@@ -56,8 +55,8 @@ public:
     /// @fn void process_response(i_response *resp)
     ///
     /// @brief  Process the transport response described by resp.
-    /// 		
-    /// @param  resp - If non-null, the resp. 
+    ///
+    /// @param  resp - If non-null, the resp.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void process_response(webEngine::i_response_ptr resp);
 

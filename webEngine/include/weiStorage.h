@@ -36,8 +36,7 @@ namespace webEngine {
 /// @date	14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class i_storage :
-    public i_plugin
-{
+    public i_plugin {
 public:
     i_storage(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~i_storage(void);
@@ -48,64 +47,53 @@ public:
     virtual void pause(task* tsk, bool paused = true) {}
     virtual void stop(task* tsk) {}
 
-    virtual bool init_storage(const string& params) {return false;};
+    virtual bool init_storage(const string& params) {
+        return false;
+    };
     virtual void flush(const string& params = "") {};
     virtual string generate_id(const string& objType = "");
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int get( db_query& query, db_recordset& results)
-    ///
-    /// @brief  Gets the db_recordset from given namespace (objType). The response filtered to
-    ///         equality of the selected field to the given values. The response will contains only
-    ///         the fields included into the given @b respFilter structure.
-    ///
-    /// @param  query           - the db_query to perform request 
-    /// @param  [out] results   - the db_recordset to fill it with results 
-    ///
-    /// @retval number of records in the response. 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int get(db_query& query, db_recordset& results) = 0;
+    virtual db_cursor get(const db_filter &query, const std::string& ns, bool need_blob = false)	{
+        return get(query, get_namespace_struct(ns), need_blob);
+    }
+    virtual db_cursor get(const db_filter &query, const std::vector<std::string> &fields, bool need_blob = false) {
+        return get(sql_constructor::get_sql_select(query, fields), fields, need_blob);
+    }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int set(db_query& query, db_recordset& data)
-    ///
-    /// @brief	Stores (updates) the data. @b data may contain subset of fields
-    ///         (not the full description of the object), and non-empty @b filters may be used to
-    ///         update selected object(s).
-    ///
-    /// @param  query   - the db_query to select object(s) for update 
-    /// @param  data    - the db_recordset to be stored 
-    ///
-    /// @retval	Number of affected records. 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int set(db_query& query, db_recordset& data) = 0;
+    virtual db_cursor set(const db_filter &query, const std::string& ns, bool need_blob = false)	{
+        return set(query, get_namespace_struct(ns), need_blob);
+    }
+    virtual db_cursor set(const db_filter &query, const std::vector<std::string> &fields, bool need_blob = false) {
+        return set(sql_constructor::get_sql_update(query, fields), sql_constructor::get_sql_insert(fields), fields, need_blob);
+    }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int set(db_recordset& data)
-    ///
-    /// @brief	Stores (updates) the data. @b data may contain subset of fields
-    ///         (not the full description of the object).
-    ///
-    /// @param  data - the db_recordset to be stored 
-    ///
-    /// @retval	Number of affected records. 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int set(db_recordset& data) = 0;
+    virtual db_cursor ins(const std::string& ns, bool need_blob = false)	{
+        return ins(get_namespace_struct(ns), need_blob);
+    }
+    virtual db_cursor ins(const std::vector<std::string> &fields, bool need_blob = false) {
+        return ins(sql_constructor::get_sql_insert(fields), fields, need_blob);
+    }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @fn int del(db_filter& filter)
-    ///
-    /// @brief	Deletes the filtered object(s). 
-    ///
-    /// @param  filter - the db_filter to select object(s) for deletion 
-    ///
-    /// @retval	Number of deleted records. 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual int del(db_filter& filter) = 0;
+    virtual int del(const db_filter &query)	{
+        return del(sql_constructor::get_sql_delete(query));
+    }
 
-    static std::vector<std::string> get_namespace_struct(const std::string& ns);
+    virtual int count(const db_filter &query, const std::string& ns)	{
+        return count(query, get_namespace_struct(ns));
+    }
+    virtual int count(const db_filter &query, const std::vector<std::string> &fields) {
+        return count(sql_constructor::get_sql_count(query, fields));
+    }
 
 protected:
+    static std::vector<std::string> get_namespace_struct(const std::string& ns);
+
+    virtual db_cursor get(const string &query, const std::vector<std::string> &fields, bool need_blob = false) = 0;
+    virtual db_cursor set(const string &query_update, const string &query_insert, const std::vector<std::string> &fields, bool need_blob = false) = 0;
+    virtual db_cursor ins(const string &query_insert, const std::vector<std::string> &fields, bool need_blob = false) = 0;
+    virtual int count(const string &query) = 0;
+    virtual int del(const string &query) = 0;
+
     int last_id;
 };
 

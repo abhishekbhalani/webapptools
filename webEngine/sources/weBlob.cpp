@@ -27,8 +27,7 @@ using namespace webEngine;
 // Read BLOB data from a stream.
 bool blob::read(istream& file)
 {
-    if (file.bad())
-    {
+    if (file.bad()) {
         return false;
     }
 
@@ -48,18 +47,11 @@ bool blob::write(ostream& file)
 {
     size_t cb = size();
     file.write((const char*)&cb, 4);
-    if (file.bad())
-    {
+    if (file.bad()) {
         return false;
     }
     file.write((const char*)&(*this)[0], cb);
     return (!file.bad());
-}
-
-template<class Archive>
-void blob::serialize(Archive &ar, const unsigned int version)
-{
-//    ar & (std::vector*)this;
 }
 
 boost::shared_ptr<tag_stream> blob::stream()

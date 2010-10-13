@@ -48,25 +48,32 @@ typedef vector<base_entity_ptr> entity_list;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface  base_entity
 ///
-/// @brief  Processing Entity interface. 
+/// @brief  Processing Entity interface.
 ///
 /// @author A. Abramov
 /// @date   08.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class base_entity : public boost::enable_shared_from_this<base_entity>
-{
+class base_entity : public boost::enable_shared_from_this<base_entity> {
 public:
     base_entity() {};
-    virtual ~base_entity() { ClearChildren(); };
+    virtual ~base_entity() {
+        ClearChildren();
+    };
 
     virtual const string attr(string);
     virtual void attr(string, string);
-    virtual AttrMap& attr_list() { return attributes; }
-    void ClearAttr(void)    { attributes.clear(); };        ///< Clears all attributes
+    virtual AttrMap& attr_list() {
+        return attributes;
+    }
+    void ClearAttr(void)    {
+        attributes.clear();
+    };        ///< Clears all attributes
 
     virtual base_entity_ptr Child(string type);
     virtual base_entity_ptr Child(int idx);
-    virtual entity_list& Children() { return chldList; };  ///< Direct access to the children collection
+    virtual entity_list& Children() {
+        return chldList;
+    };  ///< Direct access to the children collection
     void ClearChildren(void);
 
     virtual const string InnerText(void) = 0;
@@ -75,18 +82,26 @@ public:
     base_entity_ptr FindID(string id);
     entity_list FindTags(string tag);
 
-    virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL) { return wstError; };
+    virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL) {
+        return wstError;
+    };
 
     virtual CmpResults* Diff(base_entity& cmp, weCmpMode mode = weCmpDefault) = 0;
     virtual weCmpState Compare(base_entity& cmp, weCmpMode mode = weCmpDefault) = 0;
-    virtual bool operator==(base_entity& cmp) { return (Compare(cmp) == weCmpEqual); };
+    virtual bool operator==(base_entity& cmp) {
+        return (Compare(cmp) == weCmpEqual);
+    };
 
     i_document* GetRootDocument(void);
 
     //@{
     /// @brief Access the Parent
-    const base_entity_wptr Parent(void) const	{ return(parent);   };
-    void Parent(base_entity_wptr prnt)  { parent = prnt;    };
+    const base_entity_wptr Parent(void) const	{
+        return(parent);
+    };
+    void Parent(base_entity_wptr prnt)  {
+        parent = prnt;
+    };
     //}
 
     //@{
@@ -94,8 +109,12 @@ public:
     ///
     /// Name property represents the entity TAG name. Some names defined for the special entities. These
     /// names are starts with '#' sign (for example @e \#text for inner text).
-    const string &Name(void) const      { return(entityName);         };
-    void Name(const string &EntityName) { entityName = EntityName;    };
+    const string &Name(void) const      {
+        return(entityName);
+    };
+    void Name(const string &EntityName) {
+        entityName = EntityName;
+    };
     //@}
 
     //@{
@@ -108,12 +127,18 @@ public:
     /// to set the WeCompareDefault as the default mode. @n
     /// The CompareMode property of the WeHtmlEntity used to access
     /// this variable.
-    static const weCmpMode &CompareMode(void)       { return(compareMode);  };
-    static void CompareMode(const weCmpMode &cMode) { compareMode = cMode;	};
+    static const weCmpMode &CompareMode(void)       {
+        return(compareMode);
+    };
+    static void CompareMode(const weCmpMode &cMode) {
+        compareMode = cMode;
+    };
     //@}
 
     /// @brief  Gets the entity unique ID
-    const string ID(void) const {return entity_id; };
+    const string ID(void) const {
+        return entity_id;
+    };
 
 protected:
     virtual void GenerateId(void);
@@ -134,13 +159,12 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface	i_document
 ///
-/// @brief  Parsing results document. 
+/// @brief  Parsing results document.
 ///
 /// @author A. Abramov
 /// @date   08.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class i_document : virtual public base_entity
-{
+class i_document : virtual public base_entity {
 public:
     virtual bool ParseData(boost::shared_ptr<i_response> resp, i_transport* processor = NULL) = 0;
     virtual blob& Data(void) = 0;
@@ -153,13 +177,12 @@ void ClearEntityList(entity_list &lst);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @interface	i_parser
 ///
-/// @brief  Abstract parser interface 
+/// @brief  Abstract parser interface
 ///
 /// @author A. Abramov
 /// @date   31.05.2010
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class i_parser : public i_plugin
-{
+class i_parser : public i_plugin {
 public:
     i_parser(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~i_parser(void) {}
@@ -182,8 +205,7 @@ public:
     virtual i_document_ptr parse(boost::shared_ptr<i_response> input) = 0;
 };
 
-class html_parser : public i_parser
-{
+class html_parser : public i_parser {
 public:
     html_parser(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~html_parser(void) {}

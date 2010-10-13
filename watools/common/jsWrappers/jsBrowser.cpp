@@ -165,17 +165,13 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
     jsBrowser* el = static_cast<jsBrowser*>(ptr);
     if (key == "v8_context") {
         val = wrap_object<jsExecutor>(el);
-    }
-    else if (key == "v8_results") {
+    } else if (key == "v8_results") {
         val = String::New(el->get_results().c_str());
-    }
-    else if (key == "window") {
+    } else if (key == "window") {
         val = wrap_object<jsWindow>(el->window);
-    }
-    else if (el->window->is_property(key)) {
+    } else if (el->window->is_property(key)) {
         val = el->window->GetProperty(name, info);
-    }
-    else {
+    } else {
         // Look up the value if it exists using the standard STL idiom.
         jsPropertyMap::iterator iter = el->props.find(key);
         // If the key is not present return an empty handle as signal.
@@ -184,7 +180,7 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
             val = Local<Value>::New(iter->second);
         }
     }
- 
+
     return scope.Close(val);
 }
 
@@ -192,7 +188,7 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
 {
     Handle<Value> val;
     std::string key = value_to_string(name);
-    
+
     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "jsBrowserSet: property("<< key <<")");
     Local<External> wrap = Local<External>::Cast(info.Data());
     void* ptr = wrap->Value();
@@ -201,11 +197,9 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
         if (key == "v8_results") {
             string sval = value_to_string(value);
             el->append_results(sval);
-        }
-        else if (el->window->is_property(key)) {
+        } else if (el->window->is_property(key)) {
             val = el->window->GetProperty(name, info);
-        }
-        else {
+        } else {
             el->props[key] = Persistent<Value>::New(value);
         }
     }
@@ -322,7 +316,7 @@ Handle<Value> jsBrowser::WinInterceptor( const Arguments& args )
     Local<Object> exec = Local<Object>::Cast(ctx->Global()->Get(String::New("v8_context")));
     Local<External> wrap = Local<External>::Cast(exec->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsBrowser* el = static_cast<jsBrowser*>(ptr); 
+    jsBrowser* el = static_cast<jsBrowser*>(ptr);
 
     string fname = value_to_string(args.Callee()->GetName()->ToString());
 

@@ -38,7 +38,7 @@ namespace webEngine {
 /// @throw  WeError if curl_easy_init failed
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 HttpResponse::HttpResponse() :
-headers(": ", "[\\n\\r]+"), cookies("=", "; ")
+    headers(": ", "[\\n\\r]+"), cookies("=", "; ")
 {
     useragent = "";
     curlHandle = NULL;
@@ -58,7 +58,7 @@ headers(": ", "[\\n\\r]+"), cookies("=", "; ")
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	HttpResponse::~HttpResponse()
 ///
-/// @brief  Destructor. 
+/// @brief  Destructor.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 HttpResponse::~HttpResponse()
 {
@@ -72,9 +72,9 @@ HttpResponse::~HttpResponse()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn bool HttpResponse::CurlInit( void )
 ///
-/// @brief  CURL initialize. 
+/// @brief  CURL initialize.
 ///
-/// @retval	true if it succeeds, false if it fails. 
+/// @retval	true if it succeeds, false if it fails.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool HttpResponse::CurlInit( void )
 {
@@ -187,16 +187,10 @@ void HttpResponse::Process(i_transport* trans)
                     boost::posix_time::ptime  tm_boost;
                     tm_boost = boost::posix_time::time_from_string(expr);
                     struct tm tm_time;
-                    tm_time = boost::posix_time::to_tm(tm_boost); 
+                    tm_time = boost::posix_time::to_tm(tm_boost);
                     tmout = (int)mktime( &tm_time );
-                }
-                catch(...) {};
+                } catch(...) {};
                 StringLinks::data_list::iterator it;
-                db_recordset dataset;
-                dataset.set_names(trans->storage()->get_namespace_struct("auth_data"));
-                db_cursor rec = dataset.push_back();
-                db_query query;
-                query.what = trans->storage()->get_namespace_struct("auth_data");
                 db_condition cq, cn, cd, cp;
                 cq.field() = "auth_data.data_type";
                 cq.operation() = db_condition::equal;
@@ -214,11 +208,13 @@ void HttpResponse::Process(i_transport* trans)
                 cp.operation() = db_condition::equal;
                 cp.value() = pth;
 
-                for (it = cookies.begin(); it != cookies.end(); ++it)
-                {   // foreach cookie value
+                db_filter query;
+                for (it = cookies.begin(); it != cookies.end(); ++it) {
+                    // foreach cookie value
                     cn.value() = it->first;
-                    query.where.set(cq).and(cn).and(cd).and(cp);
+                    query.set(cq).and(cn).and(cd).and(cp);
 
+                    db_cursor rec = trans->storage()->set(query, "auth_data");
                     rec["auth_data.task_id"] = 0;
                     rec["auth_data.data_type"] = 0; // 0 == cookie
                     rec["auth_data.name"] = it->first;
@@ -226,8 +222,7 @@ void HttpResponse::Process(i_transport* trans)
                     rec["auth_data.timeout"] = tmout;
                     rec["auth_data.path"] = pth;
                     rec["auth_data.domain"] = dom;
-
-                    trans->storage()->set(query, dataset);
+                    rec.close();
                 }
             }
         }
@@ -258,14 +253,14 @@ void HttpResponse::timeout( )
 /// @fn size_t HttpResponse::Receiver( void *ptr,
 /// 	        size_t size, size_t nmemb, void *ourpointer )
 ///
-/// @brief  Receives the document body. 
+/// @brief  Receives the document body.
 ///
 /// @param  ptr			 - The pointer to received data.
-/// @param  size		 - The size of the data element. 
+/// @param  size		 - The size of the data element.
 /// @param  nmemb		 - The number of the elements in the data.
-/// @param  ourpointer	 - The pointer to the HttpResponse object, that receives data. 
+/// @param  ourpointer	 - The pointer to the HttpResponse object, that receives data.
 ///
-/// @retval	amount of processed data 
+/// @retval	amount of processed data
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t HttpResponse::Receiver( void *ptr, size_t size, size_t nmemb, void *ourpointer )
 {
@@ -282,14 +277,14 @@ size_t HttpResponse::Receiver( void *ptr, size_t size, size_t nmemb, void *ourpo
 /// @fn size_t HttpResponse::HeadersRecv( void *ptr,
 /// 	        size_t size, size_t nmemb, void *ourpointer )
 ///
-/// @brief  Receives the document headers. 
+/// @brief  Receives the document headers.
 ///
 /// @param  ptr			 - The pointer to received data.
-/// @param  size		 - The size of the data element. 
+/// @param  size		 - The size of the data element.
 /// @param  nmemb		 - The number of the elements in the data.
-/// @param  ourpointer	 - The pointer to the HttpResponse object, that receives data. 
+/// @param  ourpointer	 - The pointer to the HttpResponse object, that receives data.
 ///
-/// @retval	amount of processed data 
+/// @retval	amount of processed data
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t HttpResponse::HeadersRecv( void *ptr, size_t size, size_t nmemb, void *ourpointer )
 {

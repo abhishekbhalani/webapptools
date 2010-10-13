@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
     @file   task.cpp
-    @brief  Example for WeDocument class usage. 
+    @brief  Example for WeDocument class usage.
 */
 
 // include headers that implement a archive in simple text format
@@ -50,8 +50,7 @@ int main(int argc, char* argv[])
 
     engine_dispatcher we_dispatcer;
     i_plugin* plg = we_dispatcer.load_plugin("mem_storage");
-    if (plg != NULL)
-    {
+    if (plg != NULL) {
         i_storage* storage = (i_storage*)plg->get_interface("i_storage");
         storage->init_storage("task_db.txt");
         we_dispatcer.storage(storage);
@@ -76,72 +75,57 @@ int main(int argc, char* argv[])
     cout << "Opt2 type = " << opt2.GetTypeName() << endl;
     cout << "Opt3 type = " << opt3.GetTypeName() << endl;
 
-    try
-    {
+    try {
         opt1.GetValue(st2);
         cout << opt1.name() << ": " << st2 << endl;
         opt2.GetValue(st2);
         cout << opt2.name() << ": " << st2 << endl;
         opt3.GetValue(st2);
         cout << opt3.name() << ": " << st2 << endl;
-    }
-    catch (...)
-    {
-    	cout << "Exception!!!" << endl;
+    } catch (...) {
+        cout << "Exception!!!" << endl;
     }
 
-    try
-    {
+    try {
         opt2.GetValue(iVal);
         cout << opt2.name() << ": " << iVal << endl;
         opt3.GetValue(iVal);
         cout << opt3.name() << ": " << iVal << endl;
         opt1.GetValue(iVal);
         cout << opt1.name() << ": " << iVal << endl;
-    }
-    catch (...)
-    {
+    } catch (...) {
         cout << "Exception!!!" << endl;
     }
 
 
-    try
-    {
+    try {
         opt3.GetValue(cVal);
         cout << opt3.name() << ": " << cVal << endl;
         opt2.GetValue(cVal);
         cout << opt2.name() << ": " << cVal << endl;
         opt1.GetValue(cVal);
         cout << opt1.name() << ": " << cVal << endl;
-    }
-    catch (...)
-    {
+    } catch (...) {
         cout << "Exception!!!" << endl;
     }
 
-    try
-    {
+    try {
         if (opt2 == opt4) {
             cout << "opt2 == opt4" << endl;
-        }
-        else {
+        } else {
             cout << "opt2 != opt4" << endl;
         }
         if (opt1 == opt4) {
             cout << "opt1 == opt4" << endl;
-        }
-        else {
+        } else {
             cout << "opt1 != opt4" << endl;
         }
         if (opt2 == opt5) {
             cout << "opt2 == opt5" << endl;
-        }
-        else {
+        } else {
             cout << "opt2 != opt5" << endl;
         }
-    }
-    catch (std::exception &ex)
-    {
+    } catch (std::exception &ex) {
         cout << "Exception!!! " << ex.what() << endl;
     }
 
@@ -159,8 +143,7 @@ int main(int argc, char* argv[])
 
     task tsk(&we_dispatcer);
 
-    try
-    {
+    try {
         std::ifstream itfs("task");
         {
             boost::archive::xml_iarchive ia(itfs);
@@ -168,10 +151,8 @@ int main(int argc, char* argv[])
             // ia >> BOOST_SERIALIZATION_NVP(tsk);
             // archive and stream closed when destructor are called
         }
-    }
-    catch (...)
-    {
-    	cout << "archive reading exception!" << endl;
+    } catch (...) {
+        cout << "archive reading exception!" << endl;
     }
 
     string testOpt("test");
@@ -179,8 +160,7 @@ int main(int argc, char* argv[])
     if (!tsk.Option(testOpt).IsEmpty()) {
         tsk.Option(testOpt).GetValue(iVal);
         cout << iVal;
-    }
-    else {
+    } else {
         cout << "{empty}";
     }
     cout << endl;
@@ -191,8 +171,7 @@ int main(int argc, char* argv[])
     if (!tsk.Option("test").IsEmpty()) {
         tsk.Option("test").GetValue(iVal);
         cout << iVal;
-    }
-    else {
+    } else {
         cout << "{empty}";
     }
     cout << endl;
@@ -203,8 +182,7 @@ int main(int argc, char* argv[])
     if (!tsk.Option("test").IsEmpty()) {
         tsk.Option("test").GetValue(iVal);
         cout << iVal;
-    }
-    else {
+    } else {
         cout << "{empty}";
     }
     cout << endl;
@@ -213,8 +191,7 @@ int main(int argc, char* argv[])
     if (!tsk.Option("fakename").IsEmpty()) {
         tsk.Option("fakename").GetValue(iVal);
         cout << iVal;
-    }
-    else {
+    } else {
         cout << "{empty}";
     }
     cout << endl;
@@ -255,8 +232,7 @@ int main(int argc, char* argv[])
     }
 
     scan_data_ptr scData = tsk.get_scan_data("http://www.ru");
-    if (scData->data_id == "")
-    {
+    if (scData->data_id == "") {
         scData->data_id = we_dispatcer.storage()->generate_id(weObjTypeScan);
         scData->resp_code = 404;
         scData->download_time = 0;
@@ -269,8 +245,7 @@ int main(int argc, char* argv[])
 
     StringLinks lst;
 
-    try
-    {
+    try {
         std::ifstream ilfs("list");
         {
             boost::archive::xml_iarchive ia(ilfs);
@@ -278,9 +253,7 @@ int main(int argc, char* argv[])
             ia >> BOOST_SERIALIZATION_NVP(lst);
             // archive and stream closed when destructor are called
         }
-    }
-    catch (...)
-    {
+    } catch (...) {
         cout << "archive reading exception!" << endl;
     }
 

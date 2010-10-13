@@ -25,8 +25,7 @@
 using namespace webEngine;
 
 class redis_storage :
-    public i_storage
-{
+    public i_storage {
 public:
     redis_storage(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~redis_storage(void);
@@ -80,10 +79,10 @@ public:
     ///         equality of the selected field to the given values. The response will contains only
     ///         the fields included into the given @b respFilter structure.
     ///
-    /// @param  query           - the database query 
+    /// @param  query           - the database query
     /// @param  results         - result of the query
     ///
-    /// @retval number of records in the response. 
+    /// @retval number of records in the response.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual int get(db_query& query, db_recordset& results);
 
@@ -94,10 +93,10 @@ public:
     ///         (not the full description of the object), and non-empty @b filters may be used to
     ///         update selected object(s).
     ///
-    /// @param  query   - the filter for update 
-    /// @param  data    - the db_recordset to be stored 
+    /// @param  query   - the filter for update
+    /// @param  data    - the db_recordset to be stored
     ///
-    /// @retval	Number of affected records. 
+    /// @retval	Number of affected records.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual int set(db_query& query, db_recordset& data);
 
@@ -107,20 +106,20 @@ public:
     /// @brief	Stores (updates) the data. @b data may contain subset of fields
     ///         (not the full description of the object).
     ///
-    /// @param  data - the db_recordset to be stored 
+    /// @param  data - the db_recordset to be stored
     ///
-    /// @retval	Number of affected records. 
+    /// @retval	Number of affected records.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual int set(db_recordset& data);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn int del(Record& filters)
     ///
-    /// @brief	Deletes the filtered object(s). 
+    /// @brief	Deletes the filtered object(s).
     ///
-    /// @param  filter - the Record to select object(s) for deletion 
+    /// @param  filter - the Record to select object(s) for deletion
     ///
-    /// @retval	Number of deleted records. 
+    /// @retval	Number of deleted records.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual int del(db_filter& filter);
 

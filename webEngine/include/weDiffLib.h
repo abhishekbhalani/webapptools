@@ -34,70 +34,66 @@ using namespace std;
 
 namespace webEngine {
 
-    enum weCmpState{
-        weCmpNonComparable = -99,  ///< comparison can't be performed, or error occurred
-        weCmpDeleted    = -2,
-        weCmpLess       = -1,
-        weCmpEqual      = 0,
-        weCmpGreather   = 1,
-        weCmpInserted   = 2
-    } ;
+enum weCmpState {
+    weCmpNonComparable = -99,  ///< comparison can't be performed, or error occurred
+    weCmpDeleted    = -2,
+    weCmpLess       = -1,
+    weCmpEqual      = 0,
+    weCmpGreather   = 1,
+    weCmpInserted   = 2
+} ;
 
-    class base_entity;  // forward declaration for pointer
-    typedef boost::variant<string, base_entity*> WeCmpEntity;
+class base_entity;  // forward declaration for pointer
+typedef boost::variant<string, base_entity*> WeCmpEntity;
 
-    struct WeCmpBlock
-    {
-        weCmpState  state;
-        WeCmpEntity entity;
-    };
+struct WeCmpBlock {
+    weCmpState  state;
+    WeCmpEntity entity;
+};
 
-    typedef vector<WeCmpBlock*> CmpResults;
+typedef vector<WeCmpBlock*> CmpResults;
 
-    enum weCmpMode {
-        CmpMask = 0xFFFFFFFF
-    };
+enum weCmpMode {
+    CmpMask = 0xFFFFFFFF
+};
 
-    static const weCmpMode weCmpNothing         = (weCmpMode)0x0000;
-    static const weCmpMode weCmpInnerText       = (weCmpMode)0x0001;
-    static const weCmpMode weCmpCaseInsens      = (weCmpMode)0x0002;
-    static const weCmpMode weCmpCollapseSpace   = (weCmpMode)0x0004;
-    static const weCmpMode weCmpAttributes      = (weCmpMode)0x0008;
-    static const weCmpMode weCmpAttrValues      = (weCmpMode)0x0010;
-    static const weCmpMode weCmpAttrOrder       = (weCmpMode)0x0020;
-    static const weCmpMode weCmpChildren        = (weCmpMode)0x0040;
-    static const weCmpMode weCmpChildrenTree    = (weCmpMode)0x0080;
+static const weCmpMode weCmpNothing         = (weCmpMode)0x0000;
+static const weCmpMode weCmpInnerText       = (weCmpMode)0x0001;
+static const weCmpMode weCmpCaseInsens      = (weCmpMode)0x0002;
+static const weCmpMode weCmpCollapseSpace   = (weCmpMode)0x0004;
+static const weCmpMode weCmpAttributes      = (weCmpMode)0x0008;
+static const weCmpMode weCmpAttrValues      = (weCmpMode)0x0010;
+static const weCmpMode weCmpAttrOrder       = (weCmpMode)0x0020;
+static const weCmpMode weCmpChildren        = (weCmpMode)0x0040;
+static const weCmpMode weCmpChildrenTree    = (weCmpMode)0x0080;
 
-    static const weCmpMode weCmpDefault         = (weCmpMode)0xffff;
+static const weCmpMode weCmpDefault         = (weCmpMode)0xffff;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// @struct DiffLibWord
-    ///
-    /// @brief  Text element to compare.
-    ///
-    /// @author A. Abramov
-    /// @date   25.06.2009
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    struct DiffLibWord
-    {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @struct DiffLibWord
+///
+/// @brief  Text element to compare.
+///
+/// @author A. Abramov
+/// @date   25.06.2009
+////////////////////////////////////////////////////////////////////////////////////////////////////
+struct DiffLibWord {
 #ifndef __DOXYGEN__
-        string word;
-        weCmpMode mode;
-        bool operator==(DiffLibWord& cpy)
-        {
-            if (mode & weCmpCaseInsens)
-            {
-                return boost::iequals(word, cpy.word);
-            }
-            return boost::equals(word, cpy.word);
-        };
-#endif // __DOXYGEN__
+    string word;
+    weCmpMode mode;
+    bool operator==(DiffLibWord& cpy) {
+        if (mode & weCmpCaseInsens) {
+            return boost::iequals(word, cpy.word);
+        }
+        return boost::equals(word, cpy.word);
     };
+#endif // __DOXYGEN__
+};
 
-    typedef vector<DiffLibWord>   DiffLibWordList;
+typedef vector<DiffLibWord>   DiffLibWordList;
 
-    extern DiffLibWordList* DiffLibTextToList(string txt, weCmpMode mode);
-    extern CmpResults* TextDiff(string txt1, string txt2, weCmpMode mode = weCmpDefault);
+extern DiffLibWordList* DiffLibTextToList(string txt, weCmpMode mode);
+extern CmpResults* TextDiff(string txt1, string txt2, weCmpMode mode = weCmpDefault);
 
 } // namespace webEngine
 

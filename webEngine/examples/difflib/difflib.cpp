@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
     @file   difflib.cpp
-    @brief  Example for weDiffLib usage. 
+    @brief  Example for weDiffLib usage.
 */
 #include <iostream>
 #include "weDiffLib.h"
@@ -46,18 +46,18 @@ int main(int argc, char* argv[])
     for (unsigned i = 0; i < res->size(); i++) {
         cout << "Block #" << i << endl;
         switch (res->at(i)->state) {
-            case weCmpEqual:
-                cout << "weCmpEqual: ";
-                break;
-            case weCmpDeleted:
-                cout << "weCmpDeleted: ";
-                break;
-            case weCmpInserted:
-                cout << "weCmpInserted: ";
-                break;
-            default:
-                cout << "warning! unknown state (" << int(res->at(i)->state) << ")";
-                break;
+        case weCmpEqual:
+            cout << "weCmpEqual: ";
+            break;
+        case weCmpDeleted:
+            cout << "weCmpDeleted: ";
+            break;
+        case weCmpInserted:
+            cout << "weCmpInserted: ";
+            break;
+        default:
+            cout << "warning! unknown state (" << int(res->at(i)->state) << ")";
+            break;
         };
         string data =  boost::get<string>(res->at(i)->entity);
         cout << "'" << data << "'" <<endl;
@@ -67,18 +67,18 @@ int main(int argc, char* argv[])
     for (unsigned i = 0; i < res->size(); i++) {
         cout << "Block #" << i << endl;
         switch (res->at(i)->state) {
-            case weCmpEqual:
-                cout << "weCmpEqual: ";
-                break;
-            case weCmpDeleted:
-                cout << "weCmpDeleted: ";
-                break;
-            case weCmpInserted:
-                cout << "weCmpInserted: ";
-                break;
-            default:
-                cout << "warning! unknown state (" << int(res->at(i)->state) << ")";
-                break;
+        case weCmpEqual:
+            cout << "weCmpEqual: ";
+            break;
+        case weCmpDeleted:
+            cout << "weCmpDeleted: ";
+            break;
+        case weCmpInserted:
+            cout << "weCmpInserted: ";
+            break;
+        default:
+            cout << "warning! unknown state (" << int(res->at(i)->state) << ")";
+            break;
         };
         string data =  boost::get<string>(res->at(i)->entity);
         cout << "'" << data << "'" <<endl;
@@ -88,18 +88,18 @@ int main(int argc, char* argv[])
     for (unsigned i = 0; i < res->size(); i++) {
         cout << "Block #" << i << endl;
         switch (res->at(i)->state) {
-            case weCmpEqual:
-                cout << "weCmpEqual: ";
-                break;
-            case weCmpDeleted:
-                cout << "weCmpDeleted: ";
-                break;
-            case weCmpInserted:
-                cout << "weCmpInserted: ";
-                break;
-            default:
-                cout << "warning! unknown state (" << int(res->at(i)->state) << ")";
-                break;
+        case weCmpEqual:
+            cout << "weCmpEqual: ";
+            break;
+        case weCmpDeleted:
+            cout << "weCmpDeleted: ";
+            break;
+        case weCmpInserted:
+            cout << "weCmpInserted: ";
+            break;
+        default:
+            cout << "warning! unknown state (" << int(res->at(i)->state) << ")";
+            break;
         };
         string data =  boost::get<string>(res->at(i)->entity);
         cout << "'" << data << "'" <<endl;

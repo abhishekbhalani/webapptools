@@ -83,8 +83,7 @@ bool jsExecutor::execute_string(const string& src, const string& nm, bool print_
     boost::lock_guard<boost::mutex> lock(locker);
 
     HandleScope handle_scope;
-    if (ctx.IsEmpty())
-    {
+    if (ctx.IsEmpty()) {
         ctx = context;
     }
     Context::Scope context_scope(ctx);
@@ -120,7 +119,7 @@ bool jsExecutor::execute_string(const string& src, const string& nm, bool print_
 void jsExecutor::report_exception(TryCatch* try_catch)
 {
     HandleScope handle_scope;
-    
+
     string exception_string = value_to_string(try_catch->Exception());
     Handle<Message> message = try_catch->Message();
     if (message.IsEmpty()) {
@@ -132,7 +131,7 @@ void jsExecutor::report_exception(TryCatch* try_catch)
         string filename_string = value_to_string(Local<Value>::New(message->GetScriptResourceName()));
         int linenum = message->GetLineNumber();
         LOG4CXX_ERROR(iLogger::GetLogger(), "JS exception: " << filename_string << ":" <<
-            linenum << ": " << exception_string);
+                      linenum << ": " << exception_string);
         // print line of source code.
         string sourceline_string = value_to_string(Local<Value>::New(message->GetSourceLine()));
         LOG4CXX_ERROR(iLogger::GetLogger(), "JS >>>\t" << sourceline_string);
@@ -160,20 +159,20 @@ void jsExecutor::append_object(v8::Handle<v8::Object> data)
     objects.push_back(v8::Persistent<v8::Object>::New(data));
     //exec_result += obj_dump(Local<Object>::New(data), "appended object", "", 9, context);
     //execute_string("function showAttr(o) { echo(o); if(o.attributes) { a = o.attributes; for(var i in a) {echo('\t'+a[i].name + ': ' + a[i].value)}}}", "", true, true);
-/*    Local<Object> obj = Local<Object>::New(data);
-    exec_result += value_to_string(obj);
-    exec_result += "\n";
-    Local<Array> attrs = obj->Get(String::New("attributes")).As<Array>();
-    if (attrs->IsArray()) {
-        //Local<Array> names = attrs->GetPropertyNames();
-        for (int i = 0; i < attrs->Length(); i++) {
-            exec_result += "\t";
-            exec_result += value_to_string((*attrs)[i].Get(String::New("name")));
-            exec_result += ": ";
-            exec_result += value_to_string((*attrs)[i].Get(String::New("value")));
-            exec_result += "\n";
-        }
-    }*/
+    /*    Local<Object> obj = Local<Object>::New(data);
+        exec_result += value_to_string(obj);
+        exec_result += "\n";
+        Local<Array> attrs = obj->Get(String::New("attributes")).As<Array>();
+        if (attrs->IsArray()) {
+            //Local<Array> names = attrs->GetPropertyNames();
+            for (int i = 0; i < attrs->Length(); i++) {
+                exec_result += "\t";
+                exec_result += value_to_string((*attrs)[i].Get(String::New("name")));
+                exec_result += ": ";
+                exec_result += value_to_string((*attrs)[i].Get(String::New("value")));
+                exec_result += "\n";
+            }
+        }*/
 }
 
 void jsExecutor::reset_results()
@@ -204,8 +203,7 @@ string jsExecutor::dump(const string& name, const string& indent/* = ""*/, int d
 string jsExecutor::obj_dump(Local<Value> val, const string& name, const string& indent, int depth, v8::Handle<v8::Context> ctx)
 {
     HandleScope scope;
-    if (ctx.IsEmpty())
-    {
+    if (ctx.IsEmpty()) {
         ctx = context;
     }
     Context::Scope context_scope(ctx);
@@ -223,16 +221,13 @@ string jsExecutor::obj_dump(Local<Value> val, const string& name, const string& 
         for(int i = 0; i < nms->Length(); i++) {
             Local<Value> pN = nms->Get(Int32::New(i));
             Local<Value> pV = vobj->Get(pN);
-            if (pV->IsObject())
-            {
+            if (pV->IsObject()) {
                 res += obj_dump(pV, value_to_string(pN), ind, depth+1, ctx);
-            }
-            else {
+            } else {
                 res += ind + value_to_string(pN) + ": " + value_to_string(pV) + "\n";
             }
         }
-    }
-    else {
+    } else {
         res = value_to_string(val) + "\n";
     }
     return res;
@@ -271,8 +266,7 @@ i_response_ptr jsExecutor::http_request(i_request_ptr req)
     LOG4CXX_DEBUG(iLogger::GetLogger(), "jsExecutor::http_request URL=" << ptr->RequestUrl().tostring() << " METHOD=" << ptr->Method());
     if(net_access != NULL) {
         retval = net_access->get_request(req);
-    }
-    else {
+    } else {
         HttpResponse* ptr = new HttpResponse();
         ptr->HttpCode(503);
         ptr->BaseUrl(req->RequestUrl());
@@ -297,8 +291,7 @@ bool jsExecutor::http_request_async(i_request_ptr req)
     if(net_access != NULL) {
         net_access->get_request_async(req);
         retval = false;
-    }
-    else {
+    } else {
         string log = "jsExecutor::http_request_async\n\thref: ";
         log += req->RequestUrl().tostring();
         append_results(log);
@@ -379,8 +372,7 @@ static Handle<Value> result_object(Local<String> name, const AccessorInfo &info)
     // extract executor
     Local<Value> exec = self->Get(String::New("v8_context"));
     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets v8_context object");
         v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));
@@ -425,8 +417,7 @@ static Handle<Value> get_result_string(Local<String> name, const AccessorInfo &i
     // extract executor
     Local<Value> exec = self->Get(String::New("v8_context"));
     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets v8_context object");
         v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));
@@ -448,8 +439,7 @@ void set_result_string(Local<String> name, Local<Value> val, const AccessorInfo&
     // extract executor
     Local<Value> exec = self->Get(String::New("v8_context"));
     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::ResultObjects: gets v8_context object");
         v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));

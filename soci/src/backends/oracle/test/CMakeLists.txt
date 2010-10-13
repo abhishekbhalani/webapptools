@@ -1,0 +1,1 @@
+soci_backend_test(Oracle)

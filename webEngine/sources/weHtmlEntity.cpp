@@ -28,7 +28,7 @@
 #include <weHelper.h>
 #include <weHtmlEntity.h>
 #include <weTask.h>
-// for options: 
+// for options:
 #include <weHttpInvent.h>
 
 using namespace boost;
@@ -167,7 +167,7 @@ const string html_entity::InnerText(void)
         }
     }
 
-	return retval;
+    return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -219,8 +219,7 @@ const string html_entity::OuterText(void)
             if ((*attr).second.find("\\\"") != string::npos) {
                 // quoted " found - use the " mark
                 quote = '"';
-            }
-            else {
+            } else {
                 quote = '\'';
             }
             retval += quote;
@@ -229,7 +228,7 @@ const string html_entity::OuterText(void)
         }
     }
     retval += ">";
-    if (chldList.size() > 0 || !WeParseNeedToBreakTag(entityName, "")){
+    if (chldList.size() > 0 || !WeParseNeedToBreakTag(entityName, "")) {
         for (chld = chldList.begin(); chld != chldList.end(); chld++) {
             retval += (*chld)->OuterText();
         }
@@ -238,7 +237,7 @@ const string html_entity::OuterText(void)
         retval += ">";
     }
 
-	return retval;
+    return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,7 +258,7 @@ weCmpState html_entity::Compare(base_entity& entity, weCmpMode mode)
     }
     /// @todo Implement this!
     throw runtime_error("Not implemented");
-	return(weCmpLess);
+    return(weCmpLess);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -292,8 +291,7 @@ scanner_token html_entity::Parse( string tagName, tag_scanner& scanner, i_transp
 
     if (processor != NULL) {
         // opts = processor->Options();
-    }
-    else {
+    } else {
         // if no HttpTransport given - use default options? but no follow the links
         //opts = HttpTransport::weoDefault & (~HttpTransport::weoFollowLinks);
     }
@@ -307,8 +305,7 @@ scanner_token html_entity::Parse( string tagName, tag_scanner& scanner, i_transp
     chld.reset();
     txtAttr = "";
 
-    while (true)
-    {
+    while (true) {
         state = scanner.get_token();
 parseRestart:
         if (state == wstEof || state == wstError) {
@@ -321,8 +318,7 @@ parseRestart:
             }
             break;
         }
-        switch(state)
-        {
+        switch(state) {
         case wstTagEnd:
             lString = scanner.get_tag_name();
             to_lower(lString);
@@ -346,8 +342,7 @@ parseRestart:
                     // if tag is not in paren tree - just skip it
                     break;
                 }
-            }
-            else {
+            } else {
                 LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: TAG END: " << scanner.get_tag_name());
             }
             endPos = (int)scanner.get_pos();
@@ -381,7 +376,7 @@ parseRestart:
                 chldList.push_back(chld);
                 chldState = chld->Parse(lString, scanner, processor);
                 LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: from child, state=" << chldState <<
-                    " current=" << entityName << ", child=" << chld->Name() << ", active=" << lString);
+                              " current=" << entityName << ", child=" << chld->Name() << ", active=" << lString);
 //                 if (iequals(string("form"), lString)) {
 //                     /// @todo Add forms processing
 //                     // form finished?
@@ -397,7 +392,7 @@ parseRestart:
                 }
                 //chld = NULL;
             }
-        	break;
+            break;
         case wstAttr:
             if (txt != NULL) {
                 txt->attr("", txtAttr);
@@ -413,7 +408,7 @@ parseRestart:
             if (lString == "id") {
                 entity_id = scanner.get_value();
             }
-        	break;
+            break;
         case wstWord:
         case wstSpace:
             if (txt == NULL) {
@@ -423,8 +418,7 @@ parseRestart:
             /// @todo: implement option receiver for parser
             if (state == wstSpace && processor != NULL && processor->is_set(weoCollapseSpaces)) { //HttpTransport::weoCollapseSpaces)) {
                 txtAttr += " ";
-            }
-            else {
+            } else {
                 txtAttr += scanner.get_value();
             }
             break;
@@ -537,8 +531,7 @@ const string html_textnode::attr(string name)
     AttrMap::iterator it;
 
     it = attributes.find("#text");
-    if (it != attributes.end())
-    {
+    if (it != attributes.end()) {
         return (*it).second;
     }
     return(*(new string("")));
@@ -554,7 +547,7 @@ const string html_textnode::attr(string name)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void html_textnode::attr(string name, string value)
 {
-	attributes["#text"] = value;
+    attributes["#text"] = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -568,11 +561,10 @@ const string html_textnode::InnerText(void)
     AttrMap::iterator it;
 
     it = attributes.find(string("#text"));
-    if (it != attributes.end())
-    {
+    if (it != attributes.end()) {
         return (*it).second;
     }
-	return empty_string;
+    return empty_string;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -589,8 +581,7 @@ const string html_textnode::OuterText(void)
     AttrMap::iterator it;
 
     it = attributes.find(string("#text"));
-    if (it != attributes.end())
-    {
+    if (it != attributes.end()) {
         return (*it).second;
     }
     return empty_string;
@@ -600,12 +591,12 @@ const string html_textnode::OuterText(void)
 /// @fn CmpResults* html_textnode::Diff(base_entity& cmp,
 /// 	weCmpMode mode)
 ///
-/// @brief  Builds difference between two texts. 
+/// @brief  Builds difference between two texts.
 ///
-/// @param  cmp  - base_entity to be compared. 
-/// @param  mode - The mode. 
+/// @param  cmp  - base_entity to be compared.
+/// @param  mode - The mode.
 ///
-/// @retval	null if it fails, the list of the compares else. 
+/// @retval	null if it fails, the list of the compares else.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 CmpResults* html_textnode::Diff(base_entity& cmp, weCmpMode mode)
 {
@@ -637,10 +628,10 @@ CmpResults* html_textnode::Diff(base_entity& cmp, weCmpMode mode)
 ///     weCmpMode mode)
 ///
 /// @brief  Compares two base_entity& objects to determine
-///         their relative ordering. 
+///         their relative ordering.
 ///
-/// @param  cmp  - base_entity to be compared. 
-/// @param  mode - comparison mode. 
+/// @param  cmp  - base_entity to be compared.
+/// @param  mode - comparison mode.
 ///
 /// @retval Negative if 'cmp' is less than this object, 0 if they are equal, or positive if it
 ///         is greater. See the weCmpState enum for symbolic constants.
@@ -667,19 +658,16 @@ weCmpState html_textnode::Compare(base_entity& cmp, weCmpMode mode)
             is_iless cp_less;
             if (iequals(s1, s2)) {
                 retval = weCmpEqual;
-            }
-            else if(cp_less(s1.c_str(), s2.c_str())) {
+            } else if(cp_less(s1.c_str(), s2.c_str())) {
                 retval = weCmpLess;
             } else {
                 retval = weCmpGreather;
             }
-        }
-        else {
+        } else {
             is_less cp_less;
             if (equals(s1, s2)) {
                 retval = weCmpEqual;
-            }
-            else if(cp_less(s1, s2)) {
+            } else if(cp_less(s1, s2)) {
                 retval = weCmpLess;
             } else {
                 retval = weCmpGreather;
@@ -780,8 +768,7 @@ bool html_document::ParseData(boost::shared_ptr<i_response> resp, i_transport* p
 {
     bool retval = false;
 
-    try
-    {
+    try {
         response = boost::shared_dynamic_cast<HttpResponse>(resp);
         boost::shared_ptr<tag_stream> stream = response->Data().stream();
         if (stream.get()) {
@@ -790,15 +777,14 @@ bool html_document::ParseData(boost::shared_ptr<i_response> resp, i_transport* p
         }
         return retval;
 
-    }
-    catch (...) { }; // just skip
+    } catch (...) { }; // just skip
     return retval;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	blob & html_document::Data( void )
 ///
-/// @brief	Grants access to the linked response data. 
+/// @brief	Grants access to the linked response data.
 /// @throw  WeError if no i_response assigned
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 blob& html_document::Data( void )
@@ -931,8 +917,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
 
     if (processor != NULL) {
         //opts = processor->Options();
-    }
-    else {
+    } else {
         // if no HttpTransport given - use default options? but no follow the links
         // opts = HttpTransport::weoDefault & (~HttpTransport::weoFollowLinks);
     }
@@ -943,8 +928,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
     inProcess = true;
     stPos = -1;
 
-    while (inProcess)
-    {
+    while (inProcess) {
         enPos = (int)scanner.get_pos();
         state = scanner.get_token();
         // skip errors
@@ -953,8 +937,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
             inProcess = false;
             break;
         }
-        switch(state)
-        {
+        switch(state) {
         case wstTagEnd:
             LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << scanner.get_tag_name());
             inOurTag = false;
@@ -979,7 +962,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
             // reset state to parse content
             break;
 
-        // all other cases
+            // all other cases
         case wstWord:
         case wstSpace:
         case wstCommentStart:
@@ -1043,7 +1026,7 @@ void* WeScript::Execute()
 }
 
 html_parser::html_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
-i_parser(krnl, handle)
+    i_parser(krnl, handle)
 {
     pluginInfo.interface_name = "html_parser";
     pluginInfo.interface_list.push_back("html_parser");
@@ -1054,8 +1037,7 @@ i_parser(krnl, handle)
 i_plugin* html_parser::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "html_parser::get_interface " << ifName);
-    if (iequals(ifName, "html_parser"))
-    {
+    if (iequals(ifName, "html_parser")) {
         LOG4CXX_DEBUG(logger, "html_parser::get_interface found!");
         usageCount++;
         return (this);
@@ -1080,8 +1062,7 @@ i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
     try {
         htResp = reinterpret_cast<HttpResponse*>(input.get());
 
-        if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
-        {
+        if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0) {
             string cType = htResp->ContentType();
             boost::trim(cType);
             if (cType == "") {
@@ -1091,32 +1072,27 @@ i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
             }
             LOG4CXX_TRACE(logger, "HttpInventory::process: content-type analyze method = " << opt_ctype_method);
             bool cTypeProcess = false;
-            switch(opt_ctype_method)
-            {
+            switch(opt_ctype_method) {
             case 0: // any content-type
                 cTypeProcess = true;
                 break;
             case 1: // empty and "text/*"
-                if (cType == "" || starts_with(cType, "text/"))
-                {
+                if (cType == "" || starts_with(cType, "text/")) {
                     cTypeProcess = true;
                 }
                 break;
             case 2: // only "text/*"
-                if (starts_with(cType, "text/"))
-                {
+                if (starts_with(cType, "text/")) {
                     cTypeProcess = true;
                 }
                 break;
             case 3: // empty and "text/html"
-                if (cType == "" || starts_with(cType, "text/html"))
-                {
+                if (cType == "" || starts_with(cType, "text/html")) {
                     cTypeProcess = true;
                 }
                 break;
             case 4: // only "text/*"
-                if (starts_with(cType, "text/html"))
-                {
+                if (starts_with(cType, "text/html")) {
                     cTypeProcess = true;
                 }
                 break;
@@ -1141,8 +1117,7 @@ i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
                 }
             } // if need to process
         } // if HTTP code valid
-    }
-    catch (bad_cast) {
+    } catch (bad_cast) {
         LOG4CXX_ERROR(logger, "HttpInventory::process: The response from " << input->BaseUrl().tostring() << " isn't the HttpResponse!");
     }
 

@@ -49,8 +49,7 @@ i_transport::i_transport(engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
 
 i_plugin* i_transport::get_interface( const string& ifName )
 {
-    if (iequals(ifName, "i_transport"))
-    {
+    if (iequals(ifName, "i_transport")) {
         usageCount++;
         return this;
     }

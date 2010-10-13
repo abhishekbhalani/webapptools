@@ -27,14 +27,15 @@
 using namespace webEngine;
 
 class wot_check :
-    public i_vulner
-{
+    public i_vulner {
 public:
     wot_check(webEngine::engine_dispatcher* krnl, void* handle = NULL);
     ~wot_check(void);
 
-	virtual i_plugin* get_interface(const string& ifName);
-    virtual const string get_setup_ui( void ) { return ""; };
+    virtual i_plugin* get_interface(const string& ifName);
+    virtual const string get_setup_ui( void ) {
+        return "";
+    };
     virtual void init(task* tsk);
     virtual void process(task* tsk, scan_data_ptr scData);
     virtual void stop(task* tsk);

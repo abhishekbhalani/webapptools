@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
     @file   document.cpp
-    @brief  Example for WeDocument class usage. 
+    @brief  Example for WeDocument class usage.
 */
 
 #include "weHtmlEntity.h"

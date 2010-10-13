@@ -41,8 +41,7 @@ i_plugin::i_plugin( engine_dispatcher* krnl, void* handle /*= NULL*/ )
     priority = 50;
     if (krnl != NULL) {
         logger = krnl->get_logger();
-    }
-    else {
+    } else {
         logger = iLogger::GetLogger();
     }
 }
@@ -89,16 +88,13 @@ string_list i_plugin::get_icon()
 
 void i_plugin::release()
 {
-    if (usageCount == 0)
-    {
-        if (libHandle != NULL)
-        {
+    if (usageCount == 0) {
+        if (libHandle != NULL) {
             LOG4CXX_TRACE(iLogger::GetLogger(), "i_plugin::release: (" << pluginInfo.plugin_id << ") free the shared library");
             delete ((dyn::shared_object*)libHandle);
         }
         delete this;
-    }
-    else {
+    } else {
         usageCount--;
     }
 }
@@ -108,8 +104,7 @@ string_list WeXpmToStringList( char** xpm, int lines )
     string_list retval;
     retval.reserve(lines);
 
-    for (int i = 0; i < lines; i++)
-    {
+    for (int i = 0; i < lines; i++) {
         retval.push_back(xpm[i]);
     }
     return retval;

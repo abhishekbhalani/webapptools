@@ -35,8 +35,7 @@ static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
 
     if (key == "documentElement") {
         val = Local<Value>::New(wrap_object<jsElement>((jsElement*)el));
-    }
-    else if (key == "forms") {
+    } else if (key == "forms") {
         Local<Array> elems(Array::New());
 
         if (el->doc) {
@@ -49,8 +48,7 @@ static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
             ClearEntityList(ptrs);
         }
         val = elems;
-    }
-    else if (key == "body") {
+    } else if (key == "body") {
         if (el->doc) {
             entity_list ptrs = el->doc->FindTags("body");
             if (ptrs.size() > 0) {
@@ -58,8 +56,7 @@ static Handle<Value> DocumentGet(Local<String> name, const AccessorInfo &info)
             }
             ClearEntityList(ptrs);
         }
-    }
-    else {
+    } else {
         // Look up the value if it exists using the standard STL idiom.
         std::map<std::string, Persistent<Value>>::iterator iter = el->namedprops.find(key);
         // If the key is not present return an empty handle as signal.
@@ -155,8 +152,7 @@ static Handle<Value> createElement(const Arguments& args)
             Local<Object> tmpl(Object::Cast(*args[1]));
             Local<Object> vals(Object::Cast(*res));
             Local<Array> tprops = tmpl->GetPropertyNames();
-            for (int i = 0; i < tprops->Length(); i++)
-            {
+            for (int i = 0; i < tprops->Length(); i++) {
                 Handle<Value> pN = tprops->Get(Int32::New(i));
                 String::AsciiValue s1(pN);
                 Handle<Value> pV = tmpl->Get(pN);
@@ -268,7 +264,7 @@ static Handle<Value> documentWrite(const Arguments& args)
 Handle<Value> Document(const Arguments& args)
 {
     // throw if called without `new'
-    if (!args.IsConstructCall()) 
+    if (!args.IsConstructCall())
         return ThrowException(String::New("Cannot call constructor as function"));
 
     HandleScope scope;
@@ -277,14 +273,12 @@ Handle<Value> Document(const Arguments& args)
     Local<Context> ctx = v8::Context::GetCurrent();
     Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets v8_context");
-    if (exec->IsObject())
-    {
+    if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
         Local<External> wrap = Local<External>::Cast(eObj->GetInternalField(0));
         jsBrowser* jsExec = static_cast<jsBrowser*>(wrap->Value());
         jsWindow* win = jsExec->window;
-        if (args.Length() > 0 && args[0]->IsObject())
-        {
+        if (args.Length() > 0 && args[0]->IsObject()) {
             Local<Object> winObj = Local<Object>::Cast(args[0]);
             Local<External> winPtr = Local<External>::Cast(winObj->GetInternalField(0));
             win = static_cast<jsWindow*>(winPtr->Value());
@@ -304,8 +298,7 @@ jsDocument::jsDocument(jsWindow* holder_) : jsElement(html_entity_ptr((html_enti
     if (!isInit) {
         isInit = true;
         Handle<FunctionTemplate> _object = FunctionTemplate::New();
-        if (!jsElement::is_init)
-        {
+        if (!jsElement::is_init) {
             jsElement::init();
         }
         Local<FunctionTemplate> _template = Local<FunctionTemplate>::New(jsElement::object_template);
@@ -352,7 +345,7 @@ Handle<Value> jsDocument::PlaceHolder( const Arguments& args )
     Local<Object> self = args.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     void* ptr = wrap->Value();
-    jsDocument* el = static_cast<jsDocument*>(ptr); 
+    jsDocument* el = static_cast<jsDocument*>(ptr);
 
     string ret;
     ret = value_to_string(args.Callee()->ToString());
@@ -385,16 +378,14 @@ Handle<Value> jsDocument::AppendChild( const Arguments& args )
             entity_list lst = el->doc->FindTags("body");
             if (lst.size() > 0) {
                 parent = lst[0];
-            }
-            else {
+            } else {
                 parent = el->doc;
             }
             parent->Children().push_back(chld->entity());
             chld->entity()->Parent(parent);
             retval = args[0];
         }
-    }
-    else {
+    } else {
         LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "jsElement::AppendChild exception: argument must be an object!\n");
     }
 

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="windows-1250"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="webEngine"
+	IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		Optimization="0"
+		AdditionalIncludeDirectories="
+			&quot;$(SolutionDir)\..\webEngine\include&quot;;
+			&quot;$(SolutionDir)\..\soci\src\core&quot;"
+		PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS"
+		DisableLanguageExtensions="false"
+		WarningLevel="4"
+		DebugInformationFormat="4"
+		CompileAs="0"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalLibraryDirectories="
+			&quot;$(SolutionDir)\..\webEngine\libs\$(ConfigurationName)&quot;;
+			&quot;$(SolutionDir)\..\webEngine\libs\$(ConfigurationName)\boost&quot;;
+			&quot;$(SolutionDir)\..\webEngine\libs\$(ConfigurationName)\curl&quot;;
+			&quot;$(SolutionDir)\..\webEngine\libs\$(ConfigurationName)\log4cxx&quot;;
+			&quot;$(SolutionDir)\..\webEngine\libs\$(ConfigurationName)\soci&quot;"
+		GenerateDebugInformation="true"
+		ImportLibrary="$(TargetDir)$(TargetName).lib"
+	/>
+</VisualStudioPropertySheet>

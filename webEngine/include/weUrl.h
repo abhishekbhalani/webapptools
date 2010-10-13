@@ -30,20 +30,22 @@ namespace webEngine {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  transport_url
 ///
-/// @brief  transport_url storage and operations  
+/// @brief  transport_url storage and operations
 ///
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class transport_url
-{
+class transport_url {
 public:
     transport_url();
     transport_url(const string url);
     transport_url(const transport_url& url);
     ~transport_url();
 
-    transport_url& operator=(const string& url)  { assign(url); return *this; };
+    transport_url& operator=(const string& url)  {
+        assign(url);
+        return *this;
+    };
     transport_url& operator=(const transport_url& url);
 
     string tostring(bool noDefPort = true);
@@ -78,8 +80,7 @@ protected:
     bool valid;
 #endif //__DOXYGEN__
 private:
-    DECLARE_SERIALIZATOR
-    {
+    DECLARE_SERIALIZATOR {
         ar & BOOST_SERIALIZATION_NVP(protocol);
         ar & BOOST_SERIALIZATION_NVP(host);
         ar & BOOST_SERIALIZATION_NVP(port);

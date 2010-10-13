@@ -27,16 +27,17 @@
 #include "fsStorage.xpm"
 
 static char* tables[] = {weObjTypeTask,
-                        weObjTypeSysOption,
-                        weObjTypeDictionary,
-                        weObjTypeAuthInfo,
-                        weObjTypeScan,
-                        weObjTypeScanData,
-                        weObjTypeObject,
-                        weObjTypeProfile,
-                        weObjTypeVulner,
-                        weObjTypeVulnerDesc,
-                        NULL}; // close the list with NULL
+                         weObjTypeSysOption,
+                         weObjTypeDictionary,
+                         weObjTypeAuthInfo,
+                         weObjTypeScan,
+                         weObjTypeScanData,
+                         weObjTypeObject,
+                         weObjTypeProfile,
+                         weObjTypeVulner,
+                         weObjTypeVulnerDesc,
+                         NULL
+                        }; // close the list with NULL
 
 static string RecordToString(Record& rc)
 {
@@ -44,8 +45,7 @@ static string RecordToString(Record& rc)
     string tmp;
 
     StringList opts = rc.OptionsList();
-    for (size_t j = 0; j < opts.size(); j++)
-    {
+    for (size_t j = 0; j < opts.size(); j++) {
         wOption opt = rc.Option(opts[j]);
         retval += opts[j];
         retval += '\x02';
@@ -70,26 +70,20 @@ static wOptionVal StringToOption(const string& buff, string& name)
     int tp = -1;
 
     pos = parse.find('\x02');
-    if (pos != string::npos)
-    {
+    if (pos != string::npos) {
         name = parse.substr(0, pos);
-        if (pos < parse.length())
-        {
+        if (pos < parse.length()) {
             parse = parse.substr(pos+1);
-        }
-        else {
+        } else {
             parse = "";
         }
     }
     pos = parse.find('\x02');
-    if (pos != string::npos)
-    {
+    if (pos != string::npos) {
         string val = parse.substr(0, pos);
-        if (pos < parse.length())
-        {
+        if (pos < parse.length()) {
             parse = parse.substr(pos+1);
-        }
-        else {
+        } else {
             parse = "";
         }
         try {
@@ -100,18 +94,15 @@ static wOptionVal StringToOption(const string& buff, string& name)
     }
     pos = parse.find('\x02');
     string strData = "";
-    if (pos == string::npos)
-    {
+    if (pos == string::npos) {
         if(parse != "") {
             strData = parse;
         }
-    }
-    else {
+    } else {
         strData = parse.substr(0, pos);
     }
     try {
-        switch(tp)
-        {
+        switch(tp) {
         case 0:
             retval = boost::lexical_cast<char>(strData);
             break;
@@ -152,23 +143,19 @@ static Record* StringToRecord(const string& buff)
     size_t pos;
 
     pos = parse.find('\x03');
-    while (pos != string::npos)
-    {
+    while (pos != string::npos) {
         string nm;
         string val = parse.substr(0, pos);
-        if (pos < parse.length())
-        {
+        if (pos < parse.length()) {
             parse = parse.substr(pos+1);
-        }
-        else {
+        } else {
             parse = "";
         }
         wOptionVal oval = StringToOption(val, nm);
         retval->Option(nm, oval);
         pos = parse.find('\x03');
     }
-    if (parse != "")
-    {
+    if (parse != "") {
         string nm;
         wOptionVal oval = StringToOption(parse, nm);
         retval->Option(nm, oval);
@@ -198,8 +185,7 @@ FsStorage::~FsStorage(void)
 void* FsStorage::GetInterface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "FsStorage::GetInterface " << ifName);
-    if (iequals(ifName, "FsStorage"))
-    {
+    if (iequals(ifName, "FsStorage")) {
         LOG4CXX_DEBUG(logger, "FsStorage::GetInterface found!");
         usageCount++;
         return (void*)(this);
@@ -228,8 +214,7 @@ bool FsStorage::InitStorage(const string& params)
         fs::path dir_path(db_dir);
         if ( !fs::exists(dir_path) ) {
             fs::create_directory(db_dir.c_str());
-        }
-        else {
+        } else {
             if ( ! fs::is_directory(dir_path) ) {
                 dir_path = dir_path.remove_filename();
                 db_dir = dir_path.string();
@@ -238,25 +223,22 @@ bool FsStorage::InitStorage(const string& params)
         LOG4CXX_TRACE(logger, "FsStorage::InitStorage: base dir is " << db_dir);
 
         int i = 0;
-        while (tables[i] != NULL)
-        {
+        while (tables[i] != NULL) {
             // check storage presence
             dir_path = db_dir;
             dir_path /= tables[i];
             if ( !fs::exists(dir_path) ) {
                 fs::create_directory(dir_path);
-        }
-        else {
-            if ( ! fs::is_directory(dir_path) ) {
-                string msg = dir_path.string() + "isn't a directory";
+            } else {
+                if ( ! fs::is_directory(dir_path) ) {
+                    string msg = dir_path.string() + "isn't a directory";
                     throw std::runtime_error(msg.c_str());
                 }
             }
             LOG4CXX_TRACE(logger, "FsStorage::InitStorage: " << tables[i] << " storage dir is " << dir_path.string());
             i++;
         }
-    }
-    catch(std::exception& e) {
+    } catch(std::exception& e) {
         LOG4CXX_ERROR(logger, "FsStorage::InitStorage: " << e.what());
         retval = false;
     }
@@ -278,9 +260,7 @@ string FsStorage::GenerateID(const string& objType /*= ""*/)
     try {
         ifstream ifs(dir_path.string().c_str());
         ifs >> lastId;
-    }
-    catch ( const std::exception& )
-    {
+    } catch ( const std::exception& ) {
         LOG4CXX_WARN(logger, "FsStorage::GenerateID no index for " << objType);
         lastId = 1;
     }
@@ -288,9 +268,7 @@ string FsStorage::GenerateID(const string& objType /*= ""*/)
     try {
         ofstream ofs(dir_path.string().c_str());
         ofs << lastId;
-    }
-    catch ( const std::exception & )
-    {
+    } catch ( const std::exception & ) {
         LOG4CXX_ERROR(logger, "FsStorage::GenerateID can't save index for " << objType);
     }
 
@@ -315,12 +293,10 @@ int FsStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
 
     // prepare filter list
     reportNames = respFilter.OptionsList();
-    if (reportNames.size() == 0)
-    {
+    if (reportNames.size() == 0) {
         StringList* strct;
         strct = GetStruct(filter.objectID);
-        if (strct != NULL)
-        {
+        if (strct != NULL) {
             reportNames = *strct;
             delete strct;
         }
@@ -328,8 +304,7 @@ int FsStorage::Get(Record& filter, Record& respFilter, RecordSet& results)
     for (i = 0; i < dta->size(); i++) {
         Record* objRes = new Record;
         objRes->objectID = filter.objectID;
-        for (j = 0; j < reportNames.size(); j++)
-        {
+        for (j = 0; j < reportNames.size(); j++) {
             opt = (*dta)[i].Option(reportNames[j]);
             objRes->Option(reportNames[j], opt.Value());
         } // and of attribute filters
@@ -355,37 +330,32 @@ int FsStorage::Set(Record& filter, Record& data)
     LockDB();
 
     retlist = Search(filter);
-    if (retlist == NULL)
-    {
+    if (retlist == NULL) {
         retlist = new RecordSet;
         retlist->clear();
     }
-    if (retlist->size() > 0)
-    {   // update
+    if (retlist->size() > 0) {
+        // update
         LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(Record, Record) - update type=" << filter.objectID);
-        for (size_t i = 0; i < retlist->size(); i ++)
-        {
+        for (size_t i = 0; i < retlist->size(); i ++) {
             (*retlist)[i].CopyOptions(&data);
 
             opt = (*retlist)[i].Option(weoID);
             SAFE_GET_OPTION_VAL(opt, fName, "");
-            if (fName == "")
-            {
+            if (fName == "") {
                 fName = GenerateID(filter.objectID);
                 (*retlist)[i].Option(weoID, fName);
             }
             retval++;
         }
-    }
-    else {
+    } else {
         // insert
         LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(Record, Record) - insert type=" << data.objectID);
         sv.objectID = data.objectID;
         sv.CopyOptions(&data);
         opt = sv.Option(weoID);
         SAFE_GET_OPTION_VAL(opt, fName, "");
-        if (fName == "")
-        {
+        if (fName == "") {
             fName = GenerateID(data.objectID);
             sv.Option(weoID, fName);
         }
@@ -413,8 +383,7 @@ int FsStorage::Set(RecordSet& data)
     Record fl;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "FsStorage::Set(RecordSet)");
-    for (i = 0; i < data.size(); i++)
-    {
+    for (i = 0; i < data.size(); i++) {
         fl.Clear();
         fl.objectID = data[i].objectID;
         opt = data[i].Option(weoID);
@@ -464,35 +433,28 @@ RecordSet* FsStorage::Search(Record& filter, bool all/* = false*/)
     dir_path /= filter.objectID;
 
     fs::directory_iterator end_itr; // default construction yields past-the-end
-    for ( fs::directory_iterator itr( dir_path ); itr != end_itr; ++itr )
-    {
-        if (starts_with(itr->path().filename(), "data"))
-        {
+    for ( fs::directory_iterator itr( dir_path ); itr != end_itr; ++itr ) {
+        if (starts_with(itr->path().filename(), "data")) {
             data = FileRead(itr->path().string());
             bool skip = false;
-            if (!all)
-            {
+            if (!all) {
                 objProps = filter.OptionsList();
-                for (j = 0; j < objProps.size(); j++)
-                {
+                for (j = 0; j < objProps.size(); j++) {
                     opt = filter.Option(objProps[j]);
                     stValue = boost::lexical_cast<std::string>(opt.Value());
 
                     opt = data->Option(objProps[j]);
                     stData = boost::lexical_cast<std::string>(opt.Value());
 
-                    if (stData != stValue)
-                    {
+                    if (stData != stValue) {
                         skip = true;
                     }
                 } // compare options
             } // take all files
-            if (!skip)
-            {
+            if (!skip) {
                 data->objectID = filter.objectID;
                 retlist->push_back(*data);
-            }
-            else {
+            } else {
                 delete data;
             }
 
@@ -507,23 +469,19 @@ Record* FsStorage::FileRead(const string& fname)
     Record *retval = NULL;
 
     LOG4CXX_TRACE(logger, "FsStorage::FileRead " << fname);
-    try{
+    try {
         size_t fsize = fs::file_size(fs::path(fname));
         ifstream ifs(fname.c_str());
         char* buff = new char[fsize + 10];
-        if(buff != NULL)
-        {
+        if(buff != NULL) {
             memset(buff, 0, fsize+10);
             ifs.read(buff, fsize);
             retval = StringToRecord(buff);
             delete buff;
         }
-    }
-    catch ( const std::exception & e )
-    {
+    } catch ( const std::exception & e ) {
         LOG4CXX_ERROR(logger, "FsStorage::FileRead error: " << e.what());
-        if (retval != NULL)
-        {
+        if (retval != NULL) {
             delete retval;
             retval = NULL;
         }
@@ -542,8 +500,7 @@ int FsStorage::FileSave(const fs::path& fspath, const RecordSet& content)
     // save data
     LOG4CXX_TRACE(logger, "FsStorage::FileSave recordset " << fp.string());
     try {
-        for (retval = 0; retval < content.size(); retval++)
-        {
+        for (retval = 0; retval < content.size(); retval++) {
             Record rc = content[retval];
             opt = rc.Option(weoID);
             SAFE_GET_OPTION_VAL(opt, id, "");
@@ -553,9 +510,7 @@ int FsStorage::FileSave(const fs::path& fspath, const RecordSet& content)
             ofstream ofs(fp.string().c_str());
             ofs << RecordToString(rc);
         }
-    }
-    catch(const std::exception& e)
-    {
+    } catch(const std::exception& e) {
         LOG4CXX_ERROR(logger, "FsStorage::FileSave can't save " << fp.string() << " : " << e.what());
     }
     return retval;
@@ -570,24 +525,19 @@ StringList* FsStorage::GetStruct(const string& nspace)
 
     fp /= nspace;
     fp /= "struct";
-    try
-    {
+    try {
         size_t fsize = fs::file_size(fp);
         ifstream is(fp.string().c_str());
         char* buff = new char[fsize + 10];
-        if(buff != NULL)
-        {
+        if(buff != NULL) {
             memset(buff, 0, fsize+10);
             is.read(buff, fsize);
             structNames = StringToSList(buff);
             delete buff;
         }
-    }
-    catch(std::exception& e)
-    {
+    } catch(std::exception& e) {
         LOG4CXX_WARN(iLogger::GetLogger(), "FsStorage::GetStruct " << nspace << " structure error: " << e.what());
-        if (structNames)
-        {
+        if (structNames) {
             delete structNames;
             structNames = NULL;
         }
@@ -610,27 +560,21 @@ void FsStorage::FixStruct(const string& nspace, Record& strt)
     fp /= "struct";
 
     structNames = GetStruct(nspace);
-    if (structNames == NULL)
-    {
+    if (structNames == NULL) {
         structNames = new StringList;
     }
     flNames = strt.OptionsList();
-    for (i = 0 ; i < flNames.size(); i++)
-    {
+    for (i = 0 ; i < flNames.size(); i++) {
         lst = find(structNames->begin(), structNames->end(), flNames[i]);
-        if (lst == structNames->end())
-        {
+        if (lst == structNames->end()) {
             structNames->push_back(flNames[i]);
         }
     }
-    try
-    {
+    try {
         ofstream os(fp.string().c_str());
         os << SListToString(*structNames);
         // archive and stream closed when destructor are called
-    }
-    catch(std::exception& e)
-    {
+    } catch(std::exception& e) {
         LOG4CXX_WARN(iLogger::GetLogger(), "FsStorage::FixStruct save " << nspace << " structure error: " << e.what());
         return;
     }
@@ -642,8 +586,7 @@ void FsStorage::LockDB()
     locker /= "lock";
 
     LOG4CXX_TRACE(logger, "FsStorage::LockDB");
-    while (exists(locker))
-    {
+    while (exists(locker)) {
         boost::this_thread::sleep(boost::posix_time::seconds(1));
     }
     {
@@ -660,8 +603,7 @@ void FsStorage::UnlockDB()
     locker /= "lock";
 
     LOG4CXX_TRACE(logger, "FsStorage::UnlockDB");
-    if (exists(locker))
-    {
+    if (exists(locker)) {
         fs::remove(locker);
     }
 }

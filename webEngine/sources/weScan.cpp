@@ -42,7 +42,7 @@ ScanInfo::ScanInfo()
 
 ScanInfo::~ScanInfo()
 {
-    //unordered_map<string, weak_ptr<ScanData>>::iterator mit = 
+    //unordered_map<string, weak_ptr<ScanData>>::iterator mit =
     // nothing special at this moment
 //     for (size_t i = 0; i < scan_data.size(); i++) {
 //         delete scan_data[i];
@@ -52,11 +52,14 @@ ScanInfo::~ScanInfo()
 
 db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
 {
-    db_recordset* res = new db_recordset;
+// TODO: fix it
+    //db_recordset* res = new db_recordset;
     //db_recordset* rsData;
-    db_record* rec = new db_record;
+    //db_record* rec = new db_record;
 
-    return res;
+    //return res;
+
+    return NULL;
 }
 
 void ScanInfo::FromRS( db_recordset* rs )
@@ -71,15 +74,14 @@ shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )
     if (mit != scan_data.end()) {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::GetScanData - found existing ScanData");
         retval = mit->second;
-    }
-    else {
+    } else {
         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::GetScanData new ScanData");
         retval.reset(new ScanData);
         retval->resp_code = 0;
         retval->download_time = -1;
         retval->data_size = -1;
         retval->object_url = object_url;
-        retval->parsed_data.reset();        
+        retval->parsed_data.reset();
         scan_data[object_url] = retval;
     }
     return retval;
@@ -114,16 +116,16 @@ ScanData::~ScanData()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn bool ScanData::to_dataset( db_cursor& dataset )
 ///
-/// @brief  Converts a ScanData to a dataset. 
+/// @brief  Converts a ScanData to a dataset.
 ///
 /// @author A. Abramov
 /// @date   24.06.2010
 ///
-/// @param [in,out] dataset The dataset. 
+/// @param [in,out] dataset The dataset.
 ///
-/// @return true if it succeeds, false if it fails. 
+/// @return true if it succeeds, false if it fails.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool ScanData::to_dataset( db_cursor& dataset )
+bool ScanData::to_dataset( db_record& dataset )
 {
     bool retval = true;
 
@@ -137,8 +139,7 @@ bool ScanData::to_dataset( db_cursor& dataset )
         dataset[weObjTypeScanData "." "data_size"] = data_size;
         dataset[weObjTypeScanData "." "dnld_time"] = download_time;
         dataset[weObjTypeScanData "." "content_type"] = content_type;
-    }
-    catch (std::exception &e) {
+    } catch (std::exception &e) {
         // may be out_of_range or bad_cast
         LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::to_dataset exception: " << e.what());
         retval = false;
@@ -149,16 +150,16 @@ bool ScanData::to_dataset( db_cursor& dataset )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn bool ScanData::from_dataset( const db_cursor& dataset )
 ///
-/// @brief  Initializes this object from the given from dataset. 
+/// @brief  Initializes this object from the given from dataset.
 ///
 /// @author A. Abramov
 /// @date   24.06.2010
 ///
-/// @param  dataset The dataset. 
+/// @param  dataset The dataset.
 ///
-/// @return true if it succeeds, false if it fails. 
+/// @return true if it succeeds, false if it fails.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-bool ScanData::from_dataset( const db_cursor& dataset )
+bool ScanData::from_dataset( const db_record& dataset )
 {
     bool retval = true;
     int id = 0;
@@ -184,8 +185,7 @@ bool ScanData::from_dataset( const db_cursor& dataset )
         download_time = dataset[weObjTypeScanData "." "dnld_time"].get<int>();
         id++;
         content_type = dataset[weObjTypeScanData "." "content_type"].get<string>();
-    }
-    catch (std::exception &e) {
+    } catch (std::exception &e) {
         // may be out_of_range or bad_cast
         LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::from_dataset exception at " << id <<": " << e.what());
         retval = false;

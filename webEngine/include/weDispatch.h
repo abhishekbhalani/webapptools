@@ -21,10 +21,11 @@
 #define __WEDISPATCH_H__
 #pragma once
 #include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
 #include "weOptions.h"
 #include "weiPlugin.h"
-#include "weMemStorage.h"
-
+#include <weiStorage.h>
+#include <weiTransport.h>
 
 namespace webEngine {
 
@@ -37,8 +38,7 @@ namespace webEngine {
 /// @date   23.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class null_storage :
-    public i_storage
-{
+    public i_storage {
 public:
     null_storage(engine_dispatcher* krnl, void* handle = NULL);
     ~null_storage(void);
@@ -47,24 +47,39 @@ public:
     virtual i_plugin* get_interface(const string& ifName);
 
     // i_storage functions
-    virtual bool init_storage(const string& params) { return true; };
-    virtual void flush(const string& params = "") { return; };
-    virtual int get(db_query& query, db_recordset& results);
-    virtual int set(db_query& query, db_recordset& data);
-    virtual int set(db_recordset& data);
-    virtual int del(db_filter& filter);
+    virtual bool init_storage(const string& params) {
+        return true;
+    };
+    virtual void flush(const string& params = "") {
+        return;
+    };
+
+    virtual db_cursor get(const string &query, const std::vector<std::string> &fields, bool need_blob = false) {
+        return db_cursor();
+    }
+    virtual db_cursor set(const string &query_update, const string &query_insert, const std::vector<std::string> &fields, bool need_blob = false) {
+        return db_cursor();
+    }
+    virtual db_cursor ins(const string &query_insert, const std::vector<std::string> &fields, bool need_blob = false) {
+        return db_cursor();
+    }
+    virtual int del(const string &query) {
+        return 0;
+    }
+    virtual int count(const string &query) {
+        return 0;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  plugin_factory
 ///
-/// @brief  The i_plugin creator for "in-memory" plugins. 
+/// @brief  The i_plugin creator for "in-memory" plugins.
 ///
 /// @author A. Abramov
 /// @date   10.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class plugin_factory
-{
+class plugin_factory {
 public:
     plugin_factory();
     ~plugin_factory();
@@ -72,7 +87,7 @@ public:
     void* create_plugin(string pluginID, engine_dispatcher* krnl);
 
 private:
-	std::map<string, fnWePluginFactory> factories_;
+    std::map<string, fnWePluginFactory> factories_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,32 +100,37 @@ private:
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class engine_dispatcher :
     public i_options_provider,
-	boost::noncopyable
-{
+        boost::noncopyable {
 public:
     engine_dispatcher(void);
     virtual ~engine_dispatcher(void);
 
     // engine_dispatcher
     // Access the storage
-    i_storage* storage(void) const  { return(plg_storage);  };
+    i_storage* storage(void) const  {
+        return(plg_storage);
+    };
     void storage(const i_storage* store);
 
     void flush();
 
     // Access the plugin_list
-    const plugin_list &get_plugin_list(void) const  { return(plg_list); };
+    const plugin_list &get_plugin_list(void) const  {
+        return(plg_list);
+    };
     void refresh_plugin_list(boost::filesystem::path& baseDir);
     void refresh_plugin_list();
 
     // Provide Logger to plugins
-    log4cxx::LoggerPtr get_logger() { return iLogger::GetLogger(); };
+    log4cxx::LoggerPtr get_logger() {
+        return iLogger::GetLogger();
+    };
 
     i_plugin* load_plugin(string id);
     i_plugin* get_interface(string iface);
     void add_plugin_class(string name, fnWePluginFactory func);
 
-    // 
+    //
     virtual we_option Option(const string& name);
     virtual void Option(const string& name, we_variant val);
     virtual bool IsSet(const string& name);
@@ -119,8 +139,20 @@ public:
     virtual string_list OptionsList();
     virtual size_t OptionSize();
 
+    typedef i_request_ptr request_constructor(we_iarchive&);
+
+    template<class Request>
+    void register_request(){
+        m_request_map[typeid(Request).name()] = &Request::restore_request;
+    }
+
+    i_request_ptr engine_dispatcher::restore_request(const string& request_class, we_iarchive& ar) const;
 
 #ifndef __DOXYGEN__
+
+private:
+    std::map<string, request_constructor*> m_request_map;
+
 protected:
     plugin_factory plg_factory;
     plugin_list plg_list;

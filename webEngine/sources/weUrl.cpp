@@ -40,8 +40,7 @@ static string& fix_double_slash(string& req)
     path = req.substr(0, pos);
     if (pos != string::npos) {
         vals = req.substr(pos);
-    }
-    else {
+    } else {
         vals = "";
     }
     replace_all(path, "/./", "/");
@@ -139,8 +138,7 @@ void transport_url::assign(const string& url )
     if (pos == string::npos) {
         request = "/";             // Default root path is "/"
         temp = temp.substr(0, pos);            // leaving: "user:pass@host:port"
-    }
-    else {
+    } else {
         request = temp.substr(pos);        // parsed out: "/request/dir/file.ext"
         temp = temp.substr(0, pos);            // leaving: "user:pass@host:port"
     }
@@ -163,8 +161,7 @@ void transport_url::assign(const string& url )
         if( pos != string::npos ) {
             password = szAuth.substr(pos+1);
             username = szAuth.substr(0,pos);
-        }
-        else
+        } else
             username = szAuth;
     }
 
@@ -174,8 +171,7 @@ void transport_url::assign(const string& url )
         port = atoi(temp.substr(pos+1).c_str());
         host = temp.substr(0,pos);
         to_lower(host);
-    }
-    else {
+    } else {
         host = temp;
         to_lower(host);
         if( protocol == "http" )
@@ -186,8 +182,7 @@ void transport_url::assign(const string& url )
             port = 80;
     }
 
-    while (starts_with(request, "./"))
-    {
+    while (starts_with(request, "./")) {
         request = request.substr(2);
     }
     fix_double_slash(request);
@@ -195,8 +190,7 @@ void transport_url::assign(const string& url )
     if (pos != string::npos) {
         params = request.substr(pos + 1);
         request = request.substr(0, pos);
-    }
-    else {
+    } else {
         params.clear();
     }
 
@@ -206,16 +200,14 @@ void transport_url::assign(const string& url )
     if (pos != string::npos) {
         hashlink = request.substr(pos + 1);
         request = request.substr(0, pos);
-    }
-    else {
+    } else {
         hashlink.clear();
     }
     pos = params.find('#');
     if (pos != string::npos) {
         hashlink = params.substr(pos + 1);
         params = params.substr(0, pos);
-    }
-    else {
+    } else {
         hashlink.clear();
     }
     valid = true;
@@ -262,32 +254,27 @@ void transport_url::assign_with_referer( const string& url_, transport_url* base
             if (pos != string::npos) {
                 params = request.substr(pos + 1);
                 request = request.substr(0, pos);
-            }
-            else {
+            } else {
                 params.clear();
             }
-        }
-        else {
+        } else {
             pos = base->request.find('?');
             temp = base->request.substr(0, pos);
             pos = temp.rfind('/');
             temp = temp.substr(0, pos);
             // process './'
-            while (starts_with(url, "./"))
-            {
+            while (starts_with(url, "./")) {
                 url = url.substr(2);
             }
             // process '../'
-            while (starts_with(url, "../"))
-            {
+            while (starts_with(url, "../")) {
                 pos = temp.rfind('/');
                 if (pos == string::npos) {
                     break;
                 }
                 temp = temp.substr(0, pos);
                 url = url.substr(3);
-                if (starts_with(url, "./"))
-                {
+                if (starts_with(url, "./")) {
                     url = url.substr(2);
                 }
             }
@@ -299,8 +286,7 @@ void transport_url::assign_with_referer( const string& url_, transport_url* base
             if (pos != string::npos) {
                 params = request.substr(pos + 1);
                 request = request.substr(0, pos);
-            }
-            else {
+            } else {
                 params.clear();
             }
         }
@@ -311,21 +297,18 @@ void transport_url::assign_with_referer( const string& url_, transport_url* base
         if (pos != string::npos) {
             hashlink = request.substr(pos + 1);
             request = request.substr(0, pos);
-        }
-        else {
+        } else {
             hashlink.clear();
         }
         pos = params.find('#');
         if (pos != string::npos) {
             hashlink = params.substr(pos + 1);
             params = params.substr(0, pos);
-        }
-        else {
+        } else {
             hashlink.clear();
         }
         valid = true;
-    }
-    else {
+    } else {
         assign(url);
     }
 }
@@ -348,24 +331,19 @@ const bool transport_url::is_equal( const transport_url& url )
 {
     bool retval = true;
 
-    if (protocol != url.protocol)
-    {
+    if (protocol != url.protocol) {
         retval = false;
     }
-    if (host != url.host)
-    {
+    if (host != url.host) {
         retval = false;
     }
-    if (port != url.port)
-    {
+    if (port != url.port) {
         retval = false;
     }
-    if (request != url.request)
-    {
+    if (request != url.request) {
         retval = false;
     }
-    if (params != url.params)
-    {
+    if (params != url.params) {
         retval = false;
     }
     /** @todo Is it need to compare credentials?
@@ -391,16 +369,13 @@ const bool transport_url::is_host_equal( const transport_url& url )
 {
     bool retval = true;
 
-    if (protocol != url.protocol)
-    {
+    if (protocol != url.protocol) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_host_equal - protocols doesn't match");
         retval = false;
     }
-    if (host != url.host)
-    {
+    if (host != url.host) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_host_equal - hostnames doesn't match: " << url.host << " != " << host);
-        if (host != "www." + url.host )
-        {
+        if (host != "www." + url.host ) {
             LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_host_equal - hostnames doesn't match: www." << url.host << " != " << host);
             retval = false;
         }
@@ -415,14 +390,12 @@ const bool transport_url::is_domain_equal( const string& url )
 
     if (istarts_with(url, "www.")) {
         second_level = url.substr(4);
-    }
-    else {
+    } else {
         second_level = url;
     }
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - compare " << host << " and " << second_level);
-    if (!iends_with(host, second_level))
-    {
+    if (!iends_with(host, second_level)) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "transport_url::is_domain_equal - iends_with returns fasle");
         retval = false;
     }
@@ -453,8 +426,7 @@ string transport_url::tostring_noparam( bool noDefPort /*= true*/ )
 
     if (iequals(protocol, "about")) {
         retval = protocol + ":" + host;
-    }
-    else{
+    } else {
         retval = protocol + "://";
         if (!username.empty() || !password.empty()) {
             retval += username + ':' + password +'@';
@@ -462,8 +434,7 @@ string transport_url::tostring_noparam( bool noDefPort /*= true*/ )
         retval += host;
         if (noDefPort && ((protocol == "http" && port == 80) || (protocol == "https" && port == 443))) {
             // oops, in this case we don't need print anything :)
-        }
-        else if (port > 0 && port < 65536) {
+        } else if (port > 0 && port < 65536) {
             retval += ':';
             retval += boost::lexical_cast<std::string>(port);
         }

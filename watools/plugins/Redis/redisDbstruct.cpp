@@ -25,7 +25,7 @@
 using namespace std;
 
 redis_cursor::redis_cursor() :
-db_cursor_base(NULL)
+    db_cursor_base(NULL)
 {
     db_cli = NULL;
     base = new redis_recordset;
@@ -37,7 +37,7 @@ db_cursor_base(NULL)
 }
 
 redis_cursor::redis_cursor( redis::client* dbcli, string nspace, size_t idx ) :
-db_cursor_base(NULL)
+    db_cursor_base(NULL)
 {
     db_cli = dbcli;
     name_space = nspace;
@@ -50,10 +50,9 @@ db_cursor_base(NULL)
     if (rowid > size()) {
         rowid = -1;
     }
-    try{
+    try {
         db_cli->lrange(name_space + ".struct", 0, -1, fnames);
-    }
-    catch(redis::redis_error& e) {
+    } catch(redis::redis_error& e) {
         ostringstream ss(last_err);
         ss << "RedisDB can't get " << name_space << ".struct - " << (string)e;
     }
@@ -66,7 +65,7 @@ db_cursor_base(NULL)
 }
 
 redis_cursor::redis_cursor( const redis_cursor& cpy ) :
-db_cursor_base(NULL)
+    db_cursor_base(NULL)
 {
     db_cli = cpy.db_cli;
     name_space = cpy.name_space;
@@ -99,8 +98,7 @@ redis_cursor& redis_cursor::operator++()
         }
         if (rowid > max_rowid) {
             rowid = -1;
-        }
-        else {
+        } else {
             // read values
             base->data()[0].resize(rec_sz);
             string row_id = boost::lexical_cast<string>(rowid);
@@ -140,13 +138,11 @@ redis_cursor& redis_cursor::operator++()
                             base->data()[0][i] = boost::blank();
                             break;
                         }
-                    }
-                    catch (out_of_range &) {
+                    } catch (out_of_range &) {
                         base->data()[0][i] = boost::blank();
                     }
                 }
-            }
-            catch(redis::redis_error& e) {
+            } catch(redis::redis_error& e) {
                 ostringstream ss(last_err);
                 ss << "RedisDB can't get " << rowid << " - " << (string)e;
             }
@@ -165,8 +161,7 @@ bool redis_cursor::commit()
             string val = boost::lexical_cast<string>(base->data()[0][i].which()) + ":" + boost::lexical_cast<string>(base->data()[0][i]);
             try {
                 db_cli->lset(row_id, i, val);
-            }
-            catch(redis::redis_error& e) {
+            } catch(redis::redis_error& e) {
                 ostringstream ss(last_err);
                 ss << "RedisDB can't save " << fnames[i] << " for RowID = " << rowid << " - " << (string)e;
             }
@@ -215,8 +210,7 @@ const size_t redis_cursor::get_record_size()
 
     try {
         ret = db_cli->llen(name_space + ".struct");
-    }
-    catch(redis::redis_error& e) {
+    } catch(redis::redis_error& e) {
         ostringstream ss(last_err);
         ss << "RedisDB can't get " << name_space << ".struct - " << (string)e;
     }
@@ -229,14 +223,12 @@ const bool redis_cursor::is_valid_rowid( size_t id ) const
     vector<string> keys;
     string idn;
 
-    try
-    {
+    try {
         idn = name_space + "." + boost::lexical_cast<string>(id);
         if (db_cli->exists(idn)) {
             retval = true;
         }
-    }
-    catch (redis::redis_error&) { }
+    } catch (redis::redis_error&) { }
 
     return retval;
 }
@@ -249,8 +241,7 @@ const int redis_cursor::size()
     try {
         val = db_cli->get(name_space + ".rowid");
         ret = boost::lexical_cast<int>(val);
-    }
-    catch(redis::redis_error& e) {
+    } catch(redis::redis_error& e) {
         ret = -1;
         ostringstream ss(last_err);
         ss << "RedisDB can't get " << name_space << ".rowid - " << (string)e;

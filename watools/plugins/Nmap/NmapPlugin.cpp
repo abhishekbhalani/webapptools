@@ -87,8 +87,7 @@ NmapDiscovery::~NmapDiscovery(void)
 
 void* NmapDiscovery::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "nmapDiscovery"))
-    {
+    if (iequals(ifName, "nmapDiscovery")) {
         usageCount++;
         return (void*)(this);
     }
@@ -127,8 +126,7 @@ void NmapDiscovery::Start(Task* tsk)
     cmdline += " ";
     opt = tsk->Option("nmapDiscovery/ports");
     SAFE_GET_OPTION_VAL(opt, param, "");
-    if (param != "")
-    {
+    if (param != "") {
         cmdline += "-p " + param + " ";
     }
     if (tsk->IsSet("nmapDiscovery/syn")) {
@@ -163,21 +161,18 @@ void NmapDiscovery::Start(Task* tsk)
     }
     opt = tsk->Option("nmapDiscovery/options");
     SAFE_GET_OPTION_VAL(opt, param, "");
-    if (param != "")
-    {
+    if (param != "") {
         cmdline += param + " ";
     }
     opt = tsk->Option("scan_host");
     SAFE_GET_OPTION_VAL(opt, param, "");
-    if (param == "")
-    {
+    if (param == "") {
         LOG4CXX_FATAL(logger, "NmapDiscovery: can't find host to discovery!");
         return;
     }
     cmdline += param + " ";
     ScanData* scData = tsk->GetScanData(param, param);
-    if (scData->dataID == "")
-    {
+    if (scData->dataID == "") {
         scData->dataID = kernel->Storage()->GenerateID(weObjTypeScan);
         scData->respCode = 200;
         scData->downloadTime = 0;
@@ -196,21 +191,18 @@ void NmapDiscovery::Start(Task* tsk)
     ::system(cmdline.c_str());
     time_t tm2 = time(NULL);
     scData->downloadTime = (int)(tm2 - tm1);
-    try{
+    try {
         size_t fsize = fs::file_size(fs::path(tmName));
         scData->dataSize = fsize;
         ifstream ifs(tmName);
         char* buff = new char[fsize + 10];
-        if(buff != NULL)
-        {
+        if(buff != NULL) {
             memset(buff, 0, fsize+10);
             ifs.read(buff, fsize);
             param = buff;
             delete buff;
         }
-    }
-    catch ( const std::exception & e )
-    {
+    } catch ( const std::exception & e ) {
         LOG4CXX_ERROR(logger, "NmapDiscovery: fileRead error: " << e.what());
     }
     remove(tmName);

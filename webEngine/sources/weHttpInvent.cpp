@@ -85,8 +85,7 @@ http_inventory::~http_inventory(void)
 i_plugin* http_inventory::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "http_inventory::get_interface " << ifName);
-    if (iequals(ifName, "httpInventory"))
-    {
+    if (iequals(ifName, "httpInventory")) {
         LOG4CXX_DEBUG(logger, "http_inventory::get_interface found!");
         usageCount++;
         return (this);
@@ -104,32 +103,26 @@ void http_inventory::init( task* tsk )
     transport_url   start_url;
     string url_list;
 
-    if (tsk)
-    {
+    if (tsk) {
         parent_task = tsk;
-        if (kernel)
-        {
+        if (kernel) {
             string host;
             we_option opt = tsk->Option(weoScanHost);
             SAFE_GET_OPTION_VAL(opt, host, "");
-            if (host != "")
-            {
+            if (host != "") {
                 string path;
                 // create list of the blocked extension
                 opt = tsk->Option(weoDeniedFileTypes);
                 SAFE_GET_OPTION_VAL(opt, path, 1);
-                if (path != "")
-                {
+                if (path != "") {
                     size_t pos = path.find(';');
                     ext_deny.clear();
                     while(pos != string::npos) {
                         string ext = path.substr(0, pos);
                         ext_deny.push_back(ext);
-                        if (pos < path.length())
-                        {
+                        if (pos < path.length()) {
                             path = path.substr(pos+1);
-                        }
-                        else {
+                        } else {
                             path = "";
                         }
                         pos = path.find(';');
@@ -139,8 +132,7 @@ void http_inventory::init( task* tsk )
                 // create list of allowed sub-domains
                 opt = tsk->Option(weoDomainsAllow);
                 SAFE_GET_OPTION_VAL(opt, path, 1);
-                if (path != "")
-                {
+                if (path != "") {
                     boost::split(domain_allow, path, boost::is_any_of("\r\n"),  token_compress_on);
                 }
 
@@ -223,16 +215,13 @@ void http_inventory::init( task* tsk )
 //                req->context = (void*)this;
                 parent_task->register_url(start_url.tostring());
                 parent_task->get_request_async(i_request_ptr(req));
-            }
-            else {
+            } else {
                 LOG4CXX_WARN(logger, "http_inventory::init: Can't find hostname. Finishing.");
             }
-        }
-        else {
+        } else {
             LOG4CXX_WARN(logger, "http_inventory::init: No kernel given - can't read options. Finishing.");
         }
-    }
-    else {
+    } else {
         LOG4CXX_WARN(logger, "http_inventory::init: No parent task - can't process requests. Finishing.");
     }
 }
@@ -243,8 +232,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
 
     try {
         htResp = reinterpret_cast<HttpResponse*>(scData->response.get());
-    }
-    catch (...) {
+    } catch (...) {
         LOG4CXX_ERROR(logger, "http_inventory::process: The response from " << scData->response->BaseUrl().tostring() << " isn't the HttpResponse!");
         return;
     }
@@ -254,8 +242,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
     }
     // process response
     LOG4CXX_TRACE(logger, "http_inventory::process: process response with code=" << htResp->HttpCode());
-    if (scData->parent_id == "")
-    {
+    if (scData->parent_id == "") {
         scData->parent_id = htResp->ID();
     }
     scData->resp_code = htResp->HttpCode();
@@ -278,15 +265,13 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
             add_url(baseUrl, htResp, scData);
         }
     }
-    if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0)
-    {
+    if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0) {
         shared_ptr<html_document> parser;
         entity_list lst;
 
-        try{
+        try {
             parser = boost::shared_dynamic_cast<html_document>(scData->parsed_data);
-        }
-        catch (bad_cast) {
+        } catch (bad_cast) {
             LOG4CXX_ERROR(logger, "http_inventory::process: can't process given document as html_document");
             parser.reset();
         }
@@ -314,8 +299,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
             // objects
             // images
             lst = parser->FindTags("img");
-            if (lst.size() > 0)
-            {
+            if (lst.size() > 0) {
                 webEngine::base_entity* ent = NULL;
                 webEngine::entity_list::iterator iEnt;
                 string href;
@@ -332,8 +316,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
             } // end <img ...> tags processing
             // frames
             lst = parser->FindTags("frame");
-            if (lst.size() > 0)
-            {
+            if (lst.size() > 0) {
                 webEngine::base_entity* ent = NULL;
                 webEngine::entity_list::iterator iEnt;
                 string href;
@@ -350,8 +333,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
             } // end <iframe ...> tags processing
             // iframes
             lst = parser->FindTags("iframe");
-            if (lst.size() > 0)
-            {
+            if (lst.size() > 0) {
                 webEngine::base_entity* ent = NULL;
                 webEngine::entity_list::iterator iEnt;
                 string href;
@@ -369,8 +351,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
             // forms
             // meta
             lst = parser->FindTags("meta");
-            if (lst.size() > 0)
-            {
+            if (lst.size() > 0) {
                 base_entity* ent = NULL;
                 entity_list::iterator iEnt;
                 string href;
@@ -405,18 +386,14 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
 void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::shared_ptr< ScanData > scData )
 {
     bool allowed = true;
-    if (opt_in_host)
-    {
-        if (!link.is_host_equal(htResp->RealUrl()))
-        {
+    if (opt_in_host) {
+        if (!link.is_host_equal(htResp->RealUrl())) {
             allowed = false;
         }
         LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInHost check " << allowed << " (" << link.tostring() << ")");
     }
-    if (opt_in_domain)
-    {
-        if (!link.is_domain_equal(htResp->RealUrl()))
-        {
+    if (opt_in_domain) {
+        if (!link.is_domain_equal(htResp->RealUrl())) {
             allowed = false;
         }
         LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInDomain check << " << allowed << " (" << link.tostring() << ")");
@@ -439,17 +416,16 @@ void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::s
             }
         } // foreach domain
         LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInDomainList check << " << allowed << " (" << link.tostring() << ")");
-    } // if filter by domain list 
+    } // if filter by domain list
     if ( opt_max_depth > 0 && htResp->depth() >= opt_max_depth) {
         LOG4CXX_DEBUG(logger, "http_inventory::add_url: maximum scanning depth reached! (" << opt_max_depth << ")");
         allowed = false;
     }
-    if (allowed)
-    {    // verify blocked file types
+    if (allowed) {
+        // verify blocked file types
         string path = link.request;
         int pos = path.find_last_of('.');
-        if (pos != string::npos && ext_deny.size() > 0)
-        {
+        if (pos != string::npos && ext_deny.size() > 0) {
             path = path.substr(pos+1);
             LOG4CXX_TRACE(logger, "http_inventory::add_url: Found extension: " << path << "; Deny list size is " << ext_deny.size());
             for (size_t i = 0; i < ext_deny.size(); i++) {
@@ -458,8 +434,7 @@ void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::s
                     LOG4CXX_DEBUG(logger, "http_inventory::add_http_url: not need to download " << link.tostring());
                     // make the pseudo-response
                     shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
-                    if (scn->data_id == "")
-                    {
+                    if (scn->data_id == "") {
                         scn->data_id = kernel->storage()->generate_id(weObjTypeScan);
                         scn->parent_id = scData->data_id;
                         scn->resp_code = 204; // 204 No Content;  The server successfully processed the request, but is not returning any content
@@ -475,15 +450,13 @@ void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::s
             } // for deny list size
         } // if file extension found
     } // if allowed
-    if (allowed)
-    {
+    if (allowed) {
         string u_req = link.tostring();
         if (opt_ignore_param) {
             u_req = link.tostring_noparam();
         }
         LOG4CXX_TRACE(logger, "http_inventory::add_http_url: weoIgnoreUrlParam check << " << u_req);
-        if (!parent_task->is_url_processed(u_req))
-        {
+        if (!parent_task->is_url_processed(u_req)) {
             HttpRequest* new_url = new HttpRequest(u_req);
             new_url->depth(htResp->depth() + 1);
             new_url->ID(scData->data_id);
@@ -495,9 +468,7 @@ void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::s
             }
             new_url->SetReferer(scData->object_url);
             parent_task->get_request_async(i_request_ptr(new_url));
-        }
-        else
-        {
+        } else {
             // add parent to existing scan data
         }
         parent_task->register_url(u_req);

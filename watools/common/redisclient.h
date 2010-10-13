@@ -37,16 +37,13 @@
 #include <stdexcept>
 #include <ctime>
 
-namespace redis 
-{
-  enum server_role
-  {
+namespace redis {
+enum server_role {
     role_master,
     role_slave
-  };
+};
 
-  struct server_info 
-  {
+struct server_info {
     std::string version;
     bool bgsave_in_progress;
     unsigned long connected_clients;
@@ -59,79 +56,73 @@ namespace redis
     unsigned long uptime_in_seconds;
     unsigned long uptime_in_days;
     server_role role;
-  };
+};
 
-  // Generic error that is thrown when communicating with the redis server.
+// Generic error that is thrown when communicating with the redis server.
 
-  class redis_error 
-  {
-  public:
+class redis_error {
+public:
     redis_error(const std::string & err);
     operator std::string ();
     operator const std::string () const;
-  private:
+private:
     std::string err_;
-  };
+};
 
-  // Some socket-level I/O or general connection error.
+// Some socket-level I/O or general connection error.
 
-  class connection_error : public redis_error
-  {
-  public:
+class connection_error : public redis_error {
+public:
     connection_error(const std::string & err);
-  };
+};
 
-  // Redis gave us a reply we were not expecting.
-  // Possibly an internal error (here or in redis, probably here).
+// Redis gave us a reply we were not expecting.
+// Possibly an internal error (here or in redis, probably here).
 
-  class protocol_error : public redis_error
-  {
-  public:
+class protocol_error : public redis_error {
+public:
     protocol_error(const std::string & err);
-  };
+};
 
-  // A key that you expected to exist does not in fact exist.
+// A key that you expected to exist does not in fact exist.
 
-  class key_error : public redis_error
-  {
-  public:
+class key_error : public redis_error {
+public:
     key_error(const std::string & err);
-  };
+};
 
-  // A value of an expected type or other semantics was found to be invalid.
+// A value of an expected type or other semantics was found to be invalid.
 
-  class value_error : public redis_error
-  {
-  public:
+class value_error : public redis_error {
+public:
     value_error(const std::string & err);
-  };
+};
 
-  // You should construct a 'client' object per connection to a redis-server.
-  //
-  // Please read the online redis command reference:
-  // http://code.google.com/p/redis/wiki/CommandReference
-  //
-  // No provisions for customizing the allocator on the string/bulk value type
-  // (std::string) are provided.  If needed, you can always change the
-  // string_type typedef in your local version.
+// You should construct a 'client' object per connection to a redis-server.
+//
+// Please read the online redis command reference:
+// http://code.google.com/p/redis/wiki/CommandReference
+//
+// No provisions for customizing the allocator on the string/bulk value type
+// (std::string) are provided.  If needed, you can always change the
+// string_type typedef in your local version.
 
-  class client
-  {
-  public:
+class client {
+public:
     typedef std::string string_type;
     typedef std::vector<string_type> string_vector;
     typedef std::set<string_type> string_set;
 
     typedef long int_type;
 
-    explicit client(const string_type & host = "localhost", 
+    explicit client(const string_type & host = "localhost",
                     unsigned int port = 6379);
 
     ~client();
 
     //
     // Connection handling
-    // 
+    //
 
     void auth(const string_type & pass);
 
@@ -196,12 +187,11 @@ namespace redis
 
     void del(const string_type & key);
 
-    enum datatype 
-    {
-      datatype_none,      // key doesn't exist
-      datatype_string,
-      datatype_list,
-      datatype_set
+    enum datatype {
+        datatype_none,      // key doesn't exist
+        datatype_string,
+        datatype_list,
+        datatype_set
     };
 
     // return the type of the value stored at key
@@ -222,7 +212,7 @@ namespace redis
 
     string_type randomkey();
 
-    // rename the old key in the new one, destroying the new key if 
+    // rename the old key in the new one, destroying the new key if
     // it already exists
 
     void rename(const string_type & old_name, const string_type & new_name);
@@ -237,9 +227,9 @@ namespace redis
 
     int_type dbsize();
 
-    // set a time to live in seconds on a key.  
+    // set a time to live in seconds on a key.
     // fails if there's already a timeout on the key.
-    
+
     // NB: there's currently no generic way to remove a timeout on a key
 
     void expire(const string_type & key, unsigned int secs);
@@ -265,16 +255,15 @@ namespace redis
     // end can be negative for reverse offsets
     // Returns number of elements appended to 'out'
 
-    int_type lrange(const string_type & key, 
-                    int_type start, 
+    int_type lrange(const string_type & key,
+                    int_type start,
                     int_type end,
                     string_vector & out);
 
     // Fetches the entire list at key.
 
-    int_type get_list(const string_type & key, string_vector & out)
-    {
-      return lrange(key, 0, -1, out);
+    int_type get_list(const string_type & key, string_vector & out) {
+        return lrange(key, 0, -1, out);
     }
 
     // Trim the list at key to the specified range of elements
@@ -287,8 +276,8 @@ namespace redis
 
     // set a new value as the element at index position of the list at key
 
-    void lset(const string_type & key, 
-              int_type index, 
+    void lset(const string_type & key,
+              int_type index,
               const string_type &);
 
     // If count is zero all the elements are removed. If count is negative
@@ -296,14 +285,14 @@ namespace redis
     // that is the normal behaviour. So for example LREM with count -2 and
     // hello as value to remove against the list (a,b,c,hello,x,hello,hello)
     // will lave the list (a,b,c,hello,x). Returns the number of removed
-    // elements if the operation succeeded. 
+    // elements if the operation succeeded.
     //
     // Note: this will not throw if the number of elements removed != count
     // since you might want to remove at most count elements by don't care if
     // < count elements are removed.  See lrem_exact().
 
-    int_type lrem(const string_type & key, 
-                  int_type count, 
+    int_type lrem(const string_type & key,
+                  int_type count,
                   const string_type & value);
 
     // An extension of 'lrem' that wants to remove exactly 'count' elements.
@@ -312,10 +301,9 @@ namespace redis
 
     void lrem_exact(const string_type & key,
                     int_type count,
-                    const string_type & value)
-    { 
-      if (lrem(key, count, value) != count)
-        throw value_error("failed to remove exactly N elements from list");
+                    const string_type & value) {
+        if (lrem(key, count, value) != count)
+            throw value_error("failed to remove exactly N elements from list");
     }
 
     // Return and remove (atomically) the first element of the list at key
@@ -343,8 +331,8 @@ namespace redis
     // Move the specified member from one set to another atomically
     // returns true if element was moved, else false (e.g. not found)
 
-    void smove(const string_type & srckey, 
-               const string_type & dstkey, 
+    void smove(const string_type & srckey,
+               const string_type & dstkey,
                const string_type & value);
 
     // Return the number of elements (the cardinality) of the set at key
@@ -360,7 +348,7 @@ namespace redis
 
     int_type sinter(const string_vector & keys, string_set & out);
 
-    // Compute the intersection between the sets stored at key1, key2, ..., 
+    // Compute the intersection between the sets stored at key1, key2, ...,
     // keyN, and store the resulting set at dstkey
     // Returns the number of items in the intersection
 
@@ -370,7 +358,7 @@ namespace redis
 
     int_type sunion(const string_vector & keys, string_set & out);
 
-    // Compute the union between the sets stored at key1, key2, ..., keyN, 
+    // Compute the union between the sets stored at key1, key2, ..., keyN,
     // and store the resulting set at dstkey
     // Returns the number of items in the intersection
 
@@ -407,30 +395,29 @@ namespace redis
     // Just go read http://code.google.com/p/redis/wiki/SortCommand
     //
 
-    enum sort_order
-    {
-      sort_order_ascending,
-      sort_order_descending
+    enum sort_order {
+        sort_order_ascending,
+        sort_order_descending
     };
 
-    int_type sort(const string_type & key, 
+    int_type sort(const string_type & key,
                   string_vector & out,
                   sort_order order = sort_order_ascending,
                   bool lexicographically = false);
 
-    int_type sort(const string_type & key, 
+    int_type sort(const string_type & key,
                   string_vector & out,
-                  int_type limit_start, 
-                  int_type limit_end, 
+                  int_type limit_start,
+                  int_type limit_end,
                   sort_order order = sort_order_ascending,
                   bool lexicographically = false);
 
-    int_type sort(const string_type & key, 
+    int_type sort(const string_type & key,
                   string_vector & out,
-                  const string_type & by_pattern, 
-                  int_type limit_start, 
-                  int_type limit_end, 
-                  const string_vector & get_patterns, 
+                  const string_type & by_pattern,
+                  int_type limit_start,
+                  int_type limit_end,
+                  const string_vector & get_patterns,
                   sort_order order = sort_order_ascending,
                   bool lexicographically = false);
 
@@ -446,7 +433,7 @@ namespace redis
 
     void bgsave();
 
-    // Return the UNIX time stamp of the last successfully saving of the 
+    // Return the UNIX time stamp of the last successfully saving of the
     // dataset on disk
 
     time_t lastsave();
@@ -466,7 +453,7 @@ namespace redis
 
     void info(server_info & out);
 
-  private:
+private:
     client(const client &);
     client & operator=(const client &);
 
@@ -480,9 +467,9 @@ namespace redis
     int_type    recv_multi_bulk_reply_(string_set & out);
     int_type    recv_int_reply_();
 
-  private:
+private:
     int socket_;
-  };
+};
 }
 
 #endif

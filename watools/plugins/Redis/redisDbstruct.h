@@ -26,15 +26,17 @@
 
 using namespace webEngine;
 
-class redis_recordset : public db_recordset
-{
+class redis_recordset : public db_recordset {
 public:
-    redis_recordset() { records.resize(1); }
-    recordset_& data() { return records; }
+    redis_recordset() {
+        records.resize(1);
+    }
+    recordset_& data() {
+        return records;
+    }
 };
 
-class redis_cursor : public db_cursor_base
-{
+class redis_cursor : public db_cursor_base {
 public:
     redis_cursor();
     redis_cursor(redis::client* dbcli, string nspace, size_t idx);
@@ -47,34 +49,52 @@ public:
     //@{
     /// @fn we_variant& operator[](string name)
     ///
-    /// @brief  Access to named field. 
+    /// @brief  Access to named field.
     ///
     /// @return we_variant - value of fields
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    we_variant& operator[](string name) { return db_cursor_base::operator[](name); }
-    const we_variant& operator[](string name) const { return db_cursor_base::operator[](name); }
+    we_variant& operator[](string name) {
+        return db_cursor_base::operator[](name);
+    }
+    const we_variant& operator[](string name) const {
+        return db_cursor_base::operator[](name);
+    }
     //@}
 
     //@{
     /// @fn we_variant& operator[](int index)
     ///
-    /// @brief  Access to zero-based indexed field. 
+    /// @brief  Access to zero-based indexed field.
     ///
     /// @return we_variant - value of fields
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    we_variant& operator[](int index) { return db_cursor_base::operator[](index); }
-    const we_variant& operator[](int index) const { return db_cursor_base::operator[](index); }
+    we_variant& operator[](int index) {
+        return db_cursor_base::operator[](index);
+    }
+    const we_variant& operator[](int index) const {
+        return db_cursor_base::operator[](index);
+    }
     //@}
 
     bool commit();
     const int size();
-    const size_t record_size() const { return rec_sz; }
-    const string& get_last_error() const { return last_err; }
-    const vector<string>& field_names() const { return fnames; };
-    const size_t row_id() const { return rowid; }
+    const size_t record_size() const {
+        return rec_sz;
+    }
+    const string& get_last_error() const {
+        return last_err;
+    }
+    const vector<string>& field_names() const {
+        return fnames;
+    };
+    const size_t row_id() const {
+        return rowid;
+    }
 
     const bool operator==(const redis_cursor& rhs) const;
-    const bool operator!=(const redis_cursor& rhs) const { return !(this->operator==( rhs )); }
+    const bool operator!=(const redis_cursor& rhs) const {
+        return !(this->operator==( rhs ));
+    }
 
     static redis_cursor begin(redis::client* dbcli, string nspace);
     static redis_cursor end(redis::client* dbcli, string nspace);

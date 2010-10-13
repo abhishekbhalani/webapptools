@@ -56,13 +56,11 @@ mem_storage::~mem_storage(void)
 
 i_plugin* mem_storage::get_interface( const string& ifName )
 {
-    if (iequals(ifName, "i_storage"))
-    {
+    if (iequals(ifName, "i_storage")) {
         usageCount++;
         return ((i_storage*)this);
     }
-    if (iequals(ifName, "mem_storage"))
-    {
+    if (iequals(ifName, "mem_storage")) {
         usageCount++;
         return ((mem_storage*)this);
     }
@@ -72,17 +70,16 @@ i_plugin* mem_storage::get_interface( const string& ifName )
 int mem_storage::get(db_query& query, db_recordset& results)
 {
     std::set<string> ns_list;
-    std::set<string>::iterator ns_it;
-    vector<string>::iterator rec_it;
+    std::set<string>::const_iterator ns_it;
+    vector<string>::const_iterator rec_it;
     db_filter_cursor cursor;
-    db_cursor record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::get");
 
     boost::unique_lock<boost::mutex> locker(data_access);
 
-    results.clear();
-    results.set_names(query.what);
+    results.clear_data();
+    //results.set_names(query.what);
     query.where.get_namespaces(ns_list);
 
     // @todo implement db_recordset.join to perform queries from more than one table
@@ -92,16 +89,14 @@ int mem_storage::get(db_query& query, db_recordset& results)
     if (ns_list.size() > 0) {
         ns_it = ns_list.begin();
         mem_tables::iterator mit = name_spaces.find(*ns_it);
-        if (mit != name_spaces.end())
-        {
+        if (mit != name_spaces.end()) {
             cursor = mit->second->filter_begin(query.where);
             while (cursor != name_spaces[*ns_it]->filter_end(query.where)) {
-                record = results.push_back();
-                for(rec_it = query.what.begin(); rec_it != query.what.end(); rec_it++) {
+                db_cursor record = results.push_back();
+                for(rec_it = results.get_names().begin(); rec_it != results.get_names().end(); rec_it++) {
                     try {
                         record[*rec_it] = (*cursor)[*rec_it];
-                    }
-                    catch(out_of_range &e) {
+                    } catch(out_of_range &e) {
                         LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::get - can't get filed " << *rec_it << ": source doesn't contains this field. " << e.what());
                     }
                 } // foreach field
@@ -121,8 +116,6 @@ int mem_storage::set(db_query& query, db_recordset& data)
     bool updated;
     std::set<string> ns_list;
     std::set<string>::iterator ns_it;
-    db_cursor cursor;
-    db_cursor record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(query, db_record)");
 
@@ -136,16 +129,15 @@ int mem_storage::set(db_query& query, db_recordset& data)
     if (ns_list.size() > 0) {
         ns_it = ns_list.begin();
         mem_tables::iterator mit = name_spaces.find(*ns_it);
-        if (mit != name_spaces.end())
-        {
-            cursor = mit->second->begin();
+        if (mit != name_spaces.end()) {
+            db_cursor cursor = mit->second->begin();
             updated = false;
             while (cursor != name_spaces[*ns_it]->end()) {
                 if (query.where.eval(cursor)) {
                     updated = true;
                     // update record
                     // @todo only firs record from argument used for update
-                    record = data.begin();
+                    db_cursor record = data.begin();
                     try {
                         vector<string> rec_fields = data.get_names();
                         for (size_t i = 0; i < rec_fields.size(); i++) {
@@ -159,7 +151,7 @@ int mem_storage::set(db_query& query, db_recordset& data)
             if (!updated) {
                 // insert new record
                 cursor = mit->second->push_back();
-                record = data.begin();
+                db_cursor record = data.begin();
                 try {
                     vector<string> rec_fields = data.get_names();
                     for (size_t i = 0; i < rec_fields.size(); i++) {
@@ -168,8 +160,7 @@ int mem_storage::set(db_query& query, db_recordset& data)
                     retval++;
                 } catch(out_of_range &) {};
             } // if not updated
-        }
-        else {
+        } else {
             LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::set - can't find namespace " << *ns_it);
         }
     }
@@ -182,8 +173,6 @@ int mem_storage::set(db_recordset& data)
     int retval = 0;
     string ns_name;
     size_t i;
-    db_cursor cursor;
-    db_cursor record;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::set(db_recordset)");
 
@@ -197,10 +186,9 @@ int mem_storage::set(db_recordset& data)
         if (i != string::npos) {
             ns_name = ns_name.substr(i + 1);
             mem_tables::iterator mit = name_spaces.find(ns_name);
-            if (mit != name_spaces.end())
-            {
-                cursor = mit->second->push_back();
-                record = data.begin();
+            if (mit != name_spaces.end()) {
+                db_cursor cursor = mit->second->push_back();
+                db_cursor record = data.begin();
                 try {
                     vector<string> rec_fields = data.get_names();
                     for (size_t i = 0; i < rec_fields.size(); i++) {
@@ -224,18 +212,16 @@ int mem_storage::del(db_filter& filter)
     int retval = 0;
     std::set<string> ns_list;
     std::set<string>::iterator ns_it;
-    db_cursor cursor;
 
     filter.get_namespaces(ns_list);
     for (ns_it = ns_list.begin(); ns_it != ns_list.end(); ns_it++) {
         if (name_spaces.find(*ns_it) != name_spaces.end()) {
-            cursor = name_spaces[*ns_it]->begin();
+            db_cursor cursor = name_spaces[*ns_it]->begin();
             while (cursor != name_spaces[*ns_it]->end()) {
                 if (filter.eval(cursor)) {
                     cursor = name_spaces[*ns_it]->erase(cursor);
                     retval++;
-                }
-                else {
+                } else {
                     ++cursor;
                 }
             } // foreach record
@@ -287,7 +273,7 @@ void mem_storage::save_db( const string& fname )
                     } catch (bad_lexical_cast &e) {
                         s = "";
                         LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::save_db - can't save value: " << e.what() << "\n" <<
-                            "namespace: " << mit->first << " record: " << j << " column: " << i);
+                                      "namespace: " << mit->first << " record: " << j << " column: " << i);
                     }
                     s = ScreenXML(s);
                     ofs << s << "</column>" << endl;
@@ -302,9 +288,7 @@ void mem_storage::save_db( const string& fname )
             mit++;
         }
         ofs << "</database>" << endl;
-    }
-    catch(std::exception& e)
-    {
+    } catch(std::exception& e) {
         LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::save_db error: " << e.what());
     }
     return;
@@ -316,20 +300,18 @@ void mem_storage::load_db( const string& fname )
 
     boost::unique_lock<boost::mutex> locker(data_access);
 
-    try{
+    try {
         LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::load_db");
         std::ifstream ifs(fname.c_str());
 
         // load data from archive
         if (ifs.is_open()) {
-            size_t fsize = bfs::file_size(bfs::path(fname));
+            size_t fsize = size_t(bfs::file_size(bfs::path(fname)));
             buff = new char[fsize + 10];
-            if(buff != NULL)
-            {
+            if(buff != NULL) {
                 memset(buff, 0, fsize+10);
                 ifs.read(buff, fsize);
-            }
-            else {
+            } else {
                 // can't read file - exit
                 LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::load_db can't load file " << fname);
                 return;
@@ -346,8 +328,8 @@ void mem_storage::load_db( const string& fname )
             int rec_num;
             string name, val, dat;
             string ns_name;
-            db_recordset* ns_recs = NULL;
-            db_cursor record;
+            auto_ptr<db_recordset> ns_recs;
+            auto_ptr<db_cursor> record;
             vector<string> fnames;
 
             mem_tables::iterator mit = name_spaces.begin();
@@ -356,12 +338,10 @@ void mem_storage::load_db( const string& fname )
                 mit++;
             }
             name_spaces.clear();
-            
-            while (in_parsing)
-            {
+
+            while (in_parsing) {
                 token = sc.get_token();
-                switch(token)
-                {
+                switch(token) {
                 case wstError:
                     LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db parsing error");
                     in_parsing = false;
@@ -381,8 +361,7 @@ void mem_storage::load_db( const string& fname )
                     case 1:
                         if ( iequals(name, "namespace") ) {
                             ns_name = "";
-                        }
-                        else {
+                        } else {
                             in_parsing = false;
                         }
                         break;
@@ -390,26 +369,22 @@ void mem_storage::load_db( const string& fname )
                         if ( iequals(name, "columns") ) {
                             in_records = false;
                             fnames.clear();
-                        }
-                        else if ( iequals(name, "records") ) {
+                        } else if ( iequals(name, "records") ) {
                             in_records = true;
-                        }
-                        else {
+                        } else {
                             in_parsing = false;
                         }
                         break;
                     case 3:
                         if ( iequals(name, "column") ) {
                             in_records = false;
-                        }
-                        else if ( iequals(name, "record") ) {
+                        } else if ( iequals(name, "record") ) {
                             in_parsing = true;
                             rec_num = 0;
-                            if (ns_recs != NULL) {
-                                record = ns_recs->push_back();
+                            if (ns_recs.get() != NULL) {
+                                record = auto_ptr<db_cursor>(&(ns_recs->push_back()));
                             }
-                        }
-                        else {
+                        } else {
                             in_parsing = false;
                         }
                         break;
@@ -426,8 +401,7 @@ void mem_storage::load_db( const string& fname )
                         val = "";
                         dat = "";
                         tp = -1;
-                    }
-                    else {
+                    } else {
                         LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db parsing error - unexpected tag " << name);
                     }
                     break;
@@ -438,38 +412,36 @@ void mem_storage::load_db( const string& fname )
                         in_parsing = false;
                     }
                     if ( iequals(name, "columns") ) {
-                        ns_recs = new db_recordset(fnames);
+                        ns_recs = get_recordset_by_fields(fnames);
                     }
-                    if ( iequals(name, "namespace") && ns_recs != NULL ) {
-                        name_spaces[ns_name] = ns_recs;
-                        ns_recs = NULL;
+                    if ( iequals(name, "namespace") && ns_recs.get() != NULL ) {
+                        name_spaces[ns_name] = ns_recs.release();
                     }
-                    if ( iequals(name, "column") && ns_recs != NULL && in_records ) {
-                        try{
+                    if ( iequals(name, "column") && ns_recs.get() != NULL && in_records ) {
+                        try {
                             switch(tp) {
                             case 0:
-                                record[rec_num] = boost::lexical_cast<char>(dat);
+                                (*record)[rec_num] = boost::lexical_cast<char>(dat);
                                 break;
                             case 1:
-                                record[rec_num] = boost::lexical_cast<int>(dat);
+                                (*record)[rec_num] = boost::lexical_cast<int>(dat);
                                 break;
                             case 2:
-                                record[rec_num] = boost::lexical_cast<bool>(dat);
+                                (*record)[rec_num] = boost::lexical_cast<bool>(dat);
                                 break;
                             case 3:
-                                record[rec_num] = boost::lexical_cast<double>(dat);
+                                (*record)[rec_num] = boost::lexical_cast<double>(dat);
                                 break;
                             case 4:
-                                record[rec_num] = dat;
+                                (*record)[rec_num] = dat;
                                 break;
                             default:
-                                record[rec_num] = boost::blank();
+                                (*record)[rec_num] = boost::blank();
                                 break;
                             }
-                        }
-                        catch(bad_lexical_cast &e) {
-                            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db can't store '" << dat << "' as value of column " << rec_num << 
-                                " in namespace " << ns_name << endl << e.what());
+                        } catch(bad_lexical_cast &e) {
+                            LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db can't store '" << dat << "' as value of column " << rec_num <<
+                                         " in namespace " << ns_name << endl << e.what());
                         }
                         rec_num++;
                     }
@@ -479,7 +451,7 @@ void mem_storage::load_db( const string& fname )
                     val = sc.get_value();
                     val = UnscreenXML(val);
                     if (parse_level == 1 && iequals(name, "last_id") ) {
-                        try{
+                        try {
                             last_id = boost::lexical_cast<int>(val);
                         } catch (bad_lexical_cast &e) {
                             LOG4CXX_WARN(iLogger::GetLogger(), "mem_storage::load_db can't parse " << val << " as last_id value: " << e.what());
@@ -494,7 +466,7 @@ void mem_storage::load_db( const string& fname )
                         fnames.push_back(val);
                     }
                     if (parse_level == 5 && iequals(name, "type") ) {
-                        try{
+                        try {
                             tp = boost::lexical_cast<int>(val);
                         } catch (bad_lexical_cast &e) {
                             tp = -1;
@@ -502,16 +474,14 @@ void mem_storage::load_db( const string& fname )
                         }
                     }
                     break;
-                case wstWord: 
+                case wstWord:
                 case wstSpace:
                     dat += sc.get_value();
                     break;
                 };
             }
         } // if file open
-    }
-    catch(std::exception& e)
-    {
+    } catch(std::exception& e) {
         LOG4CXX_ERROR(iLogger::GetLogger(), "mem_storage::load_db error: " << e.what());
     }
     if (buff != NULL) {
@@ -523,10 +493,10 @@ void mem_storage::load_db( const string& fname )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn bool mem_storage::init_storage( const string& params )
 ///
-/// @brief  Initializes the storage_db. 
+/// @brief  Initializes the storage_db.
 ///
 /// @param  params - Pathname for the storage_db file.
-/// @retval	true if it succeeds, false if it fails. 
+/// @retval	true if it succeeds, false if it fails.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool mem_storage::init_storage( const string& params )
 {
@@ -555,8 +525,7 @@ bool mem_storage::init_storage( const string& params )
                     }
                 } // for each field
                 if (fields.size() > 0) {
-                    db_recordset* dbr = new db_recordset(fields);
-                    name_spaces[inits[0]] = dbr;
+                    name_spaces[inits[0]] = get_recordset_by_fields(fields).release();
                 }
             } // not namespace found
         } // if inits parsed
@@ -567,15 +536,29 @@ bool mem_storage::init_storage( const string& params )
 
 void mem_storage::flush( const string& params /*= ""*/)
 {
-    if (params != "")
-    {
+    if (params != "") {
         file_name = params;
     }
-    if (file_name != "")
-    {
+    if (file_name != "") {
         LOG4CXX_TRACE(iLogger::GetLogger(), "mem_storage::flush: filename not empty, save data");
         save_db(file_name);
     }
+}
+namespace {
+class mem_storage_recordset: public db_recordset {
+public:
+    explicit mem_storage_recordset(const vector<string>& fields):db_recordset(fields) {};
+};
+}
+
+std::auto_ptr<db_recordset> mem_storage::get_recordset_by_namespace(const std::string& ns)
+{
+    return get_recordset_by_fields(i_storage::get_namespace_struct(ns));
+}
+
+std::auto_ptr<db_recordset> mem_storage::get_recordset_by_fields(const vector<string>& fields)
+{
+    return std::auto_ptr<db_recordset>((db_recordset*)(new mem_storage_recordset(fields)));
 }
 
 } // namespace webEngine

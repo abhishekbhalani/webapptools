@@ -24,21 +24,17 @@
 
 namespace webEngine {
 
-class iLogger
-{
+class iLogger {
 public:
-    static void SetBlock(const std::string& block)
-    {
+    static void SetBlock(const std::string& block) {
         m_logger = log4cxx::Logger::getLogger(GetName(block));
     }
 
-    static log4cxx::LoggerPtr GetLogger()
-    {
+    static log4cxx::LoggerPtr GetLogger() {
         return m_logger;
     }
 private:
-    static std::string GetName(const std::string& block)
-    {
+    static std::string GetName(const std::string& block) {
         std::ostringstream name;
         name << "webEngine";
         if (!block.empty())

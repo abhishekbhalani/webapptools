@@ -40,6 +40,15 @@ using namespace boost;
 
 namespace webEngine {
 
+    namespace{
+        static char task_params_str[] = "!!params!!";
+    }
+
+#define SERIALIZE_TASK_PARAMS(arch) \
+    arch & BOOST_SERIALIZATION_NVP(total_reqs);
+
+
+
 #ifndef __DOXYGEN__
 static const we_option empty_option("_empty_");
 #endif //__DOXYGEN__
@@ -71,84 +80,73 @@ void task_processor(task* tsk)
 
     tsk->processThread = true;
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor started for task " << tsk);
-    while (tsk->IsReady())
-    {
+
+    bool holded = false;
+    while (tsk->IsReady() && !holded) {
         tsk->WaitForData();
+        tsk->calc_status();
+
+        holded = (tsk->tsk_status == WI_TSK_STOPPED || tsk->tsk_status == WI_TSK_SUSPENDED || tsk->tsk_status == WI_TSK_FINISHED || tsk->tsk_status == WI_TSK_PAUSED);
+
         opt = tsk->Option(weoParallelReq);
         SAFE_GET_OPTION_VAL(opt, iData, 1);
         tsk->taskQueueSize = iData;
         LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor max requests: " << tsk->taskQueueSize <<
-            " in queue: " << tsk->taskQueue.size() << " waiting: " << tsk->taskList.size() << " done: " << tsk->total_done);
+                      " in queue: " << tsk->taskQueue.size() << " waiting: " << tsk->taskList.size() << " done: " << tsk->total_done);
 
         // send request if slots available
         {
             boost::unique_lock<boost::mutex> lock(tsk->tsk_mutex);
-            if (tsk->tsk_status == WI_TSK_STOPPED) {
-                // if task was stopped - clear requests queue
-                for (i = 0; i < tsk->taskList.size(); ++i) {
-                    tsk->taskList[i]->abort_request();
-                }
-                tsk->taskList.clear();
-            }
-            while (tsk->taskQueueSize > tsk->taskQueue.size() && tsk->tsk_status == WI_TSK_RUN) {
-                if (!tsk->taskList.empty())
-                {
-                    curr_url = tsk->taskList[0];
-                    // search for transport or recreate request to all transports
-                    if (curr_url->RequestUrl().is_valid()) {
-                        // search for transport
-                        for(i = 0; i < tsk->transports.size(); i++)
-                        {
-                            if (tsk->transports[i]->is_own_protocol(curr_url->RequestUrl().protocol)) {
-                                resp = tsk->transports[i]->request(curr_url.get());
-                                resp->ID(curr_url->ID());
-                                resp->processor = curr_url->processor;
-                                resp->context = curr_url->context;
-                                tsk->taskQueue.push_back(resp);
-                                LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
-                                resp.reset();
-                                break;
-                            }
-                        }
-                        if ( i == tsk->transports.size()) {
-                            LOG4CXX_WARN(iLogger::GetLogger(), "WeTaskProcessor: can't send request to " << curr_url->RequestUrl().tostring() <<
-                                " no transports accept this request!");
-                            // need to send the "abort request" message to caller
-                            resp = curr_url->abort_request();
-                            resp->ID(curr_url->ID());
-                            resp->processor = curr_url->processor;
-                            resp->context = curr_url->context;
-                            tsk->taskQueue.push_back(resp);
-                        }
-                    }
-                    else {
-                        // try to send request though appropriate transports
-                        LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
-                        for(i = 0; i < tsk->transports.size(); i++)
-                        {
+
+            while (tsk->taskQueueSize > tsk->taskQueue.size() && tsk->tsk_status == WI_TSK_RUNNING && !tsk->taskList.empty()) {
+                curr_url = tsk->taskList[0];
+                // search for transport or recreate request to all transports
+                if (curr_url->RequestUrl().is_valid()) {
+                    // search for transport
+                    for(i = 0; i < tsk->transports.size(); i++) {
+                        if (tsk->transports[i]->is_own_protocol(curr_url->RequestUrl().protocol)) {
                             resp = tsk->transports[i]->request(curr_url.get());
                             resp->ID(curr_url->ID());
                             resp->processor = curr_url->processor;
                             resp->context = curr_url->context;
                             tsk->taskQueue.push_back(resp);
+                            LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
+                            resp.reset();
+                            break;
                         }
                     }
+                    if ( i == tsk->transports.size()) {
+                        LOG4CXX_WARN(iLogger::GetLogger(), "WeTaskProcessor: can't send request to " << curr_url->RequestUrl().tostring() <<
+                                     " no transports accept this request!");
+                        // need to send the "abort request" message to caller
+                        resp = curr_url->abort_request();
+                        resp->ID(curr_url->ID());
+                        resp->processor = curr_url->processor;
+                        resp->context = curr_url->context;
+                        tsk->taskQueue.push_back(resp);
+                    }
+                } else {
+                    // try to send request though appropriate transports
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send request to " << curr_url->RequestUrl().tostring());
+                    for(i = 0; i < tsk->transports.size(); i++) {
+                        resp = tsk->transports[i]->request(curr_url.get());
+                        resp->ID(curr_url->ID());
+                        resp->processor = curr_url->processor;
+                        resp->context = curr_url->context;
+                        tsk->taskQueue.push_back(resp);
+                    }
+                }
 
-                    //string u_req = curr_url->RequestUrl().tostring();
-                    tsk->taskList.erase(tsk->taskList.begin());
-                    //curr_url.reset(); - automatically desctroy on list.erase
-                }
-                else {
-                    break; // no URLs in the waiting list
-                }
-            }
+                //string u_req = curr_url->RequestUrl().tostring();
+                tsk->taskList.erase(tsk->taskList.begin());
+                //curr_url.reset(); - automatically desctroy on list.erase
+            }//while
         }
 
         // if any requests pending process transport operations
-        if (tsk->taskQueue.size() > 0) {
+        if ( !holded && tsk->taskQueue.size() > 0) {
             LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor: transport->process_requests()");
-            for(i = 0; i < tsk->transports.size(); i++)
-            {
+            for(i = 0; i < tsk->transports.size(); i++) {
                 tsk->transports[i]->process_requests();
             }
             // just switch context to wake up other tasks
@@ -157,18 +155,16 @@ void task_processor(task* tsk)
                 if ((*rIt)->Processed()) {
                     LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: received! Queue: " << tsk->taskQueue.size() << " done: " << tsk->total_done);
                     tsk->total_done++;
-                    if ((*rIt)->processor && tsk->tsk_status == WI_TSK_RUN) {
+                    if ((*rIt)->processor) {
                         // send to owner
                         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to owner");
                         (*rIt)->processor((*rIt), (*rIt)->context);
-                    }
-                    else if (tsk->tsk_status == WI_TSK_RUN) { // process response only if task is running
+                    } else /*if (tsk->tsk_status == WI_TSK_RUNNING)*/ { // process response only if task is running
                         // process response by task queue
                         // 1. Parse data
                         i_document_ptr parsed_doc;
 
-                        for (size_t i = 0; i < tsk->parsers.size(); i++)
-                        {
+                        for (size_t i = 0; i < tsk->parsers.size(); i++) {
                             LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: parse response by " << tsk->parsers[i]->get_description());
                             parsed_doc = tsk->parsers[i]->parse(*rIt);
                             if (parsed_doc) {
@@ -191,14 +187,12 @@ void task_processor(task* tsk)
                     }
                     //(*rIt).reset();
                     rIt = tsk->taskQueue.erase(rIt);
-                }
-                else {
+                } else {
                     rIt++;
                 }
             }
             LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: queue: " << tsk->taskQueue.size() << " done: " << tsk->total_done);
         }
-        tsk->calc_status();
     };
     tsk->processThread = false;
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor finished for task " << tsk);
@@ -217,23 +211,20 @@ void task_data_process(task* tsk)
             tsk->sc_process.erase(tsk->sc_process.begin());
         }
         if (sc_data) {
-            if (tsk->tsk_status == WI_TSK_RUN) {
+            /*if (tsk->tsk_status == WI_TSK_RUN)*/ {
                 LOG4CXX_TRACE(iLogger::GetLogger(), "task_data_process: response for " << sc_data->object_url << " id = " << sc_data->data_id );
                 // send to all inventories
-                for (size_t i = 0; i < tsk->inventories.size(); i++)
-                {
+                for (size_t i = 0; i < tsk->inventories.size(); i++) {
                     LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->inventories[i]->get_description());
                     tsk->inventories[i]->process(tsk, sc_data);
                 }
                 // send to all auditors
-                for (size_t i = 0; i < tsk->auditors.size(); i++)
-                {
+                for (size_t i = 0; i < tsk->auditors.size(); i++) {
                     LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->auditors[i]->get_description());
                     tsk->auditors[i]->process(tsk, sc_data);
                 }
                 // send to all vulner detectors
-                for (size_t i = 0; i < tsk->vulners.size(); i++)
-                {
+                for (size_t i = 0; i < tsk->vulners.size(); i++) {
                     LOG4CXX_DEBUG(iLogger::GetLogger(), "task_data_process: send response to " << tsk->vulners[i]->get_description());
                     tsk->vulners[i]->process(tsk, sc_data);
                 }
@@ -261,7 +252,7 @@ task::task(engine_dispatcher *krnl /*= NULL*/)
     total_reqs = 0;
     total_done = 0;
     profile_id = "0";
-    tsk_status = WI_TSK_IDLE;
+    tsk_status = WI_TSK_INIT;
     tsk_completion = 0;
 
     parsers.clear();
@@ -336,29 +327,32 @@ i_response_ptr task::get_request( i_request_ptr req )
     return retval;
 }
 
+void task::check_task_processor()
+{
+    if (!processThread) {
+        processThread = true;
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::get_request_async: create WeTaskProcessor");
+        boost::thread process(task_processor, this);
+    }
+}
+
 void task::get_request_async( i_request_ptr req )
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async");
-    if (tsk_status == WI_TSK_RUN || tsk_status == WI_TSK_IDLE) {
-        if (!processThread) {
-            processThread = true;
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::get_request_async: create WeTaskProcessor");
-            boost::thread process(task_processor, this);
-            tsk_status = WI_TSK_RUN;
-        }
-        // wake-up task_processor
+    if (tsk_status < WI_TSK_PAUSING) {
+        check_task_processor();
+    }
+    if(tsk_status < WI_TSK_FINISHED){
         boost::unique_lock<boost::mutex> lock(tsk_mutex);
         if (req->processor != NULL) {
             taskList.insert(taskList.begin(), req);
-        }
-        else {
+        } else {
             taskList.push_back(req);
         }
         total_reqs++;
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
         tsk_event.notify_all();
-    }
-    else {
+    } else {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: task isn't running (status="<< tsk_status << "), skip the request to " << req->BaseUrl().tostring());
         req->abort_request();
     }
@@ -367,11 +361,7 @@ void task::get_request_async( i_request_ptr req )
 
 bool task::IsReady()
 {
-    bool result;
-    int active_threads = LockedGetValue(&thread_count);
-
-    result = !(taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0);
-    result = result || (tsk_status == WI_TSK_RUN);
+    bool result = !(tsk_status == WI_TSK_STOPPED || tsk_status == WI_TSK_FINISHED);
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::IsReady - " << result);
     return result;
 }
@@ -379,10 +369,8 @@ bool task::IsReady()
 void task::add_plg_parser(i_parser* plugin)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_parser");
-    for (size_t i = 0; i < parsers.size(); i++)
-    {
-        if (parsers[i]->get_id() == plugin->get_id())
-        {
+    for (size_t i = 0; i < parsers.size(); i++) {
+        if (parsers[i]->get_id() == plugin->get_id()) {
             // transport already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_parser - parser already in list");
             return;
@@ -395,10 +383,8 @@ void task::add_plg_parser(i_parser* plugin)
 void task::add_plg_transport( i_transport* plugin )
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_transport");
-    for (size_t i = 0; i < transports.size(); i++)
-    {
-        if (transports[i]->get_id() == plugin->get_id())
-        {
+    for (size_t i = 0; i < transports.size(); i++) {
+        if (transports[i]->get_id() == plugin->get_id()) {
             // transport already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_transport - transport already in list");
             return;
@@ -414,10 +400,8 @@ void task::add_plg_inventory( i_inventory* plugin )
     int inPlace = -1;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_inventory");
-    for (size_t i = 0; i < inventories.size(); i++)
-    {
-        if (inventories[i]->get_id() == plugin->get_id())
-        {
+    for (size_t i = 0; i < inventories.size(); i++) {
+        if (inventories[i]->get_id() == plugin->get_id()) {
             // plugin already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_inventory - inventory already in list");
             return;
@@ -428,8 +412,7 @@ void task::add_plg_inventory( i_inventory* plugin )
     }
     if (inPlace > -1) {
         inventories.insert(inventories.begin() + inPlace, plugin);
-    }
-    else {
+    } else {
         inventories.push_back(plugin);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_inventory: added " << plugin->get_description());
@@ -441,10 +424,8 @@ void task::add_plg_auditor( i_audit* plugin )
     int inPlace = -1;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_auditor");
-    for (size_t i = 0; i < auditors.size(); i++)
-    {
-        if (auditors[i]->get_id() == plugin->get_id())
-        {
+    for (size_t i = 0; i < auditors.size(); i++) {
+        if (auditors[i]->get_id() == plugin->get_id()) {
             // plugin already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_auditor - auditor already in list");
             return;
@@ -455,8 +436,7 @@ void task::add_plg_auditor( i_audit* plugin )
     }
     if (inPlace > -1) {
         auditors.insert(auditors.begin() + inPlace, plugin);
-    }
-    else {
+    } else {
         auditors.push_back(plugin);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_auditor: added " << plugin->get_description());
@@ -468,10 +448,8 @@ void task::add_plg_vulner( i_vulner* plugin )
     int inPlace = -1;
 
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_vulner");
-    for (size_t i = 0; i < vulners.size(); i++)
-    {
-        if (vulners[i]->get_id() == plugin->get_id())
-        {
+    for (size_t i = 0; i < vulners.size(); i++) {
+        if (vulners[i]->get_id() == plugin->get_id()) {
             // plugin already in list
             LOG4CXX_DEBUG(iLogger::GetLogger(), "task::add_plg_vulner - vulner already in list");
             return;
@@ -482,8 +460,7 @@ void task::add_plg_vulner( i_vulner* plugin )
     }
     if (inPlace > -1) {
         vulners.insert(vulners.begin() + inPlace, plugin);
-    }
-    else {
+    } else {
         vulners.push_back(plugin);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_plg_vulner: added " << plugin->get_description());
@@ -494,42 +471,36 @@ void task::store_plugins(vector<i_plugin*>& plugins)
     string_list::iterator trsp;
     string_list ifaces;
 
-    for (size_t i = 0; i < plugins.size(); i++)
-    {
+    for (size_t i = 0; i < plugins.size(); i++) {
         ifaces = plugins[i]->interface_list();
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - plugin: " << plugins[i]->get_description() << " ifaces: " << ifaces.size());
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_parser");
-        if (trsp != ifaces.end())
-        {
+        if (trsp != ifaces.end()) {
             LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found parser: " << plugins[i]->get_description());
             add_plg_parser((i_parser*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_transport");
-        if (trsp != ifaces.end())
-        {
+        if (trsp != ifaces.end()) {
             LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found transport: " << plugins[i]->get_description());
             add_plg_transport((i_transport*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_inventory");
-        if (trsp != ifaces.end())
-        {
+        if (trsp != ifaces.end()) {
             LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found inventory: " << plugins[i]->get_description());
             add_plg_inventory((i_inventory*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_audit");
-        if (trsp != ifaces.end())
-        {
+        if (trsp != ifaces.end()) {
             LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found auditor: " << plugins[i]->get_description());
             add_plg_auditor((i_audit*)plugins[i]);
         }
 
         trsp = find(ifaces.begin(), ifaces.end(), "i_vulner");
-        if (trsp != ifaces.end())
-        {
+        if (trsp != ifaces.end()) {
             LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - found vulner: " << plugins[i]->get_description());
             add_plg_vulner((i_vulner*)plugins[i]);
         }
@@ -537,151 +508,119 @@ void task::store_plugins(vector<i_plugin*>& plugins)
 
 }
 
-void task::Run(void)
+void task::Run(const string &task_id)
 {
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Run: create WeTaskProcessor");
-    if (kernel != NULL && kernel->storage() != NULL) {
-        scan_id = kernel->storage()->generate_id(weObjTypeScanData);
+    scan_id = task_id;
+    if(task_id.empty()){
+        if (kernel != NULL && kernel->storage() != NULL) {
+            scan_id = kernel->storage()->generate_id(weObjTypeScanData);
+        }
     }
-    else {
-        scan_id = "";
-    }
-    tsk_status = WI_TSK_RUN;
+    //tsk_status = WI_TSK_RUNNING;
     start_tm = btm::second_clock::local_time();
-    if (!processThread)
-    {
-        processThread = true;
-        boost::thread process(task_processor, this);
-        // switch context to initialize TaskProcessor
-        boost::this_thread::sleep(boost::posix_time::millisec(10));
-    }
+    check_task_processor();
 
     total_reqs = 0;
     total_done = 0;
-    processThread = true;
-    for (size_t i = 0; i < transports.size(); i++)
-    {
+    //processThread = true;
+    for (size_t i = 0; i < transports.size(); i++) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << transports[i]->get_description());
         transports[i]->init(this);
     }
+
+    load_task_list();
+
     // init parsers first
-    for (size_t i = 0; i < parsers.size(); i++)
-    {
+    for (size_t i = 0; i < parsers.size(); i++) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << parsers[i]->get_description());
         parsers[i]->init(this);
     }
 
     // init vulner detectors
-    for (size_t i = 0; i < vulners.size(); i++)
-    {
+    for (size_t i = 0; i < vulners.size(); i++) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << vulners[i]->get_description());
         vulners[i]->init(this);
     }
 
     // init auditors
-    for (size_t i = 0; i < auditors.size(); i++)
-    {
+    for (size_t i = 0; i < auditors.size(); i++) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: initialize " << auditors[i]->get_description());
         auditors[i]->init(this);
     }
 
     // last step: init inventories and run the process
-    for (size_t i = 0; i < inventories.size(); i++)
-    {
+    for (size_t i = 0; i < inventories.size(); i++) {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: start " << inventories[i]->get_description());
         inventories[i]->init(this);
     }
-    tsk_status = WI_TSK_RUN;
-    save_to_db();
-    boost::unique_lock<boost::mutex> lock(tsk_mutex);
-    tsk_event.notify_all();
+
+    calc_status();
 }
 
-void task::Pause(const bool& state /*= true*/)
+TaskStatus task::Pause(bool wait)
 {
-//    we_option opt;
-//    opt = Option(weoTaskStatus);
-//    SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
-    if (state) {
-        tsk_status = WI_TSK_PAUSED;
-    }
-    else {
-        tsk_status = WI_TSK_RUN;
-    }
-
-    LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
-    boost::unique_lock<boost::mutex> lock(tsk_mutex);
-    tsk_event.notify_all();
-}
-
-void task::Stop(bool force /*= false*/)
-{
-    int active_threads = LockedGetValue(&thread_count);
-
-    // stop vulner detectors
-    for (size_t i = 0; i < vulners.size(); i++)
+    //    we_option opt;
+    //    opt = Option(weoTaskStatus);
+    //    SAFE_GET_OPTION_VAL(opt, idata, WI_TSK_RUN);
+    tsk_status = WI_TSK_PAUSING;
+    check_task_processor();
     {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: stopping " << vulners[i]->get_description());
-        vulners[i]->stop(this);
-    }
-
-    // stop auditors
-    for (size_t i = 0; i < auditors.size(); i++)
-    {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: stopping " << auditors[i]->get_description());
-        auditors[i]->stop(this);
-    }
-
-    // stop inventories
-    for (size_t i = 0; i < inventories.size(); i++)
-    {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: stopping " << inventories[i]->get_description());
-        inventories[i]->stop(this);
-    }
-
-    // stop parsers
-    for (size_t i = 0; i < parsers.size(); i++)
-    {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: stopping " << parsers[i]->get_description());
-        parsers[i]->stop(this);
-    }
-
-    if (active_threads > 0) {
-        LOG4CXX_INFO(iLogger::GetLogger(), "task::Stop: " << active_threads << " threads still active, waiting...");
-        boost::this_thread::sleep(boost::posix_time::millisec(100));
-    }
-
-    tsk_status = WI_TSK_STOPPED;
-    if (force) {
-        while (active_threads > 0 && processThread) {
-            tsk_status = WI_TSK_STOPPED;
-            boost::this_thread::sleep(boost::posix_time::millisec(100));
-            {
-                LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop notify all about TaskStatus change");
-                boost::unique_lock<boost::mutex> lock(tsk_mutex);
-                tsk_event.notify_all();
-            }
-            active_threads = LockedGetValue(&thread_count);
-        }
-        taskList.clear();
-        taskQueue.clear();
-    }
-    //processThread = false;
-    {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop notify all about TaskStatus change");
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Pause notify all about TaskStatus change");
         boost::unique_lock<boost::mutex> lock(tsk_mutex);
         tsk_event.notify_all();
     }
-    // switch context to finalize TaskProcessor
-    boost::this_thread::sleep(boost::posix_time::millisec(10));
-
-    if (tsk_status == WI_TSK_RUN) {
-        calc_status();
+    if(wait){
+        while(tsk_status == WI_TSK_PAUSING){
+            boost::this_thread::sleep(boost::posix_time::millisec(500));
+        }
     }
+    return tsk_status;
+}
+
+void task::Resume()
+{
+    if(tsk_status == WI_TSK_PAUSED && tsk_status == WI_TSK_SUSPENDED){
+        tsk_status = WI_TSK_RUNNING;
+        check_task_processor();
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Resume notify all about TaskStatus change");
+        boost::unique_lock<boost::mutex> lock(tsk_mutex);
+        tsk_event.notify_all();
+    }
+}
+
+bool task::Suspend(){
+    if(Pause(true) == WI_TSK_PAUSED){
+        save_to_db();
+        save_task_list();
+        boost::unique_lock<boost::mutex> lock(tsk_mutex);
+        tsk_status = WI_TSK_SUSPENDED;
+        tsk_event.notify_all();
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Suspend notify all about TaskStatus change");
+        return true;        
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::Suspend Error while pausing thread");
+    return false;
+}
+
+bool task::Stop()
+{
+    if(Pause(true) == WI_TSK_PAUSED){
+        boost::unique_lock<boost::mutex> lock(tsk_mutex);
+        tsk_status = WI_TSK_STOPPED;
+        tsk_event.notify_all();
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop notify all about TaskStatus change");
+        return true;        
+    }
+    LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop Error while stopping thread");
+    return false;
 }
 
 void task::calc_status()
 {
+    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+
+    const TaskStatus old = tsk_status;
 
     size_t count = taskList.size();
     int idata = 100;
@@ -690,8 +629,8 @@ void task::calc_status()
     }
     int active_threads = LockedGetValue(&thread_count);
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: rest " << count << " queries  from " <<
-        total_reqs << " (" << (total_reqs - count) << ": " << idata << "%); waiting for: " << taskQueue.size() <<
-        " requests, done: " << total_done << "; "<< active_threads << " active threads");
+                  total_reqs << " (" << (total_reqs - count) << ": " << idata << "%); waiting for: " << taskQueue.size() <<
+                  " requests, done: " << total_done << "; "<< active_threads << " active threads");
     if ( (count + total_done + taskQueue.size()) < total_reqs) {
         LOG4CXX_WARN(iLogger::GetLogger(), "task::calc_status: counters mismatch! count + total_done + taskQueue.size() < total_reqs!");
     }
@@ -699,42 +638,61 @@ void task::calc_status()
         idata = 99;
     }
     tsk_completion = idata;
-    if (tsk_status == WI_TSK_IDLE) {
-        tsk_status = WI_TSK_RUN;
+
+    switch(tsk_status){
+        case WI_TSK_INIT:
+            tsk_status = WI_TSK_RUNNING;
+        case WI_TSK_RUNNING:
+            if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
+                LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
+                tsk_completion = 100;
+                finish_tm = btm::second_clock::local_time();
+                tsk_status = WI_TSK_FINISHED;
+            }
+            break;
+        case WI_TSK_PAUSING:
+            if (taskQueue.size() == 0 && active_threads == 0) {
+                LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
+                tsk_status = WI_TSK_PAUSED;
+            }
+            break;
     }
 
+    tsk_event.notify_all();
+    if(old != tsk_status)
+        LOG4CXX_TRACE(iLogger::GetLogger(), "task::calc_status Status changed: " << tsk_status);
     // set task status
-    if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
-        //processThread = false;
-        tsk_completion = 100;
-        finish_tm = btm::second_clock::local_time();
-        tsk_status = WI_TSK_IDLE;
-        boost::unique_lock<boost::mutex> lock(tsk_mutex);
-        tsk_event.notify_all();
-    }
     save_to_db();
 }
 
-std::auto_ptr<db_recordset> task::get_scan()
+db_cursor task::get_scan()
 {
-    vector<string> fnames = i_storage::get_namespace_struct(weObjTypeScanData);
-    db_recordset* retval = new db_recordset(fnames);
-
-    if (kernel != NULL && kernel->storage() != NULL)
-    {
-        db_query flt;
+    db_cursor retval;
+    if (kernel != NULL && kernel->storage() != NULL) {
+        db_filter query;
         db_condition icond;
-
-        flt.what = fnames;
         icond.field() = weObjTypeScanData "." "task_id";
         icond.operation() = db_condition::equal;
         icond.value() = scan_id;
-        flt.where.set(icond);
-        kernel->storage()->get(flt, *retval);
+        query.set(icond);
+        retval = kernel->storage()->get(query, weObjTypeScanData);
     }
+    return retval;
+}
 
-    return auto_ptr<db_recordset>(retval);
+int task::get_scan_size()
+{
+    int retval = 0;
+    if (kernel != NULL && kernel->storage() != NULL) {
+        db_filter query;
+        db_condition icond;
+        icond.field() = weObjTypeScanData "." "task_id";
+        icond.operation() = db_condition::equal;
+        icond.value() = scan_id;
+        query.set(icond);
+        retval = kernel->storage()->count(query, weObjTypeScanData);
+    }
+    return retval;
 }
 
 shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
@@ -745,13 +703,14 @@ shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
 
     data = NULL;
     if (kernel != NULL && kernel->storage() != NULL) {
-        db_query flt;
+        db_filter flt;
         db_condition ucond;
         db_condition scond;
-        db_recordset rs;
+        //auto_ptr<db_recordset> rs = kernel->storage()->get_recordset_by_namespace(weObjTypeScanData);
+        //auto_ptr<db_recordset> dbres = kernel->storage()->get_recordset_by_namespace(weObjTypeScanData);
 
-        flt.what = i_storage::get_namespace_struct(weObjTypeScanData);
-        db_recordset dbres(flt.what);
+        //flt.what = i_storage::get_namespace_struct(weObjTypeScanData);
+        //db_recordset dbres(flt.what);
 
         ucond.field() = weObjTypeScanData "." "object_url";
         ucond.operation() = db_condition::equal;
@@ -759,11 +718,11 @@ shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
         scond.field() = weObjTypeScanData "." "task_id";
         scond.operation() = db_condition::equal;
         scond.value() = scan_id;
-        flt.where.set(scond).and(ucond);
-        if (kernel->storage()->get(flt, rs) > 0) {
-            db_cursor r = rs.begin();
+        flt.set(scond).and(ucond);
+        db_cursor r = kernel->storage()->get(flt, weObjTypeScanData);
+        if (r.is_not_end()) {
             data = new ScanData;
-            if (! data->from_dataset(r) ){
+            if (! data->from_dataset(*r) ) {
                 delete data;
                 data = NULL;
             }
@@ -774,8 +733,7 @@ shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
         data = new ScanData;
         data->object_url = baseUrl;
     } // if no data found
-    if (data->scan_id == "")
-    {
+    if (data->scan_id == "") {
         data->scan_id = scan_id;
     }
     retval = shared_ptr<ScanData>(data);
@@ -787,12 +745,9 @@ void task::set_scan_data( const string& baseUrl, boost::shared_ptr<ScanData> scD
     {
         boost::unique_lock<boost::mutex> lock(scandata_mutex);
         if (kernel != NULL && kernel->storage() != NULL) {
-            db_query flt;
+            db_filter flt;
             db_condition ucond;
             db_condition scond;
-
-            flt.what = i_storage::get_namespace_struct(weObjTypeScanData);
-            db_recordset dbres(flt.what);
 
             ucond.field() = weObjTypeScanData "." "object_url";
             ucond.operation() = db_condition::equal;
@@ -800,13 +755,11 @@ void task::set_scan_data( const string& baseUrl, boost::shared_ptr<ScanData> scD
             scond.field() = weObjTypeScanData "." "task_id";
             scond.operation() = db_condition::equal;
             scond.value() = scan_id;
-            flt.where.set(scond).and(ucond);
+            flt.set(scond).and(ucond);
 
-            db_cursor r = dbres.push_back();
-            if ( scData->to_dataset(r) ) {
-                kernel->storage()->set(flt, dbres);
-            }
-
+            db_cursor r = kernel->storage()->set(flt, weObjTypeScanData);
+            scData->to_dataset(*r);
+            r.close();
         } // if storage present
         sc_process.push_back(scData);
     }
@@ -830,20 +783,23 @@ void task::free_scan_data(boost::shared_ptr<ScanData> scData)
 /// @brief	Converts this object to an db_recordset. This function realizes alternate serialization
 /// 		mechanism. It generates db_recordset with all necessary data. This
 /// 		representation is used for internal data exchange (for example to store data through
-/// 		iweStorage interface). 
+/// 		iweStorage interface).
 ///
-/// @retval	This object as a std::string. 
+/// @retval	This object as a std::string.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool task::save_to_db( )
 {
     bool res = false;
 
-    if (kernel != NULL && kernel->storage() != NULL)
-    {
-        vector<string> fields = i_storage::get_namespace_struct(weObjTypeTask);
-        db_recordset dbres(fields);
+    if (kernel != NULL && kernel->storage() != NULL) {
+        db_filter flt;
+        db_condition icond;
+        icond.field() = weObjTypeTask "." weoID;
+        icond.operation() = db_condition::equal;
+        icond.value() = scan_id;
+        flt.set(icond);
 
-        db_cursor rec = dbres.push_back();
+        db_cursor rec = kernel->storage()->set(flt, weObjTypeTask);
         rec[weObjTypeTask "." weoID] = scan_id;
         rec[weObjTypeTask "." weoProfileID] = profile_id;
         rec[weObjTypeTask "." "name"] = task_name;
@@ -861,17 +817,7 @@ bool task::save_to_db( )
             urls += "\x0d";
         }
         rec[weObjTypeTask "." "processed_urls"] = urls;
-
-        // save to storage
-        db_query flt;
-
-        db_condition icond;
-        icond.field() = weObjTypeTask "." weoID;
-        icond.operation() = db_condition::equal;
-        icond.value() = scan_id;
-        flt.where.set(icond);
-        int r = kernel->storage()->set(flt, dbres);
-        if (r == 1) {
+        if (rec.close()) {
             // only one record inserted/updated
             res = true;
         }
@@ -883,36 +829,31 @@ bool task::save_to_db( )
 /// @fn void task::load_from_db( string& id )
 ///
 /// @brief  Initializes this object from the given from db_recordset.
-/// 		
-/// @param  id	 - task identifier in database. 
+///
+/// @param  id	 - task identifier in database.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 bool task::load_from_db( string& id  )
 {
     bool res = false;
 
-    if (kernel != NULL && kernel->storage() != NULL)
-    {
-        db_query flt;
+    if (kernel != NULL && kernel->storage() != NULL) {
+        db_filter flt;
         db_condition icond;
-        db_recordset dbres;
 
-        flt.what = i_storage::get_namespace_struct(weObjTypeTask);
         icond.field() = weObjTypeTask "." weoID;
         icond.operation() = db_condition::equal;
         icond.value() = scan_id;
-        flt.where.set(icond);
-
-        int r = kernel->storage()->set(flt, dbres);
-        if (r > 0) {
+        flt.set(icond);
+        db_cursor rec = kernel->storage()->get(flt, weObjTypeTask);
+        if(rec.is_not_end()) {
             res = true;
-            db_cursor rec = dbres.begin();
             string data;
-            try{
+            try {
                 scan_id = rec[weObjTypeTask "." weoID].get<string>();
                 profile_id = rec[weObjTypeTask "." weoProfileID].get<string>();
                 task_name = rec[weObjTypeTask "." "name"].get<string>();
                 tsk_completion = rec[weObjTypeTask "." weoTaskCompletion].get<int>();
-                tsk_status = rec[weObjTypeTask "." weoTaskStatus].get<int>();
+                tsk_status = (TaskStatus)rec[weObjTypeTask "." weoTaskStatus].get<int>();
                 data = rec[weObjTypeTask "." "start_time"].get<string>();
                 start_tm = boost::lexical_cast<boost::posix_time::ptime>(data);
                 data = rec[weObjTypeTask "." "finish_time"].get<string>();
@@ -936,13 +877,12 @@ bool task::load_from_db( string& id  )
                     }
                     processed_urls[u] = nl;
                 } // foreach url
-            }
-            catch (std::exception &e) {
+            } catch (std::exception &e) {
                 LOG4CXX_ERROR(iLogger::GetLogger(), "task::load_from_db exception: " << e.what());
                 // may be out_of_range or bad_cast
                 res = false;
             } // try/catch
-        } // if data found
+        }
     } // if storage exist
     return res;
 }
@@ -951,9 +891,10 @@ void task::WaitForData()
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::WaitForData synch object ready");
     boost::unique_lock<boost::mutex> lock(tsk_mutex);
-    while((taskList.size() == 0 && taskQueue.size() == 0 && tsk_status == WI_TSK_RUN) || tsk_status == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
+    while( tsk_status == WI_TSK_INIT || tsk_status == WI_TSK_PAUSED) { // (taskList.size() == 0 && taskQueue.size() == 0) ||
         LOG4CXX_DEBUG(iLogger::GetLogger(), "task::WaitForData: go to sleep");
         tsk_event.wait(lock);
+        LOG4CXX_DEBUG(iLogger::GetLogger(), "task::WaitForData: wake up");
     }
 }
 
@@ -969,26 +910,13 @@ void task::add_vulner( const string& vId, const string& params, const string& pa
     if (pos != string::npos) {
         plg_id = vId.substr(0, pos);
         v_id = vId.substr(pos + 1);
-    }
-    else {
+    } else {
         v_id = vId;
     }
     if (kernel != NULL && kernel->storage() != NULL) {
         id = kernel->storage()->generate_id(weObjTypeVulner);
 
-        vector<string> fields = i_storage::get_namespace_struct(weObjTypeVulner);
-        db_recordset dbres(fields);
-
-        db_cursor rec = dbres.push_back();
-        rec[weObjTypeVulner "." "id"] = id;
-        rec[weObjTypeVulner "." "task_id"] = scan_id;
-        rec[weObjTypeVulner "." "object_id"] = parentId;
-        rec[weObjTypeVulner "." "plugin_id"] = plg_id;
-        rec[weObjTypeVulner "." "severity"] = vLevel;
-        rec[weObjTypeVulner "." "vulner_id"] = v_id;
-        rec[weObjTypeVulner "." "params"] = params;
-
-        db_query flt;
+        db_filter flt;
         db_condition icond;
         db_condition tcond;
 
@@ -1000,10 +928,19 @@ void task::add_vulner( const string& vId, const string& params, const string& pa
         tcond.operation() = db_condition::equal;
         tcond.value() = scan_id;
 
-        flt.what = fields;
-        flt.where.set(icond).and(tcond);
+        flt.set(icond).and(tcond);
 
-        kernel->storage()->set(flt, dbres);
+        db_cursor rec = kernel->storage()->set(flt, weObjTypeVulner);;
+
+        rec[weObjTypeVulner "." "id"] = id;
+        rec[weObjTypeVulner "." "task_id"] = scan_id;
+        rec[weObjTypeVulner "." "object_id"] = parentId;
+        rec[weObjTypeVulner "." "plugin_id"] = plg_id;
+        rec[weObjTypeVulner "." "severity"] = vLevel;
+        rec[weObjTypeVulner "." "vulner_id"] = v_id;
+        rec[weObjTypeVulner "." "params"] = params;
+
+        rec.close();
     }
 
 }
@@ -1011,23 +948,21 @@ void task::add_vulner( const string& vId, const string& params, const string& pa
 int task::add_thread()
 {
     int nt = LockedIncrement(&thread_count);
-    tsk_status = WI_TSK_RUN;
     tsk_completion = 99;
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::add_thread " << nt << " threads active");
-    return nt; 
+    return nt;
 }
 
 int task::remove_thread()
 {
     int nt = LockedDecrement(&thread_count);
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::remove_thread " << nt << " threads active");
-    return nt; 
+    return nt;
 }
 
 we_option task::Option( const string& name )
 {
-    db_recordset res;
-    db_query flt;
+    db_filter flt;
     we_option opt;
     char c;
     int i;
@@ -1038,9 +973,9 @@ we_option task::Option( const string& name )
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::Option(" << name << ")");
     opt = i_options_provider::empty_option;
     if (kernel != NULL && kernel->storage() != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoTypeID);
-        flt.what.push_back(weObjTypeProfile "." weoValue);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoTypeID);
+        fields.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -1053,17 +988,16 @@ we_option task::Option( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where.set(p_cond).and(n_cond);
-        kernel->storage()->get(flt, res);
+        flt.set(p_cond).and(n_cond);
 
-        if (res.size() > 0) {
-            db_cursor rec = res.begin();
-            try{
+        db_cursor rec = kernel->storage()->get(flt, fields);
+
+        if (rec.is_not_end()) {
+            try {
                 if (!rec[1].empty()) {
                     int tp = boost::lexical_cast<int>(rec[0]);
                     opt.name(name);
-                    switch(tp)
-                    {
+                    switch(tp) {
                     case 0: // char
                         c = rec[weObjTypeProfile "." weoValue].get<char>();
                         opt.SetValue(c);
@@ -1088,8 +1022,7 @@ we_option task::Option( const string& name )
                         opt.SetValue(boost::blank());
                     }
                 } // if result not <empty>
-            }
-            catch(std::exception &e) {
+            } catch(std::exception &e) {
                 opt = i_options_provider::empty_option;
                 LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") can't get option value: " << e.what());
             }
@@ -1102,14 +1035,14 @@ we_option task::Option( const string& name )
 
 void task::Option( const string& name, we_variant val )
 {
-    db_query flt;
+    db_filter flt;
 
     if (kernel != NULL && kernel->storage() != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoProfileID);
-        flt.what.push_back(weObjTypeProfile "." weoName);
-        flt.what.push_back(weObjTypeProfile "." weoTypeID);
-        flt.what.push_back(weObjTypeProfile "." weoValue);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoProfileID);
+        fields.push_back(weObjTypeProfile "." weoName);
+        fields.push_back(weObjTypeProfile "." weoTypeID);
+        fields.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -1122,30 +1055,29 @@ void task::Option( const string& name, we_variant val )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where.set(p_cond).and(n_cond);
+        flt.set(p_cond).and(n_cond);
 
-        db_recordset data(flt.what);
-        db_cursor rec = data.push_back();
+        db_cursor rec = kernel->storage()->set(flt, fields);
 
         rec[0] = profile_id;
         rec[1] = name;
         rec[2] = val.which();
         rec[3] = val;
 
-        kernel->storage()->set(flt, data);
+        rec.close();
     }
 }
 
 bool task::IsSet( const string& name )
 {
     bool retval = false;
-    db_recordset res;
-    db_query flt;
+    auto_ptr<db_recordset> res;
+    db_filter flt;
 
     if (kernel != NULL && kernel->storage() != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoTypeID);
-        flt.what.push_back(weObjTypeProfile "." weoValue);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoTypeID);
+        fields.push_back(weObjTypeProfile "." weoValue);
 
         db_condition p_cond;
         db_condition n_cond;
@@ -1158,24 +1090,21 @@ bool task::IsSet( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.where.set(p_cond).and(n_cond);
-        kernel->storage()->get(flt, res);
+        flt.set(p_cond).and(n_cond);
 
-        if (res.size() > 0) {
-            db_cursor rec = res.begin();
-            try{
+        db_cursor rec = kernel->storage()->get(flt, fields);
+        if (rec.is_not_end()) {
+            try {
                 if (!rec[1].empty()) {
                     int tp = boost::lexical_cast<int>(rec[0]);
                     if ( tp == 2) {
                         // we_variant::which(bool)
                         retval = boost::lexical_cast<bool>(rec[1]);
-                    }
-                    else {
+                    } else {
                         retval = true;
                     }
                 } // if result not <empty>
-            }
-            catch(bad_cast &e) {
+            } catch(bad_cast &e) {
                 retval = false;
                 LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") can't get option value: " << e.what());
             }
@@ -1223,33 +1152,30 @@ void task::Clear()
 //         kernel->CopyOptions(cpy);
 //     }
 // }
-// 
+//
 string_list task::OptionsList()
 {
     string_list retval;
-    db_recordset res;
-    db_query flt;
+    auto_ptr<db_recordset> res;
+    db_filter flt;
     string name;
 
     if (kernel != NULL && kernel->storage() != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoName);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
         p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = profile_id;
 
-        flt.where.set(p_cond);
-        kernel->storage()->get(flt, res);
+        flt.set(p_cond);
 
-        db_cursor rec = res.begin();
-        while(rec != res.end()) {
+        for(db_cursor rec = kernel->storage()->get(flt, fields); rec.is_not_end(); ++rec) {
             name = rec[0].get<string>();
             if (name != "") {
                 retval.push_back(name);
             } // if name present
-            ++rec;
         } // foreach record
     }
 
@@ -1259,21 +1185,21 @@ string_list task::OptionsList()
 size_t task::OptionSize()
 {
     int retval = 0;
-    db_recordset res;
-    db_query flt;
+    auto_ptr<db_recordset> res;
+    db_filter flt;
 
     if (kernel != NULL && kernel->storage() != NULL) {
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoName);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoName);
         db_condition p_cond;
 
         p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::equal;
         p_cond.value() = profile_id;
 
-        flt.where.set(p_cond);
-        kernel->storage()->get(flt, res);
-        retval = res.size();
+        flt.set(p_cond);
+
+        retval = kernel->storage()->count(flt, fields);;
     }
 
     return retval;
@@ -1291,8 +1217,7 @@ void task::register_url( string& url )
 
     if (mit == processed_urls.end()) {
         processed_urls[url] = 1;
-    }
-    else {
+    } else {
         processed_urls[url]++;
     }
 }
@@ -1343,5 +1268,84 @@ i_plugin* task::get_active_plugin( const string& iface_name, bool autoload /*= f
     }
     return resp;
 }
+
+void task::save_task_list(){
+    if(tsk_status != WI_TSK_PAUSED){
+        LOG4CXX_ERROR(iLogger::GetLogger(), "task::save_task_list was called in not allowed state");
+    }
+    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+    vector<string> fields;
+    fields.push_back("task_list.scan_id");
+    fields.push_back("task_list.request_type");
+    fields.push_back("task_list.request");
+    
+    kernel->storage()->del( db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id) );
+
+    db_cursor cur = kernel->storage()->ins(fields);
+    for(vector<i_request_ptr>::const_iterator it = taskList.begin(); it != taskList.end(); ++it, ++cur){
+        cur[0] = scan_id;
+        cur[1] = string(typeid(*(*it)).name());
+        ostringstream str;
+        we_oarchive arch(str);
+        (*it)->to_archive(arch);
+        cur[2] = str.str();
+    }
+    {
+        cur[0] = scan_id;
+        cur[1] = task_params_str;
+        ostringstream str;
+        we_oarchive arch(str);
+        SERIALIZE_TASK_PARAMS(arch);
+        cur[2] = str.str();
+    }
+    cur.close();
+}
+
+void task::load_task_list(){
+    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+
+    vector<string> fields;
+    fields.push_back("task_list.request_type");
+    fields.push_back("task_list.request");
+
+    taskList.clear();
+    i_request_ptr request;
+    db_cursor cur = kernel->storage()->get(
+        db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id)
+        && db_condition().field("task_list.request_type").operation(db_condition::not_equal).value(task_params_str), 
+        fields);
+    for(; cur.is_not_end(); ++cur){
+        istringstream str(cur[1].get<string>());
+        we_iarchive arch(str);
+        request = kernel->restore_request(cur[0].get<string>(), arch);
+        if(request){
+            taskList.push_back(request);
+        } else {
+            LOG4CXX_ERROR(iLogger::GetLogger(), "task::load_task_list Could not deserialize \"" << cur[0] << "\"");
+        }
+    }
+    cur = kernel->storage()->get(
+        db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id)
+        && db_condition().field("task_list.request_type").operation(db_condition::equal).value(task_params_str), 
+        fields);
+    if(cur.is_not_end()) {
+        istringstream str(cur[1].get<string>());
+        we_iarchive arch(str);
+        SERIALIZE_TASK_PARAMS(arch);
+    }
+}
+
+#ifdef _DEBUG
+namespace{
+#define TO_STR(unused,data,elem) BOOST_PP_STRINGIZE(elem) ,
+    const char * TaskStatus_strs[]={ BOOST_PP_SEQ_FOR_EACH(TO_STR,~,SEQ_TASK_STATUSES) };
+#undef TO_STR
+}
+
+const char * task::get_status_name() const{
+    return TaskStatus_strs[tsk_status];
+}
+
+#endif
 
 } // namespace webEngine

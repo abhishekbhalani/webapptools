@@ -46,8 +46,7 @@ const string base_entity::attr(string name)
     AttrMap::iterator it;
 
     it = attributes.find(name);
-    if (it != attributes.end())
-    {
+    if (it != attributes.end()) {
         return (*it).second;
     }
     return string("");
@@ -116,33 +115,33 @@ base_entity_ptr base_entity::Child(int idx)
 void base_entity::GenerateId(void)
 {
     // Entity format (like GUID): {B46FF8A5-F2E9-4297-9F73-2894AABBB740}
-/*    unsigned int first;
-    unsigned int second;
-    unsigned int third;
-    char buff[40];
+    /*    unsigned int first;
+        unsigned int second;
+        unsigned int third;
+        char buff[40];
 
-    entity_id = "{";
+        entity_id = "{";
 
-    first = (unsigned int)this;
-    while ((first & 0xF0000000) == 0)
-    {
-        first += ((unsigned int)rand() << 16);
-    }
+        first = (unsigned int)this;
+        while ((first & 0xF0000000) == 0)
+        {
+            first += ((unsigned int)rand() << 16);
+        }
 
-    second = (unsigned int)time(NULL);
-    while ((second & 0xF0000000) == 0)
-    {
-        second += ((unsigned int)rand() << 16);
-    }
+        second = (unsigned int)time(NULL);
+        while ((second & 0xF0000000) == 0)
+        {
+            second += ((unsigned int)rand() << 16);
+        }
 
-    third = ((unsigned int)rand() << 8);
-    third ^= first;
-    third ^= second;
-    sprintf(buff, "%08X-%04X-%04X-9798-A2%08X9F", first, (unsigned short)(second & 0xFFFF), (unsigned short)(second >> 16), third);
+        third = ((unsigned int)rand() << 8);
+        third ^= first;
+        third ^= second;
+        sprintf(buff, "%08X-%04X-%04X-9798-A2%08X9F", first, (unsigned short)(second & 0xFFFF), (unsigned short)(second >> 16), third);
 
-    entity_id += buff;
-    entity_id += "}";
-    srand(third);*/
+        entity_id += buff;
+        entity_id += "}";
+        srand(third);*/
 }
 #pragma warning(pop)
 
@@ -212,7 +211,7 @@ entity_list base_entity::FindTags(string tag)
 void base_entity::ClearChildren( void )
 {
 //     for (size_t i = 0; i < chldList.size(); i++) {
-//         chldList[i].reset(); 
+//         chldList[i].reset();
 //     }
     chldList.clear();
 }
@@ -263,7 +262,7 @@ void ClearEntityList( entity_list &lst )
 //         base_entity_ptr pt = lst[i];
 //         lst[i].reset();
 //     }
-    lst.clear();    
+    lst.clear();
 }
 
 i_parser::i_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
@@ -278,8 +277,7 @@ i_parser::i_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
 i_plugin* i_parser::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "i_parser::get_interface " << ifName);
-    if (iequals(ifName, "i_parser"))
-    {
+    if (iequals(ifName, "i_parser")) {
         LOG4CXX_DEBUG(logger, "i_parser::get_interface found!");
         usageCount++;
         return (this);

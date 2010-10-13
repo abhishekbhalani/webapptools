@@ -22,7 +22,6 @@
 
 #pragma once
 #include <weiStorage.h>
-#include <boost/thread.hpp>
 
 namespace webEngine {
 
@@ -36,8 +35,7 @@ namespace webEngine {
 /// @date   14.07.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class mem_storage :
-    public i_storage
-{
+    public i_storage {
 public:
     mem_storage(engine_dispatcher* krnl, void* handle = NULL);
     ~mem_storage(void);
@@ -52,6 +50,9 @@ public:
     virtual int set(db_query& query, db_recordset& data);
     virtual int set(db_recordset& data);
     virtual int del(db_filter& filter);
+
+    virtual std::auto_ptr<db_recordset> get_recordset_by_namespace(const std::string& ns);
+    virtual std::auto_ptr<db_recordset> get_recordset_by_fields(const vector<string>& fields);
 
     // mem_storage functions
     void save_db(const string& fname);

@@ -42,7 +42,7 @@ redis_storage::redis_storage( engine_dispatcher* krnl, void* handle /*= NULL*/ )
     {
         stringstream ost;
         ost << VERSION_MAJOR << "." << VERSION_MINOR << "." <<
-            VERSION_BUILDNO << "." << VERSION_EXTEND << 
+            VERSION_BUILDNO << "." << VERSION_EXTEND <<
 #ifdef _DEBUG
             " build at " << VERSION_DATE <<
             " " << VERSION_TIME << " " << VERSION_SVN <<
@@ -85,8 +85,7 @@ redis_storage::redis_storage( engine_dispatcher* krnl, void* handle /*= NULL*/ )
 
 redis_storage::~redis_storage(void)
 {
-    if (db_cli != NULL)
-    {
+    if (db_cli != NULL) {
         delete db_cli;
     }
     LOG4CXX_TRACE(logger, "redis_storage plugin destroyed");
@@ -95,8 +94,7 @@ redis_storage::~redis_storage(void)
 i_plugin* redis_storage::get_interface( const string& ifName )
 {
     LOG4CXX_TRACE(logger, "redis_storage::get_interface " << ifName);
-    if (boost::iequals(ifName, "redis_storage"))
-    {
+    if (boost::iequals(ifName, "redis_storage")) {
         LOG4CXX_DEBUG(logger, "redis_storage::get_interface found!");
         usageCount++;
         return (this);
@@ -116,28 +114,23 @@ bool redis_storage::init_storage(const string& params)
     string dat;
     string name;
 
-    for (tokenizer::iterator tok_iter = tok_param.begin(); tok_iter != tok_param.end(); ++tok_iter)
-    {
+    for (tokenizer::iterator tok_iter = tok_param.begin(); tok_iter != tok_param.end(); ++tok_iter) {
         dat = *tok_iter;
         pos = dat.find('=');
         if (pos != string::npos) {
             name = dat.substr(0, pos);
             dat = dat.substr(pos + 1);
             LOG4CXX_TRACE(logger, "redis_storage::init_storage found parameter: " << name << "; value: " << dat);
-            if (name == "host")
-            {
+            if (name == "host") {
                 db_host = dat;
             }
-            if (name == "port")
-            {
+            if (name == "port") {
                 db_port = boost::lexical_cast<int>(dat);
             }
-            if (name == "dbnum")
-            {
+            if (name == "dbnum") {
                 db_index = boost::lexical_cast<int>(dat);
             }
-            if (name == "auth")
-            {
+            if (name == "auth") {
                 db_auth = dat;
             }
         }
@@ -145,26 +138,21 @@ bool redis_storage::init_storage(const string& params)
 
     boost::lock_guard<boost::mutex> lock(db_lock);
 
-    if (db_cli != NULL)
-    {
+    if (db_cli != NULL) {
         delete db_cli;
     }
     dat = "connection creation";
-    try
-    {
+    try {
         db_cli = new redis::client(db_host, db_port);
-        if (db_auth != "")
-        {
+        if (db_auth != "") {
             dat = "authentication";
             db_cli->auth(db_auth);
         }
         dat = "select DB";
         db_cli->select(db_index);
         retval = true;
-    }
-    catch(redis::redis_error& e)
-    {
-    	LOG4CXX_FATAL(logger, "RedisDB connection error (" << dat << "): " << (string)e);
+    } catch(redis::redis_error& e) {
+        LOG4CXX_FATAL(logger, "RedisDB connection error (" << dat << "): " << (string)e);
         retval = false;
         if (db_cli != NULL) {
             delete db_cli;
@@ -179,10 +167,9 @@ bool redis_storage::init_storage(const string& params)
         std::vector<std::string> inits;
         redis::client::string_set tables;
 
-        try{
+        try {
             db_cli->smembers("tables", tables);
-        }
-        catch(redis::redis_error&) {
+        } catch(redis::redis_error&) {
             tables.clear();
         }
 
@@ -201,8 +188,7 @@ bool redis_storage::init_storage(const string& params)
                         }
                         db_cli->rpush(inits[0] + ".struct", fld);
                     }
-                }
-                else {
+                } else {
                     /// @todo check the table consistence
                 }
             } // if inits.size() > 0
@@ -218,13 +204,11 @@ bool redis_storage::init_storage(const string& params)
 
 void redis_storage::flush(const string& params /*= ""*/)
 {
-    if (db_cli)
-    {
+    if (db_cli) {
         boost::lock_guard<boost::mutex> lock(db_lock);
-        try{
+        try {
             db_cli->bgsave();
-        }
-        catch(redis::redis_error& e) {
+        } catch(redis::redis_error& e) {
             LOG4CXX_ERROR(logger, "RedisDB save: " << (string)e);
         }
     }
@@ -232,19 +216,16 @@ void redis_storage::flush(const string& params /*= ""*/)
 
 string redis_storage::generate_id(const string& objType /*= ""*/)
 {
-    if (db_cli)
-    {
+    if (db_cli) {
         boost::lock_guard<boost::mutex> lock(db_lock);
-        try{
+        try {
             last_id = db_cli->incr("index");
-        }
-        catch(redis::redis_error& e) {
+        } catch(redis::redis_error& e) {
             LOG4CXX_ERROR(logger, "RedisDB can't get index for " << objType << ": " << (string)e);
-            try{
+            try {
                 ++last_id;
                 db_cli->set("index", boost::lexical_cast<string>(last_id));
-            }
-            catch(redis::redis_error& e) {
+            } catch(redis::redis_error& e) {
                 LOG4CXX_ERROR(logger, "RedisDB can't get index: " << (string)e);
             }
         }
@@ -260,8 +241,7 @@ int redis_storage::get(db_query& query, db_recordset& results)
     results.clear();
     results.set_names(query.what);
 
-    if (db_cli == NULL)
-    {
+    if (db_cli == NULL) {
         LOG4CXX_FATAL(logger, "redis_storage::get RedisDB not initialized yet!");
         return 0;
     }
@@ -288,8 +268,7 @@ int redis_storage::get(db_query& query, db_recordset& results)
                 for(rec_it = query.what.begin(); rec_it != query.what.end(); rec_it++) {
                     try {
                         record[*rec_it] = db_view[*rec_it];
-                    }
-                    catch(out_of_range &e) {
+                    } catch(out_of_range &e) {
                         LOG4CXX_ERROR(logger, "redis_storage::get - can't get filed " << *rec_it << ": source doesn't contains this field. " << e.what());
                     }
                 } // foreach field
@@ -305,8 +284,7 @@ int redis_storage::set(db_query& query, db_recordset& data)
     int retval = 0;
 
     LOG4CXX_TRACE(logger, "redis_storage::set(db_record, db_record)");
-    if (db_cli == NULL)
-    {
+    if (db_cli == NULL) {
         LOG4CXX_FATAL(logger, "redis_storage::get RedisDB not initialized yet!");
         return 0;
     }
@@ -360,7 +338,7 @@ int redis_storage::set(db_query& query, db_recordset& data)
 int redis_storage::set(db_recordset& data)
 {
     int retval = 0;
-    
+
     LOG4CXX_TRACE(logger, "redis_storage::set(db_recordset)");
     boost::lock_guard<boost::mutex> lock(db_lock);
 
@@ -383,8 +361,7 @@ int redis_storage::del(db_filter& filter)
 {
     LOG4CXX_TRACE(logger, "redis_storage::del");
 
-    if (db_cli == NULL)
-    {
+    if (db_cli == NULL) {
         LOG4CXX_FATAL(logger, "redis_storage::del RedisDB not initialized yet!");
         return 0;
     }
@@ -423,8 +400,7 @@ int redis_storage::insert( string ns, vector<string> fields, db_record& rec )
             string val = boost::lexical_cast<string>(rec[fields[i]].which()) + ":" + boost::lexical_cast<string>(rec[fields[i]]);
             try {
                 db_cli->rpush(key, val);
-            }
-            catch(redis::redis_error& e) {
+            } catch(redis::redis_error& e) {
                 retval = 0;
                 LOG4CXX_ERROR(logger, "RedisDB can't save " << fields[i] << " for RowID = " << row_id << " - " << (string)e);
             }

@@ -48,13 +48,12 @@ typedef base_entity_ptr (*fnEntityFactory)(base_entity_ptr prnt);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  HtmlFactory
 ///
-/// @brief  The HtmlEntity creator. 
+/// @brief  The HtmlEntity creator.
 ///
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class HtmlFactory
-{
+class HtmlFactory {
 public:
     HtmlFactory();
     void Init();
@@ -62,7 +61,7 @@ public:
     base_entity_ptr CreateEntity(string tagName, base_entity_ptr prnt);
     void Clean();
 private:
-	std::map<string, fnEntityFactory> factories_;
+    std::map<string, fnEntityFactory> factories_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,19 +73,17 @@ private:
 /// @author A. Abramov
 /// @date   29.05.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class WeError : public runtime_error
-{
+class WeError : public runtime_error {
 public:
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn	WeError(string const& msg)
     ///
-    /// @brief  Creates a WeError object. 
-    /// @param 	msg	 - The error message. 
+    /// @brief  Creates a WeError object.
+    /// @param 	msg	 - The error message.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     WeError(string const& msg)
-        :	runtime_error(string("WebEngine error") + (msg.empty() ? "" : ": ") + msg)
-    {
+        :	runtime_error(string("WebEngine error") + (msg.empty() ? "" : ": ") + msg) {
         LOG4CXX_ERROR(iLogger::GetLogger(), "WebEngine error" << (msg.empty() ? "" : ": ") << msg )
     }
 };

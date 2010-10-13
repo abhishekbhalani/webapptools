@@ -1,0 +1,2 @@
+LIBRARY	"Soci.plg"
+EXPORTS WePluginFactory
