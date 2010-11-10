@@ -34,7 +34,7 @@ using namespace std;
 
 namespace webEngine {
 
-    typedef boost::variant< char, int, bool, double, string, boost::blank, webEngine::blob > we_types;
+typedef boost::variant< char, int, bool, double, string, boost::blank, webEngine::blob > we_types;
 class we_variant : public boost::less_than_comparable<we_variant, boost::equivalent< we_variant > > {
 public:
     // construct/copy/destruct

@@ -92,7 +92,7 @@ int RunMain(int argc, char* argv[])
         LOG4CXX_FATAL(iLogger::GetLogger(), "No iStorage interface in the plugin " << plg->get_id() << "(ID="  << plg->get_id() );
         return 0;
     }
-	string params = "sqlite3://v8_domshell.sqlite";
+    string params = "sqlite3://v8_domshell.sqlite";
     storage->init_storage(params);
     we_dispatcer.storage(storage);
     plugin_list plgs = we_dispatcer.get_plugin_list();

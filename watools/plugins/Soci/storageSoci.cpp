@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define VERSION_PRODUCTSTR "$Revision$"
+#define VERSION_PRODUCTSTR "$Revision: 35115 $"
 #ifdef _MSC_VER
 #pragma warning(disable:4275 4251 4996)
 #endif
@@ -32,7 +32,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/regex.hpp>
 
 #include "storageSoci.h"
-#include "../sqlite/sqliteStorage.xpm"
+#include "sociStorage.xpm"
 
 #define SOCI_USE_BOOST
 #define SOCI_USE_LOG4CXX
@@ -123,7 +123,7 @@ soci_storage::soci_storage( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     pluginInfo.plugin_id = "9FBCCA23CD84";
     pluginInfo.plugin_icon = WeXpmToStringList(sqliteStorage_xpm, sizeof(sqliteStorage_xpm) / sizeof(char*) );
     // initialize internal data
-    try{
+    try {
         m_sql.reset(new soci::session());
         m_sql->set_log4cxx_logger(logger);
     } catch(soci::soci_error e) {
@@ -176,7 +176,7 @@ bool soci_storage::init_storage( const string& params )
     try {
         m_sql->open(params);
     } catch(soci::soci_error e) {
-        LOG4CXX_DEBUG(logger, e.what());
+        LOG4CXX_ERROR(logger, e.what());
         return false;
     }
     // loads existing tables
@@ -363,10 +363,10 @@ db_cursor soci_storage::get(const string &query, const std::vector<std::string> 
 {
     details::db_cursor_get* cursor = new details::db_cursor_get(*this, fields);
     boost::unique_lock<boost::mutex> locker(data_access);
-    try{
+    try {
         boost::shared_ptr<soci::statement> st(new soci::statement(*m_sql));
         st->exchange(soci::into(cursor->m_soci_record));
-        if(need_blob){
+        if(need_blob) {
             cursor->m_blob.reset(new soci::blob(*m_sql));
             cursor->m_soci_record.second = cursor->m_blob.get();
             st->exchange(soci::into(*cursor->m_blob));
@@ -377,7 +377,7 @@ db_cursor soci_storage::get(const string &query, const std::vector<std::string> 
         cursor->m_statement = st;
         st->execute();
         cursor->m_isEnd = !st->fetch();
-        if(!cursor->m_isEnd && cursor->m_blob){
+        if(!cursor->m_isEnd && cursor->m_blob) {
             webEngine::blob tmp_blob(cursor->m_blob->get_len());
             cursor->m_blob->read(0, (char*)&tmp_blob[0], cursor->m_blob->get_len());
             cursor->m_record[0] = tmp_blob;
@@ -393,8 +393,8 @@ db_cursor soci_storage::set(const string &query_update, const string &query_inse
 {
     details::db_cursor_set* cursor = new details::db_cursor_set(*this, fields);
     boost::unique_lock<boost::mutex> locker(data_access);
-    try{
-        if(need_blob){
+    try {
+        if(need_blob) {
             cursor->m_blob.reset(new soci::blob(*m_sql));
         }
         cursor->m_query_ins = query_insert;
@@ -410,8 +410,8 @@ db_cursor soci_storage::ins(const string &query_insert, const std::vector<std::s
 {
     details::db_cursor_ins* cursor = new details::db_cursor_ins(*this, fields);
     boost::unique_lock<boost::mutex> locker(data_access);
-    try{
-        if(need_blob){
+    try {
+        if(need_blob) {
             cursor->m_blob.reset(new soci::blob(*m_sql));
         }
         cursor->m_query_ins = query_insert;
@@ -426,7 +426,7 @@ int soci_storage::del(const string &query)
 {
     int result = 0;
     boost::unique_lock<boost::mutex> locker(data_access);
-    try{
+    try {
         soci::statement st = (m_sql->prepare << query);
         st.execute(true);
         result = m_sql->get_affected_rows(st);
@@ -440,7 +440,7 @@ int soci_storage::count(const string &query)
 {
     boost::unique_lock<boost::mutex> locker(data_access);
     int i = 0;
-    try{
+    try {
         *m_sql << query , soci::into(i);
     } catch(soci::soci_error e) {
         LOG4CXX_ERROR(logger, e.what());
@@ -456,10 +456,10 @@ void soci_storage::get_next(details::db_cursor_get &cursor)
     cursor.m_affected_rows = 0;
     cursor.m_isEnd = true;
     boost::shared_ptr<soci::statement> st = cursor.m_statement.lock();
-    try{
-        if(st && st->fetch()){
+    try {
+        if(st && st->fetch()) {
             cursor.m_isEnd = false;
-            if(cursor.m_blob){
+            if(cursor.m_blob) {
                 webEngine::blob tmp_blob(cursor.m_blob->get_len());
                 cursor.m_blob->read(0, (char*)&tmp_blob[0], cursor.m_blob->get_len());
                 cursor.m_record[0] = tmp_blob;
@@ -476,8 +476,8 @@ void soci_storage::set_next(details::db_cursor_set &cursor)
         return;
     int res = 0;
     boost::unique_lock<boost::mutex> locker(data_access);
-    try{
-        if(cursor.m_blob){
+    try {
+        if(cursor.m_blob) {
             const webEngine::we_types &tmp_var = cursor.m_record[cursor.m_record.record_size()];
             const webEngine::blob &tmp_blob = boost::get<webEngine::blob>(tmp_var);
             cursor.m_blob->write(0, (const char *)&tmp_blob[0], tmp_blob.size());
@@ -486,7 +486,7 @@ void soci_storage::set_next(details::db_cursor_set &cursor)
         soci::statement st_upd(*m_sql);
         st_upd.prepare(cursor.m_query_upd);
         st_upd.exchange(soci::use(cursor.m_soci_record));
-        if(cursor.m_blob){
+        if(cursor.m_blob) {
             st_upd.exchange(soci::use(*cursor.m_blob));
         }
         st_upd.alloc();
@@ -497,7 +497,7 @@ void soci_storage::set_next(details::db_cursor_set &cursor)
             soci::statement st_ins(*m_sql);
             st_ins.prepare(cursor.m_query_ins);
             st_ins.exchange(soci::use(cursor.m_soci_record));
-            if(cursor.m_blob){
+            if(cursor.m_blob) {
                 st_ins.exchange(soci::use(*cursor.m_blob));
             }
             st_ins.alloc();
@@ -518,11 +518,11 @@ void soci_storage::ins_next(details::db_cursor_ins &cursor)
         return;
     int res = 0;
     boost::unique_lock<boost::mutex> locker(data_access);
-    try{
+    try {
         soci::statement st_ins(*m_sql);
         st_ins.prepare(cursor.m_query_ins);
         st_ins.exchange(soci::use(cursor.m_soci_record));
-        if(cursor.m_blob){
+        if(cursor.m_blob) {
             const we_types &var = cursor.m_record[0];
             const webEngine::blob &weBlob = boost::get<webEngine::blob>(var);
             cursor.m_blob->write(0, (const char *)&weBlob[0], weBlob.size());
@@ -542,7 +542,7 @@ void soci_storage::ins_next(details::db_cursor_ins &cursor)
 void soci_storage::free_statement(boost::shared_ptr<soci::statement> st)
 {
     boost::unique_lock<boost::mutex> locker(data_access);
-    try{
+    try {
         m_statements.erase(st);
     } catch(soci::soci_error e) {
         LOG4CXX_ERROR(logger, e.what());

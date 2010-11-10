@@ -507,12 +507,12 @@ void dispatcher_routine(po::variables_map& vm)
         int compl = tsk->completion();
         scan_curr = btm::second_clock::local_time();
         btm::time_period scan_elapsed(scan_start, scan_curr);
-        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << tsk->get_scan_size() << " objects found... " << compl << "% complete; " 
+        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << tsk->get_scan_size() << " objects found... " << compl << "% complete; "
 #ifdef _DEBUG
-            << "tL: " << tsk->get_taskList_size() << "; tQ: " << tsk->get_taskQueue_size() << "; st: " << tsk->get_status_name()
-        << "; pT: " << (tsk->get_processThread() ? "r" : "s")
+             << "tL: " << tsk->get_taskList_size() << "; tQ: " << tsk->get_taskQueue_size() << "; st: " << tsk->get_status_name()
+             << "; pT: " << (tsk->get_processThread() ? "r" : "s")
 #endif
-            << "   \n";
+             << "   \n";
         LOG4CXX_TRACE(scan_logger, "Memory information: " << sys_meminfo());
         if (kbhit()) {
             ch = getch();

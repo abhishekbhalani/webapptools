@@ -3,7 +3,6 @@
 #include <weLogger.h>
 #include "jsGlobal.h"
 #include "jsBrowser.h"
-#include "jsElement.h"
 
 using namespace v8;
 using namespace webEngine;
@@ -14,6 +13,21 @@ Persistent<FunctionTemplate> jsNavigator::object_template;
 bool jsNavigator::is_init = false;
 Persistent<FunctionTemplate> jsScreen::object_template;
 bool jsScreen::is_init = false;
+
+v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsNavigator>::GetTemplate()
+{
+    return jsNavigator::object_template;
+}
+
+v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsScreen>::GetTemplate()
+{
+    return jsScreen::object_template;
+}
+
+v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsBrowser>::GetTemplate()
+{
+    return jsBrowser::object_template;
+}
 
 static Handle<Value> NavigatorJavaEnabled( const Arguments& args )
 {
@@ -218,8 +232,7 @@ jsBrowser::jsBrowser(void)
     //global->SetAccessor(String::New("window"), GetWindow, NULL, self);
     //global->Set(String::New("Location"), FunctionTemplate::New(Location));
     global->Set(String::New("Window"), FunctionTemplate::New(Window));
-    global->Set(String::New("Element"), FunctionTemplate::New(Element));
-    global->Set(String::New("Image"), FunctionTemplate::New(Image));
+    v8_wrapper::RegisterAll(global);
 
     // intercept window's functions
     global->Set(String::NewSymbol("blur"), FunctionTemplate::New(jsBrowser::WinInterceptor));

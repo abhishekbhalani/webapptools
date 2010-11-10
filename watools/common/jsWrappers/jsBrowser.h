@@ -7,7 +7,7 @@ using namespace std;
 
 namespace webEngine {
 
-class jsNavigator {
+class jsNavigator : public v8_wrapper::Registrator<jsNavigator> {
 public:
     jsPropertyMap  props;
 
@@ -17,7 +17,7 @@ public:
     static v8::Persistent<v8::FunctionTemplate> object_template;
 };
 
-class jsScreen {
+class jsScreen : public v8_wrapper::Registrator<jsScreen> {
 public:
     jsPropertyMap  props;
 
@@ -33,7 +33,7 @@ public:
 /// @brief Implements jsExecutor as headless browser
 ///
 //////////////////////////////////////////////////////////////////////////
-class jsBrowser : public jsExecutor {
+class jsBrowser : public jsExecutor, public v8_wrapper::Registrator<jsBrowser> {
 public:
     jsBrowser(void);
     ~jsBrowser(void);

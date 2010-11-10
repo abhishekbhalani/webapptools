@@ -43,6 +43,25 @@ class i_response;
 typedef boost::shared_ptr<i_operation> iweOperationPtr;
 typedef void (fnProcessResponse)(boost::shared_ptr<i_response> resp, void* context);
 
+template <class T>
+class static_instance_counter {
+public:
+    static boost::uint32_t get_instance_counter() {
+        return m_instance_count;
+    }
+
+protected:
+    static_instance_counter() {
+        ++m_instance_count;
+    }
+    virtual ~static_instance_counter() {
+        --m_instance_count;
+    }
+private:
+    static boost::uint32_t m_instance_count;
+};
+
+template <class T> boost::uint32_t static_instance_counter<T>::m_instance_count = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  i_operation
@@ -57,7 +76,8 @@ typedef void (fnProcessResponse)(boost::shared_ptr<i_response> resp, void* conte
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class i_operation :
     public boost::enable_shared_from_this<i_operation>,
-        boost::noncopyable {
+    boost::noncopyable,
+    public static_instance_counter<i_operation> {
 public:
     i_operation() {
         context = NULL;

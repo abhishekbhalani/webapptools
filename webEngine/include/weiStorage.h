@@ -41,49 +41,101 @@ public:
     i_storage(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~i_storage(void);
 
-    // i_plugin functions
+    /** @{ @brief inherited from i_plugin */
     virtual i_plugin* get_interface(const string& ifName);
     virtual void init(task* tsk) {}
     virtual void pause(task* tsk, bool paused = true) {}
     virtual void stop(task* tsk) {}
+    /** @} */
 
+    /** @brief initialize storage
+     *
+     * In order to i_plugin initialization it can open database file, create connection, allocate memory, or something else.
+     * @param const string & params Initialization string for storage. For example in soci_storage it can be "sqlite3://database.db"
+     * @return bool - true if successful
+     */
     virtual bool init_storage(const string& params) {
         return false;
     };
+
+    /** @brief Flushing cached data. */
     virtual void flush(const string& params = "") {};
+    /** @brief Generate unique id for some reason*/
     virtual string generate_id(const string& objType = "");
 
+    /**
+    * @{
+    * @param const db_filter & query  - filter for data in storage, in SQL terms its WHERE statement
+    * @param const std::vector<std::string> & fields - list of fields in db_record
+    * @param const std::string & ns - namespace to get list of fields
+    */
+
+
+    /**
+    * @{
+    * @param bool need_blob - set this parameter to blob if you using blob in record set.
+    * Restrictions: In Soci_storage you can use only one blob field per
+    * record and it must be first in record.
+    */
+
+    /**
+     * @{
+     * @brief Creates iterator cursor for browsing a dataset given by a filter.
+     */
     virtual db_cursor get(const db_filter &query, const std::string& ns, bool need_blob = false)	{
         return get(query, get_namespace_struct(ns), need_blob);
     }
     virtual db_cursor get(const db_filter &query, const std::vector<std::string> &fields, bool need_blob = false) {
         return get(sql_constructor::get_sql_select(query, fields), fields, need_blob);
     }
+    /** @} */
 
+    /**
+    * @{
+    * @brief Creates iterator cursor for set (update or insert) data in storage.
+     */
     virtual db_cursor set(const db_filter &query, const std::string& ns, bool need_blob = false)	{
         return set(query, get_namespace_struct(ns), need_blob);
     }
     virtual db_cursor set(const db_filter &query, const std::vector<std::string> &fields, bool need_blob = false) {
         return set(sql_constructor::get_sql_update(query, fields), sql_constructor::get_sql_insert(fields), fields, need_blob);
     }
+    /** @} */
 
+    /**
+    * @{
+    * @brief Creates iterator cursor for insert (update or insert) data in storage.
+     */
     virtual db_cursor ins(const std::string& ns, bool need_blob = false)	{
         return ins(get_namespace_struct(ns), need_blob);
     }
     virtual db_cursor ins(const std::vector<std::string> &fields, bool need_blob = false) {
         return ins(sql_constructor::get_sql_insert(fields), fields, need_blob);
     }
+    /** @} */
+    /** @} */
 
+
+    /**
+     * @brief Delete data from storage.
+     * @return int  -  affected rows
+     */
     virtual int del(const db_filter &query)	{
         return del(sql_constructor::get_sql_delete(query));
     }
 
+    /**
+    * @{
+     * @brief Count filtered data in storage.
+     */
     virtual int count(const db_filter &query, const std::string& ns)	{
         return count(query, get_namespace_struct(ns));
     }
     virtual int count(const db_filter &query, const std::vector<std::string> &fields) {
         return count(sql_constructor::get_sql_count(query, fields));
     }
+    /** @} */
+    /** @} */
 
 protected:
     static std::vector<std::string> get_namespace_struct(const std::string& ns);

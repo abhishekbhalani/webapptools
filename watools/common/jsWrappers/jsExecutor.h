@@ -24,6 +24,7 @@
 #include <vector>
 #include <weBlob.h>
 #include <weiTransport.h>
+#include <v8_wrapper.h>
 
 using namespace std;
 
@@ -36,7 +37,7 @@ class task;
 /// @brief General-purpose JavaScript executor based on Google-V8 engine
 ///
 //////////////////////////////////////////////////////////////////////////
-class jsExecutor {
+class jsExecutor : public v8_wrapper::Registrator<jsExecutor> {
 public:
     jsExecutor(void);
     ~jsExecutor(void);

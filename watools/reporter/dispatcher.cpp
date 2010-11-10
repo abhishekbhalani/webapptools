@@ -1,5 +1,5 @@
 #include <signal.h>
-#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
@@ -82,20 +82,7 @@ void send_keepalive(webEngine::i_storage* store, int timeout)
 {
     LOG4CXX_TRACE(module_logger, "Send keep-alive signal");
     keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
-    webEngine::db_recordset packet(store->get_namespace_struct("modules"));
-    webEngine::db_cursor rec = packet.push_back();
-    rec["modules.id"] = module_uuid;
-    rec["modules.instance"] = reporter_instance;
-    rec["modules.class"] = MODULE_CLASS_REPORTER;
-    rec["modules.version"] = keep_alive_packet[module_version];
-    rec["modules.ipaddr"] = keep_alive_packet[ip_addr];
-    rec["modules.name"] = keep_alive_packet[module_name];
-    rec["modules.stamp"] = (int)time(NULL);
-    rec["modules.timeout"] = timeout;
-    rec["modules.onrun"] = running_tasks_count;
-    rec["modules.status"] = keep_alive_packet[status];
 
-    webEngine::db_query mod_query;
     webEngine::db_condition c_instance, c_class, c_id;
     c_instance.field() = "modules.instance";
     c_instance.operation() = webEngine::db_condition::equal;
@@ -106,16 +93,32 @@ void send_keepalive(webEngine::i_storage* store, int timeout)
     c_id.field() = "modules.id";
     c_id.operation() = webEngine::db_condition::equal;
     c_id.value() = module_uuid;
-    mod_query.where.set(c_instance).and(c_class).and(c_id);
-    store->set(mod_query, packet);
+
+    webEngine::db_cursor rec = store->set(c_instance && c_class && c_id, "modules");
+    rec["modules.id"] = module_uuid;
+    rec["modules.instance"] = reporter_instance;
+    rec["modules.class"] = MODULE_CLASS_REPORTER;
+    rec["modules.version"] = keep_alive_packet[module_version];
+    rec["modules.ipaddr"] = keep_alive_packet[ip_addr];
+    rec["modules.name"] = keep_alive_packet[module_name];
+    rec["modules.stamp"] = (int)time(NULL);
+    rec["modules.timeout"] = timeout;
+    rec["modules.onrun"] = running_tasks_count;
+    rec["modules.status"] = keep_alive_packet[status];
+    rec.close();
 }
 
 void send_sysinfo(webEngine::i_storage* store, int timeout)
 {
     LOG4CXX_TRACE(module_logger, "Send system information");
     // not divide to instances - whole system information
-    webEngine::db_recordset packet(store->get_namespace_struct("modules_info"));
-    webEngine::db_cursor rec = packet.push_back();
+
+    // save to DB1 information about plugins.
+    webEngine::db_condition c_instance;
+    c_instance.field() = "modules_info.module_id";
+    c_instance.operation() = webEngine::db_condition::equal;
+    c_instance.value() = module_uuid;
+    webEngine::db_cursor rec = store->set(c_instance, "modules_info");
 
     rec["modules_info.module_id"] = module_uuid;
     rec["modules_info.osname"] = sys_info_packet[os_name];
@@ -132,16 +135,9 @@ void send_sysinfo(webEngine::i_storage* store, int timeout)
     rec["modules_info.max_tasks"] = max_tasks_count;
     rec["modules_info.stamp"] = (int)time(NULL);
     rec["modules_info.timeout"] = timeout;
-    // save info
 
-    // save to DB1 information about plugins.
-    webEngine::db_query mod_query;
-    webEngine::db_condition c_instance;
-    c_instance.field() = "modules_info.module_id";
-    c_instance.operation() = webEngine::db_condition::equal;
-    c_instance.value() = module_uuid;
-    mod_query.where.set(c_instance);
-    store->set(mod_query, packet);
+    rec.close();
+    // save info
 
     //send_plugins_list(timeout);
 }
@@ -149,26 +145,20 @@ void send_sysinfo(webEngine::i_storage* store, int timeout)
 string get_command(webEngine::i_storage* store)
 {
     string retval = "";
-    webEngine::db_recordset packet;
 
-    webEngine::db_query mod_query;
     webEngine::db_condition c_instance, c_stamp;
 
     c_instance.field() = "module_cmds.module_id";
     c_instance.operation() = webEngine::db_condition::equal;
     c_instance.value() = module_uuid + ":" +  boost::lexical_cast<string>(reporter_instance);
-    mod_query.what = store->get_namespace_struct("module_cmds");
-    mod_query.where.set(c_instance);
-    store->get(mod_query, packet);
-    if (packet.size() > 0) {
-        webEngine::db_cursor rec = packet.begin();
+    webEngine::db_cursor rec = store->get(c_instance, "module_cmds");
+    if (rec.is_not_end()) {
         retval = rec["module_cmds.cmd"].get<string>();
 
         c_stamp.field() = "module_cmds.timestamp";
         c_stamp.operation() = webEngine::db_condition::equal;
         c_stamp.value() = rec["module_cmds.timestamp"];
-        mod_query.where.set(c_instance).and(c_stamp);
-        store->del(mod_query.where);
+        store->del(c_instance && c_stamp);
     }
 
     return retval;
@@ -232,26 +222,17 @@ int dispatcher_routine(po::variables_map& vm)
 
     // clear outdated records
     // verify instance id
-    webEngine::db_recordset modules;
-    webEngine::db_query module_query;
     webEngine::db_condition c_instance, c_class;
-    module_query.what = storage->get_namespace_struct("modules");
     c_instance.field() = "modules.instance";
     c_instance.operation() = webEngine::db_condition::equal;
     c_instance.value() = module_uuid;
     c_class.field() = "modules.class";
     c_class.operation() = webEngine::db_condition::equal;
     c_class.value() = MODULE_CLASS_REPORTER;
-    module_query.where.set(c_instance).and(c_class);
-    storage->get(module_query, modules);
-    reporter_instance = modules.size();
-    if (reporter_instance > 0) {
-        // fix holes
-        webEngine::db_cursor cur;
-        for (cur = modules.begin(); cur != modules.end(); ++cur) {
-            if (cur["modules.id"].get<int>() > reporter_instance) {
-                reporter_instance = cur["modules.id"].get<int>();
-            }
+    webEngine::db_cursor cur = storage->get(c_instance && c_class, "modules");
+    for (cur; cur.is_not_end(); ++cur) {
+        if (cur["modules.id"].get<int>() > reporter_instance) {
+            reporter_instance = cur["modules.id"].get<int>();
         }
     }
     LOG4CXX_TRACE(module_logger, "Found " << reporter_instance << " instances of " << module_uuid);
@@ -375,8 +356,7 @@ int dispatcher_routine(po::variables_map& vm)
     c_id.field() = "modules.id";
     c_id.operation() = webEngine::db_condition::equal;
     c_id.value() = module_uuid;
-    module_query.where.set(c_instance).and(c_class).and(c_id);
-    storage->del(module_query.where);
+    storage->del(c_instance && c_class && c_id);
 
     delete we_dispatcer;
     return retcode;

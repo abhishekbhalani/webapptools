@@ -1,0 +1,11 @@
+
+This project are used to generating source code from IDL files provided by W3C.
+
+You can set NEED_GENERATE_DOM variable to turn on generating source. For generating you must
+have Python, gcc-xml and OmniORB IDL Compiler on you %PATH%. Also if you have AStyle, 
+generated source will by styled.
+
+All generated sources located in 'generated_dom' directory. If you want to implement
+some DOM class methods you can move corresponding files from 'generated_dom/not_implemented' 
+directory to 'implemented' directory and change it.
+

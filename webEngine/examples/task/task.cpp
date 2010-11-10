@@ -202,31 +202,27 @@ int main(int argc, char* argv[])
 
     // direct access to DB
     if (we_dispatcer.storage() != NULL) {
-        db_recordset recs;
-        db_query flt;
         db_condition p_cond;
 
         p_cond.field() = weObjTypeProfile "." weoProfileID;
         p_cond.operation() = db_condition::great;
         p_cond.value() = string("");
 
-        flt.what.clear();
-        flt.what.push_back(weObjTypeProfile "." weoProfileID);
-        flt.what.push_back(weObjTypeProfile "." weoName);
-        flt.what.push_back(weObjTypeProfile "." weoTypeID);
-        flt.what.push_back(weObjTypeProfile "." weoValue);
+        vector<string> fields;
+        fields.push_back(weObjTypeProfile "." weoProfileID);
+        fields.push_back(weObjTypeProfile "." weoName);
+        fields.push_back(weObjTypeProfile "." weoTypeID);
+        fields.push_back(weObjTypeProfile "." weoValue);
 
-        flt.where.set(p_cond);
-        we_dispatcer.storage()->get(flt, recs);
-        db_fw_cursor cursor = recs.fw_begin();
+        db_cursor cursor = we_dispatcer.storage()->get(p_cond, fields);
         int r = 0;
-        while (cursor != recs.fw_end()) {
+        while (cursor.is_not_end()) {
             cout << "Record " << r << ":" << endl;
-            for (size_t i = 0; i < cursor.record_size(); i++) {
+            for (size_t i = 0; i < fields.size(); i++) {
                 cout << "\tField[" << i << "] = " << cursor[i] << endl;
             }
-            cursor++;
-            r++;
+            ++cursor;
+            ++r;
         }
 
     }

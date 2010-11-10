@@ -25,17 +25,6 @@ if(DL_FOUND)
   add_definitions(-DHAVE_DL=1)
 endif()
 
-if(Boost_FOUND)
-  set_directory_properties(PROPERTIES
-    INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-  add_definitions(-DHAVE_BOOST=1)
-
-  if(Boost_DATE_TIME_FOUND)
-    list(APPEND SOCI_CORE_DEPENDENCIES ${Boost_DATE_TIME_LIBRARY})
-    add_definitions(-DHAVE_BOOST_DATE_TIME=1)
-  endif()
-endif()
-
 # Core source files
 file(GLOB SOCI_CORE_HEADERS *.h)
 file(GLOB SOCI_CORE_SOURCES *.cpp)
@@ -44,26 +33,23 @@ file(GLOB SOCI_CORE_SOURCES *.cpp)
 string(TOLOWER "${PROJECT_NAME}" PROJECTNAMEL)
 set(SOCI_CORE_TARGET ${PROJECTNAMEL}_core)
 
-add_library(${SOCI_CORE_TARGET}-static STATIC ${SOCI_CORE_SOURCES})
 add_library(${SOCI_CORE_TARGET} SHARED ${SOCI_CORE_SOURCES})
 
 target_link_libraries(${SOCI_CORE_TARGET} ${SOCI_CORE_DEPENDENCIES})
+if(WIN32)
+  target_link_libraries(${SOCI_CORE_TARGET}
+    optimized ${LOG4CXX_LIB_RELEASE} debug ${LOG4CXX_LIB_DEBUG} 
+  )
+endif()
 
-set_target_properties(${SOCI_CORE_TARGET}-static
-  PROPERTIES OUTPUT_NAME ${SOCI_CORE_TARGET})
 set_target_properties(${SOCI_CORE_TARGET}
   PROPERTIES
   CLEAN_DIRECT_OUTPUT 1
   VERSION ${SOCI_VERSION}
   SOVERSION ${SOCI_SOVERSION})
-set_target_properties(${SOCI_CORE_TARGET}-static
-  PROPERTIES CLEAN_DIRECT_OUTPUT 1)
 
 # install
 INSTALL(FILES ${SOCI_CORE_HEADERS} DESTINATION ${INCLUDEDIR}/${PROJECTNAMEL})
-INSTALL(TARGETS ${SOCI_CORE_TARGET} ${SOCI_CORE_TARGET}-static
-  LIBRARY DESTINATION ${LIBDIR}
-  ARCHIVE DESTINATION ${LIBDIR})
 
 
 # Summary

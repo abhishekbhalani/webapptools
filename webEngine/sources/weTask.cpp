@@ -40,14 +40,12 @@ using namespace boost;
 
 namespace webEngine {
 
-    namespace{
-        static char task_params_str[] = "!!params!!";
-    }
+namespace {
+static char task_params_str[] = "!!params!!";
+}
 
 #define SERIALIZE_TASK_PARAMS(arch) \
-    arch & BOOST_SERIALIZATION_NVP(total_reqs);
-
-
+    arch & BOOST_SERIALIZATION_NVP(total_reqs) & BOOST_SERIALIZATION_NVP(profile_id);
 
 #ifndef __DOXYGEN__
 static const we_option empty_option("_empty_");
@@ -159,7 +157,7 @@ void task_processor(task* tsk)
                         // send to owner
                         LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: send response to owner");
                         (*rIt)->processor((*rIt), (*rIt)->context);
-                    } else /*if (tsk->tsk_status == WI_TSK_RUNNING)*/ { // process response only if task is running
+                    } else { /*if (tsk->tsk_status == WI_TSK_RUNNING)*/  // process response only if task is running
                         // process response by task queue
                         // 1. Parse data
                         i_document_ptr parsed_doc;
@@ -239,7 +237,7 @@ void task_data_process(task* tsk)
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessData finished for task " << ((void*)&tsk));
 }
 
-task::task(engine_dispatcher *krnl /*= NULL*/)
+task::task(engine_dispatcher *krnl /*= NULL*/):need_lock(true)
 {
     // set the default options
     kernel = krnl;
@@ -264,7 +262,7 @@ task::task(engine_dispatcher *krnl /*= NULL*/)
     LOG4CXX_TRACE(iLogger::GetLogger(), "task created");
 }
 
-task::task( task& cpy )
+task::task( task& cpy ):need_lock(true)
 {
     kernel = cpy.kernel;
     total_reqs = cpy.total_reqs;
@@ -314,6 +312,11 @@ i_response_ptr task::get_request( i_request_ptr req )
     rdata->req_event.reset(new boost::condition_variable);
     rdata->response.reset();
 
+    bool init_state = false;
+    if(tsk_status == WI_TSK_INIT) {
+        init_state = true;
+        tsk_status = WI_TSK_RUNNING;
+    }
     req->processor = task_sync_request;
     req->context   = (void*)(rdata.get());
     get_request_async(req);
@@ -323,6 +326,10 @@ i_response_ptr task::get_request( i_request_ptr req )
         rdata->req_event->wait(lock);
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request - data received");
+    if(init_state) {
+        Stop();
+        tsk_status = WI_TSK_INIT;
+    }
     retval = rdata->response;
     return retval;
 }
@@ -336,14 +343,16 @@ void task::check_task_processor()
     }
 }
 
-void task::get_request_async( i_request_ptr req )
+void task::get_request_async( i_request_ptr req)
 {
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async");
     if (tsk_status < WI_TSK_PAUSING) {
         check_task_processor();
     }
-    if(tsk_status < WI_TSK_FINISHED){
-        boost::unique_lock<boost::mutex> lock(tsk_mutex);
+    if(tsk_status < WI_TSK_FINISHED) {
+        boost::scoped_ptr<boost::unique_lock<boost::mutex> > lock;
+        if(need_lock)
+            lock.reset(new boost::unique_lock<boost::mutex>(tsk_mutex) );
         if (req->processor != NULL) {
             taskList.insert(taskList.begin(), req);
         } else {
@@ -351,11 +360,11 @@ void task::get_request_async( i_request_ptr req )
         }
         total_reqs++;
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: new task size=" << taskList.size());
-        tsk_event.notify_all();
     } else {
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::get_request_async: task isn't running (status="<< tsk_status << "), skip the request to " << req->BaseUrl().tostring());
         req->abort_request();
     }
+    tsk_event.notify_all();
     return;
 }
 
@@ -512,14 +521,18 @@ void task::Run(const string &task_id)
 {
     LOG4CXX_DEBUG(iLogger::GetLogger(), "task::Run: create WeTaskProcessor");
     scan_id = task_id;
-    if(task_id.empty()){
+    if(task_id.empty()) {
         if (kernel != NULL && kernel->storage() != NULL) {
             scan_id = kernel->storage()->generate_id(weObjTypeScanData);
         }
     }
-    //tsk_status = WI_TSK_RUNNING;
+    tsk_status = WI_TSK_RUNNING;
+    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+    need_lock = false;
     start_tm = btm::second_clock::local_time();
     check_task_processor();
+
+    load_task_params();
 
     total_reqs = 0;
     total_done = 0;
@@ -554,8 +567,7 @@ void task::Run(const string &task_id)
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Run: start " << inventories[i]->get_description());
         inventories[i]->init(this);
     }
-
-    calc_status();
+    need_lock = true;
 }
 
 TaskStatus task::Pause(bool wait)
@@ -570,8 +582,8 @@ TaskStatus task::Pause(bool wait)
         boost::unique_lock<boost::mutex> lock(tsk_mutex);
         tsk_event.notify_all();
     }
-    if(wait){
-        while(tsk_status == WI_TSK_PAUSING){
+    if(wait) {
+        while(tsk_status == WI_TSK_PAUSING) {
             boost::this_thread::sleep(boost::posix_time::millisec(500));
         }
     }
@@ -580,7 +592,7 @@ TaskStatus task::Pause(bool wait)
 
 void task::Resume()
 {
-    if(tsk_status == WI_TSK_PAUSED && tsk_status == WI_TSK_SUSPENDED){
+    if(tsk_status == WI_TSK_PAUSED || tsk_status == WI_TSK_SUSPENDED) {
         tsk_status = WI_TSK_RUNNING;
         check_task_processor();
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Resume notify all about TaskStatus change");
@@ -589,15 +601,16 @@ void task::Resume()
     }
 }
 
-bool task::Suspend(){
-    if(Pause(true) == WI_TSK_PAUSED){
+bool task::Suspend()
+{
+    if(Pause(true) == WI_TSK_PAUSED) {
         save_to_db();
-        save_task_list();
+        save_task_list_and_params();
         boost::unique_lock<boost::mutex> lock(tsk_mutex);
         tsk_status = WI_TSK_SUSPENDED;
         tsk_event.notify_all();
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Suspend notify all about TaskStatus change");
-        return true;        
+        return true;
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::Suspend Error while pausing thread");
     return false;
@@ -605,12 +618,16 @@ bool task::Suspend(){
 
 bool task::Stop()
 {
-    if(Pause(true) == WI_TSK_PAUSED){
+    if(Pause(true) == WI_TSK_PAUSED) {
         boost::unique_lock<boost::mutex> lock(tsk_mutex);
         tsk_status = WI_TSK_STOPPED;
         tsk_event.notify_all();
+        for(vector<i_request_ptr>::iterator it = taskList.begin(); it != taskList.end(); ++it) {
+            (*it)->abort_request();
+        }
+        taskList.clear();
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop notify all about TaskStatus change");
-        return true;        
+        return true;
     }
     LOG4CXX_TRACE(iLogger::GetLogger(), "task::Stop Error while stopping thread");
     return false;
@@ -639,28 +656,29 @@ void task::calc_status()
     }
     tsk_completion = idata;
 
-    switch(tsk_status){
-        case WI_TSK_INIT:
-            tsk_status = WI_TSK_RUNNING;
-        case WI_TSK_RUNNING:
-            if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
-                LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
-                tsk_completion = 100;
-                finish_tm = btm::second_clock::local_time();
-                tsk_status = WI_TSK_FINISHED;
-            }
-            break;
-        case WI_TSK_PAUSING:
-            if (taskQueue.size() == 0 && active_threads == 0) {
-                LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
-                tsk_status = WI_TSK_PAUSED;
-            }
-            break;
+    switch(tsk_status) {
+    case WI_TSK_INIT:
+        tsk_status = WI_TSK_RUNNING;
+    case WI_TSK_RUNNING:
+        if (taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0 && i_operation::get_instance_counter() == 0) {
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
+            tsk_completion = 100;
+            finish_tm = btm::second_clock::local_time();
+            tsk_status = WI_TSK_FINISHED;
+        }
+        break;
+    case WI_TSK_PAUSING:
+        if (taskQueue.size() == 0 && active_threads == 0) {
+            LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: finish!");
+            tsk_status = WI_TSK_PAUSED;
+        }
+        break;
     }
 
-    tsk_event.notify_all();
-    if(old != tsk_status)
+    if(old != tsk_status) {
+        tsk_event.notify_all();
         LOG4CXX_TRACE(iLogger::GetLogger(), "task::calc_status Status changed: " << tsk_status);
+    }
     // set task status
     save_to_db();
 }
@@ -1269,20 +1287,23 @@ i_plugin* task::get_active_plugin( const string& iface_name, bool autoload /*= f
     return resp;
 }
 
-void task::save_task_list(){
-    if(tsk_status != WI_TSK_PAUSED){
+void task::save_task_list_and_params()
+{
+    if(tsk_status != WI_TSK_PAUSED) {
         LOG4CXX_ERROR(iLogger::GetLogger(), "task::save_task_list was called in not allowed state");
     }
-    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+    boost::scoped_ptr<boost::unique_lock<boost::mutex> > lock;
+    if(need_lock)
+        lock.reset(new boost::unique_lock<boost::mutex>(tsk_mutex) );
     vector<string> fields;
     fields.push_back("task_list.scan_id");
     fields.push_back("task_list.request_type");
     fields.push_back("task_list.request");
-    
+
     kernel->storage()->del( db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id) );
 
     db_cursor cur = kernel->storage()->ins(fields);
-    for(vector<i_request_ptr>::const_iterator it = taskList.begin(); it != taskList.end(); ++it, ++cur){
+    for(vector<i_request_ptr>::const_iterator it = taskList.begin(); it != taskList.end(); ++it, ++cur) {
         cur[0] = scan_id;
         cur[1] = string(typeid(*(*it)).name());
         ostringstream str;
@@ -1301,8 +1322,11 @@ void task::save_task_list(){
     cur.close();
 }
 
-void task::load_task_list(){
-    boost::unique_lock<boost::mutex> lock(tsk_mutex);
+void task::load_task_list()
+{
+    boost::scoped_ptr<boost::unique_lock<boost::mutex> > lock;
+    if(need_lock)
+        lock.reset(new boost::unique_lock<boost::mutex>(tsk_mutex) );
 
     vector<string> fields;
     fields.push_back("task_list.request_type");
@@ -1311,23 +1335,35 @@ void task::load_task_list(){
     taskList.clear();
     i_request_ptr request;
     db_cursor cur = kernel->storage()->get(
-        db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id)
-        && db_condition().field("task_list.request_type").operation(db_condition::not_equal).value(task_params_str), 
-        fields);
-    for(; cur.is_not_end(); ++cur){
+                        db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id)
+                        && db_condition().field("task_list.request_type").operation(db_condition::not_equal).value(task_params_str),
+                        fields);
+    for(; cur.is_not_end(); ++cur) {
         istringstream str(cur[1].get<string>());
         we_iarchive arch(str);
         request = kernel->restore_request(cur[0].get<string>(), arch);
-        if(request){
+        if(request) {
             taskList.push_back(request);
         } else {
             LOG4CXX_ERROR(iLogger::GetLogger(), "task::load_task_list Could not deserialize \"" << cur[0] << "\"");
         }
     }
-    cur = kernel->storage()->get(
-        db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id)
-        && db_condition().field("task_list.request_type").operation(db_condition::equal).value(task_params_str), 
-        fields);
+}
+
+void task::load_task_params()
+{
+    boost::scoped_ptr<boost::unique_lock<boost::mutex> > lock;
+    if(need_lock)
+        lock.reset(new boost::unique_lock<boost::mutex>(tsk_mutex) );
+
+    vector<string> fields;
+    fields.push_back("task_list.request_type");
+    fields.push_back("task_list.request");
+
+    db_cursor cur = kernel->storage()->get(
+                        db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id)
+                        && db_condition().field("task_list.request_type").operation(db_condition::equal).value(task_params_str),
+                        fields);
     if(cur.is_not_end()) {
         istringstream str(cur[1].get<string>());
         we_iarchive arch(str);
@@ -1336,13 +1372,14 @@ void task::load_task_list(){
 }
 
 #ifdef _DEBUG
-namespace{
+namespace {
 #define TO_STR(unused,data,elem) BOOST_PP_STRINGIZE(elem) ,
-    const char * TaskStatus_strs[]={ BOOST_PP_SEQ_FOR_EACH(TO_STR,~,SEQ_TASK_STATUSES) };
+const char * TaskStatus_strs[]= { BOOST_PP_SEQ_FOR_EACH(TO_STR,~,SEQ_TASK_STATUSES) };
 #undef TO_STR
 }
 
-const char * task::get_status_name() const{
+const char * task::get_status_name() const
+{
     return TaskStatus_strs[tsk_status];
 }
 

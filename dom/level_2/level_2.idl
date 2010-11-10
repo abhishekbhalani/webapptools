@@ -1,0 +1,13 @@
+#ifndef _level2_IDL_
+#define _level2_IDL_
+
+#include "css.idl"
+#include "dom.idl"
+#include "events.idl"
+#include "html2.idl"
+#include "ranges.idl"
+#include "stylesheets.idl"
+#include "traversal.idl"
+#include "views.idl"
+
+#endif

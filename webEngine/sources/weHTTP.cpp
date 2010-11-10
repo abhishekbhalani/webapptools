@@ -110,7 +110,8 @@ HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*
     //LOG4CXX_WARN(iLogger::GetLogger(), "HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented");
 }
 
-i_request_ptr HttpRequest::restore_request(we_iarchive& ar){
+i_request_ptr HttpRequest::restore_request(we_iarchive& ar)
+{
     HttpRequest* result = new HttpRequest();
     ar >> boost::serialization::make_nvp("HttpRequest", *result);
     return i_request_ptr(result);

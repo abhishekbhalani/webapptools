@@ -41,19 +41,25 @@ namespace webEngine {
  * Database abstraction layer is the set of classes to implement database-related
  * structures. It provides universal classes to access structured data.
  * List of classes:
- * @li db_recordset
  * @li db_cursor
  * @li db_condition
  * @li db_filter
- * @li db_query
  *
  * All of these classes except db_query may be used independently of webEngine system.
  * But the db_query class proposed to use with the i_storage interface implementations.
  * BOOST_SERIALIZATION_NVP serialization mechanism implemented in the db_recordset to
  * use in various schemes.
  *
- * @example dbtest.cpp
- * Demonstrates operation with @ref db_layer "database abstraction layer" classes
+ * Example Usage:
+ * @code
+ * db_cursor cur = kernel->storage()->get(
+ *     db_condition().field("task_list.scan_id").operation(db_condition::equal).value(scan_id)
+ *     && db_condition().field("task_list.request_type").operation(db_condition::not_equal).value(task_params_str),
+ *     fields);
+ * for(; cur.is_not_end(); ++cur) {
+ *   cout << cur["task_list.request_type"] << "\t" << "task_list.request" << endl;
+ * }
+ * @endcode
  */
 
 typedef vector< we_variant > record_;
@@ -81,15 +87,23 @@ protected:
     explicit db_record(boost::shared_ptr<vector<string> > fields, record_* r = NULL);
 public:
     virtual ~db_record() {};
+
+    /** @brief copying constructor */
     db_record(const db_record& r) : rec(NULL) {
         *this = r;
     }
 
+    /** @brief copying operator */
     virtual db_record& operator=(const db_record& rhs);
+
+    /** @{ @brief Accessing for db_record elements */
     virtual we_variant& operator[](int index);
     virtual const we_variant& operator[](int index) const;
     virtual we_variant& operator[](const string& name);
     virtual const we_variant& operator[](const string& name) const;
+    /** @} */
+
+    /** @brief Returns number of fields in record*/
     virtual const size_t record_size() const;
 private:
     friend class details::db_cursor_detail;
@@ -101,6 +115,10 @@ private:
 
 ////////////////////////// CURSOR ////////////////////
 namespace details {
+
+/**
+*  @brief This class uses for inheritance from a i_storage implementations
+*/
 class db_cursor_detail:	public boost::noncopyable {
 public:
     db_cursor_detail():m_isEnd(true), m_affected_rows(0) {}
@@ -131,19 +149,32 @@ protected:
 };
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// @class  db_cursor
+///
+/// @brief  iterator for sql statements created by i_storage
+/// @see i_storage
+///
+/// @author S. Antonov
+/// @date	14.09.2010
+////////////////////////////////////////////////////////////////////////////////////////////////////
 class db_cursor: public boost::iterator_facade <db_cursor, db_record, boost::forward_traversal_tag> {
 public:
     db_cursor() {}
     db_cursor(db_cursor &other):m_cursor(other.m_cursor) {}
     explicit db_cursor(boost::shared_ptr<details::db_cursor_detail> cursor):m_cursor(cursor) {}
 
+    /** @brief After close() you can't use this cursor. It send all data and closes statements. */
     bool close() {
         return m_cursor->close();
     }
+
+    /** @brief You can't use this cursor if it returns true. It indicates end of 'select' dataset, or closed cursor. */
     bool is_not_end() const {
         return m_cursor ? !m_cursor->m_isEnd : false;
     }
 
+    /** @{ @brief Accessing for db_record elements */
     we_variant& operator[](int n) {
         return (m_cursor->dereference())[n];
     }
@@ -156,7 +187,9 @@ public:
     const we_variant& operator[](const string& n) const {
         return (m_cursor->dereference())[n];
     }
+    /** @} */
 
+    /** @brief Return rows affected by last 'insert'/'update' query */
     int get_affected_rows() {
         return m_cursor->get_affected_rows();
     }
@@ -177,23 +210,6 @@ protected:
 private:
     boost::shared_ptr<details::db_cursor_detail> m_cursor;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /// @class  db_filter_base
 ///
@@ -264,6 +280,7 @@ public:
     }
     ~db_condition() {}
 
+    /** @{ direct access to members */
     string& field() {
         return field_name;
     }
@@ -273,31 +290,41 @@ public:
     we_variant& value() {
         return test_value;
     }
+    /** @} */
 
+    /** @{ @brief setters for nice syntax */
     db_condition& field(const string& field_) {
         field_name = field_;
         return *this;
     }
-
     db_condition& operation(const opcode op_) {
         op_code = op_;
         return *this;
     }
-
     db_condition& value(const we_variant& val) {
         test_value = val;
         return *this;
     }
+    /** @} */
 
+    /** @brief copying operator */
     db_condition& operator=(const db_condition& cpy) {
         field_name = cpy.field_name;
         op_code = cpy.op_code;
         test_value = cpy.test_value;
         return *this;
     }
+
+    /** @brief string parser */
     db_condition& operator=(const string& s);
+
+    /** @brief check db_record */
     virtual bool operator()(db_record& data) const;
+
+    /** @brief print condition to string */
     virtual string tostring() const;
+
+    /** @brief add namespace from field to ns_list */
     virtual void get_namespaces(std::set<string>& ns_list) const;
 
 protected:
@@ -326,14 +353,22 @@ public:
 
     ~db_filter();
 
+    /** @brief copying operator */
     db_filter& operator=(const db_filter& cpy);
 
+    /** @{ @brief logical operation on conditions */
     db_filter& set(db_filter_base& cond);
     db_filter& or(db_filter_base& cond);
     db_filter& and(db_filter_base& cond);
+    /** @} */
 
+    /** @brief test record */
     virtual bool operator()(db_record& data) const;
+
+    /** @brief print condition to string */
     virtual string tostring() const;
+
+    /** @brief add namespaces from field to ns_list */
     virtual void get_namespaces(std::set<string>& ns_list) const;
 
 protected:
@@ -350,6 +385,7 @@ protected:
     vector< element > condition;
 };
 
+/// SQL generators from db_filter and fields list
 namespace sql_constructor {
 const std::string get_sql_select(const db_filter &where, const std::vector<std::string> &fields);
 const std::string get_sql_update(const db_filter &where, const std::vector<std::string> &fields);
@@ -360,6 +396,7 @@ const std::string get_sql_delete(const db_filter &where);
 
 } // namespace webEngine
 
+/** @{ @brief operator for nice syntax */
 inline webEngine::db_filter& operator && (webEngine::db_filter& filt, webEngine::db_filter_base& cond)
 {
     return filt.and(cond);
@@ -379,7 +416,7 @@ inline webEngine::db_filter operator || (webEngine::db_condition& filt, webEngin
 {
     return webEngine::db_filter(filt).or(cond);
 }
-
+/** @} */
 
 
 #endif // __WEDBSTRUCT_H__

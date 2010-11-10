@@ -233,7 +233,7 @@ public:
     //@}
 
     virtual i_response_ptr abort_request();
-    virtual void to_archive(we_oarchive &ar){
+    virtual void to_archive(we_oarchive &ar) {
         HttpRequest &request = *this;
         ar << BOOST_SERIALIZATION_NVP(request);
     }
@@ -252,16 +252,16 @@ protected:
 #endif //__DOXYGEN__
 private:
     DECLARE_SERIALIZATOR {
-        ar 
-            & BOOST_SERIALIZATION_NVP(method)
-            & BOOST_SERIALIZATION_NVP(auth_method)
-            & BOOST_SERIALIZATION_NVP(username) 
-            & BOOST_SERIALIZATION_NVP(password)
-            & BOOST_SERIALIZATION_NVP(useragent) 
-            & BOOST_SERIALIZATION_NVP(referer) 
-            & BOOST_SERIALIZATION_NVP(reqUrl) 
-            & BOOST_SERIALIZATION_NVP(data) 
-            & BOOST_SERIALIZATION_NVP(postData);
+        ar
+        & BOOST_SERIALIZATION_NVP(method)
+        & BOOST_SERIALIZATION_NVP(auth_method)
+        & BOOST_SERIALIZATION_NVP(username)
+        & BOOST_SERIALIZATION_NVP(password)
+        & BOOST_SERIALIZATION_NVP(useragent)
+        & BOOST_SERIALIZATION_NVP(referer)
+        & BOOST_SERIALIZATION_NVP(reqUrl)
+        & BOOST_SERIALIZATION_NVP(data)
+        & BOOST_SERIALIZATION_NVP(postData);
     };
 };
 

@@ -1,5 +1,5 @@
 #include <signal.h>
-#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
@@ -86,9 +86,6 @@ void save_plugin_ui(webEngine::i_storage* store)
     string db_data;
     string db_icon;
     webEngine::string_list str_data;
-    webEngine::db_recordset packet(store->get_namespace_struct("profile_ui"));
-    webEngine::db_cursor rec = packet.push_back();
-    webEngine::db_query c_query;
     webEngine::db_condition c_plugin, c_locale;
 
     c_locale.field() = "profile_ui.locale";
@@ -98,15 +95,6 @@ void save_plugin_ui(webEngine::i_storage* store)
     c_plugin.field() = "profile_ui.plugin_id";
     c_plugin.operation() = webEngine::db_condition::equal;
 
-    rec["profile_ui.locale"] = string("en");
-
-//     pos = args.find(' ');
-//     if (pos == string::npos) {
-//         pos = args.find('\t');
-//     }
-//     if (pos != string::npos) {
-//         args = args.substr(0, pos);
-//     }
     webEngine::plugin_list plgs = we_dispatcer->get_plugin_list();
     for (int i = 0; i < plgs.size(); i++) {
         webEngine::string_list::iterator it;
@@ -126,12 +114,13 @@ void save_plugin_ui(webEngine::i_storage* store)
                 plg->release();
                 // save information
                 c_plugin.value() = plgs[i].interface_name;
-                c_query.where.set(c_plugin).and(c_locale);
+                webEngine::db_cursor rec = store->set(c_plugin && c_locale, "profile_ui");
+                rec["profile_ui.locale"] = string("en");
                 rec["profile_ui.plugin_id"] = plgs[i].interface_name;
                 rec["profile_ui.plugin_name"] = plgs[i].plugin_desc;
                 rec["profile_ui.ui_settings"] = db_data;
                 rec["profile_ui.ui_icon"] = db_icon;
-                store->set(c_query, packet);
+                rec.close();
             } else {
                 LOG4CXX_ERROR(scan_logger, "Can't load plugin " << plgs[i].plugin_id << "; " << plgs[i].plugin_desc);
             }
@@ -143,20 +132,7 @@ void send_keepalive(webEngine::i_storage* store, int timeout)
 {
     LOG4CXX_TRACE(scan_logger, "Send keep-alive signal");
     keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
-    webEngine::db_recordset packet(store->get_namespace_struct("modules"));
-    webEngine::db_cursor rec = packet.push_back();
-    rec["modules.id"] = scaner_uuid;
-    rec["modules.instance"] = scaner_instance;
-    rec["modules.class"] = MODULE_CLASS_SCANNER;
-    rec["modules.version"] = keep_alive_packet[scan_version];
-    rec["modules.ipaddr"] = keep_alive_packet[ip_addr];
-    rec["modules.name"] = keep_alive_packet[scanner_name];
-    rec["modules.stamp"] = (int)time(NULL);
-    rec["modules.timeout"] = timeout;
-    rec["modules.onrun"] = running_tasks_count;
-    rec["modules.status"] = keep_alive_packet[status];
 
-    webEngine::db_query scan_query;
     webEngine::db_condition c_instance, c_class, c_id;
     c_instance.field() = "modules.instance";
     c_instance.operation() = webEngine::db_condition::equal;
@@ -167,8 +143,18 @@ void send_keepalive(webEngine::i_storage* store, int timeout)
     c_id.field() = "modules.id";
     c_id.operation() = webEngine::db_condition::equal;
     c_id.value() = scaner_uuid;
-    scan_query.where.set(c_instance).and(c_class).and(c_id);
-    store->set(scan_query, packet);
+    webEngine::db_cursor rec = store->set(c_instance && c_class && c_id, "modules");
+
+    rec["modules.id"] = scaner_uuid;
+    rec["modules.instance"] = scaner_instance;
+    rec["modules.class"] = MODULE_CLASS_SCANNER;
+    rec["modules.version"] = keep_alive_packet[scan_version];
+    rec["modules.ipaddr"] = keep_alive_packet[ip_addr];
+    rec["modules.name"] = keep_alive_packet[scanner_name];
+    rec["modules.stamp"] = (int)time(NULL);
+    rec["modules.timeout"] = timeout;
+    rec["modules.onrun"] = running_tasks_count;
+    rec["modules.status"] = keep_alive_packet[status];
 }
 
 void send_plugins_list(int timeout)
@@ -189,9 +175,11 @@ void send_plugins_list(int timeout)
 void send_sysinfo(webEngine::i_storage* store, int timeout)
 {
     LOG4CXX_TRACE(scan_logger, "Send system information");
-    // not divide to instances - whole system information
-    webEngine::db_recordset packet(store->get_namespace_struct("modules_info"));
-    webEngine::db_cursor rec = packet.push_back();
+    webEngine::db_condition c_instance;
+    c_instance.field() = "modules_info.module_id";
+    c_instance.operation() = webEngine::db_condition::equal;
+    c_instance.value() = scaner_uuid;
+    webEngine::db_cursor rec = store->set(c_instance, "modules_info");
 
     rec["modules_info.module_id"] = scaner_uuid;
     rec["modules_info.osname"] = sys_info_packet[os_name];
@@ -208,43 +196,25 @@ void send_sysinfo(webEngine::i_storage* store, int timeout)
     rec["modules_info.max_tasks"] = max_tasks_count;
     rec["modules_info.stamp"] = (int)time(NULL);
     rec["modules_info.timeout"] = timeout;
-    // save info
-
-    // save to DB1 information about plugins.
-    webEngine::db_query scan_query;
-    webEngine::db_condition c_instance;
-    c_instance.field() = "modules_info.module_id";
-    c_instance.operation() = webEngine::db_condition::equal;
-    c_instance.value() = scaner_uuid;
-    scan_query.where.set(c_instance);
-    store->set(scan_query, packet);
-
-    //send_plugins_list(timeout);
+    rec.close();
 }
 
 string get_command(webEngine::i_storage* store)
 {
     string retval = "";
-    webEngine::db_recordset packet;
-
-    webEngine::db_query scan_query;
     webEngine::db_condition c_instance, c_stamp;
 
     c_instance.field() = "module_cmds.module_id";
     c_instance.operation() = webEngine::db_condition::equal;
     c_instance.value() = scaner_uuid + ":" +  boost::lexical_cast<string>(scaner_instance);
-    scan_query.what = store->get_namespace_struct("module_cmds");
-    scan_query.where.set(c_instance);
-    store->get(scan_query, packet);
-    if (packet.size() > 0) {
-        webEngine::db_cursor rec = packet.begin();
+    webEngine::db_cursor rec = store->get(c_instance, "module_cmds");
+    if (rec.is_not_end()) {
         retval = rec["module_cmds.cmd"].get<string>();
 
         c_stamp.field() = "module_cmds.timestamp";
         c_stamp.operation() = webEngine::db_condition::equal;
         c_stamp.value() = rec["module_cmds.timestamp"];
-        scan_query.where.set(c_instance).and(c_stamp);
-        store->del(scan_query.where);
+        store->del(c_stamp);
     }
 
     return retval;
@@ -308,26 +278,17 @@ int dispatcher_routine(po::variables_map& vm)
 
     // clear outdated records
     // verify instance id
-    webEngine::db_recordset scanners;
-    webEngine::db_query scan_query;
     webEngine::db_condition c_instance, c_class;
-    scan_query.what = storage->get_namespace_struct("modules");
     c_instance.field() = "modules.instance";
     c_instance.operation() = webEngine::db_condition::equal;
     c_instance.value() = scaner_uuid;
     c_class.field() = "modules.class";
     c_class.operation() = webEngine::db_condition::equal;
     c_class.value() = MODULE_CLASS_SCANNER;
-    scan_query.where.set(c_instance).and(c_class);
-    storage->get(scan_query, scanners);
-    scaner_instance = scanners.size();
-    if (scaner_instance > 0) {
-        // fix holes
-        webEngine::db_cursor cur;
-        for (cur = scanners.begin(); cur != scanners.end(); ++cur) {
-            if (cur["modules.id"].get<int>() > scaner_instance) {
-                scaner_instance = cur["modules.id"].get<int>();
-            }
+    webEngine::db_cursor cur = storage->get(c_instance && c_class, "modules");
+    for (; cur.is_not_end(); ++cur) {
+        if (cur["modules.id"].get<int>() > scaner_instance) {
+            scaner_instance = cur["modules.id"].get<int>();
         }
     }
     LOG4CXX_TRACE(scan_logger, "Found " << scaner_instance << " instances of " << scaner_uuid);
@@ -462,8 +423,7 @@ int dispatcher_routine(po::variables_map& vm)
     c_id.field() = "modules.id";
     c_id.operation() = webEngine::db_condition::equal;
     c_id.value() = scaner_uuid;
-    scan_query.where.set(c_instance).and(c_class).and(c_id);
-    storage->del(scan_query.where);
+    storage->del(c_instance && c_class && c_id);
 
     delete we_dispatcer;
     return retcode;

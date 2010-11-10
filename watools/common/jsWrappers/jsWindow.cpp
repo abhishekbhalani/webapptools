@@ -6,6 +6,7 @@
 #include "jsBrowser.h"
 #include "jsWindow.h"
 #include "boost/regex.hpp"
+#include <html_js.h>
 
 #include <boost/algorithm/string/trim.hpp>
 // from common/
@@ -69,6 +70,16 @@ Persistent<FunctionTemplate> jsWindow::object_template;
 bool jsWindow::is_init = false;
 std::vector<std::string> jsWindow::ro_props(read_only_props, read_only_props + sizeof read_only_props / sizeof read_only_props[ 0 ]);
 std::vector<std::string> jsWindow::funcs(func_list, func_list + sizeof func_list / sizeof func_list[ 0 ]);
+
+v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsHistory>::GetTemplate()
+{
+    return jsHistory::object_template;
+}
+
+v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsWindow>::GetTemplate()
+{
+    return jsWindow::object_template;
+}
 
 jsHistory::jsHistory(jsWindow *win)
 {
@@ -293,7 +304,6 @@ jsWindow::jsWindow( jsBrowser* holder_, jsWindow* parent_, jsWindow* creator_ )
     location = new jsLocation(this);
     location->url.protocol = "about";
     location->url.host = "blank";
-    document = new jsDocument(this);
     history = new jsHistory(this);
 
     // properties
@@ -316,7 +326,6 @@ jsWindow::jsWindow( jsBrowser* holder_, jsWindow* parent_, jsWindow* creator_ )
 
 jsWindow::~jsWindow( void )
 {
-    delete document;
     delete history;
     for (size_t i = 0; i < frames.size(); ++i) {
         browser->delete_window(frames[i]);
@@ -369,7 +378,7 @@ void process_events( jsBrowser* js_exec, base_entity_ptr entity, bool is_jquery 
         name = (*attrib).first;
         src = (*attrib).second;
 
-        Local<Object> obj = Local<Object>::New(wrap_entity(boost::shared_dynamic_cast<html_entity>(entity)));
+        Local<Object> obj = Local<Object>::New(wrap_entity(boost::shared_dynamic_cast<html_entity>(entity))->m_this);
         ctx->Global()->Set(String::New("__evt_target__"), obj);
         if (boost::istarts_with(name, "on")) {
             // attribute name started with "on*" - this is the event
@@ -447,31 +456,63 @@ void jsWindow::load( const string& url )
         req.reset();
     } // while relocations
     if (hresp->HttpCode() < 300) {
-        document->doc->ParseData(resp);
-        // execute scripts
+        boost::shared_ptr<html_document> doc(new html_document());
+        if(doc) {
+            doc->ParseData(resp);
+            // execute scripts
 #ifdef V8_DOMSHELL
-        string source;
-        entity_list scrs = document->doc->FindTags("script");
-        for(size_t i = 0; i < scrs.size(); ++i) {
-            source = scrs[i]->attr("src");
-            if (source != "") {
-                LOG4CXX_INFO(webEngine::iLogger::GetLogger(), "jsWindow::load external script " << source);
-            } else {
-                source = scrs[i]->attr("#code");
-                browser->execute_string(source, "", true, true);
-            }
-        }
-        ClearEntityList(scrs);
-        HandleScope handle_scope;
-        bool jquery_enabled = false;
-        Local<Value> jqo = browser->v8_get(String::New("jQuery"));
-        if (jqo->IsObject()) {
-            browser->execute_string("jQuery.ready()", "", true, true);
-            jquery_enabled = true;
-        }
-        process_events(browser, document->doc, jquery_enabled);
-        assign_document( document->doc );
+            string source;
+            assign_document( doc );
+
+            size_t i = 0;
+            for(v8_wrapper::iterator_dfs it = document->begin_dfs(); it != document->end_dfs(); ++it) {
+                if((*it)->m_tag == HTML_TAG_script && (*it)->m_entity) {
+                    document->v8_wrapper::Registrator<v8_wrapper::jsDocument>::m_data.m_execution_point = *it;
+                    source = (*it)->m_entity->attr("#code");
+                    std::string src_url = (*it)->m_entity->attr("src");
+                    if(src_url != "" && source == "") {
+                        if(src_url.find(':') == -1) {
+                            src_url = refer.substr(0, refer.rfind('/') + 1) + src_url;
+                        }
+                        HttpResponse* hresp_;
+                        i_response_ptr resp_;
+                        while (true) {
+                            HttpRequest* hreq_ = new HttpRequest(src_url);
+                            hreq_->Method(HttpRequest::wemGet);
+                            hreq_->depth(relocs);
+                            hreq_->SetReferer(refer);
+                            i_request_ptr req_(hreq_);
+                            resp_ = browser->http_request(req_);
+                            hresp_ = (HttpResponse*)resp_.get();
+                            if (hresp_->HttpCode() < 300 || hresp_->HttpCode() >= 400) {
+                                break;
+                            }
+                        }
+                        if (hresp_->HttpCode() < 300) {
+                            source.assign((const char*)&resp_->Data()[0], resp_->Data().size());
+                            (*it)->m_entity->attr("#code", source);
+                        }
+                    }
+#ifdef _DEBUG
+                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "audit_jscript::parse_scripts execute script #" << i++ << "; Source:\n" << source);
 #endif
+                    browser->execute_string(source, "", true, true);
+#ifdef _DEBUG
+                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "ExecuteScript results: " << browser->get_results());
+#endif
+                }
+            }
+
+            HandleScope handle_scope;
+            bool jquery_enabled = false;
+            Local<Value> jqo = browser->v8_get(String::New("jQuery"));
+            if (jqo->IsObject()) {
+                browser->execute_string("jQuery.ready()", "", true, true);
+                jquery_enabled = true;
+            }
+            process_events(browser, doc, jquery_enabled);
+#endif
+        }
     } else {
         LOG4CXX_WARN(webEngine::iLogger::GetLogger(), "jsWindow::load the " << hresp->RealUrl().tostring() << " failed! HTTP code=" << hresp->HttpCode());
     }
@@ -479,6 +520,7 @@ void jsWindow::load( const string& url )
 
 void webEngine::jsWindow::assign_document( html_document_ptr dc )
 {
+
     size_t i;
 
     for (i = 0; i < frames.size(); ++i) {
@@ -486,35 +528,7 @@ void webEngine::jsWindow::assign_document( html_document_ptr dc )
         delete frames[i];
     }
     frames.clear();
-    document->doc = dc;
-    if (document->doc) {
-        entity_list frm;
-        string f_src;
-        frm = document->doc->FindTags("frames");
-        for (i = 0; i < frm.size(); ++i) {
-            jsWindow* f = new jsWindow(browser, this, this);
-            browser->register_window(f);
-            frames.push_back(f);
-            f_src = frm[i]->attr("src");
-            if (f_src != "") {
-                // skip preloaded frames
-                f->load(f_src);
-            }
-        }
-        ClearEntityList(frm);
-        frm = document->doc->FindTags("iframes");
-        for (i = 0; i < frm.size(); ++i) {
-            jsWindow* f = new jsWindow(browser, this, this);
-            browser->register_window(f);
-            frames.push_back(f);
-            f_src = frm[i]->attr("src");
-            if (f_src != "") {
-                // skip preloaded frames
-                f->load(f_src);
-            }
-        }
-        ClearEntityList(frm);
-    }
+    document = boost::shared_dynamic_cast< v8_wrapper::jsDocument >(v8_wrapper::wrap_dom(dc));
 }
 
 Handle<Value> jsWindow::GetProperty(Local<String> name, const AccessorInfo &info)
@@ -523,7 +537,8 @@ Handle<Value> jsWindow::GetProperty(Local<String> name, const AccessorInfo &info
     std::string key = value_to_string(name);
 
     if (key == "document") {
-        val = wrap_object<jsDocument>(document);
+        if(document)
+            val = document->m_this;
     } else if (key == "frames") {
         Handle<Array> elems(Array::New());
         for (size_t i = 0; i < frames.size(); ++i) {
