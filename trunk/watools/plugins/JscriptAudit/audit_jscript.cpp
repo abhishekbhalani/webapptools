@@ -3,6 +3,7 @@
 #include <weDispatch.h>
 // for add_http_url
 #include <weHttpInvent.h>
+#include <html_js.h>
 
 // from common/
 #include <boost/uuid/uuid.hpp>
@@ -400,22 +401,22 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
             jse.allow_network(parent_task);
         }
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts execute scripts for parsed_data " << parser);
-        lst = parser->FindTags("script");
-        for (size_t i = 0; i < lst.size(); i++) {
-            base_entity_ptr ent = lst[i];
-            if (ent != NULL) {
-                source = ent->attr("#code");
+
+        size_t i = 0;
+        for(v8_wrapper::iterator_dfs it = jse.window->document->begin_dfs(); it != jse.window->document->end_dfs(); ++it) {
+            if((*it)->m_tag == HTML_TAG_script && (*it)->m_entity) {
+                jse.window->document->v8_wrapper::Registrator<v8_wrapper::jsDocument>::m_data.m_execution_point = *it;
+                source = (*it)->m_entity->attr("#code");
 #ifdef _DEBUG
-                LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts execute script #" << i << "; Source:\n" << source);
+                LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts execute script #" << i++ << "; Source:\n" << source);
 #endif
-                // @todo: add V8 synchronization - only one script can be processed at same time
                 jse.execute_string(source, "", true, true);
 #ifdef _DEBUG
                 LOG4CXX_TRACE(logger, "ExecuteScript results: " << jse.get_results());
 #endif
             }
         }
-        ClearEntityList(lst);
+
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts check for jQuery");
         bool jquery_enabled = false;
         v8::Handle<v8::Value> jqo;
@@ -467,7 +468,7 @@ void audit_jscript::process_events(jsBrowser* jse, v8::Persistent<v8::Context> c
 
     AttrMap::iterator attrib = entity->attr_list().begin();
 
-    v8::Local<v8::Object> obj = v8::Local<v8::Object>::New(wrap_entity(boost::shared_dynamic_cast<html_entity>(entity)));
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::New(wrap_entity(boost::shared_dynamic_cast<html_entity>(entity))->m_this);
     ctx->Global()->Set(v8::String::New("__evt_target__"), obj);
 
     while(attrib != entity->attr_list().end() ) {

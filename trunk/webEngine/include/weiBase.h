@@ -41,8 +41,8 @@ using namespace std;
 
 namespace webEngine {
 
-    typedef boost::archive::xml_oarchive we_oarchive;
-    typedef boost::archive::xml_iarchive we_iarchive;
+typedef boost::archive::xml_oarchive we_oarchive;
+typedef boost::archive::xml_iarchive we_iarchive;
 
 #define DECLARE_SERIALIZATOR \
     friend class ::boost::serialization::access; \

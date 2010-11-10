@@ -14,9 +14,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/thread.hpp>
 //! todo: upgrade to the boost_1.42 to use natuve version
-#include "boost/uuid.hpp"
-#include "boost/uuid_generators.hpp"
-#include "boost/uuid_io.hpp"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/algorithm/string.hpp>
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/propertyconfigurator.h>
 #include <log4cxx/fileappender.h>

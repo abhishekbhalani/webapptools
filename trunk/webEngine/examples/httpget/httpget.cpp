@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     kernel.refresh_plugin_list();
     plg = kernel.load_plugin("http_transport");
     if (plg != NULL) {
-        tsk.AddPlgTransport((webEngine::i_transport*)plg);
+        tsk.add_plg_transport((webEngine::i_transport*)plg);
         if (argc > 1) {
             url = argv[1];
         }

@@ -33,10 +33,10 @@ class statement;
 
 namespace soci_db {
 namespace details {
-    class db_cursor_base;
-    class db_cursor_get;
-    class db_cursor_set;
-    class db_cursor_ins;
+class db_cursor_base;
+class db_cursor_get;
+class db_cursor_set;
+class db_cursor_ins;
 }
 
 class soci_storage :

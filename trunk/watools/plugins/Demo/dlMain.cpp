@@ -22,6 +22,6 @@
 extern "C"
 void* WePluginFactory(void* krnl)
 {
-    Dispatch* kernel = (Dispatch*)krnl;
+    engine_dispatcher* kernel = (engine_dispatcher*)krnl;
     return (void*)(new DemoPlugin(kernel));
 }

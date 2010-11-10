@@ -104,6 +104,7 @@ macro(soci_backend NAME)
       file(GLOB THIS_BACKEND_HEADERS *.h)
     endif()
     file(GLOB THIS_BACKEND_SOURCES *.cpp)
+    file(GLOB THIS_BACKEND_SOURCES_C *.c)
     set(THIS_BACKEND_HEADERS_VAR SOCI_${NAMEU}_HEADERS)
     set(${THIS_BACKEND_HEADERS_VAR} ${THIS_BACKEND_HEADERS}) 
 
@@ -113,27 +114,21 @@ macro(soci_backend NAME)
     set(${THIS_BACKEND_TARGET_VAR} ${THIS_BACKEND_TARGET})
 
     # TODO: Add static target 
-    add_library(${THIS_BACKEND_TARGET}-static STATIC ${THIS_BACKEND_SOURCES})
-    add_library(${THIS_BACKEND_TARGET} SHARED ${THIS_BACKEND_SOURCES})
+    add_library(${THIS_BACKEND_TARGET} SHARED ${THIS_BACKEND_SOURCES} ${THIS_BACKEND_SOURCES_C})
 
     target_link_libraries(${THIS_BACKEND_TARGET}
-      ${SOCI_CORE_TARGET}
+      soci_core
       ${THIS_BACKEND_DEPENDS_LIBRARIES})
 
-    set_target_properties(${THIS_BACKEND_TARGET}-static
-      PROPERTIES OUTPUT_NAME ${THIS_BACKEND_TARGET})
     set_target_properties(${THIS_BACKEND_TARGET}
       PROPERTIES
       CLEAN_DIRECT_OUTPUT 1
       VERSION ${SOCI_VERSION}
-      SOVERSION ${SOCI_SOVERSION})
-    set_target_properties(${THIS_BACKEND_TARGET}-static
-      PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+      SOVERSION ${SOCI_SOVERSION}
+      PREFIX "lib"
+    )
 
     INSTALL(FILES ${THIS_BACKEND_HEADERS} DESTINATION ${INCLUDEDIR}/${PROJECTNAMEL}/${NAMEL})
-    INSTALL(TARGETS ${THIS_BACKEND_TARGET} ${THIS_BACKEND_TARGET}-static
-      LIBRARY DESTINATION ${LIBDIR}
-      ARCHIVE DESTINATION ${LIBDIR})
 
   else()
     colormsg(HIRED "${NAME}" RED "backend disabled, since")
@@ -215,27 +210,6 @@ macro(soci_backend_test NAME)
     include_directories(${SOCI_SOURCE_DIR}/core/test)
     include_directories(${SOCI_SOURCE_DIR}/backends/${NAMEL})
 
-    add_executable(${THIS_TEST_TARGET} ${THIS_TEST_SOURCES})
-    add_executable(${THIS_TEST_TARGET}_static ${THIS_TEST_SOURCES})
-
-    target_link_libraries(${THIS_TEST_TARGET}
-      ${SOCI_CORE_TARGET}
-      ${SOCI_${NAMEU}_TARGET}
-      ${${NAMEU}_LIBRARIES})
-
-    target_link_libraries(${THIS_TEST_TARGET}_static
-      ${SOCI_CORE_TARGET}-static
-      ${SOCI_${NAMEU}_TARGET}-static
-      ${${NAMEU}_LIBRARIES}
-      ${SOCI_CORE_STATIC_DEPENDENCIES})
-
-    add_test(${THIS_TEST_TARGET}
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${THIS_TEST_TARGET}
-      ${${THIS_TEST_CONNSTR}})
-
-    add_test(${THIS_TEST_TARGET}_static
-      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${THIS_TEST_TARGET}_static
-      ${${THIS_TEST_CONNSTR}})
 
   endif()
 

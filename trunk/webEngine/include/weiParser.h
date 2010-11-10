@@ -31,6 +31,7 @@
 #include "weBlob.h"
 #include "weDiffLib.h"
 #include "weiPlugin.h"
+#include <html_tags.h>
 
 using namespace std;
 
@@ -114,7 +115,13 @@ public:
     };
     void Name(const string &EntityName) {
         entityName = EntityName;
+        htmlTag = find_tag_by_name(EntityName.c_str());
     };
+
+    const HTML_TAG HtmlTag(void) const {
+        return htmlTag;
+    }
+
     //@}
 
     //@{
@@ -149,10 +156,12 @@ protected:
     base_entity_wptr parent;
     AttrMap attributes;
     entity_list chldList;
-    string entityName;
     string entity_id;
     static weCmpMode compareMode;
     int startPos, endPos;
+private:
+    string entityName;
+    HTML_TAG htmlTag;
 #endif //__DOXYGEN__
 };
 

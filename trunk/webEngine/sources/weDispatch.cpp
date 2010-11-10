@@ -497,11 +497,11 @@ void engine_dispatcher::flush()
     }
 }
 
-i_request_ptr engine_dispatcher::restore_request(const string& request_class, we_iarchive& ar) const{
+i_request_ptr engine_dispatcher::restore_request(const string& request_class, we_iarchive& ar) const
+{
     i_request_ptr result;
     std::map<string, request_constructor*>::const_iterator it = m_request_map.find(request_class);
-    if(it != m_request_map.end() )
-    {
+    if(it != m_request_map.end() ) {
         result = it->second(ar);
     }
     return result;

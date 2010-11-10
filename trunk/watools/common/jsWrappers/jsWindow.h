@@ -1,12 +1,11 @@
 #pragma once
-#include <v8/v8.h>
-#include "jsDocument.h"
+#include <jsWrappers/jsGlobal.h>
 
 namespace webEngine {
 class jsBrowser;
 class jsWindow;
 
-class jsHistory {
+class jsHistory: public v8_wrapper::Registrator<jsHistory> {
 public:
     int index;
     std::vector<std::string>  history;
@@ -30,7 +29,7 @@ public:
 };
 
 
-class jsWindow {
+class jsWindow : public v8_wrapper::Registrator<jsWindow> {
 public:
     jsWindow(jsBrowser* holder_, jsWindow* parent_ = NULL, jsWindow* creator_ = NULL);
     ~jsWindow(void);
@@ -44,7 +43,7 @@ public:
     void assign_document(html_document_ptr dc);
 
     jsLocation* location;
-    jsDocument* document;
+    boost::shared_ptr<v8_wrapper::jsDocument> document;
     jsHistory* history;
     jsPropertyMap  props;
     vector<jsWindow*> frames;

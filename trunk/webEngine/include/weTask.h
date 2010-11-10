@@ -75,11 +75,17 @@ public:
     ~task();
 
 #ifdef _DEBUG
-    inline size_t get_taskQueue_size() const {return taskQueue.size();}
-    inline size_t get_taskList_size() const {return taskList.size();}
-    inline bool get_processThread() const {return processThread;}
+    inline size_t get_taskQueue_size() const {
+        return taskQueue.size();
+    }
+    inline size_t get_taskList_size() const {
+        return taskList.size();
+    }
+    inline bool get_processThread() const {
+        return processThread;
+    }
     const char * get_status_name() const;
-#endif 
+#endif
 
     // i_options_provider functions
     virtual we_option Option(const string& name);
@@ -153,10 +159,50 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     i_plugin* get_active_plugin(const string& iface_name, bool autoload = false);
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn	void Run(const string &task_id = string())
+    ///
+    /// @brief	Runs task. If task_id given, trying to load the task saved by Suspend()
+    ///
+    /// @param [in]	task_id	 - id of saved task to load
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     void Run(const string &task_id = string());
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn	TaskStatus Pause(bool wait = true)
+    ///
+    /// @brief	Pausing task. It sets 'Pausing' status and waits while task status changed. After task is
+    ///         'Paused' you can Resume, Suspend, Stop task, or just delete this. Pause() do not saving
+    ///         current task data, if you want to save it you can use Suspend() function.
+    ///
+    /// @param [in]	wait    - if it false Pause returns in 'Pausing' state, and task continue 'pausing'
+    /// @param [out] TaskStatus - returns current task state
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     TaskStatus Pause(bool wait = true);
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn	void Resume()
+    ///
+    /// @brief	Resuming paused or suspended task.
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     void Resume();
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn	bool Suspend()
+    ///
+    /// @brief	Pausing and save current task data. You can resume task from this state.
+    ///
+    /// @param [out] bool - returns true if successfull
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     bool Suspend();
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// @fn bool Stop()
+    ///
+    /// @brief	Pausing and stop task. You can NOT resume task from this state.
+    ///
+    /// @param [out] bool - returns true if successfull
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     bool Stop();
 
     bool IsReady();
@@ -274,6 +320,7 @@ protected:
     size_t total_done;
     engine_dispatcher *kernel;
     we_url_map processed_urls;
+    bool need_lock;
 #endif //__DOXYGEN__
 
 private:
@@ -282,8 +329,10 @@ private:
 
     /// wake-up task_processor
     void check_task_processor();
-    void save_task_list();
+
+    void save_task_list_and_params();
     void load_task_list();
+    void load_task_params();
 
     void calc_status();
 };

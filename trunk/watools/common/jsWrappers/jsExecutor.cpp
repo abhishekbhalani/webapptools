@@ -25,12 +25,15 @@
 // include DOM objects
 #include "jsLocation.h"
 #include "jsBrowser.h"
-#include "jsElement.h"
-#include "jsDocument.h"
 
 #include <boost/thread.hpp>
 
 using namespace v8;
+
+v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<webEngine::jsExecutor>::GetTemplate()
+{
+    return webEngine::jsExecutor::object_template;
+}
 
 namespace webEngine {
 
@@ -218,7 +221,7 @@ string jsExecutor::obj_dump(Local<Value> val, const string& name, const string& 
         Local<Object> vobj(Object::Cast(*val));
         Local<Array> nms = vobj->GetPropertyNames();
         ind += "\t";
-        for(int i = 0; i < nms->Length(); i++) {
+        for(uint32_t i = 0; i < nms->Length(); i++) {
             Local<Value> pN = nms->Get(Int32::New(i));
             Local<Value> pV = vobj->Get(pN);
             if (pV->IsObject()) {
@@ -341,7 +344,7 @@ string jsExecutor::dump_results()
             Local<Array> attrs = obj->Get(String::New("attributes")).As<Array>();
             if (attrs->IsArray()) {
                 Local<Array> names = attrs->GetPropertyNames();
-                for (int i = 0; i < names->Length(); i++) {
+                for (uint32_t i = 0; i < names->Length(); i++) {
                     Local<Value> nm = names->Get(Number::New(i));
                     result += "\t";
                     result += value_to_string(attrs->Get(nm)->ToObject()->Get(String::New("name")));

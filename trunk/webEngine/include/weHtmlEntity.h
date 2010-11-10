@@ -112,7 +112,7 @@ public:
 class html_comment : public html_textnode {
 public:
     html_comment(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : html_textnode(prnt) {
-        entityName = "#comment";
+        Name("#comment");
     };
 };
 
@@ -127,7 +127,7 @@ public:
 class html_cdata : public html_textnode {
 public:
     html_cdata(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : html_textnode(prnt) {
-        entityName = "#cdata";
+        Name("#cdata");
     };
 };
 
@@ -142,7 +142,7 @@ public:
 class WePhpInclude : public html_textnode {
 public:
     WePhpInclude(base_entity_ptr prnt = base_entity_ptr((base_entity*)NULL)) : html_textnode(prnt) {
-        entityName = "#php";
+        Name("#php");
     };
 };
 

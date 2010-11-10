@@ -115,7 +115,6 @@ html_entity::html_entity(base_entity_ptr prnt /*= NULL*/) // :
     chldList.resize(0);
     attributes.clear();
     parent = prnt;
-    entityName = "";
     GenerateId();
 }
 
@@ -131,7 +130,7 @@ html_entity::html_entity(html_entity &entity)
     chldList = entity.chldList;
     attributes = entity.attributes;
     parent = entity.parent;
-    entityName = entity.entityName;
+    Name(entity.Name());
     GenerateId();
 }
 
@@ -210,7 +209,7 @@ const string html_entity::OuterText(void)
     char quote = '"';
 
     retval = "<";
-    retval += entityName;
+    retval += Name();
     for (attr = attributes.begin(); attr != attributes.end(); ++attr) {
         retval += " ";
         retval += (*attr).first;
@@ -228,12 +227,12 @@ const string html_entity::OuterText(void)
         }
     }
     retval += ">";
-    if (chldList.size() > 0 || !WeParseNeedToBreakTag(entityName, "")) {
+    if (chldList.size() > 0 || !WeParseNeedToBreakTag(Name(), "")) {
         for (chld = chldList.begin(); chld != chldList.end(); chld++) {
             retval += (*chld)->OuterText();
         }
         retval += "</";
-        retval += entityName;
+        retval += Name();
         retval += ">";
     }
 
@@ -286,7 +285,7 @@ scanner_token html_entity::Parse( string tagName, tag_scanner& scanner, i_transp
     if (! tagName.empty()) {
         // for WeDocuments this parameter must be empty
         // and not to overwrite the 'name' property
-        entityName = tagName;
+        Name(tagName);
     }
 
     if (processor != NULL) {
@@ -334,10 +333,10 @@ parseRestart:
                 LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: FORM CLOSE");
                 break;
             }
-            if (entityName != lString) {
+            if (Name() != lString) {
                 // incomplete structure - close this tag
                 // and restart parsing on previous level
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: force TAG END(wstTagEnd): " << entityName);
+                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: force TAG END(wstTagEnd): " << Name());
                 if (!IsParentTag(lString)) {
                     // if tag is not in paren tree - just skip it
                     break;
@@ -358,10 +357,10 @@ parseRestart:
                 txtAttr.clear();
                 txt = NULL;
             }
-            if (WeParseNeedToBreakTag(entityName, lString)) {
+            if (WeParseNeedToBreakTag(Name(), lString)) {
                 // incomplete structure - close this tag
                 // and restart parsing on previous level
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: force TAG END(wstTagStart): " << entityName);
+                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: force TAG END(wstTagStart): " << Name());
                 return state;
             }
 //             if (lString == "form") {
@@ -376,7 +375,7 @@ parseRestart:
                 chldList.push_back(chld);
                 chldState = chld->Parse(lString, scanner, processor);
                 LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: from child, state=" << chldState <<
-                              " current=" << entityName << ", child=" << chld->Name() << ", active=" << lString);
+                              " current=" << Name() << ", child=" << chld->Name() << ", active=" << lString);
 //                 if (iequals(string("form"), lString)) {
 //                     /// @todo Add forms processing
 //                     // form finished?
@@ -488,7 +487,7 @@ CmpResults* html_entity::Diff( base_entity& cmp, weCmpMode mode )
 html_textnode::html_textnode(base_entity_ptr prnt /*= NULL*/) :
     html_entity(prnt)
 {
-    entityName = "#text";
+    Name("#text");
     attributes["#text"] = "";
 }
 
@@ -502,7 +501,7 @@ html_textnode::html_textnode(base_entity_ptr prnt /*= NULL*/) :
 html_textnode::html_textnode(html_textnode& entity) :
     html_entity()
 {
-    entityName = "#text";
+    Name("#text");
     attributes["#text"] = entity.attributes["#text"];
 }
 
@@ -689,7 +688,7 @@ html_document::html_document(base_entity_ptr prnt /*= NULL*/) //:
 //    html_entity(prnt), HttpResponse()
 {
     response.reset();
-    entityName = "#document";
+    Name("#document");
 //     baseUrl = "";
 //     realUrl = "";
 //     relocCount = 0;
@@ -706,7 +705,7 @@ html_document::html_document(html_document& entity) //:
 //    html_entity(), HttpResponse()
 {
     response.reset();
-    entityName = "#document";
+    Name("#document");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -861,7 +860,7 @@ scanner_token WeRefrenceObject::Parse( string tagName, tag_scanner& scanner, i_t
 WeScript::WeScript( base_entity_ptr prnt /*= NULL*/ ) :
     WeRefrenceObject(prnt)
 {
-    entityName = "script";
+    Name("script");
     /// @todo Implement this!
 }
 
@@ -912,7 +911,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
     if (! tagName.empty()) {
         // for WeDocuments this parameter must be empty
         // and not to overwrite the 'name' property
-        entityName = tagName;
+        Name(tagName);
     }
 
     if (processor != NULL) {

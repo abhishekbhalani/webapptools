@@ -1,0 +1,8 @@
+.svn
+build
+Debug
+Release
+*.ncb
+*.suo
+*.vcproj.*.user
+*.orig

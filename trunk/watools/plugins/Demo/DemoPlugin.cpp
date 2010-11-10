@@ -39,14 +39,14 @@ static string xrc = "<plugin>\
 </category>\
 </plugin>";
 
-DemoPlugin::DemoPlugin( Dispatch* krnl, void* handle /*= NULL*/ ) :
-    iPlugin(krnl, handle)
+DemoPlugin::DemoPlugin( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
+    i_plugin(krnl, handle)
 {
-    pluginInfo.IfaceName = "demoPlugin";
-    pluginInfo.IfaceList.push_back("demoPlugin");
-    pluginInfo.PluginDesc = "Demo plugin";
-    pluginInfo.PluginId = "2E6587B86F76";
-    pluginInfo.PluginIcon = WeXpmToStringList(demoPlugin_xpm, sizeof(demoPlugin_xpm) / sizeof(char*) );
+    pluginInfo.interface_name = "demoPlugin";
+    pluginInfo.interface_list.push_back("demoPlugin");
+    pluginInfo.plugin_desc = "Demo plugin";
+    pluginInfo.plugin_id = "2E6587B86F76";
+    pluginInfo.plugin_icon = WeXpmToStringList(demoPlugin_xpm, sizeof(demoPlugin_xpm) / sizeof(char*) );
 }
 
 DemoPlugin::~DemoPlugin(void)
@@ -55,11 +55,11 @@ DemoPlugin::~DemoPlugin(void)
 
 void* DemoPlugin::GetInterface( const string& ifName )
 {
-    if (iequals(ifName, "demoPlugin")) {
+    if (boost::iequals(ifName, "demoPlugin")) {
         usageCount++;
         return (void*)(this);
     }
-    return iPlugin::GetInterface(ifName);
+    return i_plugin::get_interface(ifName);
 }
 
 const string DemoPlugin::GetSetupUI( void )

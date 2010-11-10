@@ -2,6 +2,12 @@
 #include <v8/v8.h>
 #include <string>
 #include <weHtmlEntity.h>
+#include <html_tags.h>
+#include <map>
+
+namespace v8_wrapper {
+class TreeNode;
+}
 
 typedef std::map<std::string, v8::Persistent<v8::Value> > jsPropertyMap;
 
@@ -16,19 +22,10 @@ void append_results(const std::string& data);
 
 template<class T> v8::Handle<v8::Object> wrap_object(void *objToWrap)
 {
-    //enter a handle scope
     v8::HandleScope scope;
-
-    //create a new point instance loc_proto = locationTemplate->InstanceTemplate();
-    v8::Local<v8::FunctionTemplate> _template = v8::Local<v8::FunctionTemplate>::New(T::object_template);
-    v8::Local<v8::Object> _instance = _template->GetFunction()->NewInstance(); //
-
-    //set that internal field
+    v8::Local<v8::Object> _instance = v8_wrapper::Registrator< T >::GetTemplate()->GetFunction()->NewInstance(); //
     _instance->SetInternalField(0, v8::External::New(objToWrap));
-
-    //to prevent the point_instance from being destroyed when its
-    //scope handle_scope is, use the Close() function
     return scope.Close(_instance);
 }
 
-v8::Handle<v8::Object> wrap_entity(webEngine::html_entity_ptr objToWrap);
+boost::shared_ptr<v8_wrapper::TreeNode> wrap_entity(webEngine::html_entity_ptr objToWrap);

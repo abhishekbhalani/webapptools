@@ -1,8 +1,13 @@
 #include <weLogger.h>
 #include "jsGlobal.h"
 #include "jsExecutor.h"
-#include "jsElement.h"
-#include "jsForm.h"
+#include "jsBrowser.h"
+#include <html_js.h>
+
+#include <vector>
+#include <utility>
+
+#include <html_tags_wrapper.h>
 
 using namespace v8;
 using namespace std;
@@ -144,16 +149,176 @@ Handle<Value> dump_object(const Arguments& args)
     return res;
 }
 
-Handle<Object> wrap_entity( html_entity_ptr objToWrap )
+boost::shared_ptr<v8_wrapper::TreeNode> wrap_entity( html_entity_ptr objToWrap )
 {
-    Handle<Object> res;
+    boost::shared_ptr<v8_wrapper::TreeNode> node;
+    HTML_TAG html_tag = objToWrap->HtmlTag();
 
-    string tagname = objToWrap->Name();
-    if (tagname == "form") {
-        res = wrap_object<jsForm>(new jsForm(objToWrap));
-    } else {
-        res = wrap_object<jsElement>(new jsElement(objToWrap));
+    switch(html_tag) {
+    case  HTML_TAG_a:
+        node = TreeNodeFromEntity<js_html2_HTMLAnchorElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_abbr :
+    case  HTML_TAG_acronym :
+    case  HTML_TAG_address :
+    case  HTML_TAG_applet :
+    case  HTML_TAG_area :
+    case  HTML_TAG_b :
+    case  HTML_TAG_base :
+    case  HTML_TAG_basefont :
+    case  HTML_TAG_bdo :
+    case  HTML_TAG_big :
+    case  HTML_TAG_blockquote :
+        break;
+    case  HTML_TAG_body :
+        node = TreeNodeFromEntity<js_html2_HTMLBodyElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_br :
+        node = TreeNodeFromEntity<js_html2_HTMLBRElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_button :
+        node = TreeNodeFromEntity<js_html2_HTMLButtonElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_caption :
+        node = TreeNodeFromEntity<js_html2_HTMLTableCaptionElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_center :
+    case  HTML_TAG_cite :
+    case  HTML_TAG_code :
+    case  HTML_TAG_col :
+    case  HTML_TAG_colgroup :
+    case  HTML_TAG_dd :
+    case  HTML_TAG_del :
+    case  HTML_TAG_dfn :
+    case  HTML_TAG_dir :
+        break;
+    case  HTML_TAG_div :
+        node = TreeNodeFromEntity<js_html2_HTMLDivElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_dl :
+    case  HTML_TAG_dt :
+    case  HTML_TAG_em :
+    case  HTML_TAG_fieldset :
+    case  HTML_TAG_font :
+        break;
+    case  HTML_TAG_form:
+        node = TreeNodeFromEntity<js_html2_HTMLFormElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_frame :
+    case  HTML_TAG_frameset :
+        break;
+    case  HTML_TAG_h1 :
+    case  HTML_TAG_h2 :
+    case  HTML_TAG_h3 :
+    case  HTML_TAG_h4 :
+    case  HTML_TAG_h5 :
+    case  HTML_TAG_h6 :
+        node = TreeNodeFromEntity<js_html2_HTMLHeadingElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_head :
+        node = TreeNodeFromEntity<js_html2_HTMLHeadElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_hr :
+        node = TreeNodeFromEntity<js_html2_HTMLHRElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_html :
+        node = TreeNodeFromEntity<js_html2_HTMLHtmlElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_i :
+        break;
+    case  HTML_TAG_iframe :
+        node = TreeNodeFromEntity<js_html2_HTMLIFrameElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_img :
+        node = TreeNodeFromEntity<js_html2_HTMLImageElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_input :
+        node = TreeNodeFromEntity<js_html2_HTMLInputElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_ins :
+    case  HTML_TAG_isindex :
+    case  HTML_TAG_kbd :
+        break;
+    case  HTML_TAG_label :
+        node = TreeNodeFromEntity<js_html2_HTMLLabelElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_legend :
+        node = TreeNodeFromEntity<js_html2_HTMLLegendElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_li :
+        node = TreeNodeFromEntity<js_html2_HTMLLIElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_link :
+        node = TreeNodeFromEntity<js_html2_HTMLLinkElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_map :
+        node = TreeNodeFromEntity<js_html2_HTMLMapElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_menu :
+        node = TreeNodeFromEntity<js_html2_HTMLMenuElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_meta :
+        node = TreeNodeFromEntity<js_html2_HTMLMetaElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_noframes :
+    case  HTML_TAG_noscript :
+        break;
+    case  HTML_TAG_object :
+        node = TreeNodeFromEntity<js_html2_HTMLObjectElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_ol :
+        node = TreeNodeFromEntity<js_html2_HTMLOListElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_optgroup :
+    case  HTML_TAG_option :
+    case  HTML_TAG_p :
+    case  HTML_TAG_param :
+    case  HTML_TAG_pre :
+    case  HTML_TAG_q :
+    case  HTML_TAG_s :
+    case  HTML_TAG_samp :
+        break;
+    case  HTML_TAG_script :
+        node = TreeNodeFromEntity<js_html2_HTMLScriptElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_select :
+        node = TreeNodeFromEntity<js_html2_HTMLSelectElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_small :
+    case  HTML_TAG_span :
+    case  HTML_TAG_strike :
+    case  HTML_TAG_strong :
+    case  HTML_TAG_style :
+    case  HTML_TAG_sub :
+    case  HTML_TAG_sup :
+        break;
+    case  HTML_TAG_table :
+        node = TreeNodeFromEntity<js_html2_HTMLTableElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_tbody :
+    case  HTML_TAG_td :
+    case  HTML_TAG_textarea :
+    case  HTML_TAG_tfoot :
+    case  HTML_TAG_th :
+    case  HTML_TAG_thead :
+        break;
+    case  HTML_TAG_title :
+        node = TreeNodeFromEntity<js_html2_HTMLTitleElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_tr :
+    case  HTML_TAG_tt :
+    case  HTML_TAG_u :
+    case  HTML_TAG_ul :
+    case  HTML_TAG_var :
+    default:
+        node = TreeNodeFromEntity<js_html2_HTMLElement, true>(objToWrap);
+        break;
     }
 
-    return res;
+    if(!node)
+        node = TreeNodeFromEntity<js_html2_HTMLElement, true>(objToWrap);
+
+    node->m_entity = objToWrap;
+    return node;
 }
+

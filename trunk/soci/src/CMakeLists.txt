@@ -65,10 +65,10 @@ set(INCLUDEDIR "include" CACHE PATH "The directory to install includes into.")
 # Enable CTest support
 #################################################################################
 #include(CTest)
-enable_testing()
+#enable_testing()
 
 # Define "make check" as alias for "make test"
-add_custom_target(check COMMAND ctest)
+#add_custom_target(check COMMAND ctest)
 
 #################################################################################
 # Build configured components

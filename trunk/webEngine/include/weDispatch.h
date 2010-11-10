@@ -142,7 +142,7 @@ public:
     typedef i_request_ptr request_constructor(we_iarchive&);
 
     template<class Request>
-    void register_request(){
+    void register_request() {
         m_request_map[typeid(Request).name()] = &Request::restore_request;
     }
 

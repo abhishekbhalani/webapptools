@@ -23,9 +23,9 @@
 using namespace webEngine;
 
 class DemoPlugin :
-    public iPlugin {
+    public i_plugin {
 public:
-    DemoPlugin(Dispatch* krnl, void* handle = NULL);
+    DemoPlugin(engine_dispatcher* krnl, void* handle = NULL);
     virtual ~DemoPlugin(void);
 
     // iPlugin functions
@@ -60,4 +60,8 @@ public:
     /// @param  xmlData	 - Plugin settings describing the XML.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     virtual void ApplySettings( const string& xmlData );
+
+    virtual void init(task* tsk) {};
+    virtual void pause(task* tsk, bool paused = true) {};
+    virtual void stop(task* tsk) {};
 };

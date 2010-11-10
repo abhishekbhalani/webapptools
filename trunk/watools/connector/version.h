@@ -26,5 +26,5 @@
 #define VERSION_FILESTR        "0,2,10,207"
 #define VERSION_PRODUCTSTR     "0,2,10,207"
 
-#define VERSION_SVN            "SVN $Revision$"
+#define VERSION_SVN            "SVN $Revision: 370 $"
 #endif
