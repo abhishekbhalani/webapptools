@@ -1,5 +1,5 @@
 /* XPM */
-static char *sqliteStorage_xpm[] = {
+static const char *sqliteStorage_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 16 17 1",
 "  c #020505",

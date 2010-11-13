@@ -41,7 +41,7 @@ out_idl_header.write("#define __idl_header_" + timestamp_guard +"__\n")
 out_idl_header.write(generated_files_head)
 out_idl_header.write("""
 #include <string>
-#include <v8/v8.h>
+#include <v8.h>
 
 """)
 
@@ -87,7 +87,7 @@ def fix_line(line):
     """Exeptions"""
     m = pattern_exception.match(line)
     if m:
-        line = m.group(1) + "class" + m.group(3) + ": public std::exception " + m.group(4) + "\n"
+        line = m.group(1) + "class" + m.group(3) + " " + m.group(4) + "\n"
     """Virualize methods"""
     m = pattern_method.match(line)
     if m:

@@ -259,7 +259,7 @@ we_option engine_dispatcher::Option( const string& name )
         n_cond.value() = name;
 
         db_filter where;
-        where.set(p_cond).and(n_cond);
+        where.set(p_cond)._and_(n_cond);
 
         for(db_cursor rec = plg_storage->get(where, fields); rec.is_not_end(); ++rec) {
             try {
@@ -325,7 +325,7 @@ void engine_dispatcher::Option( const string& name, we_variant val )
         n_cond.value() = name;
 
         db_filter flt;
-        flt.set(p_cond).and(n_cond);
+        flt.set(p_cond)._and_(n_cond);
 
         db_cursor rec = plg_storage->set(flt, fields);
 
@@ -360,7 +360,7 @@ bool engine_dispatcher::IsSet( const string& name )
         n_cond.value() = name;
 
         db_filter flt;
-        flt.set(p_cond).and(n_cond);
+        flt.set(p_cond)._and_(n_cond);
 
         for(db_cursor rec = plg_storage->get(flt, fields); rec.is_not_end(); ++rec) {
             try {
@@ -400,7 +400,7 @@ void engine_dispatcher::Erase( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        filter.set(p_cond).and(n_cond);
+        filter.set(p_cond)._and_(n_cond);
         LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Erase - " << filter.tostring());
         plg_storage->del(filter);
     }

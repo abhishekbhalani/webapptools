@@ -100,7 +100,7 @@ public:
     }
 
     /// @brief Assignment operator
-    we_option& operator=(we_option& cpy) {
+    we_option& operator=(const we_option& cpy) {
         oname = cpy.oname;
         val = cpy.val;
         return *this;

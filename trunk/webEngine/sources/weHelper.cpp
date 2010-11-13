@@ -26,8 +26,10 @@
 #include <boost/thread.hpp>
 #include <curl/curl.h>
 #include "weHelper.h"
+#pragma warning( disable : 4231)
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/propertyconfigurator.h>
+#pragma warning( default : 4231)
 
 using namespace log4cxx;
 using namespace log4cxx::helpers;

@@ -246,7 +246,7 @@ public:
     virtual int remove_thread();
 
     virtual bool is_url_processed(string& url);
-    virtual void register_url(string& url);
+    virtual void register_url(const string& url);
     size_t total_requests() const {
         return total_reqs;
     }

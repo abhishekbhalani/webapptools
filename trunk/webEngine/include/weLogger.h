@@ -19,8 +19,11 @@
 */
 #ifndef __WELOGGING_H__
 #define __WELOGGING_H__
+
+#pragma warning( disable : 4231)
 #include <log4cxx/logger.h>
 #include <log4cxx/ndc.h>
+#pragma warning( default : 4231)
 
 namespace webEngine {
 

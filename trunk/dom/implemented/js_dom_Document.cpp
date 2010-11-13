@@ -1,13 +1,19 @@
 
 /*
-  $Id: js_dom_Document.cpp 35984 2010-11-09 14:35:13Z santonov $
+  $Id: js_dom_Document.cpp 36164 2010-11-12 15:11:58Z santonov $
 */
 
 #include <html_js.h>
+#include <v8_wrapper.h>
+
 using namespace v8;
 v8::Handle<v8::Value> js_dom_Document::createElement(std::string val_tagName)
 {
-    return dom::Document::createElement(val_tagName);
+    webEngine::html_entity_ptr ent(new webEngine::html_entity());
+    ent->Name(val_tagName);
+    v8_wrapper::tree_node_ptr node = v8_wrapper::wrap_entity(ent);
+    m_child_list.push_back(node);
+    return node->m_this;
 }
 v8::Handle<v8::Value> js_dom_Document::createDocumentFragment()
 {

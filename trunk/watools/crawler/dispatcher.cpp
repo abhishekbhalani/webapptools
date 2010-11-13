@@ -223,7 +223,7 @@ void save_plugin_ui(webEngine::i_storage* store)
                 plg->release();
                 // save information
                 c_plugin.value() = plgs[i].interface_name;
-                c_query.set(c_plugin).and(c_locale);
+                c_query.set(c_plugin)._and_(c_locale);
                 webEngine::db_cursor rec = store->set(c_query, "profile_ui");
                 rec["profile_ui.plugin_id"] = plgs[i].interface_name;
                 rec["profile_ui.plugin_name"] = plgs[i].plugin_desc;
@@ -592,7 +592,7 @@ void dispatcher_routine(po::variables_map& vm)
     gc.operation() = webEngine::db_condition::less;
     gc.value() = 500;
 
-    flt.set(tc).and(lc).and(gc);
+    flt.set(tc)._and_(lc)._and_(gc);
     if (we_dispatcer->storage() != NULL) {
         int r = we_dispatcer->storage()->del(flt);
         cout << r << " records ";
@@ -609,7 +609,7 @@ void dispatcher_routine(po::variables_map& vm)
     gc.operation() = webEngine::db_condition::less;
     gc.value() = 400;
 
-    flt.set(tc).and(lc).and(gc);
+    flt.set(tc)._and_(lc)._and_(gc);
     if (we_dispatcer->storage() != NULL) {
         int r = we_dispatcer->storage()->del(flt);
         cout << r << " records ";

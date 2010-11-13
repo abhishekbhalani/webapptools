@@ -8,7 +8,7 @@
 */
 
 #include <string>
-#include <v8/v8.h>
+#include <v8.h>
 
 namespace dom {
 typedef unsigned long long DOMTimeStamp;
@@ -17,7 +17,7 @@ class Document;
 class NodeList;
 class NamedNodeMap;
 class Element;
-class DOMException: public std::exception  {
+class DOMException  {
 public:
     DOMException();
     unsigned short code;
@@ -604,7 +604,7 @@ typedef ::dom::DOMTimeStamp DOMTimeStamp;
 typedef ::dom::Node Node;
 class EventListener;
 class Event;
-class EventException: public std::exception  {
+class EventException  {
 public:
     EventException();
     unsigned short code;
@@ -1257,7 +1257,7 @@ namespace ranges {
 typedef ::dom::Node Node;
 typedef ::dom::DocumentFragment DocumentFragment;
 typedef std::string DOMString;
-class RangeException: public std::exception  {
+class RangeException  {
 public:
     RangeException();
     unsigned short code;

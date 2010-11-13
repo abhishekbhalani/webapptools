@@ -1,5 +1,5 @@
 /* XPM */
-static char * jscript_xpm[] = {
+static const char * jscript_xpm[] = {
 "16 16 7 1",
 " 	c None",
 ".	c #808080",

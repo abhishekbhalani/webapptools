@@ -32,7 +32,6 @@ namespace btm = boost::posix_time;
 
 namespace webEngine {
 
-class db_recordset;
 class html_document;
 
 class ScanData {
@@ -85,9 +84,6 @@ public:
     weScanStatus status;
 
     //void push_back(ScanData* elem) { scan_data.push_back(elem);}
-
-    db_recordset* ToRS( const string& parentID = "" );
-    void FromRS( db_recordset *rs );
 
     boost::shared_ptr<ScanData> GetScanData( const string& object_url );
     void SetScanData(const string& object_url, scan_data_ptr scData);

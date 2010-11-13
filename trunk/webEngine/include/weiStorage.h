@@ -149,7 +149,7 @@ protected:
     int last_id;
 };
 
-extern char* idb_struct[];
+extern const char* idb_struct[];
 } // namespace webEngine
 
 #define weObjTypeTask       "task"

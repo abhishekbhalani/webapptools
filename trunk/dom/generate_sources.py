@@ -67,22 +67,31 @@ out_tags_header.write("#define __tags_header_" + timestamp_guard +"__\n")
 out_tags_header.write("""
 
 template <class T, bool generated>
-boost::shared_ptr<v8_wrapper::TreeNode> inline TreeNodeFromEntity(webEngine::html_entity_ptr objToWrap){
+v8_wrapper::tree_node_ptr inline TreeNodeFromEntity(webEngine::html_entity_ptr objToWrap){
     return TreeNodeFromEntity<T, generated>(objToWrap, boost::shared_ptr<T>());
 }
 
 template <class T, bool generated>
-boost::shared_ptr<v8_wrapper::TreeNode> TreeNodeFromEntity(webEngine::html_entity_ptr objToWrap, boost::shared_ptr<T> node)
+v8_wrapper::tree_node_ptr TreeNodeFromEntity(webEngine::html_entity_ptr objToWrap, boost::shared_ptr<T> node)
 {
     if(!node){
         node.reset(new T());
-        node->m_this = v8::Persistent<v8::Object>::New(wrap_object< T >(node.get()));
+        node->m_this = v8::Persistent<v8::Object>::New(v8_wrapper::wrap_object< T >(node.get()));
+        node->m_this.MakeWeak( NULL , v8_wrapper::Registrator< T >::Destructor);
         node->m_tag = objToWrap->HtmlTag();
     }
-    return boost::shared_static_cast<v8_wrapper::TreeNode>(node);
+    return boost::shared_static_cast<v8_wrapper::tree_node>(node);
 }
 
 """)
+
+def is_type_fundamental(node):
+    result = False
+    if node.tagName == "CvQualifiedType":
+        node = nodes[node.getAttribute('type')]
+    if node.tagName == "FundamentalType":
+        result = True
+    return result
 
 def get_type_str(node):
     type_prefix = ""
@@ -158,11 +167,16 @@ def generate_class(class_node):
                 out_js_source.write("  el->" + method_name + "(" + arg_list + ");\n")
             else:
                 out_js_source.write("  retval = v8_wrapper::Set( el->" + method_name + "(" + arg_list + ") );\n")
-                method_result = get_type_str(nodes[node.getAttribute('returns')]) + "()"
+                if is_type_fundamental(nodes[node.getAttribute('returns')]):
+                    method_result = "0"
+                else:
+                    method_result = get_type_str(nodes[node.getAttribute('returns')]) + "()"
             out_js_source.write("  return scope.Close(retval);\n")
             out_js_source.write("}\n\n")
 
-            virt_method = get_type_str(nodes[node.getAttribute('returns')]) + " " + c_js + "::" + method_name + "(" + full_arg_list + ")"
+            virt_method_result = get_type_str(nodes[node.getAttribute('returns')])
+            virt_method =  virt_method_result + " " + c_js + "::" + method_name + "(" + full_arg_list + ")"
+            out_js_header.write( "virtual " + virt_method_result + " " + method_name + "(" + full_arg_list + ");\n")
             if class_not_implemented:
                 if not out_virt_stub:
                     out_virt_stub = open(dom_dir_not_implemented + "/" + c_js + ".cpp", 'w')
@@ -177,7 +191,6 @@ def generate_class(class_node):
                     out_virt_stub.write( virt_method + " { " + c_name + "::" + method_name + "(" + arg_list + ");}\n")
                 else:
                     out_virt_stub.write( virt_method + " { return " + c_name + "::" + method_name + "(" + arg_list + ");}\n")
-            out_js_header.write( "virtual " + virt_method  + ";\n")
             out_idl_source.write(get_type_str(nodes[node.getAttribute('returns')]) + " " + c_name + "::" + method_name + "(" + full_arg_list + ") " + 
             " { LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), \"" + c_name + "::" + method_name + " not implemented\"); return " + method_result + " ;}\n")
             
@@ -186,13 +199,19 @@ def generate_class(class_node):
 
     out_tags_header.write("""
     template <>
-    boost::shared_ptr<v8_wrapper::TreeNode> TreeNodeFromEntity< """ + c_js + """, true>(webEngine::html_entity_ptr objToWrap, boost::shared_ptr< """ + c_js + """ > node){
+    v8_wrapper::tree_node_ptr TreeNodeFromEntity< """ + c_js + """, true>(webEngine::html_entity_ptr objToWrap, boost::shared_ptr< """ + c_js + """ > node){
         if(!node){
             node.reset(new """ + c_js + """());
-            node->m_this = v8::Persistent<v8::Object>::New(wrap_object< """ + c_js + """ >(node.get()));
+            node->m_this = v8::Persistent<v8::Object>::New(v8_wrapper::wrap_object< """ + c_js + """ >(node.get()));
+            node->m_this.MakeWeak( NULL , v8_wrapper::Registrator< """ + c_js + """ >::Destructor);
             node->m_tag = objToWrap->HtmlTag();
         }
     """)
+
+    virtual_get_fields = """
+    virtual const std::string get_fields() {
+        std::ostringstream _out;
+    """
 
     for field in gccxml.getElementsByTagName('Field'):
       if field.getAttribute('context') == class_node.getAttribute('id'):
@@ -234,6 +253,17 @@ def generate_class(class_node):
                 out_tags_header.write("node->" + field_name + " = boost::lexical_cast< " + field_type + " > ( (*attr).second );}\n");
                 out_tags_header.write("}catch(boost::bad_lexical_cast &){LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), " + 
                 "\"Could not cast '\" <<  objToWrap->attr_list()[\"" + field_name + "\"] << \"' to " + field_type + "\");}\n")
+        if field_type.find("v8::") == -1:
+            if field_type.find("tring") != -1:
+                virtual_get_fields += " if(!" + field_name + ".empty())\n"
+            elif field_type.find("bool") == -1:
+                virtual_get_fields += " if(" + field_name + " != 0)\n"
+            virtual_get_fields += """_out << " """ + field_name + """=\\"" << """ + field_name + """ << "\\" ";\n"""
+    if parent_js:
+        virtual_get_fields += "_out << " + parent_js + "::get_fields();\n"
+
+    virtual_get_fields += "return _out.str();}"
+    out_js_header.write(virtual_get_fields)
 
     out_js_header.write(" };\n\n")
     
@@ -259,7 +289,7 @@ def generate_class(class_node):
         out_tags_header.write("TreeNodeFromEntity< " + parent_js + ", true >(objToWrap, boost::shared_static_cast< " + parent_js + " >(node));\n")
 
     out_tags_header.write("""
-        return boost::shared_static_cast<v8_wrapper::TreeNode>(node);
+        return boost::shared_static_cast<v8_wrapper::tree_node>(node);
     }
      
     """)

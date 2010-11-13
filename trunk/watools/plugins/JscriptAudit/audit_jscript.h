@@ -115,7 +115,7 @@ public:
 
 protected:
     void add_url( transport_url link, scan_data_ptr sc );
-    void extract_links(string text, scan_data_ptr sc );
+    void extract_links( boost::shared_ptr<ScanData> sc, boost::shared_ptr<v8_wrapper::jsDocument> doc );
     friend void parser_thread(audit_jscript* object);
 
     transport_url base_path;
@@ -130,7 +130,6 @@ protected:
     string opt_preloads;
     bool opt_use_js;
     bool opt_allow_network;
-    char* preloads_data;
 };
 
 } // namespace webEngine

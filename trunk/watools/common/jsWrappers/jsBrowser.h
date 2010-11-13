@@ -13,7 +13,6 @@ public:
 
     jsNavigator();
 
-    static bool is_init;
     static v8::Persistent<v8::FunctionTemplate> object_template;
 };
 
@@ -23,7 +22,6 @@ public:
 
     jsScreen();
 
-    static bool is_init;
     static v8::Persistent<v8::FunctionTemplate> object_template;
 };
 
@@ -54,7 +52,6 @@ public:
         win_list.erase(win->get_id());
     }
 
-    static bool is_init;
     static v8::Handle<v8::Value> GetWindow(v8::Local<v8::String> name, const v8::AccessorInfo &info);
     static v8::Handle<v8::Value> WinInterceptor(const v8::Arguments& args);
 protected:

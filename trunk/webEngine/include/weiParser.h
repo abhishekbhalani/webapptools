@@ -56,7 +56,7 @@ typedef vector<base_entity_ptr> entity_list;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class base_entity : public boost::enable_shared_from_this<base_entity> {
 public:
-    base_entity() {};
+    base_entity() : htmlTag (HTML_TAG___UNKNOWN_TAG__) {};
     virtual ~base_entity() {
         ClearChildren();
     };

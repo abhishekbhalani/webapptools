@@ -3,7 +3,7 @@
 
 #include <dlfcn.h>
 
-#include <externals/shared_object.hpp>
+#include "shared_object.hpp"
 
 namespace dyn {
 class shared_object::impl_t : boost::noncopyable {

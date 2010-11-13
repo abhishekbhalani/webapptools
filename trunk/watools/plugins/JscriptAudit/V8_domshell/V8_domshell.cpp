@@ -3,7 +3,7 @@
 #include "stdafx.h"
 
 #define V8_DOMSHELL 1
-#include <v8/v8.h>
+#include <v8.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>

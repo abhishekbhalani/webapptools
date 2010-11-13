@@ -39,7 +39,7 @@ if(NEED_GENERATE_DOM)
     TARGET generating_sources_from_idl
     PRE_BUILD
     COMMAND "${OMNIORB4_IDL_COMPILER}" -bdump -nc ${FROM_IDL} | "${PYTHON_EXECUTABLE}" ${CMAKE_CURRENT_SOURCE_DIR}/wrap_idl.py ${DOM_DIRECTORY_SOURCE}
-    COMMAND "${GCCXML_EXECUTABLE}" -I "${EXT_TOOLS}/include" --gccxml-compiler msvc9 ${IDL_HEADER} "-fxml=${DOM_DIRECTORY_TMP}/html.xml"
+    COMMAND "${GCCXML_EXECUTABLE}" -I "${EXT_TOOLS}/include/v8" --gccxml-compiler msvc9 ${IDL_HEADER} "-fxml=${DOM_DIRECTORY_TMP}/html.xml"
     COMMAND "${PYTHON_EXECUTABLE}" ${CMAKE_CURRENT_SOURCE_DIR}/generate_sources.py ${DOM_DIRECTORY_SOURCE} ${DOM_DIRECTORY_TMP} ${DOM_IMPLEMENTED_SOURCE} ${DOM_NOT_IMPLEMENTED_SOURCE}
     COMMAND "${ASTYLE_EXECUTABLE}" --style=stroustrup --indent=spaces=4 --suffix=none --quiet "${DOM_DIRECTORY_SOURCE}/*.cpp" "${DOM_DIRECTORY_SOURCE}/*.h" "${DOM_NOT_IMPLEMENTED_SOURCE}/*.cpp"
     DEPENDS ${FROM_IDL}
