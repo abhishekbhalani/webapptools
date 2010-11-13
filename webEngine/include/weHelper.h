@@ -36,7 +36,9 @@ also presented in this module.
 #include "weStrings.h"
 #include "weiTransport.h"
 #include "weHtmlEntity.h"
+#pragma warning( disable : 4231)
 #include <log4cxx/appender.h>
+#pragma warning( default : 4231)
 
 namespace webEngine {
 

@@ -241,7 +241,7 @@ typedef void* (*fnWePluginFactory)(void* kernel, void* handle);
 ///
 /// @retval	.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-string_list WeXpmToStringList(char** xpm, int lines);
+string_list WeXpmToStringList(const char** xpm, int lines);
 
 } // namespace webEngine
 

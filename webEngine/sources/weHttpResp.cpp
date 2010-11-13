@@ -212,7 +212,7 @@ void HttpResponse::Process(i_transport* trans)
                 for (it = cookies.begin(); it != cookies.end(); ++it) {
                     // foreach cookie value
                     cn.value() = it->first;
-                    query.set(cq).and(cn).and(cd).and(cp);
+                    query.set(cq)._and_(cn)._and_(cd)._and_(cp);
 
                     db_cursor rec = trans->storage()->set(query, "auth_data");
                     rec["auth_data.task_id"] = 0;

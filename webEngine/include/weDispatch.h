@@ -146,7 +146,7 @@ public:
         m_request_map[typeid(Request).name()] = &Request::restore_request;
     }
 
-    i_request_ptr engine_dispatcher::restore_request(const string& request_class, we_iarchive& ar) const;
+    i_request_ptr restore_request(const string& request_class, we_iarchive& ar) const;
 
 #ifndef __DOXYGEN__
 

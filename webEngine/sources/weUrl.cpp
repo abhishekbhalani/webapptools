@@ -217,7 +217,12 @@ void transport_url::assign_with_referer( const string& url_, transport_url* base
 {
     string  temp;
     size_t  pos;
-    string  url = url_;
+    string  url;
+
+    if(istarts_with(url_, "//"))
+        url = base->protocol + ":" + url_;
+    else
+        url = url_;
 
     if (base == NULL) {
         base = this;

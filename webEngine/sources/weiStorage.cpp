@@ -50,7 +50,7 @@ static void init_namespaces();
 /// @b columnN_type is not the required, but should be used. @n
 /// @b columnN_attributes is the optional attribute(s) and may repeat as need. @n
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-char* webEngine::idb_struct[] = {
+const char* webEngine::idb_struct[] = {
 
     "profile:profile_id INT:name TEXT:type INT:value VARIANT",
     "profile_ui:plugin_id TEXT NOT NULL:plugin_name TEXT NOT NULL:locale TEXT NOT NULL:ui_settings BLOB NOT NULL:ui_icon BLOB NOT NULL",

@@ -355,11 +355,11 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
                 ct2.operation() = db_condition::equal;
                 ct2.value() = -1;
 
-                ctm.set(ct1).or(ct2);
+                ctm.set(ct1)._or_(ct2);
                 string cookie_value = "";
                 if (kernel != NULL && kernel->storage() != NULL) {
                     db_filter cookie_query;
-                    cookie_query.set(cq).and(ctm);
+                    cookie_query.set(cq)._and_(ctm);
                     transport_url cookie_dom;
                     for (db_cursor cur = kernel->storage()->get(cookie_query, "auth_data"); cur.is_not_end(); ++cur) {
                         if (cookie_value != "") {

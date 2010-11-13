@@ -1,6 +1,6 @@
 
 /*
-  $Id: js_html2_HTMLCollection.cpp 35984 2010-11-09 14:35:13Z santonov $
+  $Id: js_html2_HTMLCollection.cpp 36164 2010-11-12 15:11:58Z santonov $
 */
 
 #include <html_js.h>
@@ -15,7 +15,7 @@ v8::Handle<v8::Value> js_html2_HTMLCollection::item(long unsigned int val_index)
 v8::Handle<v8::Value> js_html2_HTMLCollection::namedItem(html2::DOMString val_name)
 {
     v8::Handle<v8::Value> result;
-    for(std::vector< boost::shared_ptr<v8_wrapper::TreeNode> >::iterator it = m_child_list.begin();
+    for(v8_wrapper::tree_node_list::iterator it = m_child_list.begin();
             (it != m_child_list.end()) && result.IsEmpty(); ++it) {
         result = v8_wrapper::check_object_name( (*it).get(), val_name );
     }

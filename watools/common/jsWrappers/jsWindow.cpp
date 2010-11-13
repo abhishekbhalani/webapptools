@@ -251,7 +251,7 @@ Handle<Value> Window(const v8::Arguments& args)
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets jsBrowser");
         jsWindow *p = new jsWindow(jsExec, jsExec->window, jsExec->window);
         jsExec->register_window(p);
-        retval = wrap_object<jsWindow>(p);
+        retval = v8_wrapper::wrap_object<jsWindow>(p);
     }
 
     return scope.Close(retval);
@@ -497,20 +497,10 @@ void jsWindow::load( const string& url )
                     LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "audit_jscript::parse_scripts execute script #" << i++ << "; Source:\n" << source);
 #endif
                     browser->execute_string(source, "", true, true);
-#ifdef _DEBUG
-                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "ExecuteScript results: " << browser->get_results());
-#endif
                 }
             }
 
-            HandleScope handle_scope;
-            bool jquery_enabled = false;
-            Local<Value> jqo = browser->v8_get(String::New("jQuery"));
-            if (jqo->IsObject()) {
-                browser->execute_string("jQuery.ready()", "", true, true);
-                jquery_enabled = true;
-            }
-            process_events(browser, doc, jquery_enabled);
+            process_events(browser, doc, false);
 #endif
         }
     } else {
@@ -542,36 +532,36 @@ Handle<Value> jsWindow::GetProperty(Local<String> name, const AccessorInfo &info
     } else if (key == "frames") {
         Handle<Array> elems(Array::New());
         for (size_t i = 0; i < frames.size(); ++i) {
-            Handle<Object> w = wrap_object<jsWindow>(frames[i]);
+            Handle<Object> w = v8_wrapper::wrap_object<jsWindow>(frames[i]);
             elems->Set(Number::New(i), w);
         }
         val = elems;
     } else if (key == "history") {
-        val = wrap_object<jsHistory>(history);
+        val = v8_wrapper::wrap_object<jsHistory>(history);
     } else if (key == "length") {
         val = Number::New(frames.size());
     } else if (key == "location") {
-        val = wrap_object<jsLocation>(location);
+        val = v8_wrapper::wrap_object<jsLocation>(location);
     } else if (key == "navigator") {
-        val = wrap_object<jsNavigator>(&browser->navigator);
+        val = v8_wrapper::wrap_object<jsNavigator>(&browser->navigator);
     } else if (key == "opener") {
         if (creator == NULL) {
-            val = wrap_object<jsWindow>(this);
+            val = v8_wrapper::wrap_object<jsWindow>(this);
         } else {
-            val = wrap_object<jsWindow>(creator);
+            val = v8_wrapper::wrap_object<jsWindow>(creator);
         }
     } else if (key == "parent") {
         if (parent == NULL) {
-            val = wrap_object<jsWindow>(this);
+            val = v8_wrapper::wrap_object<jsWindow>(this);
         } else {
-            val = wrap_object<jsWindow>(parent);
+            val = v8_wrapper::wrap_object<jsWindow>(parent);
         }
     } else if (key == "screen") {
-        val = wrap_object<jsScreen>(&browser->screen);
+        val = v8_wrapper::wrap_object<jsScreen>(&browser->screen);
     } else if (key == "self") {
-        val = wrap_object<jsWindow>(this);
+        val = v8_wrapper::wrap_object<jsWindow>(this);
     } else if (key == "top") {
-        val = wrap_object<jsWindow>(browser->window);
+        val = v8_wrapper::wrap_object<jsWindow>(browser->window);
     } else {
         // Look up the value if it exists using the standard STL idiom.
         jsPropertyMap::iterator iter = props.find(key);
@@ -765,13 +755,9 @@ Handle<Value> jsWindow::Open(const Arguments& args)
         }
         new_win->location->url = url;
         el->browser->register_window(new_win);
-        val = wrap_object<jsWindow>(new_win);
+        val = v8_wrapper::wrap_object<jsWindow>(new_win);
         LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow::Open new window - uuid=" << new_win->win_uuid
                       << "; url=" << url.tostring());
-        // todo load data
-        string msg = "Open new Window\r\n\thref: ";
-        msg += url.tostring();
-        append_results(msg);
     }
     return val;
 }
@@ -787,7 +773,7 @@ Handle<Value> jsWindow::Popup( const Arguments& args )
     if (!el->is_closed()) {
         jsWindow* new_win = new jsWindow(el->browser, el, el);
         el->browser->register_window(new_win);
-        val = wrap_object<jsWindow>(new_win);
+        val = v8_wrapper::wrap_object<jsWindow>(new_win);
         LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow::Popup new window - uuid=" << new_win->win_uuid);
     }
     return val;

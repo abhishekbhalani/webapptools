@@ -50,22 +50,6 @@ ScanInfo::~ScanInfo()
     scan_data.clear();
 }
 
-db_recordset* ScanInfo::ToRS( const string& parentID/* = ""*/ )
-{
-// TODO: fix it
-    //db_recordset* res = new db_recordset;
-    //db_recordset* rsData;
-    //db_record* rec = new db_record;
-
-    //return res;
-
-    return NULL;
-}
-
-void ScanInfo::FromRS( db_recordset* rs )
-{
-}
-
 shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )
 {
     shared_ptr<ScanData> retval;

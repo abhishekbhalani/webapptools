@@ -12,7 +12,7 @@ dom::DOMException::DOMException(): code() {}
 bool dom::DOMImplementation::hasFeature(std::string val_feature, std::string val_version)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "dom::DOMImplementation::hasFeature not implemented");
-    return bool() ;
+    return 0 ;
 }
 v8::Handle<v8::Value> dom::DOMImplementation::createDocumentType(std::string val_qualifiedName, std::string val_publicId, std::string val_systemId)
 {
@@ -48,7 +48,7 @@ v8::Handle<v8::Value> dom::Node::appendChild(v8::Handle<v8::Value> val_newChild)
 bool dom::Node::hasChildNodes()
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "dom::Node::hasChildNodes not implemented");
-    return bool() ;
+    return 0 ;
 }
 v8::Handle<v8::Value> dom::Node::cloneNode(bool val_deep)
 {
@@ -63,12 +63,12 @@ void dom::Node::normalize()
 bool dom::Node::isSupported(std::string val_feature, std::string val_version)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "dom::Node::isSupported not implemented");
-    return bool() ;
+    return 0 ;
 }
 bool dom::Node::hasAttributes()
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "dom::Node::hasAttributes not implemented");
-    return bool() ;
+    return 0 ;
 }
 dom::Node::Node(): nodeName(), nodeValue(), nodeType(), parentNode(), childNodes(), firstChild(), lastChild(), previousSibling(), nextSibling(), attributes(), ownerDocument(), namespaceURI(), prefix(), localName() {}
 v8::Handle<v8::Value> dom::NodeList::item(long unsigned int val_index)
@@ -208,12 +208,12 @@ v8::Handle<v8::Value> dom::Element::getElementsByTagNameNS(std::string val_names
 bool dom::Element::hasAttribute(std::string val_name)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "dom::Element::hasAttribute not implemented");
-    return bool() ;
+    return 0 ;
 }
 bool dom::Element::hasAttributeNS(std::string val_namespaceURI, std::string val_localName)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "dom::Element::hasAttributeNS not implemented");
-    return bool() ;
+    return 0 ;
 }
 dom::Element::Element(): tagName() {}
 v8::Handle<v8::Value> dom::Text::splitText(long unsigned int val_offset)
@@ -339,7 +339,7 @@ css::CSSStyleRule::CSSStyleRule(): selectorText(), style() {}
 long unsigned int css::CSSMediaRule::insertRule(css::DOMString val_rule, long unsigned int val_index)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "css::CSSMediaRule::insertRule not implemented");
-    return long unsigned int() ;
+    return 0 ;
 }
 void css::CSSMediaRule::deleteRule(long unsigned int val_index)
 {
@@ -392,7 +392,7 @@ void css::CSSPrimitiveValue::setFloatValue(short unsigned int val_unitType, doub
 double css::CSSPrimitiveValue::getFloatValue(short unsigned int val_unitType)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "css::CSSPrimitiveValue::getFloatValue not implemented");
-    return double() ;
+    return 0 ;
 }
 void css::CSSPrimitiveValue::setStringValue(short unsigned int val_stringType, css::DOMString val_stringValue)
 {
@@ -434,7 +434,7 @@ css::CSS2Properties::CSS2Properties(): azimuth(), background(), backgroundAttach
 long unsigned int css::CSSStyleSheet::insertRule(css::DOMString val_rule, long unsigned int val_index)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "css::CSSStyleSheet::insertRule not implemented");
-    return long unsigned int() ;
+    return 0 ;
 }
 void css::CSSStyleSheet::deleteRule(long unsigned int val_index)
 {
@@ -474,7 +474,7 @@ void events::EventTarget::removeEventListener(events::DOMString val_type, v8::Ha
 bool events::EventTarget::dispatchEvent(v8::Handle<v8::Value> val_evt)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "events::EventTarget::dispatchEvent not implemented");
-    return bool() ;
+    return 0 ;
 }
 events::EventTarget::EventTarget() {}
 void events::EventListener::handleEvent(v8::Handle<v8::Value> val_evt)
@@ -808,7 +808,7 @@ void ranges::Range::selectNodeContents(v8::Handle<v8::Value> val_refNode)
 short int ranges::Range::compareBoundaryPoints(short unsigned int val_how, v8::Handle<v8::Value> val_sourceRange)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "ranges::Range::compareBoundaryPoints not implemented");
-    return short int() ;
+    return 0 ;
 }
 void ranges::Range::deleteContents()
 {
@@ -876,7 +876,7 @@ traversal::NodeIterator::NodeIterator(): root(), whatToShow(), filter(), expandE
 short int traversal::NodeFilter::acceptNode(v8::Handle<v8::Value> val_n)
 {
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "traversal::NodeFilter::acceptNode not implemented");
-    return short int() ;
+    return 0 ;
 }
 traversal::NodeFilter::NodeFilter() {}
 v8::Handle<v8::Value> traversal::TreeWalker::parentNode()

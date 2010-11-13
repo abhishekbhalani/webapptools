@@ -99,7 +99,7 @@ void i_plugin::release()
     }
 }
 
-string_list WeXpmToStringList( char** xpm, int lines )
+string_list WeXpmToStringList( const char** xpm, int lines )
 {
     string_list retval;
     retval.reserve(lines);

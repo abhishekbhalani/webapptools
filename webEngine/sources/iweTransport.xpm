@@ -1,5 +1,5 @@
 /* XPM */
-static char *iweTransport_xpm[] = {
+static const char *iweTransport_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 16 17 1",
 "  c #06060c",

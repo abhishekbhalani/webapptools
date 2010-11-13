@@ -19,7 +19,7 @@
 */
 #ifndef WEBENGINE_JSEXECUTOR
 #define WEBENGINE_JSEXECUTOR
-#include <v8/v8.h>
+#include <v8.h>
 #include <string>
 #include <vector>
 #include <weBlob.h>
@@ -48,18 +48,9 @@ public:
                         bool report_exceptions,
                         v8::Handle<v8::Context> ctx = v8::Handle<v8::Context>((v8::Context*)NULL));
     void reset_results();
-    const string& get_results() {
-        return exec_result;
-    }
-    void append_results(const string& data);
-    void append_object(v8::Handle<v8::Object> data);
     void set_max_depth(int depth) {
         maxDepth = depth;
     };
-    string dump(const string& name, const string& indent = "", int depth = 0, v8::Handle<v8::Context> ctx = v8::Handle<v8::Context>((v8::Context*)NULL));
-    string obj_dump(v8::Local<v8::Value> val, const string& name, const string& indent, int depth, v8::Handle<v8::Context> ctx);
-
-    string dump_results();
 
     v8::Persistent<v8::Context> get_child_context();
     void close_child_context(v8::Persistent<v8::Context> ctx);
@@ -77,24 +68,15 @@ public:
         return context->Global()->Get(val);
     }
 
-    vector<v8::Persistent<v8::Value>> objects;
 protected:
     task* net_access;
     static bool is_init;
-    static int  num_objects;
     static v8::Persistent<v8::ObjectTemplate> global;
 
     v8::Persistent<v8::Context> context;
-    string exec_result;
     int maxDepth;
 
     void report_exception(v8::TryCatch* handler);
-
-    friend v8::Handle<v8::Value> result_object(v8::Local<v8::String> name, const v8::AccessorInfo &info);
-    friend v8::Handle<v8::Value> result_object_info(const v8::Arguments& args);
-    friend v8::Handle<v8::Value> get_result_string(v8::Local<v8::String> name, const v8::AccessorInfo &info);
-    friend void set_result_string(v8::Local<v8::String> name, v8::Local<v8::Value> val, const v8::AccessorInfo& info);
-    //friend v8::Handle<v8::Value> dump(const v8::Arguments& args);
 };
 }
 

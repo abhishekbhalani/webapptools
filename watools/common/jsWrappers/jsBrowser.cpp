@@ -7,12 +7,8 @@
 using namespace v8;
 using namespace webEngine;
 
-bool jsBrowser::is_init = false;
-
 Persistent<FunctionTemplate> jsNavigator::object_template;
-bool jsNavigator::is_init = false;
 Persistent<FunctionTemplate> jsScreen::object_template;
-bool jsScreen::is_init = false;
 
 v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsNavigator>::GetTemplate()
 {
@@ -91,8 +87,7 @@ jsNavigator::jsNavigator()
     props["systemLanguage"] = Persistent<Value>::New(String::New(""));
     props["userLanguage"] = Persistent<Value>::New(String::New(""));
 
-    if (!is_init) {
-        is_init = true;
+    if (object_template.IsEmpty()) {
         Handle<FunctionTemplate> _object = FunctionTemplate::New();
         //get the location's instance template
         Handle<ObjectTemplate> _proto = _object->InstanceTemplate();
@@ -151,8 +146,7 @@ jsScreen::jsScreen()
     props["pixelDepth"] = Persistent<Value>::New(Int32::New(32));
     props["width"] = Persistent<Value>::New(Int32::New(800));
 
-    if (!is_init) {
-        is_init = true;
+    if (object_template.IsEmpty()) {
         Handle<FunctionTemplate> _object = FunctionTemplate::New();
         //get the location's instance template
         Handle<ObjectTemplate> _proto = _object->InstanceTemplate();
@@ -178,11 +172,9 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
     void* ptr = wrap->Value();
     jsBrowser* el = static_cast<jsBrowser*>(ptr);
     if (key == "v8_context") {
-        val = wrap_object<jsExecutor>(el);
-    } else if (key == "v8_results") {
-        val = String::New(el->get_results().c_str());
+        val = v8_wrapper::wrap_object<jsExecutor>(el);
     } else if (key == "window") {
-        val = wrap_object<jsWindow>(el->window);
+        val = v8_wrapper::wrap_object<jsWindow>(el->window);
     } else if (el->window->is_property(key)) {
         val = el->window->GetProperty(name, info);
     } else {
@@ -210,7 +202,6 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
         jsBrowser* el = static_cast<jsBrowser*>(ptr);
         if (key == "v8_results") {
             string sval = value_to_string(value);
-            el->append_results(sval);
         } else if (el->window->is_property(key)) {
             val = el->window->GetProperty(name, info);
         } else {
@@ -222,10 +213,8 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
 
 jsBrowser::jsBrowser(void)
 {
-    if (!is_init) {
-        is_init = true;
-        init_globals();
-    }
+    init_globals();
+
     // assign extensions
     Handle<Value> self = External::New(this);
     global->SetNamedPropertyHandler(BrowserGet, BrowserSet, NULL, NULL, NULL, self);
@@ -267,7 +256,7 @@ jsBrowser::jsBrowser(void)
         // make executor accessible in the JS
         LOG4CXX_TRACE(iLogger::GetLogger(), "jsBrowser: try to wrap object");
         Context::Scope context_scope(context);
-        Handle<Object> _instance = wrap_object<jsExecutor>(this);
+        Handle<Object> _instance = v8_wrapper::wrap_object<jsExecutor>(this);
         context->Global()->Set(String::New("v8_context"), _instance);
     }
 }
@@ -317,7 +306,7 @@ Handle<Value> jsBrowser::GetWindow( Local<String> name, const AccessorInfo &info
     void* ptr = wrap->Value();
     jsBrowser* el = static_cast<jsBrowser*>(ptr);
 
-    Handle<Object> _obj = wrap_object<jsWindow>(el->window);
+    Handle<Object> _obj = v8_wrapper::wrap_object<jsWindow>(el->window);
 
     return scope.Close(_obj);
 }
@@ -333,7 +322,7 @@ Handle<Value> jsBrowser::WinInterceptor( const Arguments& args )
 
     string fname = value_to_string(args.Callee()->GetName()->ToString());
 
-    Local<Object> _obj = Local<Object>::New(wrap_object<jsWindow>(el->window));
+    Local<Object> _obj = Local<Object>::New(v8_wrapper::wrap_object<jsWindow>(el->window));
     Local<Function> _func = Local<Function>::Cast(_obj->Get(String::New(fname.c_str())));
     Handle<Value> *fargs = new Handle<Value>[args.Length()];
     for (int i = 0; i < args.Length(); ++i) {

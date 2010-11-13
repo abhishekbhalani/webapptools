@@ -68,7 +68,6 @@ public:
     typedef typename std::map<_Key, _Val> valuesmap;
     typedef typename std::pair<_Key, _Val> valuespair;
     typedef typename valuesmap::value_type value_type;
-    template <class _Key, class _Val>
     class __iterator {
     public:
         __iterator() {
@@ -85,17 +84,17 @@ public:
         valuespair operator->() {
             return valuespair(parent->keys[pos], parent->values[parent->keys[pos]]);
         }
-        __iterator<_Key, _Val>& operator++() {
+        __iterator& operator++() {
             if(parent != NULL && pos < parent->keys.size()) ++pos;
             return *this;
         }
-        const bool operator==(const __iterator<_Key, _Val>& rhs) {
+        const bool operator==(const __iterator& rhs) {
             return (parent == rhs.parent && pos == rhs.pos);
         }
-        const bool operator!=(const __iterator<_Key, _Val>& rhs) {
+        const bool operator!=(const __iterator& rhs) {
             return !operator==(rhs);
         }
-        __iterator<_Key, _Val>& operator=(const __iterator<_Key, _Val>& rhs) {
+        __iterator& operator=(const __iterator& rhs) {
             parent = rhs.parent;
             pos = rhs.pos;
             return *this;
@@ -104,7 +103,7 @@ public:
         size_t pos;
         orderedmap<_Key, _Val>* parent;
     };
-    typedef typename __iterator<_Key, _Val> iterator;
+    typedef typename orderedmap<_Key, _Val>::__iterator iterator;
 
 public:
     orderedmap()
@@ -116,7 +115,7 @@ public:
 
     int erase(const _Key& _Keyval) {
         values.erase(_Keyval);
-        keyvector::iterator rm = ::find(keys.begin(), keys.end(), _Keyval);
+        typename keyvector::iterator rm = ::find(keys.begin(), keys.end(), _Keyval);
         keys.erase(rm);
         return 0;
     }
@@ -124,7 +123,7 @@ public:
     int erase(const int pos) {
         if (pos >=0 && pos < keys.size()) {
             values.erase(keys[pos]);
-            keyvector::iterator rm = keys.begin() + pos;
+            typename keyvector::iterator rm = keys.begin() + pos;
             keys.erase(rm);
         }
         return 0;
@@ -148,7 +147,7 @@ public:
 
     iterator find(const _Key& _Keyval) {
         // returns the iterator for the given Keyval
-        keyvector::iterator it = ::find(keys.begin(), keys.end(), _Keyval);
+        typename keyvector::iterator it = ::find(keys.begin(), keys.end(), _Keyval);
         if(it != keys.end()) {
             return iterator(this, it - keys.begin());
         } else {
@@ -159,7 +158,7 @@ public:
 
     _Val& operator[](const _Key& _Keyval) {
         // find element matching _Keyval or insert with default mapped
-        keyvector::iterator _Where = ::find(keys.begin(), keys.end(), _Keyval);
+        typename keyvector::iterator _Where = ::find(keys.begin(), keys.end(), _Keyval);
         if (_Where == keys.end()) {
             keys.push_back(_Keyval);
             values[_Keyval] = _Val();

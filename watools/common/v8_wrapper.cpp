@@ -3,9 +3,11 @@
 #include <html_js.h>
 #include <weStrings.h>
 
+#include <html_tags_wrapper.h>
+
 using namespace v8;
 
-v8_wrapper::iterator_dfs::iterator_dfs(TreeNode& treenode)
+v8_wrapper::iterator_dfs::iterator_dfs(v8_wrapper::tree_node& treenode)
     : m_node(treenode.shared_from_this()),
       m_it(m_node->m_child_list.begin()),
       m_end(m_it == m_node->m_child_list.end())
@@ -17,31 +19,34 @@ v8_wrapper::iterator_dfs::iterator_dfs()
 
 void v8_wrapper::iterator_dfs::increment()
 {
-    if(m_end)
-        return;
-    if( !(*m_it)->m_child_list.empty() ) {
-        m_node = *m_it;
-        m_stack.push_back( m_it );
-        m_it = m_node->m_child_list.begin();
-        return;
-    }
-    if(m_it != m_node->m_child_list.end())
-        ++m_it;
-    while(m_it == m_node->m_child_list.end()) {
-        if(!m_stack.empty()) {
-            m_it = m_stack.back();
-            m_stack.pop_back();
-            m_node = m_node->m_parent;
-            ++m_it;
-            continue;
+#ifdef _DEBUG
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "iterator_dfs: " << std::setw(current_level() + 4) << current_level() << (*m_it)->get_dump());
+#endif
+    if(!m_end) {
+        if( !(*m_it)->m_child_list.empty() ) {
+            m_node = *m_it;
+            m_stack.push_back( m_it );
+            m_it = m_node->m_child_list.begin();
         } else {
-            m_end = true;
-            return;
+            if(m_it != m_node->m_child_list.end())
+                ++m_it;
+            while(m_it == m_node->m_child_list.end()) {
+                if(!m_stack.empty()) {
+                    m_it = m_stack.back();
+                    m_stack.pop_back();
+                    m_node = m_node->m_parent;
+                    ++m_it;
+                    continue;
+                } else {
+                    m_end = true;
+                    break;
+                }
+            }
         }
     }
 }
 
-boost::shared_ptr<v8_wrapper::TreeNode> & v8_wrapper::iterator_dfs::dereference() const
+v8_wrapper::tree_node_ptr & v8_wrapper::iterator_dfs::dereference() const
 {
     return *m_it;
 }
@@ -55,17 +60,17 @@ bool v8_wrapper::iterator_dfs::equal(v8_wrapper::iterator_dfs const& other) cons
     return m_it == other.m_it;
 }
 
-v8_wrapper::iterator_dfs v8_wrapper::TreeNode::begin_dfs()
+v8_wrapper::iterator_dfs v8_wrapper::tree_node::begin_dfs()
 {
     return v8_wrapper::iterator_dfs(*this);
 }
 
-v8_wrapper::iterator_dfs v8_wrapper::TreeNode::end_dfs()
+v8_wrapper::iterator_dfs v8_wrapper::tree_node::end_dfs()
 {
     return v8_wrapper::iterator_dfs();
 }
 
-v8::Handle<v8::Value> v8_wrapper::check_object_name(v8_wrapper::TreeNode* treenode, const std::string &name)
+v8::Handle<v8::Value> v8_wrapper::check_object_name(v8_wrapper::tree_node* treenode, const std::string &name)
 {
     try {
         js_html2_HTMLFormElement * node = dynamic_cast<js_html2_HTMLFormElement*>( treenode );
@@ -246,9 +251,9 @@ void v8_wrapper::update_document(v8_wrapper::jsDocument& doc)
     const_cast<v8::Handle<v8::Value> &>(doc.anchors) = anchors->m_this;
 }
 
-boost::shared_ptr< v8_wrapper::TreeNode > v8_wrapper::wrap_dom(const webEngine::html_entity_ptr& dom, boost::shared_ptr<v8_wrapper::TreeNode> parent)
+v8_wrapper::tree_node_ptr v8_wrapper::wrap_dom(const webEngine::html_entity_ptr& dom, v8_wrapper::tree_node_ptr parent)
 {
-    boost::shared_ptr<v8_wrapper::TreeNode> root;
+    v8_wrapper::tree_node_ptr root;
     if(!parent) {
         v8_wrapper::jsDocument* ptr = new jsDocument();
         ptr->m_this = v8::Persistent<v8::Object>::New(wrap_object<v8_wrapper::jsDocument>(ptr));
@@ -256,13 +261,15 @@ boost::shared_ptr< v8_wrapper::TreeNode > v8_wrapper::wrap_dom(const webEngine::
     } else
         root = parent;
 
-    boost::shared_ptr<v8_wrapper::TreeNode> tree_node(root);
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8_wrapper::wrap_dom root 0x" << std::hex << (void*)root.get() << " starts with '" << dom->Name() << "'" );
+
+    v8_wrapper::tree_node_ptr tree_node(root);
     webEngine::html_entity_ptr current_level = dom;
     webEngine::entity_list::iterator it = current_level->Children().begin();
     typedef pair< webEngine::html_entity_ptr, webEngine::entity_list::iterator > level_t;
     vector< level_t > stack;
 
-    boost::shared_ptr<v8_wrapper::TreeNode> node;
+    v8_wrapper::tree_node_ptr node;
 
     while( true ) {
         if(it == current_level->Children().end()) {
@@ -298,3 +305,178 @@ boost::shared_ptr< v8_wrapper::TreeNode > v8_wrapper::wrap_dom(const webEngine::
 
     return root;
 }
+
+
+v8_wrapper::tree_node_ptr v8_wrapper::wrap_entity( webEngine::html_entity_ptr objToWrap )
+{
+    v8_wrapper::tree_node_ptr node;
+    HTML_TAG html_tag = objToWrap->HtmlTag();
+
+    switch(html_tag) {
+    case  HTML_TAG_a:
+        node = TreeNodeFromEntity<js_html2_HTMLAnchorElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_abbr :
+    case  HTML_TAG_acronym :
+    case  HTML_TAG_address :
+    case  HTML_TAG_applet :
+    case  HTML_TAG_area :
+    case  HTML_TAG_b :
+    case  HTML_TAG_base :
+    case  HTML_TAG_basefont :
+    case  HTML_TAG_bdo :
+    case  HTML_TAG_big :
+    case  HTML_TAG_blockquote :
+        break;
+    case  HTML_TAG_body :
+        node = TreeNodeFromEntity<js_html2_HTMLBodyElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_br :
+        node = TreeNodeFromEntity<js_html2_HTMLBRElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_button :
+        node = TreeNodeFromEntity<js_html2_HTMLButtonElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_caption :
+        node = TreeNodeFromEntity<js_html2_HTMLTableCaptionElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_center :
+    case  HTML_TAG_cite :
+    case  HTML_TAG_code :
+    case  HTML_TAG_col :
+    case  HTML_TAG_colgroup :
+    case  HTML_TAG_dd :
+    case  HTML_TAG_del :
+    case  HTML_TAG_dfn :
+    case  HTML_TAG_dir :
+        break;
+    case  HTML_TAG_div :
+        node = TreeNodeFromEntity<js_html2_HTMLDivElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_dl :
+    case  HTML_TAG_dt :
+    case  HTML_TAG_em :
+    case  HTML_TAG_fieldset :
+    case  HTML_TAG_font :
+        break;
+    case  HTML_TAG_form:
+        node = TreeNodeFromEntity<js_html2_HTMLFormElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_frame :
+    case  HTML_TAG_frameset :
+        break;
+    case  HTML_TAG_h1 :
+    case  HTML_TAG_h2 :
+    case  HTML_TAG_h3 :
+    case  HTML_TAG_h4 :
+    case  HTML_TAG_h5 :
+    case  HTML_TAG_h6 :
+        node = TreeNodeFromEntity<js_html2_HTMLHeadingElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_head :
+        node = TreeNodeFromEntity<js_html2_HTMLHeadElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_hr :
+        node = TreeNodeFromEntity<js_html2_HTMLHRElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_html :
+        node = TreeNodeFromEntity<js_html2_HTMLHtmlElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_i :
+        break;
+    case  HTML_TAG_iframe :
+        node = TreeNodeFromEntity<js_html2_HTMLIFrameElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_img :
+        node = TreeNodeFromEntity<js_html2_HTMLImageElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_input :
+        node = TreeNodeFromEntity<js_html2_HTMLInputElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_ins :
+    case  HTML_TAG_isindex :
+    case  HTML_TAG_kbd :
+        break;
+    case  HTML_TAG_label :
+        node = TreeNodeFromEntity<js_html2_HTMLLabelElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_legend :
+        node = TreeNodeFromEntity<js_html2_HTMLLegendElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_li :
+        node = TreeNodeFromEntity<js_html2_HTMLLIElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_link :
+        node = TreeNodeFromEntity<js_html2_HTMLLinkElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_map :
+        node = TreeNodeFromEntity<js_html2_HTMLMapElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_menu :
+        node = TreeNodeFromEntity<js_html2_HTMLMenuElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_meta :
+        node = TreeNodeFromEntity<js_html2_HTMLMetaElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_noframes :
+    case  HTML_TAG_noscript :
+        break;
+    case  HTML_TAG_object :
+        node = TreeNodeFromEntity<js_html2_HTMLObjectElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_ol :
+        node = TreeNodeFromEntity<js_html2_HTMLOListElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_optgroup :
+    case  HTML_TAG_option :
+    case  HTML_TAG_p :
+    case  HTML_TAG_param :
+    case  HTML_TAG_pre :
+    case  HTML_TAG_q :
+    case  HTML_TAG_s :
+    case  HTML_TAG_samp :
+        break;
+    case  HTML_TAG_script :
+        node = TreeNodeFromEntity<js_html2_HTMLScriptElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_select :
+        node = TreeNodeFromEntity<js_html2_HTMLSelectElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_small :
+    case  HTML_TAG_span :
+    case  HTML_TAG_strike :
+    case  HTML_TAG_strong :
+    case  HTML_TAG_style :
+    case  HTML_TAG_sub :
+    case  HTML_TAG_sup :
+        break;
+    case  HTML_TAG_table :
+        node = TreeNodeFromEntity<js_html2_HTMLTableElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_tbody :
+    case  HTML_TAG_td :
+    case  HTML_TAG_textarea :
+    case  HTML_TAG_tfoot :
+    case  HTML_TAG_th :
+    case  HTML_TAG_thead :
+        break;
+    case  HTML_TAG_title :
+        node = TreeNodeFromEntity<js_html2_HTMLTitleElement, true>(objToWrap);
+        break;
+    case  HTML_TAG_tr :
+    case  HTML_TAG_tt :
+    case  HTML_TAG_u :
+    case  HTML_TAG_ul :
+    case  HTML_TAG_var :
+    default:
+        node = TreeNodeFromEntity<js_html2_HTMLElement, true>(objToWrap);
+        break;
+    }
+
+    if(!node)
+        node = TreeNodeFromEntity<js_html2_HTMLElement, true>(objToWrap);
+
+    node->m_entity = objToWrap;
+    return node;
+}
+

@@ -13,6 +13,10 @@ set(DOM_NOT_IMPLEMENTED_SOURCE "${DOM_DIRECTORY_SOURCE}/not_implemented")
 include_directories(${DOM_DIRECTORY_SOURCE})
 
 if(WIN32)
+  if(MSVC)
+    add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+  endif()
+
   set(EXT_TOOLS "${CMAKE_SOURCE_DIR}/../ext_tools")
   set(BOOST_ROOT "${EXT_TOOLS}")
   set(EXT_LIBS_DEBUG "${EXT_TOOLS}/lib/Debug")
@@ -23,6 +27,7 @@ if(WIN32)
 
 ### INCLUDE ###
   include_directories("${EXT_TOOLS}/include")
+  include_directories("${EXT_TOOLS}/include/v8")
   include_directories("../soci/src/core")
 
 ### LOG4CXX ###

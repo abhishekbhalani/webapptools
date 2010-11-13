@@ -124,7 +124,7 @@ public:
     db_cursor_detail():m_isEnd(true), m_affected_rows(0) {}
     explicit db_cursor_detail(const std::vector<std::string> &fields):m_isEnd(true), m_record(fields) {}
 protected:
-    friend class db_cursor;
+    friend class webEngine::db_cursor;
     virtual void increment() {}
     virtual db_record& dereference() const {
         if(m_isEnd)
@@ -161,7 +161,7 @@ protected:
 class db_cursor: public boost::iterator_facade <db_cursor, db_record, boost::forward_traversal_tag> {
 public:
     db_cursor() {}
-    db_cursor(db_cursor &other):m_cursor(other.m_cursor) {}
+    db_cursor(const db_cursor &other):m_cursor(other.m_cursor) {}
     explicit db_cursor(boost::shared_ptr<details::db_cursor_detail> cursor):m_cursor(cursor) {}
 
     /** @brief After close() you can't use this cursor. It send all data and closes statements. */
@@ -358,8 +358,8 @@ public:
 
     /** @{ @brief logical operation on conditions */
     db_filter& set(db_filter_base& cond);
-    db_filter& or(db_filter_base& cond);
-    db_filter& and(db_filter_base& cond);
+    db_filter& _or_(db_filter_base& cond);
+    db_filter& _and_(db_filter_base& cond);
     /** @} */
 
     /** @brief test record */
@@ -399,22 +399,22 @@ const std::string get_sql_delete(const db_filter &where);
 /** @{ @brief operator for nice syntax */
 inline webEngine::db_filter& operator && (webEngine::db_filter& filt, webEngine::db_filter_base& cond)
 {
-    return filt.and(cond);
+    return filt._and_(cond);
 }
 
 inline webEngine::db_filter& operator || (webEngine::db_filter& filt, webEngine::db_filter_base& cond)
 {
-    return filt.or(cond);
+    return filt._or_(cond);
 }
 
 inline webEngine::db_filter operator && (webEngine::db_condition& filt, webEngine::db_filter_base& cond)
 {
-    return webEngine::db_filter(filt).and(cond);
+    return webEngine::db_filter(filt)._and_(cond);
 }
 
 inline webEngine::db_filter operator || (webEngine::db_condition& filt, webEngine::db_filter_base& cond)
 {
-    return webEngine::db_filter(filt).or(cond);
+    return webEngine::db_filter(filt)._or_(cond);
 }
 /** @} */
 

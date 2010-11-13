@@ -35,13 +35,14 @@
 #include <boost/functional/hash.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <boost/foreach.hpp>
+#include <boost/thread.hpp>
 
 using namespace boost;
 
 namespace webEngine {
 
 namespace {
-static char task_params_str[] = "!!params!!";
+static std::string task_params_str("!!params!!");
 }
 
 #define SERIALIZE_TASK_PARAMS(arch) \
@@ -72,9 +73,6 @@ void task_processor(task* tsk)
     we_option opt;
     size_t i;
     int iData;
-    response_list::iterator rIt;
-    i_response_ptr resp;
-    i_request_ptr curr_url;
 
     tsk->processThread = true;
     LOG4CXX_TRACE(iLogger::GetLogger(), "WeTaskProcessor started for task " << tsk);
@@ -97,7 +95,9 @@ void task_processor(task* tsk)
             boost::unique_lock<boost::mutex> lock(tsk->tsk_mutex);
 
             while (tsk->taskQueueSize > tsk->taskQueue.size() && tsk->tsk_status == WI_TSK_RUNNING && !tsk->taskList.empty()) {
-                curr_url = tsk->taskList[0];
+                i_request_ptr curr_url = tsk->taskList[0];
+                i_response_ptr resp;
+
                 // search for transport or recreate request to all transports
                 if (curr_url->RequestUrl().is_valid()) {
                     // search for transport
@@ -149,7 +149,7 @@ void task_processor(task* tsk)
             }
             // just switch context to wake up other tasks
             boost::this_thread::sleep(boost::posix_time::millisec(100));
-            for(rIt = tsk->taskQueue.begin(); rIt != tsk->taskQueue.end();) {
+            for(response_list::iterator rIt = tsk->taskQueue.begin(); rIt != tsk->taskQueue.end();) {
                 if ((*rIt)->Processed()) {
                     LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTaskProcessor: received! Queue: " << tsk->taskQueue.size() << " done: " << tsk->total_done);
                     tsk->total_done++;
@@ -666,6 +666,22 @@ void task::calc_status()
             finish_tm = btm::second_clock::local_time();
             tsk_status = WI_TSK_FINISHED;
         }
+#if 0 // search for missing requests
+        else if(taskList.size() == 0 && taskQueue.size() == 0 && active_threads == 0) {
+            transport_url url;
+            for(size_t i = 0; i < i_operation::get_instance_counter(); ++i) {
+                static_instance_counter<i_operation> *op = i_operation::debug_get_instance(i);
+                HttpRequest* r = dynamic_cast<HttpRequest*>(op);
+                if(r) {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: HttpRequest 0x" << (void*)r << " " << r->RequestUrl().tostring());
+                }
+                HttpResponse* s = dynamic_cast<HttpResponse*>(op);
+                if(s) {
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), "task::calc_status: HttpResponse 0x" << (void*)s << " " << s->RealUrl().tostring());
+                }
+            }
+        }
+#endif
         break;
     case WI_TSK_PAUSING:
         if (taskQueue.size() == 0 && active_threads == 0) {
@@ -724,11 +740,6 @@ shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
         db_filter flt;
         db_condition ucond;
         db_condition scond;
-        //auto_ptr<db_recordset> rs = kernel->storage()->get_recordset_by_namespace(weObjTypeScanData);
-        //auto_ptr<db_recordset> dbres = kernel->storage()->get_recordset_by_namespace(weObjTypeScanData);
-
-        //flt.what = i_storage::get_namespace_struct(weObjTypeScanData);
-        //db_recordset dbres(flt.what);
 
         ucond.field() = weObjTypeScanData "." "object_url";
         ucond.operation() = db_condition::equal;
@@ -736,7 +747,7 @@ shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
         scond.field() = weObjTypeScanData "." "task_id";
         scond.operation() = db_condition::equal;
         scond.value() = scan_id;
-        flt.set(scond).and(ucond);
+        flt.set(scond)._and_(ucond);
         db_cursor r = kernel->storage()->get(flt, weObjTypeScanData);
         if (r.is_not_end()) {
             data = new ScanData;
@@ -773,7 +784,7 @@ void task::set_scan_data( const string& baseUrl, boost::shared_ptr<ScanData> scD
             scond.field() = weObjTypeScanData "." "task_id";
             scond.operation() = db_condition::equal;
             scond.value() = scan_id;
-            flt.set(scond).and(ucond);
+            flt.set(scond)._and_(ucond);
 
             db_cursor r = kernel->storage()->set(flt, weObjTypeScanData);
             scData->to_dataset(*r);
@@ -946,7 +957,7 @@ void task::add_vulner( const string& vId, const string& params, const string& pa
         tcond.operation() = db_condition::equal;
         tcond.value() = scan_id;
 
-        flt.set(icond).and(tcond);
+        flt.set(icond)._and_(tcond);
 
         db_cursor rec = kernel->storage()->set(flt, weObjTypeVulner);;
 
@@ -1006,7 +1017,7 @@ we_option task::Option( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.set(p_cond).and(n_cond);
+        flt.set(p_cond)._and_(n_cond);
 
         db_cursor rec = kernel->storage()->get(flt, fields);
 
@@ -1073,7 +1084,7 @@ void task::Option( const string& name, we_variant val )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.set(p_cond).and(n_cond);
+        flt.set(p_cond)._and_(n_cond);
 
         db_cursor rec = kernel->storage()->set(flt, fields);
 
@@ -1089,7 +1100,6 @@ void task::Option( const string& name, we_variant val )
 bool task::IsSet( const string& name )
 {
     bool retval = false;
-    auto_ptr<db_recordset> res;
     db_filter flt;
 
     if (kernel != NULL && kernel->storage() != NULL) {
@@ -1108,7 +1118,7 @@ bool task::IsSet( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        flt.set(p_cond).and(n_cond);
+        flt.set(p_cond)._and_(n_cond);
 
         db_cursor rec = kernel->storage()->get(flt, fields);
         if (rec.is_not_end()) {
@@ -1147,7 +1157,7 @@ void task::Erase( const string& name )
         n_cond.operation() = db_condition::equal;
         n_cond.value() = name;
 
-        filter.set(p_cond).and(n_cond);
+        filter.set(p_cond)._and_(n_cond);
         LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Erase - " << filter.tostring());
         kernel->storage()->del(filter);
     }
@@ -1174,7 +1184,6 @@ void task::Clear()
 string_list task::OptionsList()
 {
     string_list retval;
-    auto_ptr<db_recordset> res;
     db_filter flt;
     string name;
 
@@ -1203,7 +1212,6 @@ string_list task::OptionsList()
 size_t task::OptionSize()
 {
     int retval = 0;
-    auto_ptr<db_recordset> res;
     db_filter flt;
 
     if (kernel != NULL && kernel->storage() != NULL) {
@@ -1229,7 +1237,7 @@ bool task::is_url_processed( string& url )
     return (mit != processed_urls.end());
 }
 
-void task::register_url( string& url )
+void task::register_url( const string& url )
 {
     we_url_map::iterator mit = processed_urls.find(url);
 
