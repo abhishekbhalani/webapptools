@@ -1,10 +1,15 @@
 
 /*
-  $Id: js_dom_Node.cpp 35984 2010-11-09 14:35:13Z santonov $
+  $Id: js_dom_Node.cpp 36276 2010-11-15 14:56:24Z santonov $
 */
 
 #include <html_js.h>
 using namespace v8;
+
+js_dom_Node::js_dom_Node() {}
+
+js_dom_Node::~js_dom_Node() {}
+
 v8::Handle<v8::Value> js_dom_Node::insertBefore(v8::Handle<v8::Value> val_newChild, v8::Handle<v8::Value> val_refChild)
 {
     return dom::Node::insertBefore(val_newChild, val_refChild);
@@ -40,4 +45,9 @@ bool js_dom_Node::isSupported(std::string val_feature, std::string val_version)
 bool js_dom_Node::hasAttributes()
 {
     return dom::Node::hasAttributes();
+}
+
+short unsigned int js_dom_Node::compareDocumentPosition(v8::Handle<v8::Value> val_other)
+{
+    return dom::Node::compareDocumentPosition(val_other);
 }

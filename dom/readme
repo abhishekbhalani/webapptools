@@ -7,5 +7,7 @@ generated source will by styled.
 
 All generated sources located in 'generated_dom' directory. If you want to implement
 some DOM class methods you can move corresponding files from 'generated_dom/not_implemented' 
-directory to 'implemented' directory and change it.
+directory to 'implemented' directory and change it. If DOM class don't have any methods
+the source file for that class will not generated, but you can create source file in 
+'implemented' directory to change default constructor of this class.
 

@@ -77,7 +77,7 @@ v8_wrapper::tree_node_ptr TreeNodeFromEntity(webEngine::html_entity_ptr objToWra
     if(!node){
         node.reset(new T());
         node->m_this = v8::Persistent<v8::Object>::New(v8_wrapper::wrap_object< T >(node.get()));
-        node->m_this.MakeWeak( NULL , v8_wrapper::Registrator< T >::Destructor);
+        //node->m_this.MakeWeak( NULL , v8_wrapper::Registrator< T >::Destructor);
         node->m_tag = objToWrap->HtmlTag();
     }
     return boost::shared_static_cast<v8_wrapper::tree_node>(node);
@@ -129,7 +129,6 @@ def generate_class(class_node):
     if parent_js:
         out_js_header.write(", public " + parent_js)
     out_js_header.write(", public v8_wrapper::Registrator< " + c_js + " > {\n public: \n")
-    out_js_header.write("  " + c_js + "() {}\n")
 
     #list methods
     for node in gccxml.getElementsByTagName('Method'):
@@ -185,6 +184,7 @@ def generate_class(class_node):
                    out_virt_stub.write("""
                        #include <html_js.h>
                        using namespace v8;
+
                        """)
                    out_virt_stub_head = 1
                 if nodes[node.getAttribute('returns')].getAttribute('name') == 'void':
@@ -203,7 +203,7 @@ def generate_class(class_node):
         if(!node){
             node.reset(new """ + c_js + """());
             node->m_this = v8::Persistent<v8::Object>::New(v8_wrapper::wrap_object< """ + c_js + """ >(node.get()));
-            node->m_this.MakeWeak( NULL , v8_wrapper::Registrator< """ + c_js + """ >::Destructor);
+            //node->m_this.MakeWeak( NULL , v8_wrapper::Registrator< """ + c_js + """ >::Destructor);
             node->m_tag = objToWrap->HtmlTag();
         }
     """)
@@ -262,8 +262,22 @@ def generate_class(class_node):
     if parent_js:
         virtual_get_fields += "_out << " + parent_js + "::get_fields();\n"
 
-    virtual_get_fields += "return _out.str();}"
+    virtual_get_fields += "return _out.str();}\n\n"
     out_js_header.write(virtual_get_fields)
+
+    if out_virt_stub:
+        out_js_header.write(c_js + "();\n")
+        out_js_header.write("virtual ~" + c_js + "();\n")
+        out_virt_stub.write("\n" + c_js + "::" + c_js + "(){}\n")
+        out_virt_stub.write("\n" + c_js + "::~" + c_js + "(){}\n")
+        out_virt_stub.close()
+        out_virt_stub = None
+    elif class_not_implemented:
+        out_js_header.write(c_js + "(){}\n")
+        out_js_header.write("virtual ~" + c_js + "(){}\n")
+    else:
+        out_js_header.write(c_js + "();\n")
+        out_js_header.write("virtual ~" + c_js + "();\n")
 
     out_js_header.write(" };\n\n")
     
@@ -309,10 +323,6 @@ def generate_class(class_node):
     return cachedTemplate;
     }\n\n\n""")
     
-    if out_virt_stub:
-        out_virt_stub.close()
-        out_virt_stub = None
-
 for node in gccxml.getElementsByTagName('Class'):
     nodes[node.getAttribute('id')] = node
 for node in gccxml.getElementsByTagName('Typedef'):

@@ -220,7 +220,7 @@ void audit_jscript::process_response( i_response_ptr resp )
 
             LOG4CXX_DEBUG(logger, "audit_jscript::process_response: clear download task for " << AJS_DOWNLOAD_URL(mit));
             for (size_t i = 0; i < AJS_DOWNLOAD_LIST(mit).size(); i++) {
-                AJS_DOWNLOAD_LIST(mit)[i].first->attr("src", "");
+                //AJS_DOWNLOAD_LIST(mit)[i].first->attr("src", "");
                 AJS_DOWNLOAD_LIST(mit)[i].first->attr("#code", code);
                 AJS_DOWNLOAD_LIST(mit)[i].second->pending_requests--;
             }
@@ -270,7 +270,7 @@ void audit_jscript::add_url( webEngine::transport_url link, boost::shared_ptr<Sc
     }
 }
 
-void audit_jscript::extract_links( boost::shared_ptr<ScanData> sc, boost::shared_ptr<v8_wrapper::jsDocument> doc )
+void audit_jscript::extract_links(boost::shared_ptr<ScanData> sc, const std::string &text)
 {
     boost::smatch mres;
     std::string::const_iterator strt, end;
@@ -278,71 +278,72 @@ void audit_jscript::extract_links( boost::shared_ptr<ScanData> sc, boost::shared
     transport_url lurl;
     transport_url burl;
 
+    burl.assign(sc->object_url);
+    strt = text.begin();
+    end = text.end();
+    // 1. search strings that looks like URL
+    boost::regex re1("([\\s\"\'^])(\\w+://[^\\s\"\']+)([\\s\"\'$])"); //, boost::regex_constants::icase
+
+    while(regex_search(strt, end, mres, re1, flags)) {
+        string tres = mres[2];
+        lurl.assign_with_referer(tres, &burl);
+        LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found url=" << tres << "; " << lurl.tostring());
+        add_url(lurl, sc);
+
+        // update search position:
+        strt = mres[0].second;
+        // update flags:
+        /*flags |= boost::match_prev_avail;
+        flags |= boost::match_not_bob;*/
+    }
+
+    strt = text.begin();
+    end = text.end();
+    flags = boost::match_default;
+    // 2. search for <a...> tags
+    boost::regex re2("\\<a.*?href\\s*=\\s*(\"|')?([^\\s\"\']+).*?\\>"); //, boost::regex_constants::icase
+
+    while(regex_search(strt, end, mres, re2, flags)) {
+        string tres = mres[2];
+        lurl.assign_with_referer(tres, &burl);
+        LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found <a...> url=" << tres << "; " << lurl.tostring());
+        add_url(lurl, sc);
+
+        // update search position:
+        strt = mres[0].second;
+        // update flags:
+        /*flags |= boost::match_prev_avail;
+        flags |= boost::match_not_bob;*/
+    }
+
+    strt = text.begin();
+    end = text.end();
+    flags = boost::match_default;
+    // 2. search for "href: ..." output
+    boost::regex re3("\\shref:\\s*([^\\s\"\']+)"); //, boost::regex_constants::icase
+
+    while(regex_search(strt, end, mres, re3, flags)) {
+        string tres = mres[1];
+        lurl.assign_with_referer(tres, &burl);
+        LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found 'href' url=" << tres << "; " << lurl.tostring());
+        add_url(lurl, sc);
+
+        // update search position:
+        strt = mres[0].second;
+        // update flags:
+        /*flags |= boost::match_prev_avail;
+        flags |= boost::match_not_bob;*/
+    }
+}
+
+void audit_jscript::extract_links( boost::shared_ptr<ScanData> sc, boost::shared_ptr<v8_wrapper::jsDocument> doc )
+{
     try {
-
         for(v8_wrapper::iterator_dfs node = doc->begin_dfs(); node != doc->end_dfs(); ++node) {
-
-            burl.assign(sc->object_url);
-
             string text = (*node)->get_dump();
             if(text.empty())
                 continue;
-
-            strt = text.begin();
-            end = text.end();
-            // 1. search strings that looks like URL
-            boost::regex re1("(\\s|^)(\\w+://[^\\s\"\']+)(\\s|$)"); //, boost::regex_constants::icase
-
-            while(regex_search(strt, end, mres, re1, flags)) {
-                string tres = mres[2];
-                lurl.assign_with_referer(tres, &burl);
-                LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found url=" << tres << "; " << lurl.tostring());
-                add_url(lurl, sc);
-
-                // update search position:
-                strt = mres[0].second;
-                // update flags:
-                /*flags |= boost::match_prev_avail;
-                flags |= boost::match_not_bob;*/
-            }
-
-            strt = text.begin();
-            end = text.end();
-            flags = boost::match_default;
-            // 2. search for <a...> tags
-            boost::regex re2("\\<a.*?href\\s*=\\s*(\"|')?([^\\s\"\']+).*?\\>"); //, boost::regex_constants::icase
-
-            while(regex_search(strt, end, mres, re2, flags)) {
-                string tres = mres[2];
-                lurl.assign_with_referer(tres, &burl);
-                LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found <a...> url=" << tres << "; " << lurl.tostring());
-                add_url(lurl, sc);
-
-                // update search position:
-                strt = mres[0].second;
-                // update flags:
-                /*flags |= boost::match_prev_avail;
-                flags |= boost::match_not_bob;*/
-            }
-
-            strt = text.begin();
-            end = text.end();
-            flags = boost::match_default;
-            // 2. search for "href: ..." output
-            boost::regex re3("\\shref:\\s*([^\\s\"\']+)"); //, boost::regex_constants::icase
-
-            while(regex_search(strt, end, mres, re3, flags)) {
-                string tres = mres[1];
-                lurl.assign_with_referer(tres, &burl);
-                LOG4CXX_DEBUG(logger, "audit_jscript::extract_links: found 'href' url=" << tres << "; " << lurl.tostring());
-                add_url(lurl, sc);
-
-                // update search position:
-                strt = mres[0].second;
-                // update flags:
-                /*flags |= boost::match_prev_avail;
-                flags |= boost::match_not_bob;*/
-            }
+            extract_links(sc, text);
         }
     } catch (std::exception &e) {
         LOG4CXX_ERROR(logger, "audit_jscript::extract_links - exception: " << e.what())
@@ -391,13 +392,13 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
                 jse.window->document->v8_wrapper::Registrator<v8_wrapper::jsDocument>::m_data.m_execution_point = current_script;
                 source = current_script->m_entity->attr("#code");
 #ifdef _DEBUG
-                LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts execute script #" << i++ << "; Source:\n" << source);
+                LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts execute script #" << i++ << "; Source \"" << current_script->m_entity->attr("src") << "\":\n" << source);
 #endif
                 jse.execute_string(source, "", true, true);
 
                 for(v8_wrapper::iterator_dfs it2 = current_script->begin_dfs(); it2 != current_script->end_dfs(); ++it2) {
                     if((*it2)->m_tag == HTML_TAG_script && (*it2)->m_entity) {
-                        if(std::find(scripts.begin(), scripts.end(), *it2) != scripts.end())
+                        if(std::find(scripts.begin(), scripts.end(), *it2) == scripts.end())
                             new_scripts.push_back(*it2);
                     }
                 }
@@ -441,20 +442,16 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
 
         LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts process events");
         //html_document* doc_entity = sc->parsed_data.get();
-        process_events(&jse, ctx, parser, false);
 
-        //LOG4CXX_DEBUG(logger, "audit_jscript::parse_scripts search for new scripts");
-        /*int obj_size = 0;
-        int obj_size_n = 0;
-        do {
-            obj_size = js_exec->objects.size();
-            for (size_t i = obj_size_n; i < obj_size; ++i) {
-                //
+        for(v8_wrapper::iterator_dfs it = jse.window->document->begin_dfs(); it!=jse.window->document->end_dfs(); ++it) {
+            if ((*it)->m_tag != HTML_TAG___UNKNOWN_TAG__) {
+                jse.window->document->v8_wrapper::Registrator<v8_wrapper::jsDocument>::m_data.m_execution_point = *it;
+                const string event_result = process_events(&jse, ctx, *it);
+                if(!event_result.empty())
+                    extract_links(sc, event_result);
             }
-            obj_size_n = js_exec->objects.size();
         }
-        while (obj_size_n > obj_size);*/
-        // process results
+
         jse.close_child_context(ctx);
         extract_links(sc, jse.window->document);
     }
@@ -462,63 +459,69 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
     LOG4CXX_TRACE(logger, "audit_jscript::parse_scripts finished");
 }
 
-void audit_jscript::process_events(jsBrowser* jse, v8::Persistent<v8::Context> ctx, webEngine::base_entity_ptr entity, bool is_jquery )
+std::string audit_jscript::process_events(jsBrowser* jse, v8::Persistent<v8::Context> ctx, v8_wrapper::tree_node_ptr entity)
 {
+    ostringstream strout;
     v8::Context::Scope scope(ctx);
     /* simplest variant - recursive descent through DOM-tree */
     std::string src;
     std::string name;
     // get on... events
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "audit_jscript::process_events entity = " << entity->Name());
+    if(entity->m_entity) {
+        AttrMap::iterator attrib = entity->m_entity->attr_list().begin();
+        ctx->Global()->Set(v8::String::New("__evt_target__"), entity->m_this);
 
-    AttrMap::iterator attrib = entity->attr_list().begin();
+        while(attrib != entity->m_entity->attr_list().end() ) {
+            name = (*attrib).first;
+            src = (*attrib).second;
+            bool executed = false;
 
-    v8_wrapper::tree_node_ptr wr = v8_wrapper::wrap_entity(boost::shared_dynamic_cast<html_entity>(entity));
-    v8::Local<v8::Object> obj = v8::Local<v8::Object>::New(wr->m_this);
-    ctx->Global()->Set(v8::String::New("__evt_target__"), obj);
-
-    while(attrib != entity->attr_list().end() ) {
-        name = (*attrib).first;
-        src = (*attrib).second;
-
-        if (boost::istarts_with(name, "on")) {
-            // attribute name started with "on*" - this is the event
-            LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
-            boost::trim(src);
-            if (! boost::istarts_with(src, "function")) {
-                src = "__evt_target__.__event__" + name + "=function(){" + src + "}";
-            } else {
-                src = "__evt_target__.__event__" + name + "=" + src;
+            if (boost::istarts_with(name, "on")) {
+                // attribute name started with "on*" - this is the event
+                LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events <" << entity->m_entity->Name() << ">." << name << " source = " << src);
+                boost::trim(src);
+                if (! boost::istarts_with(src, "function")) {
+                    src = "__evt_target__.__event__" + name + "=function(){" + src + "}";
+                } else {
+                    src = "__evt_target__.__event__" + name + "=" + src;
+                }
+                jse->execute_string(src, "", true, true);
+                jse->execute_string("__evt_target__.__evt_result__ = __evt_target__.__event__" + name + "()", "", true, true);
+                executed = true;
             }
-            jse->execute_string(src, "", true, true);
-            jse->execute_string("__evt_target__.__event__" + name + "()", "", true, true);
+            if (boost::istarts_with(src, "javascript:")) {
+                LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events (proto) <" << entity->m_entity->Name() << ">." << name << " source = " << src);
+                src = src.substr(11); // skip "javascript:"
+                src = "__evt_target__.__event__=function(){ " + src + " }";
+                jse->execute_string(src, "", true, true);
+                jse->execute_string("__evt_target__.__evt_result__ = __evt_target__.__event__()", "", true, true);
+                executed = true;
+            }
+            if(executed) {
+                v8::Local<v8::Value> result = entity->m_this->Get(v8::String::New("__evt_result__"));
+                if(!result.IsEmpty()) {
+                    if(result->IsString()) {
+                        strout << value_to_string(result);
+                    } else if(result->IsObject()) {
+                        v8::Local<v8::Object> obj = result->ToObject();
+                        v8::Local<v8::Array> props = obj->GetPropertyNames();
+                        for(uint32_t i = 0; i < props->Length(); ++i) {
+                            v8::Local<v8::Value> prop = props->Get(v8::Number::New(i));
+                            if(!prop.IsEmpty()) {
+                                if (prop->IsString())
+                                    strout << value_to_string(prop);
+                                v8::Local<v8::Value> val = obj->Get(prop);
+                                if(!val.IsEmpty() && val->IsString())
+                                    strout << "=\"" << value_to_string(val) << "\" ";
+                            }
+                        }
+                    }
+                }
+            }
+            ++attrib;
         }
-        if (boost::istarts_with(src, "javascript:")) {
-            LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events (proto) - " << name << " source = " << src);
-            src = src.substr(11); // skip "javascript:"
-            src = "__evt_target__.__event__=function(){ " + src + " }";
-            jse->execute_string(src, "", true, true);
-            jse->execute_string("__evt_target__.__event__()", "", true, true);
-        }
-
-        ++attrib;
     }
-
-    if (is_jquery) {
-        jse->execute_string("RunJqueryEvents(__evt_target__)", "", true, true);
-    }
-
-    // and process all children
-    entity_list chld = entity->Children();
-    entity_list::iterator  it;
-
-    for(size_t i = 0; i < chld.size(); i++) {
-        std::string nm = chld[i]->Name();
-        if (nm[0] != '#') {
-            process_events(jse, ctx, chld[i], is_jquery);
-        }
-    }
-    // all results will be processed in the caller parse_scripts function
+    return strout.str();
 }
 
 void webEngine::parser_thread( audit_jscript* object )

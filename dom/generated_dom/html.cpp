@@ -70,6 +70,11 @@ bool dom::Node::hasAttributes()
     LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "dom::Node::hasAttributes not implemented");
     return 0 ;
 }
+short unsigned int dom::Node::compareDocumentPosition(v8::Handle<v8::Value> val_other)
+{
+    LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), "dom::Node::compareDocumentPosition not implemented");
+    return 0 ;
+}
 dom::Node::Node(): nodeName(), nodeValue(), nodeType(), parentNode(), childNodes(), firstChild(), lastChild(), previousSibling(), nextSibling(), attributes(), ownerDocument(), namespaceURI(), prefix(), localName() {}
 v8::Handle<v8::Value> dom::NodeList::item(long unsigned int val_index)
 {
@@ -571,7 +576,7 @@ v8::Handle<v8::Value> html2::HTMLDocument::getElementsByName(html2::DOMString va
     return v8::Handle<v8::Value>() ;
 }
 html2::HTMLDocument::HTMLDocument(): title(), referrer(), domain(), URL(), body(), images(), applets(), links(), forms(), anchors(), cookie() {}
-html2::HTMLElement::HTMLElement(): id(), title(), lang(), dir(), className() {}
+html2::HTMLElement::HTMLElement(): id(), title(), lang(), dir(), className(), style() {}
 html2::HTMLHtmlElement::HTMLHtmlElement(): version() {}
 html2::HTMLHeadElement::HTMLHeadElement(): profile() {}
 html2::HTMLLinkElement::HTMLLinkElement(): disabled(), charset(), href(), hreflang(), media(), rel(), rev(), target(), type() {}

@@ -111,11 +111,13 @@ public:
     virtual void process_response(i_response_ptr resp);
 
     virtual void parse_scripts(scan_data_ptr sc, boost::shared_ptr<webEngine::html_document> parser);
-    virtual void process_events(jsBrowser* jse, v8::Persistent<v8::Context> ctx, base_entity_ptr entity, bool is_jquery);
+    virtual std::string process_events(jsBrowser* jse, v8::Persistent<v8::Context> ctx, v8_wrapper::tree_node_ptr entity);
 
 protected:
     void add_url( transport_url link, scan_data_ptr sc );
     void extract_links( boost::shared_ptr<ScanData> sc, boost::shared_ptr<v8_wrapper::jsDocument> doc );
+    void extract_links(boost::shared_ptr<ScanData> sc, const std::string &text);
+
     friend void parser_thread(audit_jscript* object);
 
     transport_url base_path;

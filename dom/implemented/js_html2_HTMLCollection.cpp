@@ -1,10 +1,15 @@
 
 /*
-  $Id: js_html2_HTMLCollection.cpp 36164 2010-11-12 15:11:58Z santonov $
+  $Id: js_html2_HTMLCollection.cpp 36276 2010-11-15 14:56:24Z santonov $
 */
 
 #include <html_js.h>
 using namespace v8;
+
+js_html2_HTMLCollection::js_html2_HTMLCollection() {}
+
+js_html2_HTMLCollection::~js_html2_HTMLCollection() {}
+
 v8::Handle<v8::Value> js_html2_HTMLCollection::item(long unsigned int val_index)
 {
     if(val_index < length)
