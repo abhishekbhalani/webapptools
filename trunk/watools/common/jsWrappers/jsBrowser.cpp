@@ -3,6 +3,7 @@
 #include <weLogger.h>
 #include "jsGlobal.h"
 #include "jsBrowser.h"
+#include <html_js.h>
 
 using namespace v8;
 using namespace webEngine;
@@ -222,6 +223,8 @@ jsBrowser::jsBrowser(void)
     //global->Set(String::New("Location"), FunctionTemplate::New(Location));
     global->Set(String::New("Window"), FunctionTemplate::New(Window));
     v8_wrapper::RegisterAll(global);
+
+    global->Set(String::New("Image"), FunctionTemplate::New(v8_wrapper::Registrator< js_html2_HTMLImageElement >::Constructor));
 
     // intercept window's functions
     global->Set(String::NewSymbol("blur"), FunctionTemplate::New(jsBrowser::WinInterceptor));

@@ -1,10 +1,14 @@
 
 /*
-  $Id: js_html2_HTMLDocument.cpp 35984 2010-11-09 14:35:13Z santonov $
+  $Id: js_html2_HTMLDocument.cpp 36276 2010-11-15 14:56:24Z santonov $
 */
 
 #include <html_js.h>
 using namespace v8;
+
+js_html2_HTMLDocument::js_html2_HTMLDocument() {}
+
+js_html2_HTMLDocument::~js_html2_HTMLDocument() {}
 
 void js_html2_HTMLDocument::open()
 {

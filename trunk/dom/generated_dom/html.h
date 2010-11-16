@@ -88,6 +88,7 @@ public:
     std::string prefix;
     const  std::string localName;
     virtual bool hasAttributes() ;
+    virtual unsigned short compareDocumentPosition(  v8::Handle<v8::Value> /*::dom::Node*/  other) ;
 };
 class NodeList {
 public:
@@ -741,6 +742,7 @@ public:
     ::html2::DOMString lang;
     ::html2::DOMString dir;
     ::html2::DOMString className;
+    v8::Handle<v8::Value> /*::css::CSS2Properties*/  style;
 };
 class HTMLHtmlElement : ::html2::HTMLElement {
 public:

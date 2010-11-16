@@ -250,6 +250,20 @@ v8::Handle<v8::Value> js_dom_Node::static_hasAttributes(const v8::Arguments& arg
     return scope.Close(retval);
 }
 
+v8::Handle<v8::Value> js_dom_Node::static_compareDocumentPosition(const v8::Arguments& args)
+{
+    HandleScope scope;
+    Local<Object> self = args.This();
+    Handle<Value> retval;
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " method " __FUNCTION__ );
+    js_dom_Node * el = static_cast<js_dom_Node *>(ptr);
+    v8::Handle<v8::Value> val_other = v8_wrapper::Get< v8::Handle<v8::Value> > ( args[0] );
+    retval = v8_wrapper::Set( el->compareDocumentPosition(val_other) );
+    return scope.Close(retval);
+}
+
 
 Handle<Value> js_dom_Node::static_get_nodeName(Local<String> property, const AccessorInfo &info)
 {
@@ -470,6 +484,7 @@ static v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator< js_dom_Node
     proto->Set(v8::String::New("normalize"), v8::FunctionTemplate::New(js_dom_Node::static_normalize));
     proto->Set(v8::String::New("isSupported"), v8::FunctionTemplate::New(js_dom_Node::static_isSupported));
     proto->Set(v8::String::New("hasAttributes"), v8::FunctionTemplate::New(js_dom_Node::static_hasAttributes));
+    proto->Set(v8::String::New("compareDocumentPosition"), v8::FunctionTemplate::New(js_dom_Node::static_compareDocumentPosition));
     instance->SetAccessor(v8::String::New("nodeName"), js_dom_Node::static_get_nodeName, js_dom_Node::static_set_nodeName);
     instance->SetAccessor(v8::String::New("nodeValue"), js_dom_Node::static_get_nodeValue, js_dom_Node::static_set_nodeValue);
     instance->SetAccessor(v8::String::New("nodeType"), js_dom_Node::static_get_nodeType, js_dom_Node::static_set_nodeType);
@@ -7467,6 +7482,26 @@ void js_html2_HTMLElement::static_set_className(Local<String> property, Local<Va
     static_cast<js_html2_HTMLElement*>(ptr)->className = v8_wrapper::Get<html2::DOMString>(value);
 }
 
+Handle<Value> js_html2_HTMLElement::static_get_style(Local<String> property, const AccessorInfo &info)
+{
+    Local<Object> self = info.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " getter " __FUNCTION__ );
+    v8::Handle<v8::Value> value = static_cast<js_html2_HTMLElement*>(ptr)->style;
+    return v8_wrapper::Set(value);
+}
+
+void js_html2_HTMLElement::static_set_style(Local<String> property, Local<Value> value,
+        const AccessorInfo& info)
+{
+    Local<Object> self = info.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    void* ptr = wrap->Value();
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " setter " __FUNCTION__ );
+    static_cast<js_html2_HTMLElement*>(ptr)->style = v8_wrapper::Get<v8::Handle<v8::Value>>(value);
+}
+
 template <>
 static v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator< js_html2_HTMLElement >::GetTemplate()
 {
@@ -7487,6 +7522,7 @@ static v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator< js_html2_HT
     instance->SetAccessor(v8::String::New("lang"), js_html2_HTMLElement::static_get_lang, js_html2_HTMLElement::static_set_lang);
     instance->SetAccessor(v8::String::New("dir"), js_html2_HTMLElement::static_get_dir, js_html2_HTMLElement::static_set_dir);
     instance->SetAccessor(v8::String::New("className"), js_html2_HTMLElement::static_get_className, js_html2_HTMLElement::static_set_className);
+    instance->SetAccessor(v8::String::New("style"), js_html2_HTMLElement::static_get_style, js_html2_HTMLElement::static_set_style);
 
     v8_wrapper::Registrator< js_html2_HTMLElement >::AdditionalHandlersGetTemplate(instance, proto);
     cachedTemplate = v8::Persistent<v8::FunctionTemplate>::New(result);

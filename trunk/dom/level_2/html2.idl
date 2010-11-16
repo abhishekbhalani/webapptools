@@ -74,6 +74,7 @@ module html2
              attribute DOMString       lang;
              attribute DOMString       dir;
              attribute DOMString       className;
+             attribute ::css::CSS2Properties style;
   };
 
   interface HTMLHtmlElement : HTMLElement {

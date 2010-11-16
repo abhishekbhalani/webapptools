@@ -180,6 +180,7 @@ public:
     //private:
     tree_node_ptr m_parent;
     tree_node_list m_child_list;
+    tree_node_list m_fields;
     HTML_TAG m_tag;
     v8::Persistent<v8::Object> m_this;
     webEngine::html_entity_ptr m_entity;
@@ -217,7 +218,7 @@ public:
     }
     virtual ~Registrator() {
         if( !this->m_this.IsEmpty() ) {
-#ifdef _DEBUG
+#if 0// _DEBUG
             if( !this->m_this.IsWeak() ) {
                 LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8_wrapper::Registrator<> 0x" << std::hex << (void*)this << " handle is not weak " << typeid(T).name() );
             } else if( !this->m_this.IsNearDeath()) {
@@ -240,14 +241,14 @@ public:
         T* obj = new T();
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)obj << " constructor " << typeid(T).name() );
         obj->m_this = v8::Persistent<v8::Object>::New(wrap_object< T >(obj));
-        obj->m_this.MakeWeak( NULL , Registrator< T >::Destructor);
+        //obj->m_this.MakeWeak( obj , Registrator< T >::Destructor);
         return obj->m_this;
     }
 
-    static void Destructor(v8::Persistent<v8::Value> object, void*) {
+    static void Destructor(v8::Persistent<v8::Value> object, void* ) {
         //TODO: check and fix
         void* ptr = v8::Local<v8::External>::Cast(object->ToObject()->GetInternalField(0))->Value();
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)ptr << " destructor " << typeid(T).name() );
+        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)ptr << " destructor " << typeid(T).name());
         object->ToObject()->SetInternalField(0, v8::External::New(NULL));
         if(ptr)
             delete static_cast< T *>(ptr);
