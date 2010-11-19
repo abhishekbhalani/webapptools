@@ -47,8 +47,7 @@ out_js_header.write("""
 
 out_js_source.write(generated_files_head)
 out_js_source.write("""
-#include <html_js.h>
-#include <weLogger.h>
+#include "precomp.h"
 
 using namespace v8;
 
@@ -56,8 +55,7 @@ using namespace v8;
 
 out_idl_source.write(generated_files_head)
 out_idl_source.write("""
-#include <html.h>
-#include <weLogger.h>
+#include "precomp.h"
 
 """)
 
@@ -72,7 +70,7 @@ v8_wrapper::tree_node_ptr inline TreeNodeFromEntity(webEngine::html_entity_ptr o
 }
 
 template <class T, bool generated>
-v8_wrapper::tree_node_ptr TreeNodeFromEntity(webEngine::html_entity_ptr objToWrap, boost::shared_ptr<T> node)
+v8_wrapper::tree_node_ptr TreeNodeFromEntity(webEngine::html_entity_ptr objToWrap, v8_wrapper::tree_node_ptr node)
 {
     if(!node){
         node.reset(new T());
@@ -80,7 +78,7 @@ v8_wrapper::tree_node_ptr TreeNodeFromEntity(webEngine::html_entity_ptr objToWra
         //node->m_this.MakeWeak( NULL , v8_wrapper::Registrator< T >::Destructor);
         node->m_tag = objToWrap->HtmlTag();
     }
-    return boost::shared_static_cast<v8_wrapper::tree_node>(node);
+    return node;
 }
 
 """)
@@ -141,9 +139,9 @@ def generate_class(class_node):
               Local<Object> self = args.This();\
               Handle<Value> retval;
               Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-              void* ptr = wrap->Value();
-              LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " method " __FUNCTION__ );
-              """ + c_js + " * el = static_cast<" + c_js + " *>(ptr);\n")
+              v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+              LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)ptr << " method " __FUNCTION__ );
+            """)
         
             num_args = 0
             arg_list = ""
@@ -162,6 +160,9 @@ def generate_class(class_node):
                     arg_list += ", val_" + argname
                     full_arg_list += ", " + argtype + " val_" + argname
                 num_args += 1
+              
+            out_js_source.write( c_js + " * el = dynamic_cast<" + c_js + " *>(ptr);\n" )
+
             if nodes[node.getAttribute('returns')].getAttribute('name') == 'void':
                 out_js_source.write("  el->" + method_name + "(" + arg_list + ");\n")
             else:
@@ -182,7 +183,7 @@ def generate_class(class_node):
                 if not out_virt_stub_head:
                    out_virt_stub.write(generated_files_head)
                    out_virt_stub.write("""
-                       #include <html_js.h>
+                       #include "precomp.h"
                        using namespace v8;
 
                        """)
@@ -192,20 +193,21 @@ def generate_class(class_node):
                 else:
                     out_virt_stub.write( virt_method + " { return " + c_name + "::" + method_name + "(" + arg_list + ");}\n")
             out_idl_source.write(get_type_str(nodes[node.getAttribute('returns')]) + " " + c_name + "::" + method_name + "(" + full_arg_list + ") " + 
-            " { LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), \"" + c_name + "::" + method_name + " not implemented\"); return " + method_result + " ;}\n")
+            " { v8::ThrowException(v8::String::New(\"Method '\" __FUNCTION__ \"' not implemented\")); return " + method_result + " ;}\n")
             
 
     field_list = ""
 
     out_tags_header.write("""
     template <>
-    v8_wrapper::tree_node_ptr TreeNodeFromEntity< """ + c_js + """, true>(webEngine::html_entity_ptr objToWrap, boost::shared_ptr< """ + c_js + """ > node){
-        if(!node){
-            node.reset(new """ + c_js + """());
-            node->m_this = v8::Persistent<v8::Object>::New(v8_wrapper::wrap_object< """ + c_js + """ >(node.get()));
-            //node->m_this.MakeWeak( NULL , v8_wrapper::Registrator< """ + c_js + """ >::Destructor);
-            node->m_tag = objToWrap->HtmlTag();
+    v8_wrapper::tree_node_ptr TreeNodeFromEntity< """ + c_js + """, true>(webEngine::html_entity_ptr objToWrap, v8_wrapper::tree_node_ptr node_ptr){
+        if(!node_ptr){
+            node_ptr.reset(new """ + c_js + """());
+            node_ptr->m_this = v8::Persistent<v8::Object>::New(v8_wrapper::wrap_object< """ + c_js + """ >(node_ptr.get()));
+            //node_ptr->m_this.MakeWeak( NULL , v8_wrapper::Registrator< """ + c_js + """ >::Destructor);
+            node_ptr->m_tag = objToWrap->HtmlTag();
         }
+        """ + c_js + """* node = dynamic_cast<""" + c_js + """*>(node_ptr.get());
     """)
 
     virtual_get_fields = """
@@ -213,8 +215,10 @@ def generate_class(class_node):
         std::ostringstream _out;
     """
 
+    field_number = 0
     for field in gccxml.getElementsByTagName('Field'):
       if field.getAttribute('context') == class_node.getAttribute('id'):
+        field_number += 1
         field_name = field.getAttribute('name')
         field_type = get_type_str(nodes[field.getAttribute("type")])
         if field_list == "":
@@ -225,25 +229,32 @@ def generate_class(class_node):
         out_js_header.write("static void static_set_" + field_name + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info);\n")
         out_js_source.write("""
             Handle<Value> """ + c_js + """::static_get_""" + field_name + """(Local<String> property, const AccessorInfo &info) {
+                if(v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::implemented) {
+                    return v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::static_get(property, info);
+                }
         	Local<Object> self = info.Holder();
         	Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-        	void* ptr = wrap->Value();
+                v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
                 LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " getter " __FUNCTION__ );
-        	""" + field_type + " value = static_cast<""" + c_js + "*>(ptr)->" + field_name + """;
+        	""" + field_type + " value = dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """;
         	return v8_wrapper::Set(value);
           }
-		  
+
 		  void """ + c_js + """::static_set_""" + field_name + """(Local<String> property, Local<Value> value,
-						 const AccessorInfo& info) {""")
+						 const AccessorInfo& info) {
+                if(v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::implemented) {
+                    v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::static_set(property, value, info);
+                    return;
+                }""")
         if nodes[field.getAttribute("type")].getAttribute("const") == "1":
             out_js_source.write("}\n")
         else:
             out_js_source.write("""
 			Local<Object> self = info.Holder();
 			Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-			void* ptr = wrap->Value();
+                        v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
                         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " setter " __FUNCTION__ );
-			static_cast<""" + c_js + "*>(ptr)->" + field_name + """ = v8_wrapper::Get<""" + field_type + """>(value);
+			dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """ = v8_wrapper::Get<""" + field_type + """>(value);
 		  }
 		  """)
             if not field_type.startswith("v8::"):
@@ -300,10 +311,10 @@ def generate_class(class_node):
 
     if parent_js:
         out_js_source.write("result->Inherit(v8_wrapper::Registrator< " + parent_js + " >::GetTemplate());\n")
-        out_tags_header.write("TreeNodeFromEntity< " + parent_js + ", true >(objToWrap, boost::shared_static_cast< " + parent_js + " >(node));\n")
+        out_tags_header.write("TreeNodeFromEntity< " + parent_js + ", true >(objToWrap, node_ptr);\n")
 
     out_tags_header.write("""
-        return boost::shared_static_cast<v8_wrapper::tree_node>(node);
+        return node_ptr;
     }
      
     """)
@@ -361,7 +372,7 @@ for node in classes:
     if node.getAttribute('file') == idl_header_id:
         c = node.getAttribute('demangled').split("::")
         c_js = "js_" + c[0] + "_" + c[1]
-        out_js_source.write("global->Set(String::New(\"" + c[1] + "\"), FunctionTemplate::New(v8_wrapper::Registrator< " + c_js + " >::Constructor));\n")
+        out_js_source.write("global->Set(String::New(\"" + c[1] + "\"), \nFunctionTemplate::New(v8_wrapper::Registrator< " + c_js + " >::Constructor));\n")
 out_js_source.write("} \n")
 
 out_js_header.write("#endif\n\n")

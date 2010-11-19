@@ -13,10 +13,9 @@ using namespace webEngine;
 
 // Functions
 // Extracts a C string from a V8 Utf8Value.
-string value_to_string(const Local<Value>& val)
+string value_to_string(const Handle<Value>& val)
 {
-
-    if (*val) {
+    if (!val.IsEmpty()) {
         String::Utf8Value utf8(val);
         return string(*utf8);
     }

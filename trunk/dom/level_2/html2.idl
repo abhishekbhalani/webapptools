@@ -59,6 +59,7 @@ module html2
     readonly attribute HTMLCollection  forms;
     readonly attribute HTMLCollection  anchors;
              attribute DOMString       cookie;
+             attribute DOMString innerHTML;
                                         // raises(dom::DOMException) on setting
 
     void               open();
@@ -75,6 +76,7 @@ module html2
              attribute DOMString       dir;
              attribute DOMString       className;
              attribute ::css::CSS2Properties style;
+             attribute DOMString innerHTML;
   };
 
   interface HTMLHtmlElement : HTMLElement {

@@ -39,8 +39,8 @@ static Handle<Value> NavigatorGet(Local<String> name, const AccessorInfo &info)
 
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-    void* ptr = wrap->Value();
-    jsNavigator* el = static_cast<jsNavigator*>(ptr);
+    v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+    jsNavigator* el = dynamic_cast<jsNavigator*>(ptr);
     // Convert the JavaScript string to a std::string.
     std::string key = value_to_string(name);
 

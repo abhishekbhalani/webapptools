@@ -8,7 +8,7 @@ pattern_exception = re.compile(r"(\s*)(exception)(\s+\w+)(.*)")
 pattern_raises = re.compile(r"(.*\s)(raises\s*\([\w:,\s]+\))(.*)")
 pattern_enum = re.compile(r"\s*((?:const unsigned short|const short|const unsigned long))\s+([\w]+\s+=\s+[\w]+)\s*;\s*")
 pattern_method = re.compile(r"\s*(.*\(.*\))\s*(;*)\s*")
-parse_classname = re.compile(r"\s*class\s+(\w+)[\s:]+.*{.*")
+parse_classname = re.compile(r"\s*class\s+(\w+)[\s:]+(.*){.*")
 
 defines = {
   "module"    : "namespace",
@@ -23,7 +23,7 @@ defines = {
   "float"     : "double"
 }
 
-not_enum = 1
+not_enum = True
 
 generated_files_head = """
 /*
@@ -76,14 +76,14 @@ def fix_line(line):
     m = pattern_enum.match(line)
     if m:
         if not_enum:
-            not_enum = 0
-            line = "enum  { \n" + m.group(2)
+            not_enum = False
+            line = "enum  { \n" + m.group(2) + ","
         else:
-            line = ", \n" + m.group(2) 
+            line = m.group(2) + ","
     else:
         if not not_enum:
-            not_enum = 1
-            line = " }; \n" + line + "\n";
+            not_enum = True
+            line = " }; \n" + line + "\n"
     """Exeptions"""
     m = pattern_exception.match(line)
     if m:
@@ -94,12 +94,18 @@ def fix_line(line):
         line = "virtual " + m.group(1) + " " + m.group(2) + "\n"
 
     lines = line.split("\n")
+    line = ""
     for l in lines:
         m = parse_classname.match(l)
         if m:
-            line += "public:\n"
+            line += "class " + m.group(1)
+            if m.group(2).find("::") != -1:
+                line += " : public virtual " + m.group(2) 
+            line += " {\n  public:\n"
             line += m.group(1) + "();\n"
             break
+        elif l:
+            line += l + "\n"
     return line
 
 for line in sys.stdin:

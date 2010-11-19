@@ -1,9 +1,9 @@
 
 /*
-  $Id: js_html2_HTMLDocument.cpp 36276 2010-11-15 14:56:24Z santonov $
+  $Id: js_html2_HTMLDocument.cpp 36450 2010-11-19 14:32:26Z santonov $
 */
 
-#include <html_js.h>
+#include "precomp.h"
 using namespace v8;
 
 js_html2_HTMLDocument::js_html2_HTMLDocument() {}
@@ -12,14 +12,14 @@ js_html2_HTMLDocument::~js_html2_HTMLDocument() {}
 
 void js_html2_HTMLDocument::open()
 {
-    v8_wrapper::DomData<js_html2_HTMLDocument> &data = v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
+    v8_wrapper::dom_data<js_html2_HTMLDocument> &data = v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
     data.m_strbuf.str("");
     data.m_opened = true;
 }
 
 void js_html2_HTMLDocument::close()
 {
-    v8_wrapper::DomData<js_html2_HTMLDocument> &data = v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
+    v8_wrapper::dom_data<js_html2_HTMLDocument> &data = v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
     data.m_opened = false;
     write(data.m_strbuf.str());
     data.m_strbuf.str("");
@@ -27,7 +27,7 @@ void js_html2_HTMLDocument::close()
 
 void js_html2_HTMLDocument::write(html2::DOMString val_text)
 {
-    v8_wrapper::DomData<js_html2_HTMLDocument> &data = v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
+    v8_wrapper::dom_data<js_html2_HTMLDocument> &data = v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
     if(data.m_opened)
         data.m_strbuf << val_text;
     else {
@@ -40,7 +40,7 @@ void js_html2_HTMLDocument::write(html2::DOMString val_text)
 
 void js_html2_HTMLDocument::writeln(html2::DOMString val_text)
 {
-    v8_wrapper::DomData<js_html2_HTMLDocument> &data = v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
+    v8_wrapper::dom_data<js_html2_HTMLDocument> &data = v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
     if(data.m_opened)
         data.m_strbuf << val_text << std::endl;
     else {

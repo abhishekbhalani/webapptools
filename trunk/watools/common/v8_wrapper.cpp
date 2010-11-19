@@ -32,10 +32,12 @@ void v8_wrapper::iterator_dfs::increment()
                 ++m_it;
             while(m_it == m_node->m_child_list.end()) {
                 if(!m_stack.empty()) {
-                    m_it = m_stack.back();
+                    if(m_node->m_parent) {
+                        m_it = m_stack.back();
+                        m_node = m_node->m_parent;
+                        ++m_it;
+                    }
                     m_stack.pop_back();
-                    m_node = m_node->m_parent;
-                    ++m_it;
                     continue;
                 } else {
                     m_end = true;
@@ -69,6 +71,20 @@ v8_wrapper::iterator_dfs v8_wrapper::tree_node::end_dfs()
 {
     return v8_wrapper::iterator_dfs();
 }
+
+void v8_wrapper::tree_node::clear_children()
+{
+    v8_wrapper::tree_node_list tmp_list;
+    for(v8_wrapper::iterator_dfs it = this->begin_dfs(); it != this->end_dfs(); ++it) {
+        tmp_list.push_back(*it);
+    }
+    for(v8_wrapper::tree_node_list::iterator it = tmp_list.begin(); it != tmp_list.end(); ++it) {
+        (*it)->m_parent.reset();
+        (*it)->m_child_list.clear();
+    }
+    m_child_list.clear();
+}
+
 
 v8::Handle<v8::Value> v8_wrapper::check_object_name(v8_wrapper::tree_node* treenode, const std::string &name)
 {
@@ -146,8 +162,8 @@ v8::Handle<v8::Value> v8_wrapper::IndexedPropertyGetter_handler <js_dom_NodeList
     Local<Object> self = info.Holder();
     Handle<Value> retval;
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-    void* ptr = wrap->Value();
-    js_dom_NodeList * el = static_cast<js_dom_NodeList *>(ptr);
+    v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+    js_dom_NodeList * el = dynamic_cast<js_dom_NodeList *>(ptr);
     retval = el->item(index);
     return scope.Close(retval);
 }
@@ -159,8 +175,8 @@ v8::Handle<v8::Value> v8_wrapper::NamedPropertyGetter_handler <v8_wrapper::jsDoc
     Handle<Value> retval = self->GetRealNamedProperty(property);
     if(retval.IsEmpty()) {
         Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-        void* ptr = wrap->Value();
-        v8_wrapper::jsDocument * el = static_cast<v8_wrapper::jsDocument *>(ptr);
+        v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+        v8_wrapper::jsDocument * el = dynamic_cast<v8_wrapper::jsDocument *>(ptr);
         std::string prop = v8_wrapper::Get<std::string>(property);
         for(v8_wrapper::iterator_dfs it = el->begin_dfs(); (it != el->end_dfs()) && retval.IsEmpty(); ++it) {
             if((*it))
@@ -176,8 +192,8 @@ v8::Handle<v8::Value> v8_wrapper::IndexedPropertyGetter_handler <js_html2_HTMLCo
     Local<Object> self = info.Holder();
     Handle<Value> retval;
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-    void* ptr = wrap->Value();
-    js_html2_HTMLCollection * el = static_cast<js_html2_HTMLCollection *>(ptr);
+    v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+    js_html2_HTMLCollection * el = dynamic_cast<js_html2_HTMLCollection *>(ptr);
     retval = el->item(index);
     return scope.Close(retval);
 }
@@ -189,8 +205,8 @@ v8::Handle<v8::Value> v8_wrapper::NamedPropertyGetter_handler <js_html2_HTMLColl
     Handle<Value> retval = self->GetRealNamedProperty(property);
     if(retval.IsEmpty()) {
         Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-        void* ptr = wrap->Value();
-        js_html2_HTMLCollection * el = static_cast<js_html2_HTMLCollection *>(ptr);
+        v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+        js_html2_HTMLCollection * el = dynamic_cast<js_html2_HTMLCollection *>(ptr);
         std::string prop = v8_wrapper::Get<std::string>(property);
         retval = el->namedItem(prop);
     }
@@ -257,6 +273,7 @@ v8_wrapper::tree_node_ptr v8_wrapper::wrap_dom(const webEngine::html_entity_ptr&
     if(!parent) {
         v8_wrapper::jsDocument* ptr = new jsDocument();
         ptr->m_this = v8::Persistent<v8::Object>::New(wrap_object<v8_wrapper::jsDocument>(ptr));
+        const_cast<Handle<Value>&>(ptr->documentElement) = ptr->m_this;
         root.reset(ptr);
     } else
         root = parent;
@@ -480,3 +497,57 @@ v8_wrapper::tree_node_ptr v8_wrapper::wrap_entity( webEngine::html_entity_ptr ob
     return node;
 }
 
+
+v8::Handle<v8::Value> v8_wrapper::CustomAttribute<js_html2_HTMLElement, 7 /*innerHTML*/>::static_get(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+{
+    v8::ThrowException(v8::String::New("Method '" __FUNCTION__ "' not implemented"));
+    return v8::Handle<v8::Value>();
+}
+
+void v8_wrapper::CustomAttribute<js_html2_HTMLElement, 7 /*innerHTML*/>::static_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+{
+    HandleScope scope;
+    Local<Object> self = info.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    v8_wrapper::tree_node* node_ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+    js_html2_HTMLElement* ptr = dynamic_cast<js_html2_HTMLElement*>(node_ptr);
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)ptr << " setter " __FUNCTION__ );
+
+    webEngine::html_entity_ptr wrapped(new webEngine::html_entity());
+    wrapped->Parse("", webEngine::tag_scanner(webEngine::str_tag_stream(v8_wrapper::Get<html2::DOMString>(value).c_str())));
+    ptr->clear_children();
+    wrap_dom( wrapped,  ptr->shared_from_this());
+
+    //v8::ThrowException(v8::String::New("Method '" __FUNCTION__ "' not implemented"));
+}
+
+v8::Handle<v8::Value> v8_wrapper::CustomAttribute<js_html2_HTMLDocument, 12 /*innerHTML*/>::static_get(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+{
+    v8::ThrowException(v8::String::New("Method '" __FUNCTION__ "' not implemented"));
+    return v8::Handle<v8::Value>();
+}
+
+void v8_wrapper::CustomAttribute<js_html2_HTMLDocument, 12 /*innerHTML*/>::static_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+{
+    v8::ThrowException(v8::String::New("Method '" __FUNCTION__ "' not implemented"));
+}
+
+v8::Handle<v8::Value> v8_wrapper::CustomAttribute<js_dom_Node, 6 /*firstChild*/>::static_get(v8::Local<v8::String> property, const v8::AccessorInfo &info)
+{
+    HandleScope scope;
+    Local<Object> self = info.Holder();
+    Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+    v8_wrapper::tree_node* node_ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+    js_html2_HTMLElement* ptr = dynamic_cast<js_html2_HTMLElement*>(node_ptr);
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)ptr << " getter " __FUNCTION__ );
+
+    v8::Handle<v8::Value> result;
+    if(!node_ptr->m_child_list.empty())
+        result = (*(node_ptr->m_child_list.begin()))->m_this;
+    return result;
+}
+
+void v8_wrapper::CustomAttribute<js_dom_Node, 6 /*firstChild*/>::static_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+{
+    v8::ThrowException(v8::String::New("Method '" __FUNCTION__ "' not implemented"));
+}
