@@ -30,11 +30,25 @@
 
 #define __HTML_TAG_TO_NAME(unused,data,elem) BOOST_PP_CAT(data, elem) ,
 
+/**
+ * List of html tags
+ */
 enum HTML_TAG {
     BOOST_PP_SEQ_FOR_EACH(__HTML_TAG_TO_NAME,HTML_TAG_,HTML_TAGS_LIST)
 };
 
+/**
+ * Get tag name by tag enum
+ * @param HTML_TAG html_tag
+ * @return const char*
+ */
 const char* get_tag_name(HTML_TAG html_tag);
+
+/**
+ * Get enum by tag name
+ * @param const std::string & html_tag_name
+ * @return HTML_TAG
+ */
 HTML_TAG find_tag_by_name(const std::string& html_tag_name);
 
 

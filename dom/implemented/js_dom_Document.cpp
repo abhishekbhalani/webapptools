@@ -1,10 +1,9 @@
 
 /*
-  $Id: js_dom_Document.cpp 36276 2010-11-15 14:56:24Z santonov $
+  $Id: js_dom_Document.cpp 36450 2010-11-19 14:32:26Z santonov $
 */
 
-#include <html_js.h>
-#include <v8_wrapper.h>
+#include "precomp.h"
 
 using namespace v8;
 
@@ -19,7 +18,7 @@ v8::Handle<v8::Value> js_dom_Document::createElement(std::string val_tagName)
     v8_wrapper::tree_node_ptr node = v8_wrapper::wrap_entity(ent);
     js_html2_HTMLDocument *doc_ = dynamic_cast<js_html2_HTMLDocument*>(this);
     if(doc_) {
-        v8_wrapper::DomData<js_html2_HTMLDocument> &data = doc_->v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
+        v8_wrapper::dom_data<js_html2_HTMLDocument> &data = doc_->v8_wrapper::Registrator<js_html2_HTMLDocument>::m_data;
         data.m_execution_point->m_child_list.push_back(node);
     }
     return node->m_this;

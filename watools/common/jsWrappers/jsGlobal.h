@@ -7,7 +7,7 @@
 
 typedef std::map<std::string, v8::Persistent<v8::Value> > jsPropertyMap;
 
-std::string value_to_string(const v8::Local<v8::Value>& val);
+std::string value_to_string(const v8::Handle<v8::Value>& val);
 v8::Handle<v8::Value> print(const v8::Arguments& args);
 v8::Handle<v8::Value> alert(const v8::Arguments& args);
 v8::Handle<v8::Value> version(const v8::Arguments& args);

@@ -18,7 +18,7 @@ set(JS_HEADER  "${DOM_DIRECTORY_SOURCE}/html_js.h")
 set(JS_SOURCE  "${DOM_DIRECTORY_SOURCE}/html_js.cpp")
 set(TAGS_WRAPPER  "${DOM_DIRECTORY_SOURCE}/html_tags_wrapper.h")
 
-set(GENERATED_DOM_SOURCES "${IDL_HEADER}" "${IDL_SOURCE}" "${JS_HEADER}" "${JS_SOURCE}" "${TAGS_WRAPPER}")
+set(GENERATED_DOM_SOURCES "${IDL_HEADER}" "${IDL_SOURCE}" "${JS_HEADER}" "${JS_SOURCE}" "${TAGS_WRAPPER}" "precomp.h" "precomp.cpp")
 file(GLOB HTML_DOM_IMPL "${DOM_IMPLEMENTED_SOURCE}/*.cpp")
 file(GLOB HTML_DOM_NOT_IMPL "${DOM_NOT_IMPLEMENTED_SOURCE}/*.cpp")
 
@@ -27,6 +27,11 @@ source_group(implemented FILES ${HTML_DOM_IMPL})
 source_group(not_implemented FILES ${HTML_DOM_NOT_IMPL})
 
 add_library(html_dom STATIC ${GENERATED_DOM_SOURCES} ${HTML_DOM_IMPL} ${HTML_DOM_NOT_IMPL})
+set_target_properties(html_dom PROPERTIES FOLDER libs)
+if (MSVC)
+   set_target_properties(html_dom PROPERTIES COMPILE_FLAGS "/Yuprecomp.h")
+   set_source_files_properties("precomp.cpp" PROPERTIES COMPILE_FLAGS "/Ycprecomp.h")
+endif(MSVC)
 
 if(NEED_GENERATE_DOM)
   if(NOT DEFINED ASTYLE_EXECUTABLE)

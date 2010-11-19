@@ -1,14 +1,15 @@
 
 /*
-  $Id: js_dom_Element.cpp 36276 2010-11-15 14:56:24Z santonov $
+  $Id: js_dom_Element.cpp 36434 2010-11-19 12:42:46Z santonov $
 */
 
-#include <html_js.h>
+#include "precomp.h"
 using namespace v8;
 
 std::string js_dom_Element::getAttribute(std::string val_name)
 {
-    return dom::Element::getAttribute(val_name);
+    HandleScope scope;
+    return value_to_string(m_this->Get(String::New(val_name.c_str())));
 }
 void js_dom_Element::setAttribute(std::string val_name, std::string val_value)
 {

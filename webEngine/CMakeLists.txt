@@ -12,6 +12,7 @@ else()
 endif()
 
 add_library(webEngine STATIC ${WE_SOURCES} ${WE_HEADERS})
+set_target_properties(webEngine PROPERTIES FOLDER libs)
 
 if(BUILD_EXAMPLES)
   add_subdirectory(examples)

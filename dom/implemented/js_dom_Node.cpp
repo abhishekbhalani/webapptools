@@ -1,9 +1,9 @@
 
 /*
-  $Id: js_dom_Node.cpp 36276 2010-11-15 14:56:24Z santonov $
+  $Id: js_dom_Node.cpp 36434 2010-11-19 12:42:46Z santonov $
 */
 
-#include <html_js.h>
+#include "precomp.h"
 using namespace v8;
 
 js_dom_Node::js_dom_Node() {}
@@ -24,7 +24,18 @@ v8::Handle<v8::Value> js_dom_Node::removeChild(v8::Handle<v8::Value> val_oldChil
 }
 v8::Handle<v8::Value> js_dom_Node::appendChild(v8::Handle<v8::Value> val_newChild)
 {
-    return dom::Node::appendChild(val_newChild);
+    HandleScope scope;
+    v8_wrapper::tree_node* node_ptr = NULL;
+    if(!val_newChild.IsEmpty() && val_newChild->IsObject()) {
+        Local<External> wrap = Local<External>::Cast(val_newChild->ToObject()->GetInternalField(0));
+        v8_wrapper::tree_node* node_ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+    }
+    if(node_ptr) {
+        m_child_list.push_back(node_ptr->shared_from_this());
+        node_ptr->m_parent = shared_from_this();
+        return node_ptr->m_this;
+    }
+    return v8::Handle<v8::Value>();
 }
 bool js_dom_Node::hasChildNodes()
 {

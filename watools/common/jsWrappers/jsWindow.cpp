@@ -608,8 +608,8 @@ Handle<Value> jsWindow::WindowGet(Local<String> name, const AccessorInfo &info)
 
     Local<Object> self = info.This();
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-    void* ptr = wrap->Value();
-    jsWindow* el = static_cast<jsWindow*>(ptr);
+    v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+    jsWindow* el = dynamic_cast<jsWindow*>(ptr);
     Handle<Value> val = el->GetProperty(name, info);
     return scope.Close(val);
 }
@@ -623,8 +623,8 @@ Handle<Value> jsWindow::WindowSet(Local<String> name, Local<Value> value, const 
     if (it == jsWindow::funcs.end()) {
         Local<Object> self = info.This();
         Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-        void* ptr = wrap->Value();
-        jsWindow* el = static_cast<jsWindow*>(ptr);
+        v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+        jsWindow* el = dynamic_cast<jsWindow*>(ptr);
         retval = el->SetProperty(name, value, info);
     }
     return retval;
