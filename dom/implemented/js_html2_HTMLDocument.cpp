@@ -1,6 +1,6 @@
 
 /*
-  $Id: js_html2_HTMLDocument.cpp 36450 2010-11-19 14:32:26Z santonov $
+  $Id: js_html2_HTMLDocument.cpp 36484 2010-11-22 07:20:39Z santonov $
 */
 
 #include "precomp.h"
@@ -32,7 +32,9 @@ void js_html2_HTMLDocument::write(html2::DOMString val_text)
         data.m_strbuf << val_text;
     else {
         webEngine::html_entity_ptr wrapped(new webEngine::html_entity());
-        wrapped->Parse("", webEngine::tag_scanner(webEngine::str_tag_stream(val_text.c_str())));
+        webEngine::str_tag_stream ts(val_text.c_str());
+        webEngine::tag_scanner ts_(ts);
+        wrapped->Parse("", ts_);
         wrap_dom( wrapped, data.m_execution_point );
         v8_wrapper::update_document(*this);
     }

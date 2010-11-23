@@ -18,20 +18,29 @@ set(JS_HEADER  "${DOM_DIRECTORY_SOURCE}/html_js.h")
 set(JS_SOURCE  "${DOM_DIRECTORY_SOURCE}/html_js.cpp")
 set(TAGS_WRAPPER  "${DOM_DIRECTORY_SOURCE}/html_tags_wrapper.h")
 
-set(GENERATED_DOM_SOURCES "${IDL_HEADER}" "${IDL_SOURCE}" "${JS_HEADER}" "${JS_SOURCE}" "${TAGS_WRAPPER}" "precomp.h" "precomp.cpp")
+set(GENERATED_DOM_SOURCES "${IDL_HEADER}" "${IDL_SOURCE}" "${JS_HEADER}" "${JS_SOURCE}" "${TAGS_WRAPPER}" )
 file(GLOB HTML_DOM_IMPL "${DOM_IMPLEMENTED_SOURCE}/*.cpp")
 file(GLOB HTML_DOM_NOT_IMPL "${DOM_NOT_IMPLEMENTED_SOURCE}/*.cpp")
+
+if (MSVC)
+    set(GENERATED_DOM_SOURCES ${GENERATED_DOM_SOURCES} "precomp.h" "precomp.cpp")
+    set(GCCXML_FLAGS  --gccxml-compiler msvc9 )
+else (MSVC)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+endif(MSVC)
 
 source_group(dom FILES ${GENERATED_DOM_SOURCES})
 source_group(implemented FILES ${HTML_DOM_IMPL})
 source_group(not_implemented FILES ${HTML_DOM_NOT_IMPL})
 
-add_library(html_dom STATIC ${GENERATED_DOM_SOURCES} ${HTML_DOM_IMPL} ${HTML_DOM_NOT_IMPL})
+set(HTML_DOM_SOURCES ${GENERATED_DOM_SOURCES} ${HTML_DOM_IMPL} ${HTML_DOM_NOT_IMPL} )
+add_library(html_dom STATIC ${HTML_DOM_SOURCES})
 set_target_properties(html_dom PROPERTIES FOLDER libs)
-if (MSVC)
-   set_target_properties(html_dom PROPERTIES COMPILE_FLAGS "/Yuprecomp.h")
-   set_source_files_properties("precomp.cpp" PROPERTIES COMPILE_FLAGS "/Ycprecomp.h")
-endif(MSVC)
+
+if(MSVC)
+    set_target_properties(html_dom PROPERTIES COMPILE_FLAGS "/Yuprecomp.h")
+    set_source_files_properties("precomp.cpp" PROPERTIES COMPILE_FLAGS "/Ycprecomp.h")
+endif()
 
 if(NEED_GENERATE_DOM)
   if(NOT DEFINED ASTYLE_EXECUTABLE)
@@ -44,7 +53,7 @@ if(NEED_GENERATE_DOM)
     TARGET generating_sources_from_idl
     PRE_BUILD
     COMMAND "${OMNIORB4_IDL_COMPILER}" -bdump -nc ${FROM_IDL} | "${PYTHON_EXECUTABLE}" ${CMAKE_CURRENT_SOURCE_DIR}/wrap_idl.py ${DOM_DIRECTORY_SOURCE}
-    COMMAND "${GCCXML_EXECUTABLE}" -I "${EXT_TOOLS}/include/v8" --gccxml-compiler msvc9 ${IDL_HEADER} "-fxml=${DOM_DIRECTORY_TMP}/html.xml"
+    COMMAND "${GCCXML_EXECUTABLE}" -I "${EXT_TOOLS}/include/v8" ${GCCXML_FLAGS} ${IDL_HEADER} "-fxml=${DOM_DIRECTORY_TMP}/html.xml"
     COMMAND "${PYTHON_EXECUTABLE}" ${CMAKE_CURRENT_SOURCE_DIR}/generate_sources.py ${DOM_DIRECTORY_SOURCE} ${DOM_DIRECTORY_TMP} ${DOM_IMPLEMENTED_SOURCE} ${DOM_NOT_IMPLEMENTED_SOURCE}
     COMMAND "${ASTYLE_EXECUTABLE}" --style=stroustrup --indent=spaces=4 --suffix=none --quiet "${DOM_DIRECTORY_SOURCE}/*.cpp" "${DOM_DIRECTORY_SOURCE}/*.h" "${DOM_NOT_IMPLEMENTED_SOURCE}/*.cpp"
     DEPENDS ${FROM_IDL}

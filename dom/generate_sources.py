@@ -140,7 +140,7 @@ def generate_class(class_node):
               Handle<Value> retval;
               Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
               v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-              LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)ptr << " method " __FUNCTION__ );
+              LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)ptr << " method " << __FUNCTION__ );
             """)
         
             num_args = 0
@@ -193,7 +193,7 @@ def generate_class(class_node):
                 else:
                     out_virt_stub.write( virt_method + " { return " + c_name + "::" + method_name + "(" + arg_list + ");}\n")
             out_idl_source.write(get_type_str(nodes[node.getAttribute('returns')]) + " " + c_name + "::" + method_name + "(" + full_arg_list + ") " + 
-            " { v8::ThrowException(v8::String::New(\"Method '\" __FUNCTION__ \"' not implemented\")); return " + method_result + " ;}\n")
+            " { v8::ThrowException(v8::String::New((std::string(\"Method '\") +  __FUNCTION__ + \"' not implemented\").c_str())); return " + method_result + " ;}\n")
             
 
     field_list = ""
@@ -235,7 +235,7 @@ def generate_class(class_node):
         	Local<Object> self = info.Holder();
         	Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
                 v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-                LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " getter " __FUNCTION__ );
+                LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " getter " << __FUNCTION__ );
         	""" + field_type + " value = dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """;
         	return v8_wrapper::Set(value);
           }
@@ -253,8 +253,8 @@ def generate_class(class_node):
 			Local<Object> self = info.Holder();
 			Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
                         v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-                        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " setter " __FUNCTION__ );
-			dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """ = v8_wrapper::Get<""" + field_type + """>(value);
+                        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " setter " << __FUNCTION__ );
+			dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """ = v8_wrapper::Get< """ + field_type + """ >(value);
 		  }
 		  """)
             if not field_type.startswith("v8::"):
@@ -295,8 +295,9 @@ def generate_class(class_node):
     out_idl_source.write( c_name + "::" + c[1] + "()" + field_list + "{}\n" )
     
     out_js_source.write("""
+    namespace v8_wrapper{
     template <>
-    static v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator< """ + c_js + """ >::GetTemplate() {
+    v8::Persistent<v8::FunctionTemplate> Registrator< """ + c_js + """ >::GetTemplate() {
     static v8::Persistent<v8::FunctionTemplate> cachedTemplate;
     if (!cachedTemplate.IsEmpty())
         return cachedTemplate;
@@ -315,9 +316,7 @@ def generate_class(class_node):
 
     out_tags_header.write("""
         return node_ptr;
-    }
-     
-    """)
+    }\n\n""")
 
     for node in gccxml.getElementsByTagName('Method'):
         if node.getAttribute('context') == class_node.getAttribute('id'):
@@ -332,7 +331,7 @@ def generate_class(class_node):
     v8_wrapper::Registrator< """ + c_js + """ >::AdditionalHandlersGetTemplate(instance, proto);
     cachedTemplate = v8::Persistent<v8::FunctionTemplate>::New(result);
     return cachedTemplate;
-    }\n\n\n""")
+    }\n}\n\n""")
     
 for node in gccxml.getElementsByTagName('Class'):
     nodes[node.getAttribute('id')] = node
