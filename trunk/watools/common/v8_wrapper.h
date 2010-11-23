@@ -84,7 +84,7 @@ public:
     };
 
     /**
-     * Removes all children recursively and clear these parent pointers 
+     * Removes all children recursively and clear these parent pointers
      */
     void clear_children();
 
@@ -101,7 +101,7 @@ public:
  */
 class iterator_dfs: public boost::iterator_facade <iterator_dfs, tree_node_ptr, boost::forward_traversal_tag> {
 public:
-    
+
     /**
      * Create iterator from a tree_node. This is equivalent for STL begin()
      * @param tree_node &
@@ -136,7 +136,7 @@ private:
 /**
  * Create JavaScript object for class T and put objToWrap into InternalField
  * @param tree_node * objToWrap
- * @return 
+ * @return
  */
 template<class T> v8::Handle<v8::Object> wrap_object(v8_wrapper::tree_node *objToWrap);
 
