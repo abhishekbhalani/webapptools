@@ -26,7 +26,7 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include "weOptions.h"
 #include "weiPlugin.h"
 
-#include <static_instance_counter.h>
+#include "static_instance_counter.h"
 
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>

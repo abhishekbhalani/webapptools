@@ -1,7 +1,7 @@
 #ifndef __static_instance_counter__H__
 #define __static_instance_counter__H__
 
-#include <weLogger.h>
+#include "weLogger.h"
 
 #include <boost/cstdint.hpp>
 #include <boost/thread/mutex.hpp>
@@ -26,7 +26,7 @@ protected:
         ++m_instance_count;
 #ifdef _DEBUG
         boost::mutex::scoped_lock lock(m_mutex);
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "static_instance_counter 0x" << (void*) this << " inc [" << m_instance_count << "] " << typeid(T).name() );
+		LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"static_instance_counter " << (size_t) this << L" inc [" << m_instance_count << L"] " << std::string(typeid(T).name()) );
         m_pointers.push_back(this);
 #endif
     }
@@ -34,7 +34,7 @@ protected:
         --m_instance_count;
 #ifdef _DEBUG
         boost::mutex::scoped_lock lock(m_mutex);
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "static_instance_counter 0x" << (void*) this << " dec [" << m_instance_count << "] " << typeid(T).name() );
+		LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"static_instance_counter " << (size_t) this << L" dec [" << m_instance_count << L"] " << std::string(typeid(T).name()) );
         typename std::vector< static_instance_counter<T>* >::const_iterator it_ = std::find(m_pointers.begin(), m_pointers.end(), this);
         if(it_ != m_pointers.end())
             m_pointers.erase(it_);

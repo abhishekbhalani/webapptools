@@ -38,7 +38,7 @@ add_library(html_dom STATIC ${HTML_DOM_SOURCES})
 set_target_properties(html_dom PROPERTIES FOLDER libs)
 
 if(MSVC)
-    set_target_properties(html_dom PROPERTIES COMPILE_FLAGS "/Yuprecomp.h")
+    set_target_properties(html_dom PROPERTIES COMPILE_FLAGS "/Yuprecomp.h /MP")
     set_source_files_properties("precomp.cpp" PROPERTIES COMPILE_FLAGS "/Ycprecomp.h")
 endif()
 

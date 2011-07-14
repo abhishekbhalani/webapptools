@@ -18,8 +18,8 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
-#include <weScan.h>
-#include <weiPlugin.h>
+#include "weScan.h"
+#include "weiPlugin.h"
 
 namespace webEngine {
 

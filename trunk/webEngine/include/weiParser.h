@@ -31,7 +31,7 @@
 #include "weBlob.h"
 #include "weDiffLib.h"
 #include "weiPlugin.h"
-#include <html_tags.h>
+#include "html_tags.h"
 
 using namespace std;
 
@@ -83,7 +83,7 @@ public:
     base_entity_ptr FindID(string id);
     entity_list FindTags(string tag);
 
-    virtual scanner_token Parse(string tagName, tag_scanner& scanner, i_transport* processor = NULL) {
+    virtual scanner_token Parse(string, tag_scanner&, i_transport* = NULL) {
         return wstError;
     };
 
@@ -222,8 +222,8 @@ public:
     // i_plugin functions
     virtual i_plugin* get_interface(const string& ifName);
     virtual void init(task* tsk);
-    virtual void pause(task* tsk, bool paused = true) {}
-    virtual void stop(task* tsk) {}
+    virtual void pause(task*, bool = true) {}
+    virtual void stop(task*) {}
 
     // i_parser functions
     virtual i_document_ptr parse(boost::shared_ptr<i_response> input);

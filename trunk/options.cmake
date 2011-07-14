@@ -2,7 +2,7 @@
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../lib")
 
 set(DOM_DIR_NAME "generated_dom")
 set(DOM_DIRECTORY_TMP "${CMAKE_BINARY_DIR}/${DOM_DIR_NAME}")
@@ -14,7 +14,7 @@ include_directories(${DOM_DIRECTORY_SOURCE})
 
 if(WIN32)
   if(MSVC)
-    add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+    add_definitions(-D_SCL_SECURE_NO_WARNINGS -DV8_FAST_TLS -D_UNICODE -DUNICODE -D_WIN32)
   endif()
 
   set(EXT_TOOLS "${CMAKE_SOURCE_DIR}/../ext_tools")
@@ -28,9 +28,11 @@ if(WIN32)
 ### INCLUDE ###
   include_directories("${EXT_TOOLS}/include")
   include_directories("${EXT_TOOLS}/include/v8")
-  include_directories("../soci/src/core")
+  include_directories("${EXT_TOOLS}/include/soci")
 
 ### LOG4CXX ###
+  file(GLOB log4cxx_additions_sources "${EXT_TOOLS}/include/log4cxx/*.cpp")
+  add_library(log4cxx_additions STATIC ${log4cxx_additions_sources})
   find_library(LOG4CXX_LIB_DEBUG NAMES log4cxx PATHS "${EXT_LIBS_DEBUG}" "${EXT_LIBS_DEBUG}/log4cxx")
   find_library(LOG4CXX_LIB_RELEASE NAMES log4cxx PATHS "${EXT_LIBS_RELEASE}" "${EXT_LIBS_RELEASE}/log4cxx")
 
@@ -40,18 +42,12 @@ if(WIN32)
   add_definitions(-DCURL_STATICLIB)
 
 ### V8 static ###
-  find_library(V8_LIB_DEBUG NAMES v8 PATHS "${EXT_LIBS_DEBUG}")
-  find_library(V8_LIB_RELEASE NAMES v8 PATHS "${EXT_LIBS_RELEASE}")
+  find_library(V8_LIB_DEBUG NAMES v8 PATHS "${EXT_LIBS_DEBUG}/v8")
+  find_library(V8_LIB_RELEASE NAMES v8 PATHS "${EXT_LIBS_RELEASE}/v8")
 
-### SOCI dynamic ###
-  add_subdirectory("../soci/src" soci)
-  set_target_properties(soci_core soci_sqlite3 PROPERTIES 
-    FOLDER soci
-    COMPILE_DEFINITIONS SOCI_DLL,SOCI_USE_LOG4CXX,SOCI_USE_BOOST
-  )
-  set_target_properties(soci_core PROPERTIES
-    COMPILE_DEFINITIONS CORE_EXPORTS,SOCI_DLL,SOCI_USE_LOG4CXX,SOCI_USE_BOOST
-  )
+### SOCI ###
+  find_library(SOCI_LIB NAMES soci_core soci_core_3_1 PATHS "${EXT_TOOLS}/lib/soci")
+
 endif()
 
 ### BOOST ###

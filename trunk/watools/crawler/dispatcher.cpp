@@ -138,7 +138,7 @@ void save_results(int format, string fname, webEngine::task* tsk)
                 old_buffer = std::cout.rdbuf(out.rdbuf());
                 file = true;
             } catch (std::exception &e) {
-                LOG4CXX_ERROR(scan_logger, "Can't redirect output to file " << fname << ": " << e.what());
+				LOG4CXX_ERROR(scan_logger, "Can't redirect output to file " << fname << ": " << std::string(e.what()));
                 file = false;
             }
         }
@@ -389,12 +389,12 @@ void dispatcher_routine(po::variables_map& vm)
             is_jscript = false;
         }
         tsk->Option(weoAuditJSenable, is_jscript);
-        LOG4CXX_DEBUG(scan_logger, "Set "weoAuditJSenable" to " << is_jscript);
+        LOG4CXX_DEBUG(scan_logger, "Set " << string(weoAuditJSenable) << " to " << is_jscript);
 
         if (vm.count("depth")) {
             int val = vm["depth"].as<int>();
             tsk->Option(weoScanDepth, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoScanDepth" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoScanDepth) << " to " << val);
         }
         if (vm.count("dir")) {
             bool val = true;
@@ -402,7 +402,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["dir"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInDir, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDir" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInDir) << " to " << val);
         }
         if (vm.count("host")) {
             bool val = true;
@@ -410,7 +410,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["host"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInHost, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInHost" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInHost) << " to " << val);
         }
         if (vm.count("domain")) {
             bool val = true;
@@ -418,7 +418,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["domain"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInDomain, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDomain" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInDomain) << " to " << val);
         }
         if (vm.count("dlist")) {
             bool val = true;
@@ -426,7 +426,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["dlist"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInDomainList, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInDomainList" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInDomainList) << " to " << val);
         }
         if (vm.count("ip")) {
             bool val = true;
@@ -434,7 +434,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["ip"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInIP, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoStayInIP" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInIP) << " to " << val);
         }
         if (vm.count("url_param")) {
             bool val = true;
@@ -442,22 +442,22 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["url_param"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoIgnoreUrlParam, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoIgnoreUrlParam" to " << val);
+            LOG4CXX_DEBUG(scan_logger, L"Set " << string(weoIgnoreUrlParam) << " to " << val);
         }
         if (vm.count("content")) {
             int val = vm["content"].as<int>();
             tsk->Option(weoAllowedCTypes, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoAllowedCTypes" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoAllowedCTypes) << " to " << val);
         }
         if (vm.count("parallel")) {
             int val = vm["parallel"].as<int>();
             tsk->Option(weoParallelReq, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoParallelReq" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoParallelReq) << " to " << val);
         }
         if (vm.count("ext_deny")) {
             string val = vm["ext_deny"].as<string>();
             tsk->Option(weoDeniedFileTypes, val);
-            LOG4CXX_DEBUG(scan_logger, "Set "weoDeniedFileTypes" to " << val);
+            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoDeniedFileTypes) << " to " << val);
         }
     }
 

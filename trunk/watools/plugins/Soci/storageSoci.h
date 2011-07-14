@@ -70,6 +70,7 @@ protected:
     boost::mutex data_access;
     std::set<boost::shared_ptr<soci::statement> > m_statements;
     boost::scoped_ptr<soci::session> m_sql;
+	boost::scoped_ptr<std::ostream> m_logger;
 
     friend class details::db_cursor_base;
     friend class details::db_cursor_get;

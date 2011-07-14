@@ -74,7 +74,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
             if (noLogging) {
                 cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false." << endl;
             } else {
-                LOG4CXX_WARN(scan_logger, "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.");
+                LOG4CXX_WARN(scan_logger, "Can't parse '" << val << L"' as bool: " << std::string(e.what()) << ". Assume false.");
             }
         }
         if (i != 0) {
@@ -134,7 +134,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
                     if (noLogging) {
                         cerr << "Unknown variable type " << val.type().name() << endl;
                     } else {
-                        LOG4CXX_ERROR(scan_logger, "Unknown variable type " << val.type().name());
+                        LOG4CXX_ERROR(scan_logger, "Unknown variable type " << std::string(val.type().name()));
                     }
                 }
             } else {
@@ -144,9 +144,9 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
         }
     } catch(std::exception& e) {
         if (noLogging) {
-            cerr << "Configuration not saved: " << e.what() << endl;
+            cerr << "Configuration not saved: " << std::string(e.what()) << endl;
         } else {
-            LOG4CXX_ERROR(scan_logger, "Configuration not saved: " << e.what());
+            LOG4CXX_ERROR(scan_logger, "Configuration not saved: " << std::string(e.what()));
         }
         return;
     }
@@ -174,7 +174,7 @@ restart:
     ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
     ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
     ("plugin_dir",  po::value<string>()->default_value(string("./")), "directory, where plug-ins are placed")
-    ("db_interface",  po::value<string>()->default_value(string("sqlite_storage")), "plug-in identifier to connect to Storage DB")
+    ("db_interface",  po::value<string>()->default_value(string("soci_storage")), "plug-in identifier to connect to Storage DB")
     ("db_parameters",  po::value<string>(), "plug-in configuration to connect to Storage DB")
     ("daemonize",  po::value<string>(), "run program as daemon (yes|no or true|false)")
     ;
@@ -382,7 +382,7 @@ restart:
 #ifdef WIN32
     // prevent instance to fall into endless "run-the-instances" loop
     // only on Win32, 'cause the *NIX have the fork() syscall, which do all this work
-    LOG4CXX_TRACE(scan_logger, "running as " << argv[0]);
+    LOG4CXX_TRACE(scan_logger, "running as " << std::string(argv[0]));
     if (boost::iequals(argv[0], "instance") ) {
         daemonize = false;
         LOG4CXX_DEBUG(scan_logger, "Win32 - already daemonized instance");

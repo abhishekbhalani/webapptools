@@ -27,9 +27,10 @@ along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/preprocessor.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
-#include <weiBase.h>
-#include <weOptions.h>
-#include <weiTransport.h>
+#include "weiBase.h"
+#include "weOptions.h"
+#include "weiTransport.h"
+#include "weiTask.h"
 
 using namespace std;
 
@@ -53,13 +54,6 @@ class db_cursor;
 #define WE_TASK_SIGNAL_STOP     3
 #define WE_TASK_SIGNAL_SUSSPEND 4
 
-//////////////////////////////////////////////////////////////////////////
-// Task statuses
-//////////////////////////////////////////////////////////////////////////
-
-#define SEQ_TASK_STATUSES (WI_TSK_INIT)(WI_TSK_RUNNING)(WI_TSK_PAUSING)(WI_TSK_PAUSED)(WI_TSK_SUSPENDING)(WI_TSK_FINISHED)(WI_TSK_STOPPED)(WI_TSK_SUSPENDED)
-enum TaskStatus { BOOST_PP_SEQ_ENUM(SEQ_TASK_STATUSES) };
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @class  task
 ///
@@ -68,7 +62,7 @@ enum TaskStatus { BOOST_PP_SEQ_ENUM(SEQ_TASK_STATUSES) };
 /// @author A. Abramov
 /// @date   09.06.2009
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-class task : public i_options_provider {
+class task : public i_task {
 public:
     task(engine_dispatcher *krnl = NULL);
     task(task& cpy);
@@ -85,7 +79,7 @@ public:
         return processThread;
     }
     const char * get_status_name() const;
-#endif
+#endif 
 
     // i_options_provider functions
     virtual we_option Option(const string& name);
@@ -146,6 +140,7 @@ public:
     /// @param [in,out]	plugins	 - if non-null, the plugins.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     void store_plugins(vector<i_plugin*>& plugins);
+    virtual void store_plugins(const string& plugins);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn	i_plugin* get_active_plugin(const string& iface_name, bool autoload = false)
@@ -166,7 +161,7 @@ public:
     ///
     /// @param [in]	task_id	 - id of saved task to load
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    void Run(const string &task_id = string());
+    virtual void Run(const string &task_id = string());
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn	TaskStatus Pause(bool wait = true)
@@ -178,14 +173,14 @@ public:
     /// @param [in]	wait    - if it false Pause returns in 'Pausing' state, and task continue 'pausing'
     /// @param [out] TaskStatus - returns current task state
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    TaskStatus Pause(bool wait = true);
+    virtual TaskStatus Pause(bool wait = true);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn	void Resume()
     ///
     /// @brief	Resuming paused or suspended task.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    void Resume();
+    virtual void Resume();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn	bool Suspend()
@@ -194,7 +189,7 @@ public:
     ///
     /// @param [out] bool - returns true if successfull
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    bool Suspend();
+    virtual bool Suspend();
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// @fn bool Stop()
@@ -203,9 +198,9 @@ public:
     ///
     /// @param [out] bool - returns true if successfull
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    bool Stop();
+    virtual bool Stop();
 
-    bool IsReady();
+    virtual bool IsReady();
     virtual i_response_ptr get_request(i_request_ptr req);
     virtual void get_request_async(i_request_ptr req);
 
@@ -247,10 +242,10 @@ public:
 
     virtual bool is_url_processed(string& url);
     virtual void register_url(const string& url);
-    size_t total_requests() const {
+    virtual size_t total_requests() const {
         return total_reqs;
     }
-    size_t total_processed() const {
+    virtual size_t total_processed() const {
         return total_done;
     }
 
@@ -260,7 +255,7 @@ public:
     const string& get_scan_id() const {
         return scan_id;
     }
-    void set_profile_id(const string& id) {
+    virtual void set_profile_id(const string& id) {
         profile_id = id;
     }
     const string& get_name() const {
@@ -269,10 +264,10 @@ public:
     void set_name(const string& name) {
         task_name = name;
     }
-    TaskStatus status() const {
+    virtual TaskStatus status() const {
         return tsk_status;
     }
-    int completion() const {
+    virtual int completion() const {
         return tsk_completion;
     }
     const boost::posix_time::ptime& start_time() const {
@@ -340,12 +335,5 @@ private:
 } // namespace webEngine
 
 BOOST_CLASS_TRACKING(webEngine::task, boost::serialization::track_never)
-
-/// base URL for processing
-#define weoBaseURL           "base_url"
-/// number of parallel requests to transport (integer)
-#define weoParallelReq       "parallel_req"
-/// hostname for scanning
-#define weoScanHost          "scan_host"
 
 #endif //__WETASK_H__

@@ -19,11 +19,11 @@ along with inventoryScanner.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef __WESCAN_H__
 #define __WESCAN_H__
-#include <weTagScanner.h>
-#include <weBlob.h>
-#include <weiParser.h>
-#include <weiTransport.h>
-#include <weDbstruct.h>
+#include "weTagScanner.h"
+#include "weBlob.h"
+#include "weiParser.h"
+#include "weiTransport.h"
+#include "weDbstruct.h"
 #include <boost/unordered_map.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>

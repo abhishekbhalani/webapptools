@@ -140,7 +140,7 @@ def generate_class(class_node):
               Handle<Value> retval;
               Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
               v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-              LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << (void*)ptr << " method " << __FUNCTION__ );
+              LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" method " << std::string(__FUNCTION__) );
             """)
         
             num_args = 0
@@ -217,59 +217,59 @@ def generate_class(class_node):
 
     field_number = 0
     for field in gccxml.getElementsByTagName('Field'):
-      if field.getAttribute('context') == class_node.getAttribute('id'):
-        field_number += 1
-        field_name = field.getAttribute('name')
-        field_type = get_type_str(nodes[field.getAttribute("type")])
-        if field_list == "":
-            field_list += ": " + field_name + "()"
-        else :
-            field_list += ", " + field_name + "()"
-        out_js_header.write("static v8::Handle<v8::Value> static_get_" + field_name + "(v8::Local<v8::String> property, const v8::AccessorInfo& info);\n")
-        out_js_header.write("static void static_set_" + field_name + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info);\n")
-        out_js_source.write("""
-            Handle<Value> """ + c_js + """::static_get_""" + field_name + """(Local<String> property, const AccessorInfo &info) {
-                if(v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::implemented) {
-                    return v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::static_get(property, info);
-                }
-        	Local<Object> self = info.Holder();
-        	Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-                v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-                LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " getter " << __FUNCTION__ );
-        	""" + field_type + " value = dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """;
-        	return v8_wrapper::Set(value);
-          }
-
-		  void """ + c_js + """::static_set_""" + field_name + """(Local<String> property, Local<Value> value,
-						 const AccessorInfo& info) {
-                if(v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::implemented) {
-                    v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::static_set(property, value, info);
-                    return;
-                }""")
-        if nodes[field.getAttribute("type")].getAttribute("const") == "1":
-            out_js_source.write("}\n")
-        else:
+        if field.getAttribute('context') == class_node.getAttribute('id'):
+            field_number += 1
+            field_name = field.getAttribute('name')
+            field_type = get_type_str(nodes[field.getAttribute("type")])
+            if field_list == "":
+                field_list += ": " + field_name + "()"
+            else :
+                field_list += ", " + field_name + "()"
+            out_js_header.write("static v8::Handle<v8::Value> static_get_" + field_name + "(v8::Local<v8::String> property, const v8::AccessorInfo& info);\n")
+            out_js_header.write("static void static_set_" + field_name + "(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info);\n")
             out_js_source.write("""
-			Local<Object> self = info.Holder();
-			Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
-                        v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-                        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "v8 JavaScript binded call 0x" << std::hex << ptr << " setter " << __FUNCTION__ );
-			dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """ = v8_wrapper::Get< """ + field_type + """ >(value);
-		  }
-		  """)
-            if not field_type.startswith("v8::"):
-                out_tags_header.write("try{")
-		out_tags_header.write("webEngine::AttrMap::iterator attr = objToWrap->attr_list().find(\"" + field_name + "\");\n ")
-                out_tags_header.write("if(attr != objToWrap->attr_list().end()){")
-                out_tags_header.write("node->" + field_name + " = boost::lexical_cast< " + field_type + " > ( (*attr).second );}\n");
-                out_tags_header.write("}catch(boost::bad_lexical_cast &){LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), " + 
-                "\"Could not cast '\" <<  objToWrap->attr_list()[\"" + field_name + "\"] << \"' to " + field_type + "\");}\n")
-        if field_type.find("v8::") == -1:
-            if field_type.find("tring") != -1:
-                virtual_get_fields += " if(!" + field_name + ".empty())\n"
-            elif field_type.find("bool") == -1:
-                virtual_get_fields += " if(" + field_name + " != 0)\n"
-            virtual_get_fields += """_out << " """ + field_name + """=\\"" << """ + field_name + """ << "\\" ";\n"""
+                Handle<Value> """ + c_js + """::static_get_""" + field_name + """(Local<String> property, const AccessorInfo &info) {
+                    if(v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::implemented) {
+                        return v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::static_get(property, info);
+                    }
+                Local<Object> self = info.Holder();
+                Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+                    v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" getter " << std::string(__FUNCTION__) );
+                """ + field_type + " value = dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """;
+                return v8_wrapper::Set(value);
+              }
+
+              void """ + c_js + """::static_set_""" + field_name + """(Local<String> property, Local<Value> value,
+                             const AccessorInfo& info) {
+                    if(v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::implemented) {
+                        v8_wrapper::CustomAttribute<""" + c_js + ", " + str(field_number) + """>::static_set(property, value, info);
+                        return;
+                    }""")
+            if nodes[field.getAttribute("type")].getAttribute("const") == "1":
+                out_js_source.write("}\n")
+            else:
+                out_js_source.write("""
+                Local<Object> self = info.Holder();
+                Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
+                            v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
+                            LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" setter " << std::string(__FUNCTION__) );
+                dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """ = v8_wrapper::Get< """ + field_type + """ >(value);
+              }
+              """)
+                if not field_type.startswith("v8::"):
+                    out_tags_header.write("try{")
+                    out_tags_header.write("webEngine::AttrMap::iterator attr = objToWrap->attr_list().find(\"" + field_name + "\");\n ")
+                    out_tags_header.write("if(attr != objToWrap->attr_list().end()){")
+                    out_tags_header.write("node->" + field_name + " = boost::lexical_cast< " + field_type + " > ( (*attr).second );}\n");
+                    out_tags_header.write("}catch(boost::bad_lexical_cast &){LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), " + 
+                    "L\"Could not cast '\" <<  objToWrap->attr_list()[\"" + field_name + "\"] << L\"' to " + field_type + "\");}\n")
+            if field_type.find("v8::") == -1:
+                if field_type.find("tring") != -1:
+                    virtual_get_fields += " if(!" + field_name + ".empty())\n"
+                elif field_type.find("bool") == -1:
+                    virtual_get_fields += " if(" + field_name + " != 0)\n"
+                virtual_get_fields += """_out << " """ + field_name + """=\\"" << """ + field_name + """ << "\\" ";\n"""
     if parent_js:
         virtual_get_fields += "_out << " + parent_js + "::get_fields();\n"
 
@@ -355,7 +355,7 @@ classes = gccxml.getElementsByTagName('Class')
 #classes.sort(key=lambda cl_: cl_.getAttribute('name'))
 classes.sort(key=lambda cl_: int(cl_.getAttribute('line')))
 
-print "Found " + str(len(classes)) + " classes"
+print("Found " + str(len(classes)) + " classes")
 
 #for node in classes:
 #    if node.getAttribute('file') == idl_header_id:

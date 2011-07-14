@@ -75,7 +75,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
             if (noLogging) {
                 cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false." << endl;
             } else {
-                LOG4CXX_WARN(module_logger, "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false.");
+                LOG4CXX_WARN(module_logger, "Can't parse '" << val << "' as bool: " << string(e.what()) << ". Assume false.");
             }
         }
         if (i != 0) {
@@ -175,7 +175,7 @@ restart:
     ("log_level",  po::value<int>(), "level of the log information [0=FATAL, 1=ERROR, 2=WARN, 3=INFO, 4=DEBUG, 5=TRACE]")
     ("log_layout",  po::value<string>(), "layout of the log messages (see the log4cxx documentation)")
     ("plugin_dir",  po::value<string>()->default_value(string("./")), "directory, where plug-ins are placed")
-    ("db_interface",  po::value<string>()->default_value(string("sqlite_storage")), "plug-in identifier to connect to Storage DB")
+    ("db_interface",  po::value<string>()->default_value(string("soci_storage")), "plug-in identifier to connect to Storage DB")
     ("db_parameters",  po::value<string>(), "plug-in configuration to connect to Storage DB")
     ("daemonize",  po::value<string>(), "run program as daemon (yes|no or true|false)")
     ;
@@ -383,7 +383,7 @@ restart:
 #ifdef WIN32
     // prevent instance to fall into endless "run-the-instances" loop
     // only on Win32, 'cause the *NIX have the fork() syscall, which do all this work
-    LOG4CXX_TRACE(module_logger, "running as " << argv[0]);
+    LOG4CXX_TRACE(module_logger, "running as " << string(argv[0]));
     if (boost::iequals(argv[0], "instance") ) {
         daemonize = false;
         LOG4CXX_DEBUG(module_logger, "Win32 - already daemonized instance");

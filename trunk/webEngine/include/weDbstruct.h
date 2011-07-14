@@ -20,7 +20,7 @@
 #ifndef __WEDBSTRUCT_H__
 #define __WEDBSTRUCT_H__
 
-#include <weVariant.h>
+#include "weVariant.h"
 #include <boost/utility.hpp>
 #include <set>
 #include <boost/serialization/vector.hpp>
@@ -235,7 +235,7 @@ public:
     ///
     /// @return The result of the operation.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual bool operator()(db_record& data) const {
+    virtual bool operator()(db_record&) const {
         return false;
     }
     /// generates string representation of the stored condition
@@ -243,7 +243,7 @@ public:
         return "";
     }
     /// extract set of namepspaces from the condition fields
-    virtual void get_namespaces(std::set<string>& ns_list) const {}
+    virtual void get_namespaces(std::set<string>&) const {}
 
 protected:
     friend class db_filter;

@@ -154,7 +154,7 @@ std::string options_provider::ToXml( void )
         try {
             strData = boost::lexical_cast<string>(it->second.Value());
         } catch (bad_cast &e) {
-            LOG4CXX_ERROR(iLogger::GetLogger(), "options_provider::ToXml exception - " << e.what());
+			LOG4CXX_ERROR(iLogger::GetLogger(), "options_provider::ToXml exception - " << std::string(e.what()));
             strData = "";
         }
         optCount++;

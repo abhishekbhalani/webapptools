@@ -387,11 +387,11 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
             curl_multi_add_handle(transferHandle, ht_retval->CURLHandle());
             process_requests();
         } catch (std::exception &e) {
-            LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request - curl_multi_add_handle failed: " << e.what());
+            LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request - curl_multi_add_handle failed: " << std::string(e.what()));
         }
     } else {
-        LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request curl_transfer_handle: " << transferHandle <<
-                      "; curl_request_handle: " << ht_retval->CURLHandle());
+		LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request curl_transfer_handle: " << std::hex << (size_t)transferHandle <<
+			"; curl_request_handle: " << std::hex << (size_t)ht_retval->CURLHandle());
     }
     return retval;
 }
@@ -490,7 +490,7 @@ const int http_transport::process_requests( void )
                             break;
                         }
                     } catch (std::exception &e) {
-                        LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::process_requests - curl exception: " << e.what());
+                        LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::process_requests - curl exception: " << std::string(e.what()));
                     }; // just skip
                     hnd++;
                 }

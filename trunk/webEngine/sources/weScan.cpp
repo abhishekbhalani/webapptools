@@ -125,7 +125,7 @@ bool ScanData::to_dataset( db_record& dataset )
         dataset[weObjTypeScanData "." "content_type"] = content_type;
     } catch (std::exception &e) {
         // may be out_of_range or bad_cast
-        LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::to_dataset exception: " << e.what());
+		LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::to_dataset exception: " << std::string(e.what()));
         retval = false;
     }
     return retval;
@@ -171,7 +171,7 @@ bool ScanData::from_dataset( const db_record& dataset )
         content_type = dataset[weObjTypeScanData "." "content_type"].get<string>();
     } catch (std::exception &e) {
         // may be out_of_range or bad_cast
-        LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::from_dataset exception at " << id <<": " << e.what());
+        LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::from_dataset exception at " << id <<L": " << std::string(e.what()));
         retval = false;
     }
     return retval;

@@ -459,9 +459,9 @@ void jsWindow::load( const string& url )
         boost::shared_ptr<html_document> doc(new html_document());
         if(doc) {
             doc->ParseData(resp);
-            // execute scripts
+        // execute scripts
 #ifdef V8_DOMSHELL
-            string source;
+        string source;
             assign_document( doc );
 
             size_t i = 0;
@@ -494,11 +494,11 @@ void jsWindow::load( const string& url )
                         }
                     }
 #ifdef _DEBUG
-                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "audit_jscript::parse_scripts execute script #" << i++ << "; Source:\n" << source);
+                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"audit_jscript::parse_scripts execute script #" << i++ << "; Source:\n" << source);
 #endif
-                    browser->execute_string(source, "", true, true);
-                }
+                browser->execute_string(source, "", true, true);
             }
+        }
 
             process_events(browser, doc, false);
 #endif
@@ -758,6 +758,10 @@ Handle<Value> jsWindow::Open(const Arguments& args)
         val = v8_wrapper::wrap_object<jsWindow>(new_win);
         LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow::Open new window - uuid=" << new_win->win_uuid
                       << "; url=" << url.tostring());
+        // todo load data
+        string msg = "Open new Window\r\n\thref: ";
+        msg += url.tostring();
+        append_results(msg);
     }
     return val;
 }

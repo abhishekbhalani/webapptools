@@ -227,7 +227,7 @@ db_condition& db_condition::operator=( const string& s )
     } else {
         // throw exception
         tmp = "db_condition: can't parse string - " + s;
-        throw_exception(runtime_error(tmp.c_str()));
+        throw_exception(bad_cast(tmp.c_str()));
     }
 
     return *this;
@@ -269,7 +269,7 @@ bool db_condition::operator()(db_record& data) const
             s_t  = "db_condition::eval::like (";
             s_t += tostring();
             s_t += ") - not a string values";
-            throw_exception(runtime_error(s_t.c_str()));
+            throw_exception(bad_cast(s_t.c_str()));
         }
         s_t = boost::get<string>( (we_types&)test_value );
         s_a = val.get<string>();
@@ -399,14 +399,14 @@ db_filter& db_filter::set( db_filter_base& cond )
     return *this;
 }
 
-db_filter& db_filter::_or_( db_filter_base& cond )
+db_filter& db_filter::or( db_filter_base& cond )
 {
     db_filter_base *elem = cond.clone();
     condition.push_back(element(link_or, elem));
     return *this;
 }
 
-db_filter& db_filter::_and_( db_filter_base& cond )
+db_filter& db_filter::and( db_filter_base& cond )
 {
     db_filter_base *elem = cond.clone();
     condition.push_back(element(link_and, elem));

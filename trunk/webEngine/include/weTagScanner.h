@@ -198,7 +198,7 @@ public:
     ///
     /// @return   resulting char.
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    virtual char   resolve_entity(const char* buf, int buf_size) {
+    virtual char   resolve_entity(const char*, int) {
         return 0;
     }
     virtual size_t get_pos() const {
