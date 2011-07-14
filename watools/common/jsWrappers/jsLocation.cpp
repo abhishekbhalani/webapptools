@@ -211,8 +211,22 @@ static void SetLocationHref(Local<String> name, Local<Value> val, const Accessor
     Local<Value> x = self->GetInternalField(0);
     Local<External> wrap = Local<External>::Cast(x);
     void* ptr = wrap->Value();
+
     jsLocation* url = static_cast<jsLocation*>(ptr);
+    std::string log_info = "Location changed from '";
+    if(url->url.is_valid()) {
+        log_info += url->url.tostring();
+    } else {
+        log_info += "undefined";
+    }
+    log_info += "' to \n\thref: ";
     url->url.assign_with_referer(value_to_string(val), &url->url);
+    if(url->url.is_valid()) {
+        log_info += url->url.tostring();
+    } else {
+        log_info += "undefined";
+    }
+    append_results(log_info);
 }
 
 static Handle<Value> LocationToString(const v8::Arguments& args)
@@ -239,9 +253,28 @@ static Handle<Value> LocationReplace(const v8::Arguments& args)
         url->win->history->push_back(url->url.tostring());
         url->win->load(url->url.tostring());
     } else {
+        std::string log_info = "Location changed from '";
+        if(url->url.is_valid()) {
+            log_info += url->url.tostring();
+        } else {
+            log_info += "undefined";
+        }
+        log_info += "' to \n\thref: ";
         if (args.Length() > 0) {
             url->url.assign_with_referer(value_to_string(args[0]), &url->url);
+            if(url->url.is_valid()) {
+                log_info += url->url.tostring();
+            } else {
+                log_info += "undefined";
+            }
+        } else {
+            if(url->url.is_valid()) {
+                log_info += url->url.tostring();
+            } else {
+                log_info += "undefined";
+            }
         }
+        append_results(log_info);
     }
     return Handle<Value>();
 }
@@ -255,6 +288,10 @@ static Handle<Value> LocationReload(const v8::Arguments& args)
     jsLocation* url = static_cast<jsLocation*>(ptr);
     if (url->win != NULL) {
         url->win->load(url->url.tostring());
+    } else {
+        std::string log_info = "Location reloaded for ";
+        log_info += url->url.tostring();
+        append_results(log_info);
     }
     return Handle<Value>();
 }

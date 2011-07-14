@@ -43,9 +43,9 @@ public:
 
     /** @{ @brief inherited from i_plugin */
     virtual i_plugin* get_interface(const string& ifName);
-    virtual void init(task* tsk) {}
-    virtual void pause(task* tsk, bool paused = true) {}
-    virtual void stop(task* tsk) {}
+    virtual void init(task*) {}
+    virtual void pause(task*, bool = true) {}
+    virtual void stop(task*) {}
     /** @} */
 
     /** @brief initialize storage
@@ -54,14 +54,14 @@ public:
      * @param const string & params Initialization string for storage. For example in soci_storage it can be "sqlite3://database.db"
      * @return bool - true if successful
      */
-    virtual bool init_storage(const string& params) {
+    virtual bool init_storage(const string&) {
         return false;
     };
 
     /** @brief Flushing cached data. */
-    virtual void flush(const string& params = "") {};
+    virtual void flush(const string& = "") {};
     /** @brief Generate unique id for some reason*/
-    virtual string generate_id(const string& objType = "");
+    virtual string generate_id(const string& = "");
 
     /**
     * @{

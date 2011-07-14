@@ -342,7 +342,7 @@ parseRestart:
                     break;
                 }
             } else {
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: TAG END: " << scanner.get_tag_name());
+                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: TAG END: " << std::string(scanner.get_tag_name()));
             }
             endPos = (int)scanner.get_pos();
             return state;
@@ -374,7 +374,7 @@ parseRestart:
                 scanner_token chldState;
                 chldList.push_back(chld);
                 chldState = chld->Parse(lString, scanner, processor);
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: from child, state=" << chldState <<
+                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: from child, state=" << (int)chldState <<
                               " current=" << Name() << ", child=" << chld->Name() << ", active=" << lString);
 //                 if (iequals(string("form"), lString)) {
 //                     /// @todo Add forms processing
@@ -938,7 +938,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
         }
         switch(state) {
         case wstTagEnd:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << scanner.get_tag_name());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << std::string(scanner.get_tag_name()));
             inOurTag = false;
             /// @todo process unpaired tag \</script\> inside the data
             // if it our tag - finish parsing
@@ -948,7 +948,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
             }
             break;
         case wstTagStart:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagstart " << scanner.get_tag_name());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagstart " << std::string(scanner.get_tag_name()));
             // all TAGs inside script are ignored - it's just a text
             scanner.reset_to_body();
             break;
@@ -972,7 +972,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
         case wstCDataEnd:
         case wstPiEnd:
         default:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: content " << scanner.get_value());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: content " << std::string(scanner.get_value()));
             if (stPos == -1) {
                 stPos = enPos + 1;
             }
@@ -987,7 +987,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
         txtAttr = txtAttr.substr(0, enPos);
         attr("#code", txtAttr);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: exit for: " << scanner.get_tag_name());
+    LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: exit for: " << std::string(scanner.get_tag_name()));
 
     /// @todo Implement post-process - download and others
     return state;

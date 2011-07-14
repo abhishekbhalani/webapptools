@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define VERSION_PRODUCTSTR "$Revision: 35115 $"
+#define VERSION_PRODUCTSTR "$Revision$"
 #ifdef _MSC_VER
 #pragma warning(disable:4275 4251 4996)
 #endif
@@ -123,11 +123,13 @@ soci_storage::soci_storage( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     pluginInfo.plugin_id = "9FBCCA23CD84";
     pluginInfo.plugin_icon = WeXpmToStringList(sqliteStorage_xpm, sizeof(sqliteStorage_xpm) / sizeof(char*) );
     // initialize internal data
-    try {
+    try{
         m_sql.reset(new soci::session());
-        m_sql->set_log4cxx_logger(logger);
+		//TODO: convert log4cxx to std::ostream
+		if(m_logger)
+			m_sql->set_log_stream(m_logger.get());
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+		LOG4CXX_ERROR(logger, std::string(e.what()));
     }
     LOG4CXX_TRACE(logger, "soci_storage plugin created; version " << VERSION_PRODUCTSTR);
 }
@@ -176,7 +178,7 @@ bool soci_storage::init_storage( const string& params )
     try {
         m_sql->open(params);
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
         return false;
     }
     // loads existing tables
@@ -218,7 +220,7 @@ bool soci_storage::init_storage( const string& params )
             try {
                 *m_sql << tbl_query;
             } catch(soci::soci_error e) {
-                LOG4CXX_DEBUG(logger, e.what());
+				LOG4CXX_DEBUG(logger, std::string(e.what()));
             }
         }
         ++i;
@@ -228,7 +230,7 @@ bool soci_storage::init_storage( const string& params )
     try {
         *m_sql << tbl_query;
     } catch(soci::soci_error e) {
-        LOG4CXX_DEBUG(logger, e.what());
+        LOG4CXX_DEBUG(logger, std::string(e.what()));
     }
 
     try {
@@ -244,21 +246,21 @@ bool soci_storage::init_storage( const string& params )
             *m_sql << "PRAGMA journal_mode = OFF";
         }
     } catch(soci::soci_error e) {
-        LOG4CXX_DEBUG(logger, e.what());
+        LOG4CXX_DEBUG(logger, std::string(e.what()));
     }
 
     soci::row r;
     try {
         *m_sql << "SELECT [value] FROM [_internals_] WHERE [name] = 'last_id'", soci::into(r);
     } catch(soci::soci_error e) {
-        LOG4CXX_DEBUG(logger, e.what());
+        LOG4CXX_DEBUG(logger, std::string(e.what()));
     }
 
     if (r.size() < 1) {
         try {
             *m_sql << "INSERT INTO _internals_ ([name], [value]) VALUES ('last_id', 0)";
         } catch(soci::soci_error e) {
-            LOG4CXX_DEBUG(logger, e.what());
+            LOG4CXX_DEBUG(logger, std::string(e.what()));
         }
     } else {
         //last_id = r.get;
@@ -268,7 +270,7 @@ bool soci_storage::init_storage( const string& params )
     try {
         *m_sql << "CREATE TABLE [test] ([Id] INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , [Value] TEXT)";
     } catch(soci::soci_error e) {
-        LOG4CXX_DEBUG(logger, e.what());
+		LOG4CXX_DEBUG(logger, std::string(e.what()));
     }
 #endif
 
@@ -283,14 +285,14 @@ string soci_storage::generate_id( const string& objType /*= ""*/ )
         m_sql->begin();
         soci::statement st = (m_sql->prepare << "UPDATE _internals_ SET value=value+1 WHERE name == 'last_id'");
         st.execute(true);
-        if(m_sql->get_affected_rows(st)) {
+        if(st.get_affected_rows()) {
             *m_sql << "SELECT [value] FROM [_internals_] WHERE [name] == 'last_id'", soci::into(last_id);
         } else {
             *m_sql << "INSERT INTO _internals_ ([name], [value]) VALUES ('last_id', 0)";
         }
         m_sql->commit();
     } catch(soci::soci_error e) {
-        LOG4CXX_DEBUG(logger, e.what());
+        LOG4CXX_DEBUG(logger, std::string(e.what()));
     }
     return boost::lexical_cast<string>(last_id);
 }
@@ -363,10 +365,10 @@ db_cursor soci_storage::get(const string &query, const std::vector<std::string> 
 {
     details::db_cursor_get* cursor = new details::db_cursor_get(*this, fields);
     boost::unique_lock<boost::mutex> locker(data_access);
-    try {
+    try{
         boost::shared_ptr<soci::statement> st(new soci::statement(*m_sql));
         st->exchange(soci::into(cursor->m_soci_record));
-        if(need_blob) {
+        if(need_blob){
             cursor->m_blob.reset(new soci::blob(*m_sql));
             cursor->m_soci_record.second = cursor->m_blob.get();
             st->exchange(soci::into(*cursor->m_blob));
@@ -377,14 +379,14 @@ db_cursor soci_storage::get(const string &query, const std::vector<std::string> 
         cursor->m_statement = st;
         st->execute();
         cursor->m_isEnd = !st->fetch();
-        if(!cursor->m_isEnd && cursor->m_blob) {
+        if(!cursor->m_isEnd && cursor->m_blob){
             webEngine::blob tmp_blob(cursor->m_blob->get_len());
             cursor->m_blob->read(0, (char*)&tmp_blob[0], cursor->m_blob->get_len());
             cursor->m_record[0] = tmp_blob;
         }
         m_statements.insert(st);
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
     return db_cursor( boost::shared_ptr<webEngine::details::db_cursor_detail>((webEngine::details::db_cursor_detail*)cursor));
 }
@@ -393,15 +395,15 @@ db_cursor soci_storage::set(const string &query_update, const string &query_inse
 {
     details::db_cursor_set* cursor = new details::db_cursor_set(*this, fields);
     boost::unique_lock<boost::mutex> locker(data_access);
-    try {
-        if(need_blob) {
+    try{
+        if(need_blob){
             cursor->m_blob.reset(new soci::blob(*m_sql));
         }
         cursor->m_query_ins = query_insert;
         cursor->m_query_upd = query_update;
         cursor->m_isEnd = false;
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
     return db_cursor( boost::shared_ptr<webEngine::details::db_cursor_detail>((webEngine::details::db_cursor_detail*)cursor));
 }
@@ -410,14 +412,14 @@ db_cursor soci_storage::ins(const string &query_insert, const std::vector<std::s
 {
     details::db_cursor_ins* cursor = new details::db_cursor_ins(*this, fields);
     boost::unique_lock<boost::mutex> locker(data_access);
-    try {
-        if(need_blob) {
+    try{
+        if(need_blob){
             cursor->m_blob.reset(new soci::blob(*m_sql));
         }
         cursor->m_query_ins = query_insert;
         cursor->m_isEnd = false;
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
     return db_cursor( boost::shared_ptr<webEngine::details::db_cursor_detail>((webEngine::details::db_cursor_detail*)cursor));
 }
@@ -426,12 +428,12 @@ int soci_storage::del(const string &query)
 {
     int result = 0;
     boost::unique_lock<boost::mutex> locker(data_access);
-    try {
+    try{
         soci::statement st = (m_sql->prepare << query);
         st.execute(true);
-        result = m_sql->get_affected_rows(st);
+        result = static_cast<int>(st.get_affected_rows());
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
     return result;
 }
@@ -440,10 +442,10 @@ int soci_storage::count(const string &query)
 {
     boost::unique_lock<boost::mutex> locker(data_access);
     int i = 0;
-    try {
+    try{
         *m_sql << query , soci::into(i);
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
     return i;
 }
@@ -456,17 +458,17 @@ void soci_storage::get_next(details::db_cursor_get &cursor)
     cursor.m_affected_rows = 0;
     cursor.m_isEnd = true;
     boost::shared_ptr<soci::statement> st = cursor.m_statement.lock();
-    try {
-        if(st && st->fetch()) {
+    try{
+        if(st && st->fetch()){
             cursor.m_isEnd = false;
-            if(cursor.m_blob) {
+            if(cursor.m_blob){
                 webEngine::blob tmp_blob(cursor.m_blob->get_len());
                 cursor.m_blob->read(0, (char*)&tmp_blob[0], cursor.m_blob->get_len());
                 cursor.m_record[0] = tmp_blob;
             }
         }
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
 }
 
@@ -476,8 +478,8 @@ void soci_storage::set_next(details::db_cursor_set &cursor)
         return;
     int res = 0;
     boost::unique_lock<boost::mutex> locker(data_access);
-    try {
-        if(cursor.m_blob) {
+    try{
+        if(cursor.m_blob){
             const webEngine::we_types &tmp_var = cursor.m_record[cursor.m_record.record_size()];
             const webEngine::blob &tmp_blob = boost::get<webEngine::blob>(tmp_var);
             cursor.m_blob->write(0, (const char *)&tmp_blob[0], tmp_blob.size());
@@ -486,27 +488,27 @@ void soci_storage::set_next(details::db_cursor_set &cursor)
         soci::statement st_upd(*m_sql);
         st_upd.prepare(cursor.m_query_upd);
         st_upd.exchange(soci::use(cursor.m_soci_record));
-        if(cursor.m_blob) {
+        if(cursor.m_blob){
             st_upd.exchange(soci::use(*cursor.m_blob));
         }
         st_upd.alloc();
         st_upd.define_and_bind();
         st_upd.execute(true);
-        res = m_sql->get_affected_rows(st_upd);
+        res = static_cast<int>(st_upd.get_affected_rows());
         if(!res) {
             soci::statement st_ins(*m_sql);
             st_ins.prepare(cursor.m_query_ins);
             st_ins.exchange(soci::use(cursor.m_soci_record));
-            if(cursor.m_blob) {
+            if(cursor.m_blob){
                 st_ins.exchange(soci::use(*cursor.m_blob));
             }
             st_ins.alloc();
             st_ins.define_and_bind();
             st_ins.execute(true);
-            res = m_sql->get_affected_rows(st_ins);
+            res = static_cast<int>(st_ins.get_affected_rows());
         }
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
     cursor.m_affected_rows = res;
     cursor.m_isEnd = !res;
@@ -518,11 +520,11 @@ void soci_storage::ins_next(details::db_cursor_ins &cursor)
         return;
     int res = 0;
     boost::unique_lock<boost::mutex> locker(data_access);
-    try {
+    try{
         soci::statement st_ins(*m_sql);
         st_ins.prepare(cursor.m_query_ins);
         st_ins.exchange(soci::use(cursor.m_soci_record));
-        if(cursor.m_blob) {
+        if(cursor.m_blob){
             const we_types &var = cursor.m_record[0];
             const webEngine::blob &weBlob = boost::get<webEngine::blob>(var);
             cursor.m_blob->write(0, (const char *)&weBlob[0], weBlob.size());
@@ -531,9 +533,9 @@ void soci_storage::ins_next(details::db_cursor_ins &cursor)
         st_ins.alloc();
         st_ins.define_and_bind();
         st_ins.execute(true);
-        res = m_sql->get_affected_rows(st_ins);
+        res = static_cast<int>(st_ins.get_affected_rows());
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
     cursor.m_affected_rows = res;
     cursor.m_isEnd = !res;
@@ -542,10 +544,10 @@ void soci_storage::ins_next(details::db_cursor_ins &cursor)
 void soci_storage::free_statement(boost::shared_ptr<soci::statement> st)
 {
     boost::unique_lock<boost::mutex> locker(data_access);
-    try {
+    try{
         m_statements.erase(st);
     } catch(soci::soci_error e) {
-        LOG4CXX_ERROR(logger, e.what());
+        LOG4CXX_ERROR(logger, std::string(e.what()));
     }
 }
 

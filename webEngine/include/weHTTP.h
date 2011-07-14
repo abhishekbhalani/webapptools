@@ -25,7 +25,7 @@
 #include "weBlob.h"
 #include "weUrl.h"
 #include "weiTransport.h"
-#include <weDispatch.h>
+#include "weDispatch.h"
 #include <curl/curl.h>
 #include <boost/serialization/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>

@@ -174,6 +174,8 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
     jsBrowser* el = static_cast<jsBrowser*>(ptr);
     if (key == "v8_context") {
         val = v8_wrapper::wrap_object<jsExecutor>(el);
+    } else if (key == "v8_results") {
+        val = String::New(el->get_results().c_str());
     } else if (key == "window") {
         val = v8_wrapper::wrap_object<jsWindow>(el->window);
     } else if (el->window->is_property(key)) {
@@ -203,6 +205,7 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
         jsBrowser* el = static_cast<jsBrowser*>(ptr);
         if (key == "v8_results") {
             string sval = value_to_string(value);
+            el->append_results(sval);
         } else if (el->window->is_property(key)) {
             val = el->window->GetProperty(name, info);
         } else {

@@ -24,8 +24,8 @@
 #include <boost/shared_ptr.hpp>
 #include "weOptions.h"
 #include "weiPlugin.h"
-#include <weiStorage.h>
-#include <weiTransport.h>
+#include "weiStorage.h"
+#include "weiTransport.h"
 
 namespace webEngine {
 
@@ -47,26 +47,26 @@ public:
     virtual i_plugin* get_interface(const string& ifName);
 
     // i_storage functions
-    virtual bool init_storage(const string& params) {
+    virtual bool init_storage(const string& ) {
         return true;
     };
-    virtual void flush(const string& params = "") {
+    virtual void flush(const string& = "") {
         return;
     };
 
-    virtual db_cursor get(const string &query, const std::vector<std::string> &fields, bool need_blob = false) {
+    virtual db_cursor get(const string &, const std::vector<std::string> &, bool = false) {
         return db_cursor();
     }
-    virtual db_cursor set(const string &query_update, const string &query_insert, const std::vector<std::string> &fields, bool need_blob = false) {
+    virtual db_cursor set(const string &, const string &, const std::vector<std::string> &, bool = false) {
         return db_cursor();
     }
-    virtual db_cursor ins(const string &query_insert, const std::vector<std::string> &fields, bool need_blob = false) {
+    virtual db_cursor ins(const string &, const std::vector<std::string> &, bool = false) {
         return db_cursor();
     }
-    virtual int del(const string &query) {
+    virtual int del(const string &) {
         return 0;
     }
-    virtual int count(const string &query) {
+    virtual int count(const string &) {
         return 0;
     }
 };

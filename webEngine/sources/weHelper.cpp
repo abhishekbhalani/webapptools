@@ -51,10 +51,10 @@ static void LibInitCommon()
         weHtmlFactory.Init();
         cCode = curl_global_init(CURL_GLOBAL_ALL);
         if (cCode != 0) {
-            LOG4CXX_FATAL(iLogger::GetLogger(), "cURL initialization failed : " << cCode);
+            LOG4CXX_FATAL(iLogger::GetLogger(), "cURL initialization failed : " << (size_t)cCode);
         }
         char* cver = curl_version();
-        LOG4CXX_INFO(iLogger::GetLogger(), "cURL library version: " << cver);
+		LOG4CXX_INFO(iLogger::GetLogger(), "cURL library version: " << std::string(cver));
     }
     isLibInited = true;
     LOG4CXX_INFO(iLogger::GetLogger(), "WebEngine initialized. Version " WE_VERSION_PRODUCTSTR);
@@ -262,7 +262,7 @@ int LockedIncrement( int *val )
 {
     boost::unique_lock<boost::mutex> lock(ref_count_locker);
 #ifdef _DEBUG
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedIncrement for &" << val << " = " <<  *val);
+	LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedIncrement for &" << std::hex << (size_t)val << L" = " << std::dec << *val);
 #endif // _DEBUG
     (*val)++;
     return *val;
@@ -272,7 +272,7 @@ int LockedDecrement( int *val )
 {
     boost::unique_lock<boost::mutex> lock(ref_count_locker);
 #ifdef _DEBUG
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedDecrement for &" << val << " = " << *val);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedDecrement for &" << std::hex << (size_t)val << L" = " << std::dec << *val);
 #endif // _DEBUG
     (*val)--;
     return *val;
@@ -282,7 +282,7 @@ int LockedGetValue( int *val )
 {
     boost::unique_lock<boost::mutex> lock(ref_count_locker);
 #ifdef _DEBUG
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedGetValue for &" << val << " = " << *val);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedGetValue for &" << std::hex << (size_t)val << L" = " << std::dec << *val);
 #endif // _DEBUG
     int res = (*val);
     return res;

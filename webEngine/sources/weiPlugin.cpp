@@ -52,36 +52,37 @@ i_plugin::~i_plugin()
     pluginInfo.plugin_icon.clear();
 }
 
-const string i_plugin::interface_name()
+const string& i_plugin::interface_name() const
 {
     return pluginInfo.interface_name;
 }
 
-string_list i_plugin::interface_list()
+const string_list& i_plugin::interface_list() const
 {
     return pluginInfo.interface_list;
 }
 
 i_plugin* i_plugin::get_interface( const string& ifName )
 {
-    if (ifName == "i_plugin") {
+    if (std::find(pluginInfo.interface_list.begin(), pluginInfo.interface_list.end(), ifName) != pluginInfo.interface_list.end())
+	{
         usageCount++;
         return this;
     }
     return NULL;
 }
 
-const string i_plugin::get_description()
+const string& i_plugin::get_description() const
 {
     return pluginInfo.plugin_desc;
 }
 
-const string i_plugin::get_id()
+const string& i_plugin::get_id() const
 {
     return pluginInfo.plugin_id;
 }
 
-string_list i_plugin::get_icon()
+const string_list& i_plugin::get_icon() const
 {
     return pluginInfo.plugin_icon;
 }

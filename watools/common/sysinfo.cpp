@@ -1,5 +1,6 @@
 #include <string>
 #include <boost/lexical_cast.hpp>
+#include <vector>
 #ifdef WIN32
 #include <windows.h>
 #include <psapi.h>
@@ -15,6 +16,21 @@ using namespace std;
 
 typedef void (WINAPI *PGNSI)(LPSYSTEM_INFO);
 typedef BOOL (WINAPI *PGPI)(DWORD, DWORD, DWORD, DWORD, PDWORD);
+
+namespace boost {
+	template<>
+	inline std::string lexical_cast(const std::wstring& arg) {
+		std::string result;
+		int src_length = static_cast<int>(arg.length());
+		std::size_t size = WideCharToMultiByte(CP_ACP,0,arg.data(),src_length,NULL,0,NULL,NULL);
+		if( size > 0 ) {
+			std::vector<char> buffer(size);
+			WideCharToMultiByte(CP_ACP,0,arg.data(),src_length,const_cast<char*>(&buffer.front()),size,NULL,NULL);
+			result.assign(buffer.begin(),buffer.end());
+		}
+		return result;
+	}
+};
 
 string sys_uname()
 {
