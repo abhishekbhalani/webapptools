@@ -484,7 +484,7 @@ void task::store_plugins(vector<i_plugin*>& plugins)
 	BOOST_FOREACH(i_plugin* plugin, plugins)
 	{
             ifaces = plugin->interface_list();
-            LOG4CXX_TRACE(iLogger::GetLogger(), L"task::store_plugins - plugin: " << plugin->get_description() << L" ifaces: " << ifaces.size());
+            LOG4CXX_TRACE(iLogger::GetLogger(), "task::store_plugins - plugin: " << plugin->get_description() << " ifaces: " << ifaces.size());
 
             trsp = find(ifaces.begin(), ifaces.end(), "i_parser");
             if (trsp != ifaces.end()) {
@@ -543,7 +543,7 @@ void task::store_plugins(const string& plugins){
             } // if name given
         } // foreach plugin
     } else {
-        LOG4CXX_ERROR(iLogger::GetLogger(), L"No plugins attached to profile " << scan_id << L". Nothing to do, exit.");
+        LOG4CXX_ERROR(iLogger::GetLogger(), "No plugins attached to profile " << scan_id << ". Nothing to do, exit.");
         return;
     }
     store_plugins(scan_plugins);
