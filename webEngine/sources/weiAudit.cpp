@@ -40,13 +40,13 @@ i_audit::~i_audit(void)
 void i_audit::response_dispatcher( i_response_ptr resp, void* context )
 {
     i_audit* object = (i_audit*)context;
-    LOG4CXX_TRACE(object->logger, "i_audit::response_dispatcher");
+    LOG4CXX_TRACE(object->logger, _T("i_audit::response_dispatcher"));
     //     if (object->process_response) {
     object->process_response(resp);
     //     }
     //     else
     //     {
-    //         LOG4CXX_ERROR(object->logger, "i_audit::response_dispatcher: invalid context, or abstract class - process_response == NULL");
+    //         LOG4CXX_ERROR(object->logger, _T("i_audit::response_dispatcher: invalid context, or abstract class - process_response == NULL"));
     //     }
 }
 

@@ -131,18 +131,18 @@ void engine_dispatcher::refresh_plugin_list( boost::filesystem::path& baseDir )
                 info = (plugin_info*)plg->info();
                 info->plugin_path = *fl;
                 plg_list.push_back(*info);
-                LOG4CXX_INFO(iLogger::GetLogger(), "engine_dispatcher::refresh_plugin_list: loaded plugin " << *fl);
-                LOG4CXX_TRACE(iLogger::GetLogger(), ">>>> ID=" << info->plugin_id << "; Desc=" << info->plugin_desc);
+                LOG4CXX_INFO(iLogger::GetLogger(), _T("engine_dispatcher::refresh_plugin_list: loaded plugin ") << *fl);
+                LOG4CXX_TRACE(iLogger::GetLogger(), _T(">>>> ID=") << info->plugin_id << _T("; Desc=") << info->plugin_desc);
                 plg->release();
                 plg = NULL;
                 //plg_factory.add_plugin_class(info->plugin_id, ptr);
                 //plg_factory.add_plugin_class(info->interface_name, ptr);
             } else {
-                LOG4CXX_WARN(iLogger::GetLogger(), "engine_dispatcher::refresh_plugin_list: can't get information from plugin " <<*fl);
+                LOG4CXX_WARN(iLogger::GetLogger(), _T("engine_dispatcher::refresh_plugin_list: can't get information from plugin ") <<*fl);
             }
             delete so;
         } catch (std::exception& e) {
-            LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::refresh_plugin_list: can't load plugin " << *fl << ". Error: " << e.what());
+			LOG4CXX_ERROR(iLogger::GetLogger(), _T("engine_dispatcher::refresh_plugin_list: can't load plugin ") << *fl << _T(". Error: ") << std::string(e.what()));
         }
     }
 
@@ -169,7 +169,7 @@ i_plugin* engine_dispatcher::load_plugin( string id )
 {
     i_plugin* retval = NULL;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::load_plugin " << id);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("engine_dispatcher::load_plugin ") << id);
     // first step - in-memory plugins
     retval = (i_plugin*)plg_factory.create_plugin(id, this);
 
@@ -179,7 +179,7 @@ i_plugin* engine_dispatcher::load_plugin( string id )
         // if found - loads shared library and create instance
         for (size_t i = 0; i < plg_list.size(); i++) {
             if (plg_list[i].plugin_id == id || plg_list[i].interface_name == id) {
-                LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::load_plugin - found plugin: " << plg_list[i].plugin_desc << "; " << plg_list[i].plugin_path);
+                LOG4CXX_TRACE(iLogger::GetLogger(), _T("engine_dispatcher::load_plugin - found plugin: ") << plg_list[i].plugin_desc << _T("; ") << plg_list[i].plugin_path);
                 try {
                     //char* pth = strdup(plg_list[i].plugin_path.c_str());
                     dyn::shared_object* so = new dyn::shared_object(plg_list[i].plugin_path.c_str());
@@ -188,14 +188,14 @@ i_plugin* engine_dispatcher::load_plugin( string id )
                     retval = (i_plugin*)ptr(this, so);
                     //delete pth;
                 } catch (std::exception& e) {
-                    LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::load_plugin: can't load plugin " << plg_list[i].plugin_path << ". Error: " << e.what());
+                    LOG4CXX_ERROR(iLogger::GetLogger(), _T("engine_dispatcher::load_plugin: can't load plugin ") << plg_list[i].plugin_path << _T(". Error: ") << std::string(e.what()));
                 }
                 break;
             }
         }
     }
     if (retval == NULL) {
-        LOG4CXX_WARN(iLogger::GetLogger(), "engine_dispatcher::load_plugin: '" << id << "' not found!");
+        LOG4CXX_WARN(iLogger::GetLogger(), _T("engine_dispatcher::load_plugin: '") << id << _T("' not found!"));
     }
     return retval;
 }
@@ -210,7 +210,7 @@ void engine_dispatcher::storage( const i_storage* store )
     if (plg_storage == NULL) {
         plg_storage = new null_storage(this);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::SetStorage - plugin: " << plg_storage->get_description());
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("engine_dispatcher::SetStorage - plugin: ") << plg_storage->get_description());
 }
 
 
@@ -239,7 +239,7 @@ we_option engine_dispatcher::Option( const string& name )
     string s;
     string parentID = "0";
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ")");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("engine_dispatcher::Option(") << name << _T(")"));
 
     opt = i_options_provider::empty_option;
     if (plg_storage != NULL) {
@@ -293,7 +293,7 @@ we_option engine_dispatcher::Option( const string& name )
                 } // if result not <empty>
             } catch(std::exception &e) {
                 opt = i_options_provider::empty_option;
-                LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") can't get option value: " << e.what());
+                LOG4CXX_ERROR(iLogger::GetLogger(), _T("engine_dispatcher::Option(") << name << _T(") can't get option value: ") << std::string(e.what()));
             }
         }
     }
@@ -305,7 +305,7 @@ void engine_dispatcher::Option( const string& name, we_variant val )
 {
     string parentID = "0";
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Option(" << name << ") set value=" << val);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("engine_dispatcher::Option(") << name << _T(") set value=") << val);
     if (plg_storage != NULL) {
         vector<string> fields;
         fields.push_back(weObjTypeProfile "." weoProfileID);
@@ -375,11 +375,11 @@ bool engine_dispatcher::IsSet( const string& name )
                 } // if result not <empty>
             } catch(bad_cast &e) {
                 retval = false;
-                LOG4CXX_ERROR(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") can't get option value: " << e.what());
+                LOG4CXX_ERROR(iLogger::GetLogger(), _T("engine_dispatcher::IsSet(") << name << _T(") can't get option value: ") << std::string(e.what()));
             }
         } // if result size > 0
     } // if plg_storage != NULL
-    LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::IsSet(" << name << ") value=" << retval);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("engine_dispatcher::IsSet(") << name << _T(") value=") << retval);
     return retval;
 }
 
@@ -401,7 +401,7 @@ void engine_dispatcher::Erase( const string& name )
         n_cond.value() = name;
 
         filter.set(p_cond)._and_(n_cond);
-        LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::Erase - " << filter.tostring());
+        LOG4CXX_TRACE(iLogger::GetLogger(), _T("engine_dispatcher::Erase - ") << filter.tostring());
         plg_storage->del(filter);
     }
 }
@@ -493,7 +493,7 @@ i_plugin* engine_dispatcher::get_interface( string iface )
 void engine_dispatcher::flush()
 {
     if (plg_storage != NULL) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "engine_dispatcher::flush ");
+        LOG4CXX_TRACE(iLogger::GetLogger(), _T("engine_dispatcher::flush "));
     }
 }
 
@@ -556,7 +556,7 @@ plugin_factory::~plugin_factory()
 
 void plugin_factory::add_plugin_class( string name, fnWePluginFactory func )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "new plugin_factory added for " << name);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("new plugin_factory added for ") << name);
     factories_[name] = func;
 }
 
@@ -564,10 +564,10 @@ void* plugin_factory::create_plugin( string pluginID, engine_dispatcher* krnl )
 {
     map<string, fnWePluginFactory>::const_iterator it = factories_.find(pluginID);
     if (it == factories_.end()) {
-        LOG4CXX_TRACE(iLogger::GetLogger(), "plugin_factory::create_plugin plugin doesn't register in memory");
+        LOG4CXX_TRACE(iLogger::GetLogger(), _T("plugin_factory::create_plugin plugin doesn't register in memory"));
         return NULL;
     }
 
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "plugin_factory::create_plugin " << pluginID);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("plugin_factory::create_plugin ") << pluginID);
     return it->second(krnl, NULL);
 }

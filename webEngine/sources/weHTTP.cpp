@@ -73,7 +73,7 @@ namespace webEngine {
 //////////////////////////////////////////////////////////////////////////
 static i_transport* weCreateHttp(engine_dispatcher* krnl)
 {
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "TransportFactory: create http_transport");
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("TransportFactory: create http_transport"));
     return new http_transport(krnl); //new http_transport();
 }
 
@@ -107,7 +107,7 @@ HttpRequest::HttpRequest( string url, HttpRequest::weHttpMethod meth /*= wemGet*
     password = "";
     RequestUrl(url, resp);
     /// @todo Implement this!
-    //LOG4CXX_WARN(iLogger::GetLogger(), "HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented");
+    //LOG4CXX_WARN(iLogger::GetLogger(), _T("HttpRequest::HttpRequest(string, weHttpMethod, HttpResponse*) - Not implemented"));
 }
 
 i_request_ptr HttpRequest::restore_request(we_iarchive& ar)
@@ -255,7 +255,7 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
             }
         }
     }
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "http_transport::request: url=" << req->RequestUrl().tostring());
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("http_transport::request: url=") << req->RequestUrl().tostring());
 
     if (!req->RequestUrl().is_valid()) {
         // bad luck! still not valid request... :(
@@ -374,7 +374,7 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
                             cookie_value += cur["auth_data.value"].get<string>();
                         }
                     }
-                    LOG4CXX_DEBUG(iLogger::GetLogger(), "Cookie: " << cookie_value);
+                    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("Cookie: ") << cookie_value);
                     curl_easy_setopt(ht_retval->CURLHandle(), CURLOPT_COOKIE, cookie_value.c_str());
                 }
             }
@@ -387,11 +387,11 @@ i_response_ptr http_transport::request( i_request* req, i_response_ptr resp /*= 
             curl_multi_add_handle(transferHandle, ht_retval->CURLHandle());
             process_requests();
         } catch (std::exception &e) {
-            LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request - curl_multi_add_handle failed: " << std::string(e.what()));
+            LOG4CXX_ERROR(iLogger::GetLogger(), _T("http_transport::request - curl_multi_add_handle failed: ") << std::string(e.what()));
         }
     } else {
-		LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::request curl_transfer_handle: " << std::hex << (size_t)transferHandle <<
-			"; curl_request_handle: " << std::hex << (size_t)ht_retval->CURLHandle());
+		LOG4CXX_ERROR(iLogger::GetLogger(), _T("http_transport::request curl_transfer_handle: ") << std::hex << (size_t)transferHandle <<
+			_T("; curl_request_handle: ") << std::hex << (size_t)ht_retval->CURLHandle());
     }
     return retval;
 }
@@ -455,21 +455,21 @@ const int http_transport::process_requests( void )
 
     if (transferHandle != NULL) {
 #ifdef _DEBUG
-        LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_perform");
+        LOG4CXX_TRACE(iLogger::GetLogger(), _T("http_transport::process_requests - curl_multi_perform"));
 #endif
         lastError = curl_multi_perform(transferHandle, &running_handles);
 
         /// @todo Implements accurate busy-loop
         while (lastError == CURLM_CALL_MULTI_PERFORM) {
 #ifdef _DEBUG
-            LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_perform in the loop");
+            LOG4CXX_TRACE(iLogger::GetLogger(), _T("http_transport::process_requests - curl_multi_perform in the loop"));
 #endif
             boost::this_thread::sleep(boost::posix_time::millisec(10));
             lastError = curl_multi_perform(transferHandle, &running_handles);
         }
 
 #ifdef _DEBUG
-        LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_info_read");
+        LOG4CXX_TRACE(iLogger::GetLogger(), _T("http_transport::process_requests - curl_multi_info_read"));
 #endif
         cmsg = curl_multi_info_read(transferHandle, &msgs_in_queue);
         while (cmsg != NULL) {
@@ -480,7 +480,7 @@ const int http_transport::process_requests( void )
                         resp = dynamic_cast<HttpResponse*>((*hnd).get());
                         if ( resp->CURLHandle() == cmsg->easy_handle) {
 #ifdef _DEBUG
-                            LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_remove_handle");
+                            LOG4CXX_TRACE(iLogger::GetLogger(), _T("http_transport::process_requests - curl_multi_remove_handle"));
 #endif
                             curl_multi_remove_handle(transferHandle, resp->CURLHandle());
                             resp->Process(this);
@@ -490,14 +490,14 @@ const int http_transport::process_requests( void )
                             break;
                         }
                     } catch (std::exception &e) {
-                        LOG4CXX_ERROR(iLogger::GetLogger(), "http_transport::process_requests - curl exception: " << std::string(e.what()));
+                        LOG4CXX_ERROR(iLogger::GetLogger(), _T("http_transport::process_requests - curl exception: ") << std::string(e.what()));
                     }; // just skip
                     hnd++;
                 }
             }
             // delete cmsg;
 #ifdef _DEBUG
-            LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::process_requests - curl_multi_info_read, extract msg");
+            LOG4CXX_TRACE(iLogger::GetLogger(), _T("http_transport::process_requests - curl_multi_info_read, extract msg"));
 #endif
             cmsg = curl_multi_info_read(transferHandle, &msgs_in_queue);
         }
@@ -511,7 +511,7 @@ const int http_transport::process_requests( void )
     for (hnd = responces.begin(); hnd != responces.end();) {
         if ((*hnd)->start_time() < curr_tm) {
             // remove from list
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "http_transport::process_requests - timeout for request " << (*hnd)->BaseUrl().tostring());
+            LOG4CXX_DEBUG(iLogger::GetLogger(), _T("http_transport::process_requests - timeout for request ") << (*hnd)->BaseUrl().tostring());
             resp = dynamic_cast<HttpResponse*>((*hnd).get());
             // remove handle from cURL
             curl_multi_remove_handle(transferHandle, resp->CURLHandle());
@@ -621,7 +621,7 @@ bool http_transport::is_set( const string& name )
     if (it != options.end()) {
         retval = it->second;
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "http_transport::is_set(" << name << ") value=" << retval);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("http_transport::is_set(") << name << _T(") value=") << retval);
     return retval;
 }
 

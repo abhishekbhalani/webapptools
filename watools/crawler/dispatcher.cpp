@@ -115,9 +115,9 @@ void signal_halt(int sig)
     inLoop = false;
     //! todo: pause all tasks
     if (sig == 0) {
-        LOG4CXX_INFO(scan_logger, "Received software request to exit");
+        LOG4CXX_INFO(scan_logger, _T("Received software request to exit"));
     } else {
-        LOG4CXX_INFO(scan_logger, "Signal received - exit scanner");
+        LOG4CXX_INFO(scan_logger, _T("Signal received - exit scanner"));
     }
 }
 
@@ -138,7 +138,7 @@ void save_results(int format, string fname, webEngine::task* tsk)
                 old_buffer = std::cout.rdbuf(out.rdbuf());
                 file = true;
             } catch (std::exception &e) {
-				LOG4CXX_ERROR(scan_logger, "Can't redirect output to file " << fname << ": " << std::string(e.what()));
+				LOG4CXX_ERROR(scan_logger, _T("Can't redirect output to file ") << fname << _T(": ") << std::string(e.what()));
                 file = false;
             }
         }
@@ -188,7 +188,7 @@ static void* create_audit_comments(void* krnl, void* handle = NULL)
 
 void save_plugin_ui(webEngine::i_storage* store)
 {
-    LOG4CXX_TRACE(scan_logger, "Save UI for plugins");
+    LOG4CXX_TRACE(scan_logger, _T("Save UI for plugins"));
     int pos;
     string db_key;
     string db_data;
@@ -232,7 +232,7 @@ void save_plugin_ui(webEngine::i_storage* store)
                 rec["profile_ui.locale"] = string("en");
                 rec.close();
             } else {
-                LOG4CXX_ERROR(scan_logger, "Can't load plugin " << plgs[i].plugin_id << "; " << plgs[i].plugin_desc);
+                LOG4CXX_ERROR(scan_logger, _T("Can't load plugin ") << plgs[i].plugin_id << _T("; ") << plgs[i].plugin_desc);
             }
         } // if not a storage plugin
     } // foreach plugins
@@ -251,7 +251,7 @@ void dispatcher_routine(po::variables_map& vm)
 
     we_dispatcer = new webEngine::engine_dispatcher;
     if (we_dispatcer == NULL) {
-        LOG4CXX_FATAL(scan_logger, "Can't create webEngine dispatcher - exit!");
+        LOG4CXX_FATAL(scan_logger, _T("Can't create webEngine dispatcher - exit!"));
         return;
     }
     // refresh plugins information
@@ -262,15 +262,15 @@ void dispatcher_routine(po::variables_map& vm)
 
     webEngine::i_plugin* plg = we_dispatcer->load_plugin(vm["db_interface"].as<string>());
     if (plg == NULL) {
-        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
+        LOG4CXX_FATAL(scan_logger, _T("Can't load plug-in for Storage DB connection: ") << vm["db_interface"].as<string>());
         return;
     }
-    LOG4CXX_INFO(scan_logger, "Storage plugin loaded successfully: " << vm["db_interface"].as<string>());
-    LOG4CXX_DEBUG(scan_logger, "Plugin ID=" << plg->get_id() << "; Description: " << plg->get_description());
+    LOG4CXX_INFO(scan_logger, _T("Storage plugin loaded successfully: ") << vm["db_interface"].as<string>());
+    LOG4CXX_DEBUG(scan_logger, _T("Plugin ID=") << plg->get_id() << _T("; Description: ") << plg->get_description());
     webEngine::i_storage* storage = (webEngine::i_storage*)plg->get_interface("i_storage");
     if (plg == NULL) {
-        LOG4CXX_FATAL(scan_logger, "No iStorage interface in the plugin " << plg->get_id() << "(ID="  << plg->get_id() );
-        LOG4CXX_FATAL(scan_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
+        LOG4CXX_FATAL(scan_logger, _T("No iStorage interface in the plugin ") << plg->get_id() << _T("(ID=")  << plg->get_id() );
+        LOG4CXX_FATAL(scan_logger, _T("Can't load plug-in for Storage DB connection: ") << vm["db_interface"].as<string>());
         return;
     }
     // no need to keep plugin - it can be removed by the dispatcher
@@ -282,10 +282,10 @@ void dispatcher_routine(po::variables_map& vm)
     }
     storage->init_storage(params);
     we_dispatcer->storage(storage);
-    LOG4CXX_INFO(scan_logger, "Storage initialised");
+    LOG4CXX_INFO(scan_logger, _T("Storage initialised"));
 
-    LOG4CXX_INFO(scan_logger, "Operating System: " << sys_uname());
-    LOG4CXX_INFO(scan_logger, "Memory Information: " << sys_meminfo());
+    LOG4CXX_INFO(scan_logger, _T("Operating System: ") << sys_uname());
+    LOG4CXX_INFO(scan_logger, _T("Memory Information: ") << sys_meminfo());
 
     // update plugins information
     save_plugin_ui(storage);
@@ -304,7 +304,7 @@ void dispatcher_routine(po::variables_map& vm)
         info += plgs[i].plugin_desc;
         plg = we_dispatcer->load_plugin(plgs[i].plugin_id);
         scan_plugins.push_back(plg->get_interface("i_plugin")); //(webEngine::i_plugin*)
-        LOG4CXX_TRACE(scan_logger, "Save info [" << i << "]: " << info);
+        LOG4CXX_TRACE(scan_logger, _T("Save info [") << i << _T("]: ") << info);
 
     }
 
@@ -330,17 +330,17 @@ void dispatcher_routine(po::variables_map& vm)
                     if (keep_alive_packet[ip_addr].length() != 0 ) {
                         keep_alive_packet[ip_addr] += "; ";
                     }
-                    LOG4CXX_TRACE(scan_logger, "Found ip addr: " << saddr);
+                    LOG4CXX_TRACE(scan_logger, _T("Found ip addr: ") << saddr);
                     keep_alive_packet[ip_addr] += saddr;
                     break;
                 }
             }
         } else {
-            LOG4CXX_ERROR(scan_logger, "gethostbyname failed");
+            LOG4CXX_ERROR(scan_logger, _T("gethostbyname failed"));
             keep_alive_packet[ip_addr] = "<unknown>";
         }
     } else {
-        LOG4CXX_ERROR(scan_logger, "gethostname failed");
+        LOG4CXX_ERROR(scan_logger, _T("gethostname failed"));
         keep_alive_packet[ip_addr] = "<unknown>";
     }
 
@@ -372,7 +372,7 @@ void dispatcher_routine(po::variables_map& vm)
                 } // if name given
             } // foreach plugin
         } else {
-            LOG4CXX_ERROR(scan_logger, "No plugins attached to profile " << ival << ". Nothing to do, exit.");
+            LOG4CXX_ERROR(scan_logger, _T("No plugins attached to profile ") << ival << _T(". Nothing to do, exit."));
             return;
         }
     } else {
@@ -389,12 +389,12 @@ void dispatcher_routine(po::variables_map& vm)
             is_jscript = false;
         }
         tsk->Option(weoAuditJSenable, is_jscript);
-        LOG4CXX_DEBUG(scan_logger, "Set " << string(weoAuditJSenable) << " to " << is_jscript);
+        LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoAuditJSenable) << _T(" to ") << is_jscript);
 
         if (vm.count("depth")) {
             int val = vm["depth"].as<int>();
             tsk->Option(weoScanDepth, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoScanDepth) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoScanDepth) << _T(" to ") << val);
         }
         if (vm.count("dir")) {
             bool val = true;
@@ -402,7 +402,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["dir"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInDir, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInDir) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoStayInDir) << _T(" to ") << val);
         }
         if (vm.count("host")) {
             bool val = true;
@@ -410,7 +410,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["host"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInHost, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInHost) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoStayInHost) << _T(" to ") << val);
         }
         if (vm.count("domain")) {
             bool val = true;
@@ -418,7 +418,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["domain"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInDomain, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInDomain) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoStayInDomain) << _T(" to ") << val);
         }
         if (vm.count("dlist")) {
             bool val = true;
@@ -426,7 +426,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["dlist"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInDomainList, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInDomainList) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoStayInDomainList) << _T(" to ") << val);
         }
         if (vm.count("ip")) {
             bool val = true;
@@ -434,7 +434,7 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["ip"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoStayInIP, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoStayInIP) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoStayInIP) << _T(" to ") << val);
         }
         if (vm.count("url_param")) {
             bool val = true;
@@ -442,22 +442,22 @@ void dispatcher_routine(po::variables_map& vm)
                 val = vm["url_param"].as<bool>();
             } catch (...) { } // just skip
             tsk->Option(weoIgnoreUrlParam, val);
-            LOG4CXX_DEBUG(scan_logger, L"Set " << string(weoIgnoreUrlParam) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoIgnoreUrlParam) << _T(" to ") << val);
         }
         if (vm.count("content")) {
             int val = vm["content"].as<int>();
             tsk->Option(weoAllowedCTypes, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoAllowedCTypes) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoAllowedCTypes) << _T(" to ") << val);
         }
         if (vm.count("parallel")) {
             int val = vm["parallel"].as<int>();
             tsk->Option(weoParallelReq, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoParallelReq) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoParallelReq) << _T(" to ") << val);
         }
         if (vm.count("ext_deny")) {
             string val = vm["ext_deny"].as<string>();
             tsk->Option(weoDeniedFileTypes, val);
-            LOG4CXX_DEBUG(scan_logger, "Set " << string(weoDeniedFileTypes) << " to " << val);
+            LOG4CXX_DEBUG(scan_logger, _T("Set ") << string(weoDeniedFileTypes) << _T(" to ") << val);
         }
     }
 
@@ -474,7 +474,7 @@ void dispatcher_routine(po::variables_map& vm)
         tsk->set_name("Crawling " + url);
     }
     webEngine::transport_url t_url(url);
-    LOG4CXX_INFO(scan_logger, "Start scanning for: " << t_url.tostring());
+    LOG4CXX_INFO(scan_logger, _T("Start scanning for: ") << t_url.tostring());
     tsk->Option(weoScanHost, t_url.host);
     tsk->Option(weoBaseURL,  url);
 
@@ -507,13 +507,13 @@ void dispatcher_routine(po::variables_map& vm)
         int compl = tsk->completion();
         scan_curr = btm::second_clock::local_time();
         btm::time_period scan_elapsed(scan_start, scan_curr);
-        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << tsk->get_scan_size() << " objects found... " << compl << "% complete; "
+        cout << "Scanning for " << btm::to_simple_string(scan_elapsed.length()) << "... " << tsk->total_requests() << " objects found... " << compl << "% complete; "
 #ifdef _DEBUG
              << "tL: " << tsk->get_taskList_size() << "; tQ: " << tsk->get_taskQueue_size() << "; st: " << tsk->get_status_name()
              << "; pT: " << (tsk->get_processThread() ? "r" : "s")
 #endif
              << "   \n";
-        LOG4CXX_TRACE(scan_logger, "Memory information: " << sys_meminfo());
+        LOG4CXX_TRACE(scan_logger, _T("Memory information: ") << sys_meminfo());
         if (kbhit()) {
             ch = getch();
             ch = toupper(ch);

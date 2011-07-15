@@ -46,18 +46,18 @@ static void LibInitCommon()
 {
     CURLcode    cCode;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "LibInit status = " << isLibInited);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("LibInit status = ") << isLibInited);
     if (!isLibInited) {
         weHtmlFactory.Init();
         cCode = curl_global_init(CURL_GLOBAL_ALL);
         if (cCode != 0) {
-            LOG4CXX_FATAL(iLogger::GetLogger(), "cURL initialization failed : " << (size_t)cCode);
+            LOG4CXX_FATAL(iLogger::GetLogger(), _T("cURL initialization failed : ") << (size_t)cCode);
         }
         char* cver = curl_version();
-		LOG4CXX_INFO(iLogger::GetLogger(), "cURL library version: " << std::string(cver));
+		LOG4CXX_INFO(iLogger::GetLogger(), _T("cURL library version: ") << std::string(cver));
     }
     isLibInited = true;
-    LOG4CXX_INFO(iLogger::GetLogger(), "WebEngine initialized. Version " WE_VERSION_PRODUCTSTR);
+	LOG4CXX_INFO(iLogger::GetLogger(), _T("WebEngine initialized. Version ") << std::string(WE_VERSION_PRODUCTSTR));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,7 +110,7 @@ void LibInit(AppenderPtr appender, LevelPtr level )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void LibClose(void)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "LibClose status = " << isLibInited);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("LibClose status = ") << isLibInited);
     if (!isLibInited) {
         return;
     }
@@ -170,43 +170,43 @@ string UnscreenXML(const string& xml)
 //////////////////////////////////////////////////////////////////////////
 static base_entity_ptr weCreateRefObj(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeRefrenceObject");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("HtmlFactory: create WeRefrenceObject"));
     return base_entity_ptr(new WeRefrenceObject(prnt));
 }
 
 static base_entity_ptr weCreateText(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create html_textnode");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("HtmlFactory: create html_textnode"));
     return base_entity_ptr(new html_textnode(prnt));
 }
 
 static base_entity_ptr weCreateComment(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create html_comment");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("HtmlFactory: create html_comment"));
     return base_entity_ptr(new html_comment(prnt));
 }
 
 static base_entity_ptr weCreateCData(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create html_cdata");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("HtmlFactory: create html_cdata"));
     return base_entity_ptr(new html_cdata(prnt));
 }
 
 static base_entity_ptr weCreatePhpInc(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WePhpInclude");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("HtmlFactory: create WePhpInclude"));
     return base_entity_ptr(new WePhpInclude(prnt));
 }
 
 static base_entity_ptr weCreateDocument(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeHtmlDocument");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("HtmlFactory: create WeHtmlDocument"));
     return base_entity_ptr((base_entity*)NULL); //new WeDocument(prnt);
 }
 
 static base_entity_ptr weCreateScript(base_entity_ptr prnt)
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory: create WeScript");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("HtmlFactory: create WeScript"));
     return base_entity_ptr(new WeScript(prnt));
 }
 
@@ -216,7 +216,7 @@ HtmlFactory::HtmlFactory()
 
 void HtmlFactory::Add( string name, fnEntityFactory func )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "new EntityFactory added for " << name);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("new EntityFactory added for ") << name);
     factories_[name] = func;
 }
 
@@ -246,7 +246,7 @@ void HtmlFactory::Init()
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 base_entity_ptr HtmlFactory::CreateEntity( string tagName, base_entity_ptr prnt )
 {
-    LOG4CXX_TRACE(iLogger::GetLogger(), "HtmlFactory::CreateEntity => " << tagName);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("HtmlFactory::CreateEntity => ") << tagName);
     std::map<string, fnEntityFactory>::const_iterator it = factories_.find(tagName);
     if (it == factories_.end())
         return base_entity_ptr(new html_entity(prnt));
@@ -262,7 +262,7 @@ int LockedIncrement( int *val )
 {
     boost::unique_lock<boost::mutex> lock(ref_count_locker);
 #ifdef _DEBUG
-	LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedIncrement for &" << std::hex << (size_t)val << L" = " << std::dec << *val);
+	LOG4CXX_DEBUG(iLogger::GetLogger(), _T("LockedIncrement for &") << std::hex << (size_t)val << _T(" = ") << std::dec << *val);
 #endif // _DEBUG
     (*val)++;
     return *val;
@@ -272,7 +272,7 @@ int LockedDecrement( int *val )
 {
     boost::unique_lock<boost::mutex> lock(ref_count_locker);
 #ifdef _DEBUG
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedDecrement for &" << std::hex << (size_t)val << L" = " << std::dec << *val);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("LockedDecrement for &") << std::hex << (size_t)val << _T(" = ") << std::dec << *val);
 #endif // _DEBUG
     (*val)--;
     return *val;
@@ -282,7 +282,7 @@ int LockedGetValue( int *val )
 {
     boost::unique_lock<boost::mutex> lock(ref_count_locker);
 #ifdef _DEBUG
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "LockedGetValue for &" << std::hex << (size_t)val << L" = " << std::dec << *val);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("LockedGetValue for &") << std::hex << (size_t)val << _T(" = ") << std::dec << *val);
 #endif // _DEBUG
     int res = (*val);
     return res;

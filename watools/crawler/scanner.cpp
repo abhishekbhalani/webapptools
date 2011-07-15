@@ -82,7 +82,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
             if (noLogging) {
                 cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false." << endl;
             } else {
-                LOG4CXX_WARN(scan_logger, "Can't parse '" << val << "' as bool: " << std::string(e.what()) << ". Assume false.");
+                LOG4CXX_WARN(scan_logger, _T("Can't parse '") << val << _T("' as bool: ") << std::string(e.what()) << _T(". Assume false."));
             }
         }
         if (i != 0) {
@@ -90,7 +90,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
         }
     }
     if (!noLogging) {
-        LOG4CXX_DEBUG(scan_logger, "get_bool_option(" << value << ") = " << retval);
+        LOG4CXX_DEBUG(scan_logger, _T("get_bool_option(") << value << _T(") = ") << retval);
     }
     return retval;
 }
@@ -111,7 +111,7 @@ inline bool is_any(const boost::any& op)
 void save_config(const string& fname, po::variables_map& vm, po::options_description& desc, bool noLogging = false )
 {
     if (!noLogging) {
-        LOG4CXX_INFO(scan_logger, "Save configuration to " << fname);
+        LOG4CXX_INFO(scan_logger, _T("Save configuration to ") << fname);
     }
 
     try {
@@ -122,7 +122,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
             string value = "";
             string name = opts[i]->long_name();
             if (!noLogging) {
-                LOG4CXX_DEBUG(scan_logger, "Save variable " << name);
+                LOG4CXX_DEBUG(scan_logger, _T("Save variable ") << name);
             }
             ofs << "#" << opts[i]->description() << endl;
             if (vm.count(name)) {
@@ -142,7 +142,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
                     if (noLogging) {
                         cerr << "Unknown variable type " << val.type().name() << endl;
                     } else {
-                        LOG4CXX_ERROR(scan_logger, "Unknown variable type " << std::string(val.type().name()));
+                        LOG4CXX_ERROR(scan_logger, _T("Unknown variable type ") << std::string(val.type().name()));
                     }
                 }
             } else {
@@ -154,12 +154,12 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
         if (noLogging) {
             cerr << "Configuration not saved: " << e.what() << endl;
         } else {
-            LOG4CXX_ERROR(scan_logger, "Configuration not saved: " << std::string(e.what()));
+            LOG4CXX_ERROR(scan_logger, _T("Configuration not saved: ") << std::string(e.what()));
         }
         return;
     }
     if (!noLogging) {
-        LOG4CXX_INFO(scan_logger, "Configuration saved successfully");
+        LOG4CXX_INFO(scan_logger, _T("Configuration saved successfully"));
     }
 }
 
@@ -366,9 +366,9 @@ int main(int argc, char* argv[])
         };
         traceLevel = true;
     }
-    LOG4CXX_INFO(scan_logger, "\n\n");
-    LOG4CXX_INFO(scan_logger, "WAT Crawler started. Version: " << scaner_version);
-    LOG4CXX_INFO(scan_logger, "Loaded configuration from " << vm["config"].as<string>());
+    LOG4CXX_INFO(scan_logger, _T("\n\n"));
+    LOG4CXX_INFO(scan_logger, _T("WAT Crawler started. Version: ") << scaner_version);
+    LOG4CXX_INFO(scan_logger, _T("Loaded configuration from ") << vm["config"].as<string>());
 
     // init webEngine library
     if (vm.count("trace")) {
@@ -387,7 +387,7 @@ int main(int argc, char* argv[])
     int iResult;
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != NO_ERROR) {
-        LOG4CXX_FATAL(scan_logger, "WSAStartup failed: " << iResult);
+        LOG4CXX_FATAL(scan_logger, _T("WSAStartup failed: ") << iResult);
         return 1;
     }
 #endif
@@ -396,7 +396,7 @@ int main(int argc, char* argv[])
         // run dispatcher
         dispatcher_routine(vm);
     } else {
-        LOG4CXX_FATAL(scan_logger, "Target not specified");
+        LOG4CXX_FATAL(scan_logger, _T("Target not specified"));
         cerr << "FATAL: Target not specified" << endl << endl;
         cout << cmd_line_vis << endl;
     }
@@ -404,6 +404,6 @@ int main(int argc, char* argv[])
     // cleanup
     webEngine::LibClose();
 
-    LOG4CXX_INFO(scan_logger, "WAT Crawler stopped");
+    LOG4CXX_INFO(scan_logger, _T("WAT Crawler stopped"));
     return 0;
 }

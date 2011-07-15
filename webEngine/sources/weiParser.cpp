@@ -276,9 +276,9 @@ i_parser::i_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
 
 i_plugin* i_parser::get_interface( const string& ifName )
 {
-    LOG4CXX_TRACE(logger, "i_parser::get_interface " << ifName);
+    LOG4CXX_TRACE(logger, _T("i_parser::get_interface ") << ifName);
     if (iequals(ifName, "i_parser")) {
-        LOG4CXX_DEBUG(logger, "i_parser::get_interface found!");
+        LOG4CXX_DEBUG(logger, _T("i_parser::get_interface found!"));
         usageCount++;
         return (this);
     }

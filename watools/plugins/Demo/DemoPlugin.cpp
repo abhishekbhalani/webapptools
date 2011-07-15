@@ -46,7 +46,7 @@ DemoPlugin::DemoPlugin( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     pluginInfo.interface_list.push_back("demoPlugin");
     pluginInfo.plugin_desc = "Demo plugin";
     pluginInfo.plugin_id = "2E6587B86F76";
-    pluginInfo.plugin_icon = WeXpmToStringList(demoPlugin_xpm, sizeof(demoPlugin_xpm) / sizeof(char*) );
+    pluginInfo.plugin_icon = WeXpmToStringList((const char **)demoPlugin_xpm, sizeof(demoPlugin_xpm) / sizeof(char*) );
 }
 
 DemoPlugin::~DemoPlugin(void)

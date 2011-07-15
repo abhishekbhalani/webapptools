@@ -35,7 +35,7 @@ Handle<Value> alert(const Arguments& args)
         }
         res += value_to_string(args[i]);
     }
-    LOG4CXX_INFO(webEngine::iLogger::GetLogger(), "js::alert: " << res);
+    LOG4CXX_INFO(webEngine::iLogger::GetLogger(), _T("js::alert: ") << res);
     return Undefined();
 }
 
@@ -125,12 +125,12 @@ Handle<Value> dump_object(const Arguments& args)
         webEngine::jsExecutor* jsExec = static_cast<webEngine::jsExecutor*>(wrap->Value());
         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::DumpObject: gets jsExecutor");
         if (args.Length() > 1) {
-            nm = value_to_string(*args[1]);
+            nm = value_to_string(args[1]);
         } else {
             nm = "";
         }
         if (args.Length() > 2) {
-            id = value_to_string(*args[2]);
+            id = value_to_string(args[2]);
         } else {
             id = "";
         }
@@ -141,20 +141,6 @@ Handle<Value> dump_object(const Arguments& args)
         }
         string dat = jsExec->obj_dump(args[0], nm, id, dp, ctx);
         res = String::New(dat.c_str());
-    }
-
-    return res;
-}
-
-Handle<Object> wrap_entity( html_entity_ptr objToWrap )
-{
-    Handle<Object> res;
-
-    string tagname = objToWrap->Name();
-    if (tagname == "form") {
-        res = wrap_object<jsForm>(new jsForm(objToWrap));
-    } else {
-        res = wrap_object<jsElement>(new jsElement(objToWrap));
     }
 
     return res;

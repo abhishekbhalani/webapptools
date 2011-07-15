@@ -72,15 +72,15 @@ void signal_halt(int sig)
     inLoop = false;
     //! todo: pause all tasks
     if (sig == 0) {
-        LOG4CXX_INFO(module_logger, "Received software request to exit");
+        LOG4CXX_INFO(module_logger, _T("Received software request to exit"));
     } else {
-        LOG4CXX_INFO(module_logger, "Signal received - exit reporter");
+        LOG4CXX_INFO(module_logger, _T("Signal received - exit reporter"));
     }
 }
 
 void send_keepalive(webEngine::i_storage* store, int timeout)
 {
-    LOG4CXX_TRACE(module_logger, "Send keep-alive signal");
+    LOG4CXX_TRACE(module_logger, _T("Send keep-alive signal"));
     keep_alive_packet[running_task] = boost::lexical_cast<string>(running_tasks_count);
 
     webEngine::db_condition c_instance, c_class, c_id;
@@ -110,7 +110,7 @@ void send_keepalive(webEngine::i_storage* store, int timeout)
 
 void send_sysinfo(webEngine::i_storage* store, int timeout)
 {
-    LOG4CXX_TRACE(module_logger, "Send system information");
+    LOG4CXX_TRACE(module_logger, _T("Send system information"));
     // not divide to instances - whole system information
 
     // save to DB1 information about plugins.
@@ -122,13 +122,13 @@ void send_sysinfo(webEngine::i_storage* store, int timeout)
 
     rec["modules_info.module_id"] = module_uuid;
     rec["modules_info.osname"] = sys_info_packet[os_name];
-    LOG4CXX_TRACE(module_logger, "Get memory information");
+    LOG4CXX_TRACE(module_logger, _T("Get memory information"));
     sys_info_packet[memory_size] = sys_meminfo();
     rec["modules_info.mem_size"] = sys_info_packet[memory_size];
-    LOG4CXX_TRACE(module_logger, "Get CPU information");
+    LOG4CXX_TRACE(module_logger, _T("Get CPU information"));
     sys_info_packet[cpu_usage] = sys_cpu();
     rec["modules_info.cpu_usage"] = sys_info_packet[cpu_usage];
-    LOG4CXX_TRACE(module_logger, "Get disk information");
+    LOG4CXX_TRACE(module_logger, _T("Get disk information"));
     sys_info_packet[disk_size] = sys_disk();
     rec["modules_info.disk_size"] = sys_info_packet[disk_size];
     sys_info_packet[max_tasks] = boost::lexical_cast<string>(max_tasks_count);
@@ -193,7 +193,7 @@ int dispatcher_routine(po::variables_map& vm)
 
     we_dispatcer = new webEngine::engine_dispatcher;
     if (we_dispatcer == NULL) {
-        LOG4CXX_FATAL(module_logger, "Can't create webEngine dispatcher - exit!");
+        LOG4CXX_FATAL(module_logger, _T("Can't create webEngine dispatcher - exit!"));
         return retcode;
     }
     // refresh plugins information
@@ -201,15 +201,15 @@ int dispatcher_routine(po::variables_map& vm)
     we_dispatcer->refresh_plugin_list(plg_path);
     webEngine::i_plugin* plg = we_dispatcer->load_plugin(vm["db_interface"].as<string>());
     if (plg == NULL) {
-        LOG4CXX_FATAL(module_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
+        LOG4CXX_FATAL(module_logger, _T("Can't load plug-in for Storage DB connection: ") << vm["db_interface"].as<string>());
         return retcode;
     }
-    LOG4CXX_INFO(module_logger, "Storage plugin loaded successfully: " << vm["db_interface"].as<string>());
-    LOG4CXX_DEBUG(module_logger, "Plugin ID=" << plg->get_id() << "; Description: " << plg->get_description());
+    LOG4CXX_INFO(module_logger, _T("Storage plugin loaded successfully: ") << vm["db_interface"].as<string>());
+    LOG4CXX_DEBUG(module_logger, _T("Plugin ID=") << plg->get_id() << _T("; Description: ") << plg->get_description());
     webEngine::i_storage* storage = (webEngine::i_storage*)plg->get_interface("i_storage");
     if (plg == NULL) {
-        LOG4CXX_FATAL(module_logger, "No i_storage interface in the plugin " << plg->get_id() << "(ID="  << plg->get_id() );
-        LOG4CXX_FATAL(module_logger, "Can't load plug-in for Storage DB connection: " << vm["db_interface"].as<string>());
+        LOG4CXX_FATAL(module_logger, _T("No i_storage interface in the plugin ") << plg->get_id() << _T("(ID=")  << plg->get_id() );
+        LOG4CXX_FATAL(module_logger, _T("Can't load plug-in for Storage DB connection: ") << vm["db_interface"].as<string>());
         return retcode;
     }
     string params = "";
@@ -218,7 +218,7 @@ int dispatcher_routine(po::variables_map& vm)
     }
     storage->init_storage(params);
     we_dispatcer->storage(storage);
-    LOG4CXX_INFO(module_logger, "Storage initialised");
+    LOG4CXX_INFO(module_logger, _T("Storage initialised"));
 
     // clear outdated records
     // verify instance id
@@ -235,11 +235,11 @@ int dispatcher_routine(po::variables_map& vm)
             reporter_instance = cur["modules.id"].get<int>();
         }
     }
-    LOG4CXX_TRACE(module_logger, "Found " << reporter_instance << " instances of " << module_uuid);
+    LOG4CXX_TRACE(module_logger, _T("Found ") << reporter_instance << _T(" instances of ") << module_uuid);
     reporter_instance++;
     int max_inst = vm["instances"].as<int>();
     if (reporter_instance > max_inst) {
-        LOG4CXX_FATAL(module_logger, "Can't run instance " << reporter_instance << " 'cause the limit is " << max_inst);
+        LOG4CXX_FATAL(module_logger, _T("Can't run instance ") << reporter_instance << _T(" 'cause the limit is ") << max_inst);
         return retcode;
     }
 
@@ -265,17 +265,17 @@ int dispatcher_routine(po::variables_map& vm)
                     if (keep_alive_packet[ip_addr].length() != 0 ) {
                         keep_alive_packet[ip_addr] += "; ";
                     }
-                    LOG4CXX_TRACE(module_logger, "Found ip addr: " << saddr);
+                    LOG4CXX_TRACE(module_logger, _T("Found ip addr: ") << saddr);
                     keep_alive_packet[ip_addr] += saddr;
                     break;
                 }
             }
         } else {
-            LOG4CXX_ERROR(module_logger, "gethostbyname failed");
+            LOG4CXX_ERROR(module_logger, _T("gethostbyname failed"));
             keep_alive_packet[ip_addr] = "<unknown>";
         }
     } else {
-        LOG4CXX_ERROR(module_logger, "gethostname failed");
+        LOG4CXX_ERROR(module_logger, _T("gethostname failed"));
         keep_alive_packet[ip_addr] = "<unknown>";
     }
 
@@ -284,7 +284,7 @@ int dispatcher_routine(po::variables_map& vm)
     keep_alive_packet[keepalive_timeout] = boost::lexical_cast<string>(keep_alive_timeout);
     keep_alive_packet[status] = "READY";
     keep_alive_packet[module_version] = reporter_version;
-    LOG4CXX_DEBUG(module_logger, "Register instance #" << reporter_instance);
+    LOG4CXX_DEBUG(module_logger, _T("Register instance #") << reporter_instance);
     send_keepalive(storage, keep_alive_timeout);
 
     sys_info_packet[os_name] = sys_uname();
@@ -314,7 +314,7 @@ int dispatcher_routine(po::variables_map& vm)
         int pos;
         cmd = get_command(storage);
         while (cmd != "") {
-            LOG4CXX_INFO(module_logger, "DEBUG: Process command: " << cmd);
+            LOG4CXX_INFO(module_logger, _T("DEBUG: Process command: ") << cmd);
             // separate command from arguments
             pos = cmd.find(' ');
             if (pos == string::npos) {
@@ -336,7 +336,7 @@ int dispatcher_routine(po::variables_map& vm)
             } else if (cmd == "RESTART") {
                 // need to exit this copy and run new instance
                 signal_halt(0);
-                LOG4CXX_INFO(module_logger, "Restart request recieved");
+                LOG4CXX_INFO(module_logger, _T("Restart request recieved"));
                 retcode = 1; // restart need
                 break;
             } else if (cmd == "") {

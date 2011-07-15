@@ -28,9 +28,9 @@ audit_comment::~audit_comment(void)
 
 i_plugin* audit_comment::get_interface( const string& ifName )
 {
-    LOG4CXX_TRACE(logger, "audit_comment::get_interface " << ifName);
+    LOG4CXX_TRACE(logger, _T("audit_comment::get_interface ") << ifName);
     if (iequals(ifName, "audit_comment")) {
-        LOG4CXX_DEBUG(logger, "audit_comment::get_interface found!");
+        LOG4CXX_DEBUG(logger, _T("audit_comment::get_interface found!"));
         usageCount++;
         return (this);
     }
@@ -44,7 +44,7 @@ const string audit_comment::get_setup_ui( void )
 
 void audit_comment::process( task* tsk, shared_ptr<ScanData> scData )
 {
-    LOG4CXX_TRACE(logger, "audit_comment::process");
+    LOG4CXX_TRACE(logger, _T("audit_comment::process"));
     entity_list lst;
     transport_url baseUrl;
     string text;
@@ -79,7 +79,7 @@ void audit_comment::process( task* tsk, shared_ptr<ScanData> scData )
         break;
     default:
         ctype_process = false;
-        LOG4CXX_WARN(logger, "audit_comment::init: unknown content-type analyze method = " << ctype_method);
+        LOG4CXX_WARN(logger, _T("audit_comment::init: unknown content-type analyze method = ") << ctype_method);
         break;
     }
     if (ctype_process) {
@@ -112,14 +112,14 @@ void audit_comment::process( task* tsk, shared_ptr<ScanData> scData )
 
     } // if need to process
     else {
-        LOG4CXX_DEBUG(logger, "audit_comment: skip processing content-type = " << cType);
+        LOG4CXX_DEBUG(logger, _T("audit_comment: skip processing content-type = ") << cType);
     }
     return;
 }
 
 void audit_comment::process_response( i_response_ptr resp )
 {
-    LOG4CXX_TRACE(logger, "audit_comment::process_response");
+    LOG4CXX_TRACE(logger, _T("audit_comment::process_response"));
     return;
 }
 
@@ -134,10 +134,10 @@ void audit_comment::add_url( transport_url link, transport_url *base_url, shared
         // fill required field in the fake response
         fake.RealUrl(sc->object_url);
         fake.depth(sc->scan_depth);
-        LOG4CXX_TRACE(logger, "audit_comment::add_url - fall into the http_inventory::add_url");
+        LOG4CXX_TRACE(logger, _T("audit_comment::add_url - fall into the http_inventory::add_url"));
         inv->add_url(link, &fake, sc);
     } else {
-        LOG4CXX_ERROR(logger, "audit_comment::add_url can't find http_inventory plugin, can't add url " << link.tostring());
+        LOG4CXX_ERROR(logger, _T("audit_comment::add_url can't find http_inventory plugin, can't add url ") << link.tostring());
     }
 }
 
@@ -155,7 +155,7 @@ void audit_comment::extract_links( string text, webEngine::transport_url *base_u
 
     while(regex_search(strt, end, mres, re1, flags)) {
         string tres = mres[2];
-        LOG4CXX_DEBUG(logger, "audit_comment::extract_links: found url=" << tres);
+        LOG4CXX_DEBUG(logger, _T("audit_comment::extract_links: found url=") << tres);
         lurl.assign_with_referer(tres, base_url);
         add_url(lurl, base_url, scData);
 
@@ -175,7 +175,7 @@ void audit_comment::extract_links( string text, webEngine::transport_url *base_u
 
     while(regex_search(strt, end, mres, re2, flags)) {
         string tres = mres[2];
-        LOG4CXX_DEBUG(logger, "audit_comment::extract_links: found <a...> url=" << tres);
+        LOG4CXX_DEBUG(logger, _T("audit_comment::extract_links: found <a...> url=") << tres);
         lurl.assign_with_referer(tres, base_url);
         add_url(lurl, base_url, scData);
 
@@ -215,7 +215,7 @@ void audit_comment::init( task* tsk )
     // check data type
     opt = parent_task->Option(weoAllowedCTypes);
     SAFE_GET_OPTION_VAL(opt, ctype_method, 0); // default - any type
-    LOG4CXX_TRACE(logger, "audit_comment::init: content-type analyze method = " << ctype_method);
+    LOG4CXX_TRACE(logger, _T("audit_comment::init: content-type analyze method = ") << ctype_method);
     // processing options
     opt_in_host = parent_task->IsSet(weoStayInHost);
     opt_in_domain = parent_task->IsSet(weoStayInDomain);

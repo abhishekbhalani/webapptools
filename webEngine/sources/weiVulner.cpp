@@ -40,7 +40,7 @@ i_vulner::~i_vulner(void)
 void i_vulner::response_dispatcher( i_response_ptr resp, void* context )
 {
     i_vulner* object = (i_vulner*)context;
-    LOG4CXX_TRACE(object->logger, "i_audit::response_dispatcher");
+    LOG4CXX_TRACE(object->logger, _T("i_audit::response_dispatcher"));
     object->process_response(resp);
 }
 

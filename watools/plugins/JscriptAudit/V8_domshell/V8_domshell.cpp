@@ -56,7 +56,7 @@ v8::Handle<v8::Value> GetAnyObject(v8::Local<v8::String> name, const v8::Accesso
     //     {
     //         v8::String::AsciiValue prop(name);
     //         v8::String::AsciiValue self(info.This()->ToString());
-    //         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::BrowserGet: self("<< *self <<"), property("<< *prop<<")");
+    //         LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("js::BrowserGet: self(")<< *self <<_T("), property(")<< *prop<<_T(")"));
     //     }
     v8::HandleScope scope;
 
@@ -84,12 +84,12 @@ int RunMain(int argc, char* argv[])
     we_dispatcer.refresh_plugin_list(plg_path);
     i_plugin* plg = we_dispatcer.load_plugin("soci_storage");
     if (plg == NULL) {
-        LOG4CXX_FATAL(iLogger::GetLogger(), "Can't load plug-in for Storage DB connection: soci_storage");
+        LOG4CXX_FATAL(iLogger::GetLogger(), _T("Can't load plug-in for Storage DB connection: soci_storage"));
         return 0;
     }
     i_storage* storage = (i_storage*)plg->get_interface("i_storage");
     if (plg == NULL) {
-        LOG4CXX_FATAL(iLogger::GetLogger(), "No iStorage interface in the plugin " << plg->get_id() << "(ID="  << plg->get_id() );
+        LOG4CXX_FATAL(iLogger::GetLogger(), _T("No iStorage interface in the plugin ") << plg->get_id() << _T("(ID=")  << plg->get_id() );
         return 0;
     }
 	string params = "sqlite3://v8_domshell.sqlite";

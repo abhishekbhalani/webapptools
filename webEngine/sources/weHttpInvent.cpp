@@ -84,9 +84,9 @@ http_inventory::~http_inventory(void)
 
 i_plugin* http_inventory::get_interface( const string& ifName )
 {
-    LOG4CXX_TRACE(logger, "http_inventory::get_interface " << ifName);
+    LOG4CXX_TRACE(logger, _T("http_inventory::get_interface ") << ifName);
     if (iequals(ifName, "httpInventory")) {
-        LOG4CXX_DEBUG(logger, "http_inventory::get_interface found!");
+        LOG4CXX_DEBUG(logger, _T("http_inventory::get_interface found!"));
         usageCount++;
         return (this);
     }
@@ -188,7 +188,7 @@ void http_inventory::init( task* tsk )
                 start_url.port = 80;
                 start_url.host = host;
                 start_url.assign_with_referer(path);
-                LOG4CXX_INFO(logger, "http_inventory::init: init scanning from: " << host << " ==> " << start_url.tostring());
+                LOG4CXX_INFO(logger, _T("http_inventory::init: init scanning from: ") << host << _T(" ==> ") << start_url.tostring());
                 // get ignore urls list
                 opt = parent_task->Option(weoIgnoreUrlList);
                 SAFE_GET_OPTION_VAL(opt, url_list, "");
@@ -210,19 +210,19 @@ void http_inventory::init( task* tsk )
                     req->SetAuth((opt_auth_methods & ~CURLAUTH_FORMS), opt_auth_username, opt_auth_password);
                 }
 
-                LOG4CXX_TRACE(logger, "http_inventory::init: init request = " << req->RequestUrl().tostring());
+                LOG4CXX_TRACE(logger, _T("http_inventory::init: init request = ") << req->RequestUrl().tostring());
 //                req->processor = http_inventory::response_dispatcher;
 //                req->context = (void*)this;
                 parent_task->register_url(start_url.tostring());
                 parent_task->get_request_async(i_request_ptr(req));
             } else {
-                LOG4CXX_WARN(logger, "http_inventory::init: Can't find hostname. Finishing.");
+                LOG4CXX_WARN(logger, _T("http_inventory::init: Can't find hostname. Finishing."));
             }
         } else {
-            LOG4CXX_WARN(logger, "http_inventory::init: No kernel given - can't read options. Finishing.");
+            LOG4CXX_WARN(logger, _T("http_inventory::init: No kernel given - can't read options. Finishing."));
         }
     } else {
-        LOG4CXX_WARN(logger, "http_inventory::init: No parent task - can't process requests. Finishing.");
+        LOG4CXX_WARN(logger, _T("http_inventory::init: No parent task - can't process requests. Finishing."));
     }
 }
 
@@ -233,15 +233,15 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
     try {
         htResp = reinterpret_cast<HttpResponse*>(scData->response.get());
     } catch (...) {
-        LOG4CXX_ERROR(logger, "http_inventory::process: The response from " << scData->response->BaseUrl().tostring() << " isn't the HttpResponse!");
+        LOG4CXX_ERROR(logger, _T("http_inventory::process: The response from ") << scData->response->BaseUrl().tostring() << _T(" isn't the HttpResponse!"));
         return;
     }
     if (htResp == NULL) {
-        LOG4CXX_TRACE(logger, "http_inventory::process: subsequent processing, or transport fail - no responce given.");
+        LOG4CXX_TRACE(logger, _T("http_inventory::process: subsequent processing, or transport fail - no responce given."));
         return;
     }
     // process response
-    LOG4CXX_TRACE(logger, "http_inventory::process: process response with code=" << htResp->HttpCode());
+    LOG4CXX_TRACE(logger, _T("http_inventory::process: process response with code=") << htResp->HttpCode());
     if (scData->parent_id == "") {
         scData->parent_id = htResp->ID();
     }
@@ -254,29 +254,29 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
     /// @todo process options
     if (htResp->HttpCode() >= 300 && htResp->HttpCode() < 400) {
         // redirections
-        LOG4CXX_TRACE(logger, "http_inventory::process: process redirect");
+        LOG4CXX_TRACE(logger, _T("http_inventory::process: process redirect"));
         string url = htResp->Headers().find_first("Location");
         if (!url.empty()) {
-            LOG4CXX_DEBUG(iLogger::GetLogger(), "http_inventory::process: redirected to " << url);
+            LOG4CXX_DEBUG(iLogger::GetLogger(), _T("http_inventory::process: redirected to ") << url);
             bool to_process = true;
             transport_url baseUrl = htResp->BaseUrl();
             baseUrl.assign_with_referer(url);
-            LOG4CXX_DEBUG(logger, "http_inventory::process: reconstructed url is " << baseUrl.tostring());
+            LOG4CXX_DEBUG(logger, _T("http_inventory::process: reconstructed url is ") << baseUrl.tostring());
             add_url(baseUrl, htResp, scData);
         }
     }
     if ((htResp->HttpCode() > 0 && htResp->HttpCode() < 300) || htResp->Data().size() > 0) {
-        shared_ptr<html_document> parser;
+        boost::shared_ptr<html_document> parser;
         entity_list lst;
 
         try {
             parser = boost::shared_dynamic_cast<html_document>(scData->parsed_data);
         } catch (bad_cast) {
-            LOG4CXX_ERROR(logger, "http_inventory::process: can't process given document as html_document");
+            LOG4CXX_ERROR(logger, _T("http_inventory::process: can't process given document as html_document"));
             parser.reset();
         }
         if (parser) {
-            LOG4CXX_DEBUG(logger, "http_inventory::process: search for links");
+            LOG4CXX_DEBUG(logger, _T("http_inventory::process: search for links"));
             lst = parser->FindTags("a");
             if (lst.size() > 0) {
                 base_entity* ent = NULL;
@@ -287,7 +287,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
-                        LOG4CXX_TRACE(logger, "http_inventory::process: <a href...> tag. url=" << link.tostring());
+                        LOG4CXX_TRACE(logger, _T("http_inventory::process: <a href...> tag. url=") << link.tostring());
                         add_url(link, htResp, scData);
                     } // end href attribute
                 } // end <a ...> loop
@@ -308,7 +308,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
-                        LOG4CXX_DEBUG(logger, "http_inventory::process: IMG url = " << link.tostring());
+                        LOG4CXX_DEBUG(logger, _T("http_inventory::process: IMG url = ") << link.tostring());
                         add_url(link, htResp, scData);
                     } // end src attribute
                 } // end <img ...> loop
@@ -325,7 +325,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
-                        LOG4CXX_DEBUG(logger, "http_inventory::process: FRAME url = " << link.tostring());
+                        LOG4CXX_DEBUG(logger, _T("http_inventory::process: FRAME url = ") << link.tostring());
                         add_url(link, htResp, scData);
                     } // end src attribute
                 } // end <iframe ...> loop
@@ -342,7 +342,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
                     if (href != "") {
                         transport_url link;
                         link.assign_with_referer(href, &(htResp->RealUrl()));
-                        LOG4CXX_DEBUG(logger, "http_inventory::process: IFRAME url = " << link.tostring());
+                        LOG4CXX_DEBUG(logger, _T("http_inventory::process: IFRAME url = ") << link.tostring());
                         add_url(link, htResp, scData);
                     } // end src attribute
                 } // end <iframe ...> loop
@@ -368,7 +368,7 @@ void http_inventory::process( task* tsk, scan_data_ptr scData )
                                 href = href.substr(np+4);
                             }
                             link.assign_with_referer(href, &(htResp->RealUrl()));
-                            LOG4CXX_DEBUG(logger, "http_inventory::process: META url = " << link.tostring());
+                            LOG4CXX_DEBUG(logger, _T("http_inventory::process: META url = ") << link.tostring());
                             add_url(link, htResp, scData);
                         }
                     } // end http-equiv attribute
@@ -390,13 +390,13 @@ void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::s
         if (!link.is_host_equal(htResp->RealUrl())) {
             allowed = false;
         }
-        LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInHost check " << allowed << " (" << link.tostring() << ")");
+        LOG4CXX_TRACE(logger, _T("http_inventory::add_url: weoStayInHost check ") << allowed << _T(" (") << link.tostring() << _T(")"));
     }
     if (opt_in_domain) {
         if (!link.is_domain_equal(htResp->RealUrl())) {
             allowed = false;
         }
-        LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInDomain check << " << allowed << " (" << link.tostring() << ")");
+        LOG4CXX_TRACE(logger, _T("http_inventory::add_url: weoStayInDomain check << ") << allowed << _T(" (") << link.tostring() << _T(")"));
     }
     if (opt_in_dlist) {
         allowed = false;
@@ -411,14 +411,14 @@ void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::s
             }
             if (iequals(host, doms)) {
                 allowed = true;
-                LOG4CXX_DEBUG(logger, "http_inventory::add_url: found allowed domain " << domain_allow[i]);
+                LOG4CXX_DEBUG(logger, _T("http_inventory::add_url: found allowed domain ") << domain_allow[i]);
                 break;
             }
         } // foreach domain
-        LOG4CXX_TRACE(logger, "http_inventory::add_url: weoStayInDomainList check << " << allowed << " (" << link.tostring() << ")");
+        LOG4CXX_TRACE(logger, _T("http_inventory::add_url: weoStayInDomainList check << ") << allowed << _T(" (") << link.tostring() << _T(")"));
     } // if filter by domain list
     if ( opt_max_depth > 0 && htResp->depth() >= opt_max_depth) {
-        LOG4CXX_DEBUG(logger, "http_inventory::add_url: maximum scanning depth reached! (" << opt_max_depth << ")");
+        LOG4CXX_DEBUG(logger, _T("http_inventory::add_url: maximum scanning depth reached! (") << opt_max_depth << _T(")"));
         allowed = false;
     }
     if (allowed) {
@@ -427,13 +427,13 @@ void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::s
         int pos = path.find_last_of('.');
         if (pos != string::npos && ext_deny.size() > 0) {
             path = path.substr(pos+1);
-            LOG4CXX_TRACE(logger, "http_inventory::add_url: Found extension: " << path << "; Deny list size is " << ext_deny.size());
+            LOG4CXX_TRACE(logger, _T("http_inventory::add_url: Found extension: ") << path << _T("; Deny list size is ") << ext_deny.size());
             for (size_t i = 0; i < ext_deny.size(); i++) {
                 if (path == ext_deny[i]) {
                     allowed = false;
-                    LOG4CXX_DEBUG(logger, "http_inventory::add_http_url: not need to download " << link.tostring());
+                    LOG4CXX_DEBUG(logger, _T("http_inventory::add_http_url: not need to download ") << link.tostring());
                     // make the pseudo-response
-                    shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
+                    boost::shared_ptr<ScanData> scn = parent_task->get_scan_data(link.tostring());
                     if (scn->data_id == "") {
                         scn->data_id = kernel->storage()->generate_id(weObjTypeScan);
                         scn->parent_id = scData->data_id;
@@ -455,7 +455,7 @@ void http_inventory::add_url( transport_url link, HttpResponse *htResp, boost::s
         if (opt_ignore_param) {
             u_req = link.tostring_noparam();
         }
-        LOG4CXX_TRACE(logger, "http_inventory::add_http_url: weoIgnoreUrlParam check << " << u_req);
+        LOG4CXX_TRACE(logger, _T("http_inventory::add_http_url: weoIgnoreUrlParam check << ") << u_req);
         if (!parent_task->is_url_processed(u_req)) {
             HttpRequest* new_url = new HttpRequest(u_req);
             new_url->depth(htResp->depth() + 1);

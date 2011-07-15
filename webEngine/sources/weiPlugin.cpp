@@ -91,7 +91,7 @@ void i_plugin::release()
 {
     if (usageCount == 0) {
         if (libHandle != NULL) {
-            LOG4CXX_TRACE(iLogger::GetLogger(), "i_plugin::release: (" << pluginInfo.plugin_id << ") free the shared library");
+            LOG4CXX_TRACE(iLogger::GetLogger(), _T("i_plugin::release: (") << pluginInfo.plugin_id << _T(") free the shared library"));
             delete ((dyn::shared_object*)libHandle);
         }
         delete this;

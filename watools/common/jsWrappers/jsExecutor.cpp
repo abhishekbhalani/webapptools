@@ -91,7 +91,7 @@ bool jsExecutor::execute_string(const string& src, const string& nm, bool print_
                 // If all went well and the result wasn't undefined then print
                 // the returned value.
                 string cstr = value_to_string(Local<Value>::New(result));
-                LOG4CXX_TRACE(iLogger::GetLogger(), "JS result: " << cstr);
+                LOG4CXX_TRACE(iLogger::GetLogger(), _T("JS result: ") << cstr);
             }
             return true;
         }
@@ -107,16 +107,16 @@ void jsExecutor::report_exception(TryCatch* try_catch)
     if (message.IsEmpty()) {
         // V8 didn't provide any extra information about this error; just
         // print the exception.
-        LOG4CXX_ERROR(iLogger::GetLogger(), "JS exception: " << exception_string);
+        LOG4CXX_ERROR(iLogger::GetLogger(), _T("JS exception: ") << exception_string);
     } else {
         // print (filename):(line number): (message).
         string filename_string = value_to_string(Local<Value>::New(message->GetScriptResourceName()));
         int linenum = message->GetLineNumber();
-        LOG4CXX_ERROR(iLogger::GetLogger(), "JS exception: " << filename_string << ":" <<
-                      linenum << ": " << exception_string);
+        LOG4CXX_ERROR(iLogger::GetLogger(), _T("JS exception: ") << filename_string << _T(":") <<
+                      linenum << L": " << exception_string);
         // print line of source code.
         string sourceline_string = value_to_string(Local<Value>::New(message->GetSourceLine()));
-        LOG4CXX_ERROR(iLogger::GetLogger(), "JS >>>\t" << sourceline_string);
+        LOG4CXX_ERROR(iLogger::GetLogger(), _T("JS >>>\t") << sourceline_string);
         // print wavy underline (GetUnderline is deprecated).
         //int start = message->GetStartColumn();
         //for (int i = 0; i < start; i++) {
@@ -245,7 +245,7 @@ i_response_ptr jsExecutor::http_request(i_request_ptr req)
     i_response_ptr retval;
     HttpRequest* ptr = (HttpRequest*)req.get();
 
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsExecutor::http_request URL=" << ptr->RequestUrl().tostring() << " METHOD=" << ptr->Method());
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("jsExecutor::http_request URL=") << ptr->RequestUrl().tostring() << _T(" METHOD=") << (int)ptr->Method());
     if(net_access != NULL) {
         retval = net_access->get_request(req);
     } else {
@@ -269,7 +269,7 @@ bool jsExecutor::http_request_async(i_request_ptr req)
     bool retval = false;
     HttpRequest* ptr = (HttpRequest*)req.get();
 
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsExecutor::http_request_async URL=" << ptr->RequestUrl().tostring() << " METHOD=" << ptr->Method());
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("jsExecutor::http_request_async URL=") << ptr->RequestUrl().tostring() << _T(" METHOD=") << (int)ptr->Method());
     if(net_access != NULL) {
         net_access->get_request_async(req);
         retval = false;
@@ -306,7 +306,7 @@ void jsExecutor::init_globals()
         _proto->SetInternalFieldCount(1);
         object_template = Persistent<FunctionTemplate>::New(_object);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "jsExecutor: objectTemplate initialized");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("jsExecutor: objectTemplate initialized"));
 }
 
 string jsExecutor::dump_results()

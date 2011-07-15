@@ -20,7 +20,7 @@ v8_wrapper::iterator_dfs::iterator_dfs()
 void v8_wrapper::iterator_dfs::increment()
 {
 #ifdef _DEBUG
-    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"iterator_dfs: " << current_level() << (*m_it)->get_dump());
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("iterator_dfs: ") << current_level() << (*m_it)->get_dump());
 #endif
     if(!m_end) {
         if( !(*m_it)->m_child_list.empty() ) {
@@ -278,7 +278,7 @@ v8_wrapper::tree_node_ptr v8_wrapper::wrap_dom(const webEngine::html_entity_ptr&
     } else
         root = parent;
 
-    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8_wrapper::wrap_dom root 0x" << std::hex << (size_t)root.get() << L" starts with '" << dom->Name() << L"'" );
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8_wrapper::wrap_dom root 0x") << std::hex << (size_t)root.get() << _T(" starts with '") << dom->Name() << _T("'") );
 
     v8_wrapper::tree_node_ptr tree_node(root);
     webEngine::html_entity_ptr current_level = dom;
@@ -511,7 +511,7 @@ void v8_wrapper::CustomAttribute<js_html2_HTMLElement, 7 /*innerHTML*/>::static_
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     v8_wrapper::tree_node* node_ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
     js_html2_HTMLElement* ptr = dynamic_cast<js_html2_HTMLElement*>(node_ptr);
-    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" setter " __FUNCTIONW__ );
+	LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8 JavaScript binded call 0x") << std::hex << (size_t)ptr << _T(" setter ") << std::string(__FUNCTION__));
 
     webEngine::html_entity_ptr wrapped(new webEngine::html_entity());
     wrapped->Parse("", webEngine::tag_scanner(webEngine::str_tag_stream(v8_wrapper::Get<html2::DOMString>(value).c_str())));
@@ -539,7 +539,7 @@ v8::Handle<v8::Value> v8_wrapper::CustomAttribute<js_dom_Node, 6 /*firstChild*/>
     Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
     v8_wrapper::tree_node* node_ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
     js_html2_HTMLElement* ptr = dynamic_cast<js_html2_HTMLElement*>(node_ptr);
-    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" getter " __FUNCTIONW__ );
+	LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8 JavaScript binded call 0x") << std::hex << (size_t)ptr << _T(" getter ") << std::string(__FUNCTION__));
 
     v8::Handle<v8::Value> result;
     if(!node_ptr->m_child_list.empty())

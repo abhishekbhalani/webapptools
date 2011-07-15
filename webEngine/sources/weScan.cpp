@@ -50,16 +50,16 @@ ScanInfo::~ScanInfo()
     scan_data.clear();
 }
 
-shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )
+boost::shared_ptr<ScanData> ScanInfo::GetScanData( const string& object_url )
 {
-    shared_ptr<ScanData> retval;
+    boost::shared_ptr<ScanData> retval;
     ScanInfo::iterator mit = scan_data.find(object_url);
 
     if (mit != scan_data.end()) {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::GetScanData - found existing ScanData");
+        LOG4CXX_DEBUG(iLogger::GetLogger(), _T("WeTask::GetScanData - found existing ScanData"));
         retval = mit->second;
     } else {
-        LOG4CXX_DEBUG(iLogger::GetLogger(), "WeTask::GetScanData new ScanData");
+        LOG4CXX_DEBUG(iLogger::GetLogger(), _T("WeTask::GetScanData new ScanData"));
         retval.reset(new ScanData);
         retval->resp_code = 0;
         retval->download_time = -1;
@@ -125,7 +125,7 @@ bool ScanData::to_dataset( db_record& dataset )
         dataset[weObjTypeScanData "." "content_type"] = content_type;
     } catch (std::exception &e) {
         // may be out_of_range or bad_cast
-		LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::to_dataset exception: " << std::string(e.what()));
+		LOG4CXX_ERROR(iLogger::GetLogger(), _T("ScanData::to_dataset exception: ") << std::string(e.what()));
         retval = false;
     }
     return retval;
@@ -171,7 +171,7 @@ bool ScanData::from_dataset( const db_record& dataset )
         content_type = dataset[weObjTypeScanData "." "content_type"].get<string>();
     } catch (std::exception &e) {
         // may be out_of_range or bad_cast
-        LOG4CXX_ERROR(iLogger::GetLogger(), "ScanData::from_dataset exception at " << id <<L": " << std::string(e.what()));
+        LOG4CXX_ERROR(iLogger::GetLogger(), _T("ScanData::from_dataset exception at ") << id <<_T(": ") << std::string(e.what()));
         retval = false;
     }
     return retval;

@@ -11,7 +11,7 @@ macro(we_add_plugin PLUGIN_NAME)
   set_target_properties(${PLUGIN_NAME} PROPERTIES PREFIX "" SUFFIX ".plg")
 
   if(WIN32)
-    target_link_libraries(${PLUGIN_NAME} webEngine log4cxx_additions
+    target_link_libraries(${PLUGIN_NAME} webEngine 
       optimized ${LOG4CXX_LIB_RELEASE} debug ${LOG4CXX_LIB_DEBUG} 
     )
     set_target_properties(${PLUGIN_NAME} PROPERTIES 
@@ -25,7 +25,6 @@ add_subdirectory(../common/jsWrappers jsWrappers)
 add_subdirectory(WoT)
 add_subdirectory(JscriptAudit)
 add_subdirectory(Soci)
-#add_subdirectory(Python)
 
 if(BUILD_EXAMPLES)
   add_subdirectory(Demo)

@@ -86,7 +86,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     WeError(string const& msg)
         :	runtime_error(string("WebEngine error") + (msg.empty() ? "" : ": ") + msg) {
-        LOG4CXX_ERROR(iLogger::GetLogger(), "WebEngine error" << (msg.empty() ? "" : ": ") << msg )
+        LOG4CXX_ERROR(iLogger::GetLogger(), _T("WebEngine error") << (msg.empty() ? _T("") : _T(": ")) << msg )
     }
 };
 

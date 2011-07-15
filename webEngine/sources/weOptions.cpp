@@ -59,7 +59,7 @@ we_option options_provider::Option( const string& name )
 {
     wOptions::iterator it;
 
-    //LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::Option(" << name << ")");
+    //LOG4CXX_TRACE(iLogger::GetLogger(), _T("options_provider::Option(") << name << _T(")"));
     it = options.find(name);
     if (it != options.end()) {
         return (it->second);
@@ -71,7 +71,7 @@ void options_provider::Option( const string& name, we_variant val )
 {
     wOptions::iterator it;
 
-    //LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::Option(" << name << ") set value=" << val);
+    //LOG4CXX_TRACE(iLogger::GetLogger(), _T("options_provider::Option(") << name << _T(") set value=") << val);
     it = options.find(name);
     if (it != options.end()) {
         it->second.SetValue(val);
@@ -105,7 +105,7 @@ bool options_provider::IsSet( const string& name )
             retval = false;
         }
     }
-    //LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::IsSet(" << name << ") value=" << retval);
+    //LOG4CXX_TRACE(iLogger::GetLogger(), _T("options_provider::IsSet(") << name << _T(") value=") << retval);
     return retval;
 }
 
@@ -154,7 +154,7 @@ std::string options_provider::ToXml( void )
         try {
             strData = boost::lexical_cast<string>(it->second.Value());
         } catch (bad_cast &e) {
-			LOG4CXX_ERROR(iLogger::GetLogger(), "options_provider::ToXml exception - " << std::string(e.what()));
+			LOG4CXX_ERROR(iLogger::GetLogger(), _T("options_provider::ToXml exception - ") << std::string(e.what()));
             strData = "";
         }
         optCount++;
@@ -184,7 +184,7 @@ void options_provider::FromXml( string input )
     str_tag_stream st(input.c_str());
     tag_scanner sc(st);
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::FromXml - string");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("options_provider::FromXml - string"));
     FromXml(sc);
 }
 
@@ -214,18 +214,18 @@ void options_provider::FromXml( tag_scanner& sc, int token /*= -1*/ )
     double doubleData;
     boost::blank empt;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::FromXml - tag_scanner");
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("options_provider::FromXml - tag_scanner"));
     while (inParsing) {
         if (token == -1) {
             token = sc.get_token();
         }
         switch(token) {
         case wstError:
-            LOG4CXX_WARN(iLogger::GetLogger(), "options_provider::FromXml parsing error");
+            LOG4CXX_WARN(iLogger::GetLogger(), _T("options_provider::FromXml parsing error"));
             inParsing = false;
             break;
         case wstEof:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::FromXml - EOF");
+            LOG4CXX_TRACE(iLogger::GetLogger(), _T("options_provider::FromXml - EOF"));
             inParsing = false;
             break;
         case wstTagStart:
@@ -240,7 +240,7 @@ void options_provider::FromXml( tag_scanner& sc, int token /*= -1*/ )
                     parseLevel = 1;
                     dat = "";
                 } else {
-                    LOG4CXX_WARN(iLogger::GetLogger(), "options_provider::FromXml unexpected tagStart: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), _T("options_provider::FromXml unexpected tagStart: ") << name);
                     inParsing = false;
                 }
             } else {
@@ -250,7 +250,7 @@ void options_provider::FromXml( tag_scanner& sc, int token /*= -1*/ )
                     optName = "";
                     optType = -1;
                 } else {
-                    LOG4CXX_WARN(iLogger::GetLogger(), "options_provider::FromXml unexpected tagStart: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), _T("options_provider::FromXml unexpected tagStart: ") << name);
                     inParsing = false;
                 }
             }
@@ -271,15 +271,15 @@ void options_provider::FromXml( tag_scanner& sc, int token /*= -1*/ )
                     // so - stop parsing now
                     inParsing = false;
                 } else {
-                    LOG4CXX_WARN(iLogger::GetLogger(), "options_provider::FromXml unexpected tagEnd: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), _T("options_provider::FromXml unexpected tagEnd: ") << name);
                     inParsing = false;
                 }
             } else {
                 if (iequals(name, "option")) {
                     // save option
                     dat = UnscreenXML(dat);
-                    LOG4CXX_TRACE(iLogger::GetLogger(), "options_provider::FromXml save option "
-                                  << optName << "(" << optType << ") = " << dat);
+                    LOG4CXX_TRACE(iLogger::GetLogger(), _T("options_provider::FromXml save option ")
+                                  << optName << _T("(") << optType << _T(") = ") << dat);
                     switch(optType) {
                     case 0:
                         chData = boost::lexical_cast<char>(dat);
@@ -306,7 +306,7 @@ void options_provider::FromXml( tag_scanner& sc, int token /*= -1*/ )
                     }
                     parseLevel = 1;
                 } else {
-                    LOG4CXX_WARN(iLogger::GetLogger(), "options_provider::FromXml unexpected tagEnd: " << name);
+                    LOG4CXX_WARN(iLogger::GetLogger(), _T("options_provider::FromXml unexpected tagEnd: ") << name);
                     inParsing = false;
                 }
             }

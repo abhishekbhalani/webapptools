@@ -42,9 +42,9 @@ i_inventory::~i_inventory(void)
 
 i_plugin* i_inventory::get_interface( const string& ifName )
 {
-    LOG4CXX_TRACE(logger, "i_inventory::get_interface " << ifName);
+    LOG4CXX_TRACE(logger, _T("i_inventory::get_interface ") << ifName);
     if (iequals(ifName, "i_inventory")) {
-        LOG4CXX_DEBUG(logger, "i_inventory::get_interface found!");
+        LOG4CXX_DEBUG(logger, _T("i_inventory::get_interface found!"));
         usageCount++;
         return (this);
     }
@@ -54,13 +54,13 @@ i_plugin* i_inventory::get_interface( const string& ifName )
 void i_inventory::response_dispatcher(boost::shared_ptr<i_response> resp, void* context )
 {
     i_inventory* object = (i_inventory*)context;
-    LOG4CXX_ERROR(object->logger, "i_inventory::response_dispatcher: direct processing not implemented! Logical error!");
+    LOG4CXX_ERROR(object->logger, _T("i_inventory::response_dispatcher: direct processing not implemented! Logical error!"));
 //     if (object->process) {
 //        object->process(resp);
 //     }
 //     else
 //     {
-//         LOG4CXX_ERROR(object->logger, "i_inventory::response_dispatcher: invalid context, or abstract class - process == NULL");
+//         LOG4CXX_ERROR(object->logger, _T("i_inventory::response_dispatcher: invalid context, or abstract class - process == NULL"));
 //     }
 }
 
