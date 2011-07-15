@@ -31,10 +31,16 @@ if(WIN32)
   include_directories("${EXT_TOOLS}/include/soci")
 
 ### LOG4CXX ###
-  file(GLOB log4cxx_additions_sources "${EXT_TOOLS}/include/log4cxx/*.cpp")
-  add_library(log4cxx_additions STATIC ${log4cxx_additions_sources})
   find_library(LOG4CXX_LIB_DEBUG NAMES log4cxx PATHS "${EXT_LIBS_DEBUG}" "${EXT_LIBS_DEBUG}/log4cxx")
   find_library(LOG4CXX_LIB_RELEASE NAMES log4cxx PATHS "${EXT_LIBS_RELEASE}" "${EXT_LIBS_RELEASE}/log4cxx")
+  file(GLOB log4cxx_additions_sources "${EXT_TOOLS}/include/log4cxx/*.cpp")
+  list(LENGTH log4cxx_additions_sources log4cxx_additions_sources_len)
+  if(${log4cxx_additions_sources_len} GREATER 0)
+    add_definitions(-DLOG4CXX_WIDE_LOGGING)
+    add_library(log4cxx_additions STATIC ${log4cxx_additions_sources})
+    set(LOG4CXX_LIB_DEBUG ${LOG4CXX_LIB_DEBUG} log4cxx_additions)
+    set(LOG4CXX_LIB_RELEASE ${LOG4CXX_LIB_RELEASE} log4cxx_additions)
+  endif()
 
 ### CURL static ###
   find_library(CURL_LIB_DEBUG NAMES curl libcurl curllib PATHS "${EXT_LIBS_DEBUG}" "${EXT_LIBS_DEBUG}/curl")

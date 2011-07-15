@@ -761,10 +761,10 @@ int task::get_scan_size()
     return retval;
 }
 
-shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
+boost::shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
 {
     boost::unique_lock<boost::mutex> lock(scandata_mutex);
-    shared_ptr<ScanData> retval;
+    boost::shared_ptr<ScanData> retval;
     ScanData* data;
 
     data = NULL;
@@ -797,7 +797,7 @@ shared_ptr<ScanData> task::get_scan_data( const string& baseUrl )
     if (data->scan_id == "") {
         data->scan_id = scan_id;
     }
-    retval = shared_ptr<ScanData>(data);
+    retval = boost::shared_ptr<ScanData>(data);
     return retval;
 }
 

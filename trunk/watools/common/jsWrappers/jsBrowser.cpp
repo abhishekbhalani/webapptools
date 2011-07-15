@@ -167,7 +167,7 @@ static Handle<Value> BrowserGet(Local<String> name, const AccessorInfo &info)
     Handle<Value> val;
     std::string key = value_to_string(name);
 
-    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "jsBrowserGet: property("<< key <<")");
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("jsBrowserGet: property(")<< key <<_T(")"));
 
     Local<External> wrap = Local<External>::Cast(info.Data());
     void* ptr = wrap->Value();
@@ -198,7 +198,7 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
     Handle<Value> val;
     std::string key = value_to_string(name);
 
-    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "jsBrowserSet: property("<< key <<")");
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("jsBrowserSet: property(")<< key <<_T(")"));
     Local<External> wrap = Local<External>::Cast(info.Data());
     void* ptr = wrap->Value();
     if (ptr != NULL) {
@@ -260,7 +260,7 @@ jsBrowser::jsBrowser(void)
     context = Context::New(NULL, global);
     {
         // make executor accessible in the JS
-        LOG4CXX_TRACE(iLogger::GetLogger(), "jsBrowser: try to wrap object");
+        LOG4CXX_TRACE(iLogger::GetLogger(), _T("jsBrowser: try to wrap object"));
         Context::Scope context_scope(context);
         Handle<Object> _instance = v8_wrapper::wrap_object<jsExecutor>(this);
         context->Global()->Set(String::New("v8_context"), _instance);

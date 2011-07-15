@@ -330,43 +330,43 @@ parseRestart:
             if (lString == "form") {
                 /// @todo Add forms processing
                 // right now all form's attributes will be placed to parent entity
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: FORM CLOSE");
+                LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: FORM CLOSE"));
                 break;
             }
             if (Name() != lString) {
                 // incomplete structure - close this tag
                 // and restart parsing on previous level
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: force TAG END(wstTagEnd): " << Name());
+                LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: force TAG END(wstTagEnd): ") << Name());
                 if (!IsParentTag(lString)) {
                     // if tag is not in paren tree - just skip it
                     break;
                 }
             } else {
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: TAG END: " << std::string(scanner.get_tag_name()));
+                LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: TAG END: ") << std::string(scanner.get_tag_name()));
             }
             endPos = (int)scanner.get_pos();
             return state;
         case wstTagStart:
             lString = scanner.get_tag_name();
             to_lower(lString);
-            LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: TAG START: " << lString);
+            LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: TAG START: ") << lString);
             if (txt != NULL) {
                 txt->attr("", txtAttr);
                 chldList.push_back(base_entity_ptr(txt));
-                //LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: save previous TEXT: " << txtAttr);
+                //LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: save previous TEXT: ") << txtAttr);
                 txtAttr.clear();
                 txt = NULL;
             }
             if (WeParseNeedToBreakTag(Name(), lString)) {
                 // incomplete structure - close this tag
                 // and restart parsing on previous level
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: force TAG END(wstTagStart): " << Name());
+                LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: force TAG END(wstTagStart): ") << Name());
                 return state;
             }
 //             if (lString == "form") {
 //                 /// @todo Add forms processing
 //                 // right now all form's attributes will be placed to parent entity
-//                 LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: NEW FORM BEGIN");
+//                 LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: NEW FORM BEGIN"));
 //                 break;
 //             }
             chld = weHtmlFactory.CreateEntity(lString, shared_from_this());
@@ -374,8 +374,8 @@ parseRestart:
                 scanner_token chldState;
                 chldList.push_back(chld);
                 chldState = chld->Parse(lString, scanner, processor);
-                LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: from child, state=" << (int)chldState <<
-                              " current=" << Name() << ", child=" << chld->Name() << ", active=" << lString);
+                LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: from child, state=") << (int)chldState <<
+                              _T(" current=") << Name() << _T(", child=") << chld->Name() << _T(", active=" << lString));
 //                 if (iequals(string("form"), lString)) {
 //                     /// @todo Add forms processing
 //                     // form finished?
@@ -385,7 +385,7 @@ parseRestart:
                 if (chldState != wstTagEnd && state != wstEof && state != wstError) {
                     // previous tag was closed incorrectly
                     // restart parsing
-                    LOG4CXX_TRACE(iLogger::GetLogger(), "html_entity::Parse: restarting from child");
+                    LOG4CXX_TRACE(iLogger::GetLogger(), _T("html_entity::Parse: restarting from child"));
                     state = chldState;
                     goto parseRestart;
                 }
@@ -907,7 +907,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
     bool            inProcess;
     int             enPos, stPos;
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: enter for: " << tagName);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("WeScript::Parse: enter for: ") << tagName);
     if (! tagName.empty()) {
         // for WeDocuments this parameter must be empty
         // and not to overwrite the 'name' property
@@ -932,13 +932,13 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
         state = scanner.get_token();
         // skip errors
         if (state == wstEof ) { //|| state == wstError
-            //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: wstEof " << scanner.get_tag_name() << "; val " << scanner.get_value());
+            //LOG4CXX_TRACE(iLogger::GetLogger(), _T("WeScript::Parse: wstEof ") << scanner.get_tag_name() << _T("; val ") << scanner.get_value());
             inProcess = false;
             break;
         }
         switch(state) {
         case wstTagEnd:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagend " << std::string(scanner.get_tag_name()));
+            LOG4CXX_TRACE(iLogger::GetLogger(), _T("WeScript::Parse: tagend ") << std::string(scanner.get_tag_name()));
             inOurTag = false;
             /// @todo process unpaired tag \</script\> inside the data
             // if it our tag - finish parsing
@@ -948,7 +948,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
             }
             break;
         case wstTagStart:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: tagstart " << std::string(scanner.get_tag_name()));
+            LOG4CXX_TRACE(iLogger::GetLogger(), _T("WeScript::Parse: tagstart ") << std::string(scanner.get_tag_name()));
             // all TAGs inside script are ignored - it's just a text
             scanner.reset_to_body();
             break;
@@ -956,7 +956,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
             // attributes processed only for our tag, else it's just a text
             if (inOurTag) {
                 attributes[scanner.get_attr_name()] = scanner.get_value();
-                //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: " << scanner.get_attr_name() << " = " << scanner.get_value());
+                //LOG4CXX_TRACE(iLogger::GetLogger(), _T("WeScript::Parse: ") << scanner.get_attr_name() << _T(" = ") << scanner.get_value());
             }
             // reset state to parse content
             break;
@@ -972,7 +972,7 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
         case wstCDataEnd:
         case wstPiEnd:
         default:
-            LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: content " << std::string(scanner.get_value()));
+            LOG4CXX_TRACE(iLogger::GetLogger(), _T("WeScript::Parse: content ") << std::string(scanner.get_value()));
             if (stPos == -1) {
                 stPos = enPos + 1;
             }
@@ -980,14 +980,14 @@ scanner_token WeScript::Parse( string tagName, tag_scanner& scanner, i_transport
             break;
         }
     }
-    //LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: get content from " << stPos << " to " << enPos);
+    //LOG4CXX_TRACE(iLogger::GetLogger(), _T("WeScript::Parse: get content from ") << stPos << _T(" to ") << enPos);
     if (stPos > -1 && enPos > stPos) {
         txtAttr = scanner.get_from(stPos);
         enPos -= stPos;
         txtAttr = txtAttr.substr(0, enPos);
         attr("#code", txtAttr);
     }
-    LOG4CXX_TRACE(iLogger::GetLogger(), "WeScript::Parse: exit for: " << std::string(scanner.get_tag_name()));
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("WeScript::Parse: exit for: ") << std::string(scanner.get_tag_name()));
 
     /// @todo Implement post-process - download and others
     return state;
@@ -1035,9 +1035,9 @@ html_parser::html_parser(engine_dispatcher* krnl, void* handle /*= NULL*/) :
 
 i_plugin* html_parser::get_interface( const string& ifName )
 {
-    LOG4CXX_TRACE(logger, "html_parser::get_interface " << ifName);
+    LOG4CXX_TRACE(logger, _T("html_parser::get_interface ") << ifName);
     if (iequals(ifName, "html_parser")) {
-        LOG4CXX_DEBUG(logger, "html_parser::get_interface found!");
+        LOG4CXX_DEBUG(logger, _T("html_parser::get_interface found!"));
         usageCount++;
         return (this);
     }
@@ -1069,7 +1069,7 @@ i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
                 /// @todo: move it to the options!!!
                 cType == "text/html";
             }
-            LOG4CXX_TRACE(logger, "HttpInventory::process: content-type analyze method = " << opt_ctype_method);
+            LOG4CXX_TRACE(logger, _T("HttpInventory::process: content-type analyze method = ") << opt_ctype_method);
             bool cTypeProcess = false;
             switch(opt_ctype_method) {
             case 0: // any content-type
@@ -1097,7 +1097,7 @@ i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
                 break;
             default:
                 cTypeProcess = false;
-                LOG4CXX_WARN(logger, "HttpInventory::process: unknown content-type analyze method = " << opt_ctype_method);
+                LOG4CXX_WARN(logger, _T("HttpInventory::process: unknown content-type analyze method = ") << opt_ctype_method);
                 break;
             }
 
@@ -1109,7 +1109,7 @@ i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
 #ifdef DEBUG
                 boost::posix_time::ptime postm = boost::posix_time::microsec_clock::local_time();
                 boost::posix_time::time_period duration(pretm, postm);
-                LOG4CXX_DEBUG(logger, "HttpInventory::process " << htResp->Data().size() << " bytes parsed at " << duration.length().total_milliseconds() << " milliseconds");
+                LOG4CXX_DEBUG(logger, _T("HttpInventory::process ") << htResp->Data().size() << _T(" bytes parsed at ") << duration.length().total_milliseconds() << _T(" milliseconds"));
 #endif
                 if ( !pres ) {
                     parser.reset();
@@ -1117,7 +1117,7 @@ i_document_ptr html_parser::parse(boost::shared_ptr<i_response> input)
             } // if need to process
         } // if HTTP code valid
     } catch (bad_cast) {
-        LOG4CXX_ERROR(logger, "HttpInventory::process: The response from " << input->BaseUrl().tostring() << " isn't the HttpResponse!");
+        LOG4CXX_ERROR(logger, _T("HttpInventory::process: The response from ") << input->BaseUrl().tostring() << _T(" isn't the HttpResponse!"));
     }
 
     return parser;

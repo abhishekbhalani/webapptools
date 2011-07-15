@@ -243,12 +243,12 @@ Handle<Value> Window(const v8::Arguments& args)
     Handle<Value> retval;
     Local<Context> ctx = v8::Context::GetCurrent();
     Local<Value> exec = ctx->Global()->Get(String::New("v8_context"));
-    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets v8_context");
+    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("js::Window: gets v8_context"));
     if (exec->IsObject()) {
         Local<Object> eObj = Local<Object>::Cast(exec);
         v8::Local<v8::External> wrap = v8::Local<v8::External>::Cast(eObj->GetInternalField(0));
         jsBrowser* jsExec = static_cast<jsBrowser*>(wrap->Value());
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), "js::Window: gets jsBrowser");
+        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("js::Window: gets jsBrowser"));
         jsWindow *p = new jsWindow(jsExec, jsExec->window, jsExec->window);
         jsExec->register_window(p);
         retval = v8_wrapper::wrap_object<jsWindow>(p);
@@ -321,7 +321,7 @@ jsWindow::jsWindow( jsBrowser* holder_, jsWindow* parent_, jsWindow* creator_ )
     props["screenX"] = Persistent<Value>::New(Int32::New(1));
     props["screenY"] = Persistent<Value>::New(Int32::New(1));
     props["status"] = Persistent<Value>::New(String::New(""));
-    LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow new window created - uuid=" << win_uuid);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("jsWindow new window created - uuid=") << win_uuid);
 }
 
 jsWindow::~jsWindow( void )
@@ -333,14 +333,14 @@ jsWindow::~jsWindow( void )
     }
     frames.clear();
     browser->delete_window(this);
-    LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow window destroyed - uuid=" << win_uuid);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("jsWindow window destroyed - uuid=") << win_uuid);
 }
 
 const bool jsWindow::is_closed()
 {
     bool ret = false;
     if (props["closed"]->BooleanValue()) {
-        LOG4CXX_WARN(iLogger::GetLogger(), "jsWindow access to closed window - uuid=" << win_uuid);
+        LOG4CXX_WARN(iLogger::GetLogger(), _T("jsWindow access to closed window - uuid=") << win_uuid);
         ret = true;
     }
     return ret;
@@ -370,7 +370,7 @@ void process_events( jsBrowser* js_exec, base_entity_ptr entity, bool is_jquery 
     std::string src;
     std::string name;
     // get on... events
-    LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events entity = " << entity->Name());
+    LOG4CXX_INFO(iLogger::GetLogger(), _T("jsWindow::process_events entity = ") << entity->Name());
 
     AttrMap::iterator attrib = entity->attr_list().begin();
 
@@ -378,11 +378,11 @@ void process_events( jsBrowser* js_exec, base_entity_ptr entity, bool is_jquery 
         name = (*attrib).first;
         src = (*attrib).second;
 
-        Local<Object> obj = Local<Object>::New(wrap_entity(boost::shared_dynamic_cast<html_entity>(entity))->m_this);
+        Local<Object> obj = Local<Object>::New(v8_wrapper::wrap_entity(boost::shared_dynamic_cast<html_entity>(entity))->m_this);
         ctx->Global()->Set(String::New("__evt_target__"), obj);
         if (boost::istarts_with(name, "on")) {
             // attribute name started with "on*" - this is the event
-            LOG4CXX_INFO(iLogger::GetLogger(), "audit_jscript::process_events - " << name << " source = " << src);
+            LOG4CXX_INFO(iLogger::GetLogger(), _T("audit_jscript::process_events - ") << name << _T(" source = ") << src);
             boost::trim(src);
             if (! boost::istarts_with(src, "function")) {
                 src = "__evt_target__.__event__" + name + "=function(){" + src + "}";
@@ -393,7 +393,7 @@ void process_events( jsBrowser* js_exec, base_entity_ptr entity, bool is_jquery 
             js_exec->execute_string("__evt_target__.__event__" + name + "()", "", true, true);
         }
         if (boost::istarts_with(src, "javascript:")) {
-            LOG4CXX_INFO(iLogger::GetLogger(), "jsWindow::process_events (proto) - " << name << " source = " << src);
+            LOG4CXX_INFO(iLogger::GetLogger(), _T("jsWindow::process_events (proto) - ") << name << _T(" source = ") << src);
             src = src.substr(11); // skip "javascript:"
             src = "__evt_target__.__event__=function(){ " + src + " }";
             js_exec->execute_string(src, "", true, true);
@@ -494,7 +494,7 @@ void jsWindow::load( const string& url )
                         }
                     }
 #ifdef _DEBUG
-                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"audit_jscript::parse_scripts execute script #" << i++ << "; Source:\n" << source);
+                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("audit_jscript::parse_scripts execute script #") << i++ << "; Source:\n" << source);
 #endif
                 browser->execute_string(source, "", true, true);
             }
@@ -504,7 +504,7 @@ void jsWindow::load( const string& url )
 #endif
         }
     } else {
-        LOG4CXX_WARN(webEngine::iLogger::GetLogger(), "jsWindow::load the " << hresp->RealUrl().tostring() << " failed! HTTP code=" << hresp->HttpCode());
+        LOG4CXX_WARN(webEngine::iLogger::GetLogger(), _T("jsWindow::load the ") << hresp->RealUrl().tostring() << _T(" failed! HTTP code=") << hresp->HttpCode());
     }
 }
 
@@ -691,7 +691,7 @@ Handle<Value> jsWindow::PlaceHolder(const Arguments& args)
     ret += "; name=";
     ret += value_to_string(el->props["name"]->ToString());
     ret += "]";
-    LOG4CXX_DEBUG(iLogger::GetLogger(), "jsWindow::PlaceHolder - " << ret);
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("jsWindow::PlaceHolder - ") << ret);
     return String::New(ret.c_str());
 }
 
@@ -702,7 +702,7 @@ Handle<Value> jsWindow::Close(const Arguments& args)
     void* ptr = wrap->Value();
     jsWindow* el = static_cast<jsWindow*>(ptr);
 
-    LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow::Close - uuid=" << el->win_uuid);
+    LOG4CXX_TRACE(iLogger::GetLogger(), _T("jsWindow::Close - uuid=") << el->win_uuid);
     el->props["closed"] = Persistent<Value>::New(Boolean::New(false));
     return Handle<Value>();
 }
@@ -756,12 +756,8 @@ Handle<Value> jsWindow::Open(const Arguments& args)
         new_win->location->url = url;
         el->browser->register_window(new_win);
         val = v8_wrapper::wrap_object<jsWindow>(new_win);
-        LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow::Open new window - uuid=" << new_win->win_uuid
-                      << "; url=" << url.tostring());
-        // todo load data
-        string msg = "Open new Window\r\n\thref: ";
-        msg += url.tostring();
-        append_results(msg);
+        LOG4CXX_TRACE(iLogger::GetLogger(), _T("jsWindow::Open new window - uuid=") << new_win->win_uuid
+                      << _T("; url=") << url.tostring());
     }
     return val;
 }
@@ -778,7 +774,7 @@ Handle<Value> jsWindow::Popup( const Arguments& args )
         jsWindow* new_win = new jsWindow(el->browser, el, el);
         el->browser->register_window(new_win);
         val = v8_wrapper::wrap_object<jsWindow>(new_win);
-        LOG4CXX_TRACE(iLogger::GetLogger(), "jsWindow::Popup new window - uuid=" << new_win->win_uuid);
+        LOG4CXX_TRACE(iLogger::GetLogger(), _T("jsWindow::Popup new window - uuid=") << new_win->win_uuid);
     }
     return val;
 }

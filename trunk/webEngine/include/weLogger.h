@@ -25,6 +25,12 @@
 #include <log4cxx/ndc.h>
 #pragma warning( default : 4231)
 
+#ifdef LOG4CXX_WIDE_LOGGING
+#define _T(s) L ## s
+#else
+#define _T(s) s
+#endif
+
 namespace webEngine {
 
 class iLogger {

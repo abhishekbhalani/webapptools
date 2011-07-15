@@ -140,7 +140,7 @@ def generate_class(class_node):
               Handle<Value> retval;
               Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
               v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-              LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" method " << std::string(__FUNCTION__) );
+              LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8 JavaScript binded call 0x") << std::hex << (size_t)ptr << _T(" method ") << std::string(__FUNCTION__) );
             """)
         
             num_args = 0
@@ -235,7 +235,7 @@ def generate_class(class_node):
                 Local<Object> self = info.Holder();
                 Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
                     v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" getter " << std::string(__FUNCTION__) );
+                    LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8 JavaScript binded call 0x") << std::hex << (size_t)ptr << _T(" getter ") << std::string(__FUNCTION__) );
                 """ + field_type + " value = dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """;
                 return v8_wrapper::Set(value);
               }
@@ -253,7 +253,7 @@ def generate_class(class_node):
                 Local<Object> self = info.Holder();
                 Local<External> wrap = Local<External>::Cast(self->GetInternalField(0));
                             v8_wrapper::tree_node* ptr = static_cast<v8_wrapper::tree_node*>(wrap->Value());
-                            LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" setter " << std::string(__FUNCTION__) );
+                            LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8 JavaScript binded call 0x") << std::hex << (size_t)ptr << _T(" setter ") << std::string(__FUNCTION__) );
                 dynamic_cast<""" + c_js + "*>(ptr)->" + field_name + """ = v8_wrapper::Get< """ + field_type + """ >(value);
               }
               """)
@@ -263,7 +263,7 @@ def generate_class(class_node):
                     out_tags_header.write("if(attr != objToWrap->attr_list().end()){")
                     out_tags_header.write("node->" + field_name + " = boost::lexical_cast< " + field_type + " > ( (*attr).second );}\n");
                     out_tags_header.write("}catch(boost::bad_lexical_cast &){LOG4CXX_ERROR(webEngine::iLogger::GetLogger(), " + 
-                    "L\"Could not cast '\" <<  objToWrap->attr_list()[\"" + field_name + "\"] << L\"' to " + field_type + "\");}\n")
+                    "_T(\"Could not cast '\") <<  objToWrap->attr_list()[\"" + field_name + "\"] << _T(\"' to " + field_type + "\"));}\n")
             if field_type.find("v8::") == -1:
                 if field_type.find("tring") != -1:
                     virtual_get_fields += " if(!" + field_name + ".empty())\n"

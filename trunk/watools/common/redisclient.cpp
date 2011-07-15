@@ -97,7 +97,7 @@ void output_proto_debug(const string & data, bool is_received = true)
         escaped_data.replace(pos, 1, "\\r");
 
     if (scan_logger) {
-        LOG4CXX_TRACE(scan_logger, (is_received ? "RECV '" : "SEND '") << escaped_data << "'");
+        LOG4CXX_TRACE(scan_logger, (is_received ? _T("RECV '") : _T("SEND '")) << escaped_data << _T("'"));
     }
 }
 

@@ -9,7 +9,7 @@ add_executable(v8_domshell
 )
 
 if(WIN32)
-  target_link_libraries(v8_domshell webEngine jsWrappers log4cxx_additions
+  target_link_libraries(v8_domshell webEngine jsWrappers 
     Psapi.lib ws2_32.lib winmm.lib wldap32.lib
     optimized ${LOG4CXX_LIB_RELEASE} debug ${LOG4CXX_LIB_DEBUG} 
     optimized ${CURL_LIB_RELEASE}    debug ${CURL_LIB_DEBUG}

@@ -183,22 +183,22 @@ class Registrator : public virtual tree_node {
 
 public:
     Registrator() {
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8_wrapper::Registrator<> 0x" << std::hex << (size_t)this << L" construct " << std::string(typeid(T).name()) );
+        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8_wrapper::Registrator<> 0x") << std::hex << (size_t)this << _T(" construct ") << std::string(typeid(T).name()) );
     }
     virtual ~Registrator() {
         if( !this->m_this.IsEmpty() ) {
 #if 0// _DEBUG
             if( !this->m_this.IsWeak() ) {
-                LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8_wrapper::Registrator<> 0x" << std::hex << (size_t)this << L" handle is not weak " << std::string(typeid(T).name()) );
+                LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8_wrapper::Registrator<> 0x") << std::hex << (size_t)this << _T(" handle is not weak ") << std::string(typeid(T).name()) );
             } else if( !this->m_this.IsNearDeath()) {
-                LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8_wrapper::Registrator<> 0x" << std::hex << (size_t)this << L" handle is not near death " << std::string(typeid(T).name()) );
+                LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8_wrapper::Registrator<> 0x") << std::hex << (size_t)this << _T(" handle is not near death ") << std::string(typeid(T).name()) );
             }
 #endif
             if( this->m_this->InternalFieldCount() > 0 ) {
                 this->m_this->SetInternalField(0, v8::External::New(NULL));
             }
         }
-		LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8_wrapper::Registrator<> 0x" << std::hex << (size_t)this << L" ~destruct " << std::string(typeid(T).name()) );
+		LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8_wrapper::Registrator<> 0x") << std::hex << (size_t)this << _T(" ~destruct ") << std::string(typeid(T).name()) );
     }
 
     /**
@@ -218,7 +218,7 @@ public:
         if (!args.IsConstructCall())
             return v8::ThrowException(v8::String::New("DOM object constructor cannot be called as a function."));
         T* obj = new T();
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)obj << L" constructor " << std::string(typeid(T).name()) );
+        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8 JavaScript binded call 0x") << std::hex << (size_t)obj << _T(" constructor ") << std::string(typeid(T).name()) );
         obj->m_this = v8::Persistent<v8::Object>::New(wrap_object< T >(obj));
         //obj->m_this.MakeWeak( obj , Registrator< T >::Destructor);
         return obj->m_this;
@@ -229,7 +229,7 @@ public:
      */
     static void Destructor(v8::Persistent<v8::Value> object, void* ) {
         void* ptr = v8::Local<v8::External>::Cast(object->ToObject()->GetInternalField(0))->Value();
-        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), L"v8 JavaScript binded call 0x" << std::hex << (size_t)ptr << L" destructor " << std::string(typeid(T).name()));
+        LOG4CXX_TRACE(webEngine::iLogger::GetLogger(), _T("v8 JavaScript binded call 0x") << std::hex << (size_t)ptr << _T(" destructor ") << std::string(typeid(T).name()));
         object->ToObject()->SetInternalField(0, v8::External::New(NULL));
         if(ptr)
             delete static_cast< T *>(ptr);

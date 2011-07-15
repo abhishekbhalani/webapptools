@@ -49,7 +49,7 @@ struct type_conversion<db_record_soci> {
             db_record &data = *(data_soci.first);
             const size_t record_size = data.record_size();
             if(record_size == 0) {
-                //LOG4CXX_TRACE(logger, "type_conversion<db_record>: record_size is zero, you must to initialize db_record with recordset!");
+                //LOG4CXX_TRACE(logger, _T("type_conversion<db_record>: record_size is zero, you must to initialize db_record with recordset!"));
                 return;
             }
             for(size_t i = 0, j = data_soci.second ? 1 : 0; j < record_size; i++, j++) {
@@ -81,7 +81,7 @@ struct type_conversion<db_record_soci> {
         ind = i_ok;
         const size_t record_size = data.record_size();
         if(record_size == 0) {
-            //LOG4CXX_TRACE(logger, "type_conversion<db_record>: record_size is zero, you must to initialize db_record with recordset!");
+            //LOG4CXX_TRACE(logger, _T("type_conversion<db_record>: record_size is zero, you must to initialize db_record with recordset!"));
             return;
         }
         for(size_t i = 0; i < record_size; i++) {
@@ -131,7 +131,7 @@ soci_storage::soci_storage( engine_dispatcher* krnl, void* handle /*= NULL*/ ) :
     } catch(soci::soci_error e) {
 		LOG4CXX_ERROR(logger, std::string(e.what()));
     }
-    LOG4CXX_TRACE(logger, "soci_storage plugin created; version " << VERSION_PRODUCTSTR);
+    LOG4CXX_TRACE(logger, _T("soci_storage plugin created; version ") << VERSION_PRODUCTSTR);
 }
 
 soci_storage::~soci_storage(void)
@@ -141,7 +141,7 @@ soci_storage::~soci_storage(void)
         m_sql->close();
         m_sql.reset();
     }
-    LOG4CXX_TRACE(logger, "soci_storage plugin destroyed");
+    LOG4CXX_TRACE(logger, _T("soci_storage plugin destroyed"));
 }
 
 i_plugin* soci_storage::get_interface( const string& ifName )
@@ -174,7 +174,7 @@ bool soci_storage::init_storage( const string& params )
     string sval;
 
     boost::unique_lock<boost::mutex> locker(data_access);
-    LOG4CXX_TRACE(logger, "soci_storage::init_storage");
+    LOG4CXX_TRACE(logger, _T("soci_storage::init_storage"));
     try {
         m_sql->open(params);
     } catch(soci::soci_error e) {
@@ -311,7 +311,7 @@ public:
     }
 protected:
     db_cursor_base(	soci_storage &storage, const std::vector<std::string> &fields)
-        :m_storage(storage), webEngine::details::db_cursor_detail(fields), m_soci_record(&m_record, NULL) {}
+        :m_storage(storage), webEngine::details::db_cursor_detail(fields), m_soci_record(&m_record, (soci::blob*)NULL) {}
     soci_storage &m_storage;
     soci::values m_values;
     boost::scoped_ptr<soci::blob> m_blob;

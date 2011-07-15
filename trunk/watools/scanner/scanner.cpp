@@ -74,7 +74,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
             if (noLogging) {
                 cerr << "Can't parse '" << val << "' as bool: " << e.what() << ". Assume false." << endl;
             } else {
-                LOG4CXX_WARN(scan_logger, "Can't parse '" << val << L"' as bool: " << std::string(e.what()) << ". Assume false.");
+                LOG4CXX_WARN(scan_logger, _T("Can't parse '") << val << _T("' as bool: ") << std::string(e.what()) << _T(". Assume false."));
             }
         }
         if (i != 0) {
@@ -82,7 +82,7 @@ bool get_bool_option(const string& value, bool noLogging = false)
         }
     }
     if (!noLogging) {
-        LOG4CXX_DEBUG(scan_logger, "get_bool_option(" << value << ") = " << retval);
+        LOG4CXX_DEBUG(scan_logger, _T("get_bool_option(") << value << _T(") = ") << retval);
     }
     return retval;
 }
@@ -103,7 +103,7 @@ inline bool is_any(const boost::any& op)
 void save_config(const string& fname, po::variables_map& vm, po::options_description& desc, bool noLogging = false )
 {
     if (!noLogging) {
-        LOG4CXX_INFO(scan_logger, "Save configuration to " << fname);
+        LOG4CXX_INFO(scan_logger, _T("Save configuration to ") << fname);
     }
 
     try {
@@ -114,7 +114,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
             string value = "";
             string name = opts[i]->long_name();
             if (!noLogging) {
-                LOG4CXX_DEBUG(scan_logger, "Save variable " << name);
+                LOG4CXX_DEBUG(scan_logger, _T("Save variable ") << name);
             }
             ofs << "#" << opts[i]->description() << endl;
             if (vm.count(name)) {
@@ -134,7 +134,7 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
                     if (noLogging) {
                         cerr << "Unknown variable type " << val.type().name() << endl;
                     } else {
-                        LOG4CXX_ERROR(scan_logger, "Unknown variable type " << std::string(val.type().name()));
+                        LOG4CXX_ERROR(scan_logger, _T("Unknown variable type ") << std::string(val.type().name()));
                     }
                 }
             } else {
@@ -146,12 +146,12 @@ void save_config(const string& fname, po::variables_map& vm, po::options_descrip
         if (noLogging) {
             cerr << "Configuration not saved: " << std::string(e.what()) << endl;
         } else {
-            LOG4CXX_ERROR(scan_logger, "Configuration not saved: " << std::string(e.what()));
+            LOG4CXX_ERROR(scan_logger, _T("Configuration not saved: ") << std::string(e.what()));
         }
         return;
     }
     if (!noLogging) {
-        LOG4CXX_INFO(scan_logger, "Configuration saved successfully");
+        LOG4CXX_INFO(scan_logger, _T("Configuration saved successfully"));
     }
 }
 
@@ -333,9 +333,9 @@ restart:
         };
         traceLevel = true;
     }
-    LOG4CXX_INFO(scan_logger, "\n\n");
-    LOG4CXX_INFO(scan_logger, "WAT Scanner started. Version: " << scaner_version);
-    LOG4CXX_INFO(scan_logger, "Loaded configuration from " << vm["config"].as<string>());
+    LOG4CXX_INFO(scan_logger, _T("\n\n"));
+    LOG4CXX_INFO(scan_logger, _T("WAT Scanner started. Version: ") << scaner_version);
+    LOG4CXX_INFO(scan_logger, _T("Loaded configuration from ") << vm["config"].as<string>());
 
     // init webEngine library
     if (vm.count("trace")) {
@@ -350,7 +350,7 @@ restart:
     if (vm.count("identity")) {
         scaner_uuid = vm["identity"].as<string>();
     } else {
-        LOG4CXX_INFO(scan_logger, "WAT Scanner identificator is undefined, create new");
+        LOG4CXX_INFO(scan_logger, _T("WAT Scanner identificator is undefined, create new"));
         basic_random_generator<boost::mt19937> gen;
         uuid tag = gen();
         scaner_uuid = boost::lexical_cast<string>(tag);
@@ -361,10 +361,10 @@ restart:
             store(parse_config_file(ss, cfg_file), vm);
             notify(vm);
         }
-        LOG4CXX_TRACE(scan_logger, "New config value for identity is " << vm["identity"].as<string>());
+        LOG4CXX_TRACE(scan_logger, _T("New config value for identity is ") << vm["identity"].as<string>());
         save_config(vm["config"].as<string>(), vm, cfg_file);
     }
-    LOG4CXX_INFO(scan_logger, "WAT Scanner identificator is " << scaner_uuid);
+    LOG4CXX_INFO(scan_logger, _T("WAT Scanner identificator is ") << scaner_uuid);
 
 #ifdef WIN32
     //----------------------
@@ -373,7 +373,7 @@ restart:
     int iResult;
     iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
     if (iResult != NO_ERROR) {
-        LOG4CXX_FATAL(scan_logger, "WSAStartup failed: " << iResult);
+        LOG4CXX_FATAL(scan_logger, _T("WSAStartup failed: ") << iResult);
         return 1;
     }
 #endif
@@ -382,18 +382,18 @@ restart:
 #ifdef WIN32
     // prevent instance to fall into endless "run-the-instances" loop
     // only on Win32, 'cause the *NIX have the fork() syscall, which do all this work
-    LOG4CXX_TRACE(scan_logger, "running as " << std::string(argv[0]));
+    LOG4CXX_TRACE(scan_logger, _T("running as ") << std::string(argv[0]));
     if (boost::iequals(argv[0], "instance") ) {
         daemonize = false;
-        LOG4CXX_DEBUG(scan_logger, "Win32 - already daemonized instance");
+        LOG4CXX_DEBUG(scan_logger, _T("Win32 - already daemonized instance"));
     }
 #endif
     if (daemonize) {
         int instances = vm["instances"].as<int>();
-        LOG4CXX_INFO(scan_logger, "daemonize. try to run " << instances << " instances");
+        LOG4CXX_INFO(scan_logger, _T("daemonize. try to run ") << instances << _T(" instances"));
         bool master = true;
         for (int i = 0; i < instances; i++) {
-            LOG4CXX_TRACE(scan_logger, "Start instance");
+            LOG4CXX_TRACE(scan_logger, _T("Start instance"));
 #ifdef WIN32
             char** cmd = new char*[argc+1];
             for (int j = 1; j < argc; j++) {
@@ -403,24 +403,24 @@ restart:
             cmd[0] = strdup("instance");
             int pid = _spawnv(_P_NOWAIT, argv[0], cmd);
             if (pid <= 0) {
-                LOG4CXX_ERROR(scan_logger, "_spawnv failed: (" << pid << ") ERRNO=" << errno);
+                LOG4CXX_ERROR(scan_logger, _T("_spawnv failed: (") << pid << _T(") ERRNO=") << errno);
             }
 #else
             pid_t pid = vfork();
             if (pid < 0) {
                 // error
-                LOG4CXX_ERROR(scan_logger, "vfork returns error: " << pid);
+                LOG4CXX_ERROR(scan_logger, _T("vfork returns error: ") << pid);
             } else if (pid == 0) {
                 // child process
-                LOG4CXX_INFO(scan_logger, "instance started!");
+                LOG4CXX_INFO(scan_logger, _T("instance started!"));
                 master = false;
                 break;
             }
 #endif
-            LOG4CXX_DEBUG(scan_logger, "running instance #" << i+1);
+            LOG4CXX_DEBUG(scan_logger, _T("running instance #") << i+1);
         }
         if (master) {
-            LOG4CXX_INFO(scan_logger, "All instances started, exit launcher");
+            LOG4CXX_INFO(scan_logger, _T("All instances started, exit launcher"));
             goto finish;
         }
     }
@@ -439,16 +439,16 @@ restart:
         cmd[0] = strdup(argv[0]);
         int pid = _spawnv(_P_NOWAIT, argv[0], cmd);
         if (pid <= 0) {
-            LOG4CXX_ERROR(scan_logger, "_spawnv failed: (" << pid << ") ERRNO=" << errno);
+            LOG4CXX_ERROR(scan_logger, _T("_spawnv failed: (") << pid << _T(") ERRNO=") << errno);
         }
 #else
         pid_t pid = vfork();
         if (pid < 0) {
             // error
-            LOG4CXX_ERROR(scan_logger, "vfork returns error: " << pid);
+            LOG4CXX_ERROR(scan_logger, _T("vfork returns error: ") << pid);
         } else if (pid == 0) {
             // child process
-            LOG4CXX_INFO(scan_logger, "instance started!");
+            LOG4CXX_INFO(scan_logger, _T("instance started!"));
             master = false;
             break;
         }
@@ -463,6 +463,6 @@ finish:
     // cleanup
     webEngine::LibClose();
 
-    LOG4CXX_INFO(scan_logger, "WAT Scanner stopped");
+    LOG4CXX_INFO(scan_logger, _T("WAT Scanner stopped"));
     return 0;
 }
