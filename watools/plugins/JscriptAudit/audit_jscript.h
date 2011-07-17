@@ -132,6 +132,7 @@ protected:
     string opt_preloads;
     bool opt_use_js;
     bool opt_allow_network;
+    char* preloads_data;
 };
 
 } // namespace webEngine

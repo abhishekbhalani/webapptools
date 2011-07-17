@@ -81,6 +81,7 @@ const string audit_jscript::get_setup_ui( void )
 void audit_jscript::init( task* tsk )
 {
     v8::Locker lock;
+    we_option opt;
     // create list of the blocked extension
     parent_task = tsk;
     opt_use_js = tsk->IsSet(weoAuditJSenable);

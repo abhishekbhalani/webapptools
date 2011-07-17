@@ -12,7 +12,7 @@ set(DOM_NOT_IMPLEMENTED_SOURCE "${DOM_DIRECTORY_SOURCE}/not_implemented")
 
 include_directories(${DOM_DIRECTORY_SOURCE})
 
-if(WIN32)
+#if(WIN32)
   if(MSVC)
     add_definitions(-D_SCL_SECURE_NO_WARNINGS -DV8_FAST_TLS -D_UNICODE -DUNICODE -D_WIN32)
   endif()
@@ -52,9 +52,9 @@ if(WIN32)
   find_library(V8_LIB_RELEASE NAMES v8 PATHS "${EXT_LIBS_RELEASE}/v8")
 
 ### SOCI ###
-  find_library(SOCI_LIB NAMES soci_core soci_core_3_1 PATHS "${EXT_TOOLS}/lib/soci")
+  find_library(SOCI_LIB NAMES soci_core soci_core-gcc PATHS "${EXT_TOOLS}/lib/soci")
 
-endif()
+#endif()
 
 ### BOOST ###
 set(Boost_USE_STATIC_LIBS   ON)

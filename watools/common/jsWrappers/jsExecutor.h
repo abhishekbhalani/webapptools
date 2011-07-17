@@ -77,7 +77,7 @@ public:
         return context->Global()->Get(val);
     }
 
-    vector<v8::Persistent<v8::Value>> objects;
+    vector< v8::Persistent<v8::Value> > objects;
 protected:
     task* net_access;
     static bool is_init;
