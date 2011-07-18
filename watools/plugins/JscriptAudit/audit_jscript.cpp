@@ -491,9 +491,6 @@ void audit_jscript::parse_scripts(boost::shared_ptr<ScanData> sc, boost::shared_
         }
 
         jse.close_child_context(ctx);
-#ifdef _DEBUG
-        LOG4CXX_TRACE(logger, _T("audit_jscript::parse_scripts results:\n") << res);
-#endif
         extract_links(sc, jse.window->document);
     }
     parent_task->remove_thread();
@@ -508,7 +505,7 @@ std::string audit_jscript::process_events(jsBrowser* jse, v8::Persistent<v8::Con
     std::string src;
     std::string name;
     // get on... events
-    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("audit_jscript::process_events entity = ") << entity->Name());
+    LOG4CXX_DEBUG(iLogger::GetLogger(), _T("audit_jscript::process_events entity = ") << entity->m_entity->Name());
     if(entity->m_entity) {
         AttrMap::iterator attrib = entity->m_entity->attr_list().begin();
         ctx->Global()->Set(v8::String::New("__evt_target__"), entity->m_this);

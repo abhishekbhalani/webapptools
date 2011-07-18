@@ -25,6 +25,7 @@ add_subdirectory(../common/jsWrappers jsWrappers)
 add_subdirectory(WoT)
 add_subdirectory(JscriptAudit)
 add_subdirectory(Soci)
+add_subdirectory(JScripter)
 
 if(BUILD_EXAMPLES)
   add_subdirectory(Demo)
