@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
     Author:         Andrew "Stinger" Abramov
-    Version:        $Revision: 0 $
+    Version:        $Revision$
 */
 #include "JScripter.h"
 #include "jscripter.xpm"
@@ -26,7 +26,7 @@
 #include "weTask.h"
 #include <boost/foreach.hpp>
 
-#define VERSION_PRODUCTSTR "$Revision: 0 $"
+#define VERSION_PRODUCTSTR "$Revision$"
 
 namespace jscripter
 {

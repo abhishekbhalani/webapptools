@@ -12,8 +12,8 @@
  * Tips: http://layout.jquery-dev.net/tips.html
  * Help: http://groups.google.com/group/jquery-ui-layout
  *
- * $Date: 2010-07-13 08:00:00 (Wed, 14 July 2010) $
- * $Rev: 30293 $
+ * $Date$
+ * $Rev$
  * 
  * NOTE: For best code readability, view this with a fixed-width font and tabs equal to 4-chars
  */

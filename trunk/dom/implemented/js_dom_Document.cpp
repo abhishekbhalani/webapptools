@@ -1,6 +1,6 @@
 
 /*
-  $Id: js_dom_Document.cpp 36450 2010-11-19 14:32:26Z santonov $
+  $Id$
 */
 
 #include "precomp.h"

@@ -6,9 +6,9 @@ COPYRIGHT    :   Positive Technologies, 2011
 PROGRAMMED BY:   Stanislav Antonov
 
 VERSION INFO :   $HeadURL: svn://10.111.111.10/mp8/WebEngine/trunk/webEngine/include/weiTask.h $
-                 $Revision: 43158 $
-                 $Date: 2011-04-19 11:48:41 +0400 (Вт, 19 апр 2011) $
-                 $Author: santonov $
+                 $Revision$
+                 $Date$
+                 $Author$
 *******************************************************************************/
 
 #include "weOptions.h"

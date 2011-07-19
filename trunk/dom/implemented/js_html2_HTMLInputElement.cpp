@@ -1,6 +1,6 @@
 
 /*
-  $Id: js_html2_HTMLInputElement.cpp 36341 2010-11-17 12:32:49Z santonov $
+  $Id$
 */
 
 #include "precomp.h"
