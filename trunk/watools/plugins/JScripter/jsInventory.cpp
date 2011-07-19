@@ -23,6 +23,8 @@
 #include "JScripter.h"
 #include "jscripter.xpm"
 #include "weiPlugin.h"
+#include "weTask.h"
+#include <boost/foreach.hpp>
 
 #define VERSION_PRODUCTSTR "$Revision: 0 $"
 
@@ -49,11 +51,22 @@ jscripter_inventory::~jscripter_inventory(void)
 void jscripter_inventory::process(webEngine::task* tsk, webEngine::scan_data_ptr scData)
 {
     LOG4CXX_INFO(logger, _T("### ") << std::string(__FUNCTION__) << _T(" of ") << pluginInfo.interface_name);
+    // execute all scripts in queue for this stage
+    if (tsk->IsSet(std::string(weoJsInventory))) {
+        BOOST_FOREACH(jscripter_block &code, m_queue)
+        {
+            m_scripter.execute(tsk, code, scData);
+        }
+    }
 }
 
 void jscripter_inventory::init(webEngine::task* tsk)
 {
     LOG4CXX_INFO(logger, _T("### ") << std::string(__FUNCTION__) << _T(" of ") << pluginInfo.interface_name);
+    // preload scripts for this stage
+    if (tsk->IsSet(std::string(weoJsInventory))) {
+        m_scripter.preload(tsk, inventory, m_queue);
+    }
 }
 
 void jscripter_inventory::pause(webEngine::task* tsk, bool paused)

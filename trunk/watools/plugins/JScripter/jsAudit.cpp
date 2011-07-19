@@ -23,6 +23,8 @@
 #include "JScripter.h"
 #include "jscripter.xpm"
 #include "weiPlugin.h"
+#include "weTask.h"
+#include <boost/foreach.hpp>
 
 #define VERSION_PRODUCTSTR "$Revision: 0 $"
 
@@ -49,6 +51,13 @@ jscripter_audit::~jscripter_audit(void)
 void jscripter_audit::process(webEngine::task* tsk, webEngine::scan_data_ptr scData)
 {
     LOG4CXX_INFO(logger, _T("### ") << std::string(__FUNCTION__) << _T(" of ") << pluginInfo.interface_name);
+    // execute all scripts in queue for this stage
+    if (tsk->IsSet(std::string(weoJsAudit))) {
+        BOOST_FOREACH(jscripter_block &code, m_queue)
+        {
+            m_scripter.execute(tsk, code, scData);
+        }
+    }
 }
 
 void jscripter_audit::process_response(webEngine::i_response_ptr resp)
@@ -59,6 +68,10 @@ void jscripter_audit::process_response(webEngine::i_response_ptr resp)
 void jscripter_audit::init(webEngine::task* tsk)
 {
     LOG4CXX_INFO(logger, _T("### ") << std::string(__FUNCTION__) << _T(" of ") << pluginInfo.interface_name);
+    // preload scripts for this stage
+    if (tsk->IsSet(std::string(weoJsAudit))) {
+        m_scripter.preload(tsk, audit, m_queue);
+    }
 }
 
 void jscripter_audit::pause(webEngine::task* tsk, bool paused)
