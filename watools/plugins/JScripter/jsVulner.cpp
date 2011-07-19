@@ -23,6 +23,8 @@
 #include "JScripter.h"
 #include "jscripter.xpm"
 #include "weiPlugin.h"
+#include "weTask.h"
+#include <boost/foreach.hpp>
 
 #define VERSION_PRODUCTSTR "$Revision: 0 $"
 
@@ -49,6 +51,13 @@ jscripter_vulner::~jscripter_vulner(void)
 void jscripter_vulner::process(webEngine::task* tsk, webEngine::scan_data_ptr scData)
 {
     LOG4CXX_INFO(logger, _T("### ") << std::string(__FUNCTION__) << _T(" of ") << pluginInfo.interface_name);
+    // execute all scripts in queue for this stage
+    if (tsk->IsSet(std::string(weoJsVulners))) {
+        BOOST_FOREACH(jscripter_block &code, m_queue)
+        {
+            m_scripter.execute(tsk, code, scData);
+        }
+    }
 }
 
 void jscripter_vulner::process_response(webEngine::i_response_ptr resp)
@@ -59,6 +68,10 @@ void jscripter_vulner::process_response(webEngine::i_response_ptr resp)
 void jscripter_vulner::init(webEngine::task* tsk)
 {
     LOG4CXX_INFO(logger, _T("### ") << std::string(__FUNCTION__) << _T(" of ") << pluginInfo.interface_name);
+    // preload scripts for this stage
+    if (tsk->IsSet(std::string(weoJsVulners))) {
+        m_scripter.preload(tsk, vulner, m_queue);
+    }
 }
 
 void jscripter_vulner::pause(webEngine::task* tsk, bool paused)
