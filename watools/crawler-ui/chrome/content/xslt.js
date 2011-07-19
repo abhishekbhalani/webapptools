@@ -28,7 +28,7 @@
  * Constructor for client-side XSLT transformations.
  * 
  * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
- * @version $Id: xslt.js,v 1.7 2008/08/29 21:22:55 Johann Exp $
+ * @version $Id$
  * @constructor
  */
 function Transformation() {

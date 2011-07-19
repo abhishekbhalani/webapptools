@@ -1,6 +1,6 @@
 
 /*
-  $Id: js_html2_HTMLDocument.cpp 36484 2010-11-22 07:20:39Z santonov $
+  $Id$
 */
 
 #include "precomp.h"

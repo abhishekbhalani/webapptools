@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
     Author:         Andrew "Stinger" Abramov
-    Version:        $Revision: 0 $
+    Version:        $Revision$
 */
 #include "JScripter.h"
 #include "jscripter.xpm"
@@ -33,7 +33,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
-#define VERSION_PRODUCTSTR "$Revision: 0 $"
+#define VERSION_PRODUCTSTR "$Revision$"
 
 static std::string xrc = _T("<plugin id='jscripter_plugin'>\
 <option name='jscripter/ExecuteInventory' label='Execute scripts on Inventory stage' type='2' control='checkbox'>0</option>\

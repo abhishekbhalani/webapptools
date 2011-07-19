@@ -18,7 +18,7 @@
     along with webEngine.  If not, see <http://www.gnu.org/licenses/>.
 
     Author:         Andrew "Stinger" Abramov
-    Version:        $Revision: 0 $
+    Version:        $Revision$
 */
 #include "jsScanData.h"
 #include "weLogger.h"
