@@ -31,6 +31,7 @@
 
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/algorithm/string.hpp>
 
 #define VERSION_PRODUCTSTR "$Revision$"
@@ -191,13 +192,13 @@ bool jscripter::load_queue_list( webEngine::task* tsk, detail::script_group grp,
 {
     std::string group_name;
     switch(grp) {
-    case detail::script_group::inventory:
+    case detail::inventory:
         group_name = _T("inventory");
         break;
-    case detail::script_group::audit:
+    case detail::audit:
         group_name = _T("audit");
         break;
-    case detail::script_group::vulner:
+    case detail::vulner:
         group_name = _T("vulner");
         break;
     default:
@@ -212,7 +213,7 @@ bool jscripter::load_queue_list( webEngine::task* tsk, detail::script_group grp,
         boost::filesystem::path dir(basepath);
         dir /= group_name + _T(".txt");
         if (boost::filesystem::exists(dir)) {
-            ifstream inp(dir.string());
+            boost::filesystem::ifstream inp(dir, std::ios_base::in);
             if (inp.is_open()) {
                 LOG4CXX_DEBUG(logger, _T("jscripter::load_queue_list from ") << dir.string());
                 std::string line;
@@ -263,7 +264,7 @@ bool jscripter::load_code( webEngine::task* tsk, detail::jscripter_block& code )
         SAFE_GET_OPTION_VAL(opt, basepath, "");
         boost::filesystem::path dir(basepath);
         dir /= code.name;
-        ifstream inp(dir.string());
+        boost::filesystem::ifstream inp(dir.string(), std::ios_base::in);
         if (inp.is_open()) {
             LOG4CXX_ERROR(logger, _T("jscripter::load_code from: ") << dir.string());
             code.code = "";

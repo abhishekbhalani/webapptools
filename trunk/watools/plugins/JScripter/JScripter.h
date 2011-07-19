@@ -130,7 +130,7 @@ public:
     std::string code;
 
     struct order {
-        bool operator()(jscripter_block & a, jscripter_block & b) const {
+        bool operator()(const jscripter_block & a, const jscripter_block & b) {
             if (a.priority < b.priority) {
                 return true;
             }
