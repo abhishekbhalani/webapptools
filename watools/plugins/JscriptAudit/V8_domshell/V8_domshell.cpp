@@ -16,7 +16,9 @@
 #include <weDispatch.h>
 #include <weTask.h>
 
+#ifdef WIN32
 __declspec(dllexport) double _HUGE;
+#endif
 
 using namespace webEngine;
 namespace bfs = boost::filesystem;
@@ -49,7 +51,7 @@ v8::Handle<v8::Value> GetLocationHref(v8::Local<v8::String> name, const v8::Acce
 v8::Handle<v8::String> ReadFile(const char* name);
 void ReportException(v8::TryCatch* handler);
 
-std::vector<v8::Persistent<v8::Value>>  objects;
+std::vector< v8::Persistent<v8::Value> >  objects;
 v8::Handle<v8::Value> GetAnyObject(v8::Local<v8::String> name, const v8::AccessorInfo &info)
 {
     //this only shows information on what object is being used... just for fun
