@@ -5,6 +5,7 @@
 #include <weHttpInvent.h>
 #include <html_js.h>
 
+#include <fstream>
 // from common/
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -563,7 +564,8 @@ std::string audit_jscript::process_events(jsBrowser* jse, v8::Persistent<v8::Con
     return strout.str();
 }
 
-void webEngine::parser_thread( audit_jscript* object )
+namespace webEngine {
+void parser_thread( audit_jscript* object )
 {
     bool in_loop = true;
     size_t task_list;
@@ -635,6 +637,7 @@ void webEngine::parser_thread( audit_jscript* object )
     object->parent_task->remove_thread();
     object->thread_running = false;
     LOG4CXX_DEBUG(js_logger, _T("audit_jscript::parser_thread finished"));
+}
 }
 
 ajs_to_process::ajs_to_process( webEngine::scan_data_ptr sc , boost::shared_ptr<html_document> pd )

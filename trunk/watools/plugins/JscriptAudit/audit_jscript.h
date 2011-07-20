@@ -12,6 +12,8 @@ namespace webEngine {
 
 class audit_jscript;
 
+void parser_thread(audit_jscript* object);
+
 class ajs_to_process :
     public boost::noncopyable {
 public:

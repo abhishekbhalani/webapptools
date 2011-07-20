@@ -71,14 +71,19 @@ bool jsWindow::is_init = false;
 std::vector<std::string> jsWindow::ro_props(read_only_props, read_only_props + sizeof read_only_props / sizeof read_only_props[ 0 ]);
 std::vector<std::string> jsWindow::funcs(func_list, func_list + sizeof func_list / sizeof func_list[ 0 ]);
 
-v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsHistory>::GetTemplate()
+namespace v8_wrapper {
+    
+template<>
+v8::Persistent<v8::FunctionTemplate> Registrator<jsHistory>::GetTemplate()
 {
     return jsHistory::object_template;
 }
 
-v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsWindow>::GetTemplate()
+template<>
+v8::Persistent<v8::FunctionTemplate> Registrator<jsWindow>::GetTemplate()
 {
     return jsWindow::object_template;
+}
 }
 
 jsHistory::jsHistory(jsWindow *win)
@@ -349,7 +354,7 @@ const bool jsWindow::is_closed()
 const bool jsWindow::is_property(string key)
 {
     bool retval;
-    std::map<std::string, Persistent<Value>>::iterator iter = props.find(key);
+    std::map< std::string, Persistent<Value> >::iterator iter = props.find(key);
     retval = (iter != props.end());
     if (!retval) {
         vector<string>::iterator itro = find(ro_props.begin(), ro_props.end(), key);
