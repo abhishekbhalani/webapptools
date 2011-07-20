@@ -41,6 +41,7 @@ v8::Persistent<v8::FunctionTemplate> Registrator<webEngine::jsExecutor>::GetTemp
 
 namespace webEngine {
 
+Handle<Value> result_object_info( const Arguments& args );
 static boost::mutex locker;
 
 bool jsExecutor::is_init = false;
@@ -341,7 +342,7 @@ string jsExecutor::dump_results()
     return result;
 }
 // Functions
-static Handle<Value> result_object(Local<String> name, const AccessorInfo &info)
+Handle<Value> result_object(Local<String> name, const AccessorInfo &info)
 {
     //this only shows information on what object is being used... just for fun
     {
@@ -375,7 +376,7 @@ static Handle<Value> result_object(Local<String> name, const AccessorInfo &info)
 }
 
 
-static Handle<Value> result_object_info( const Arguments& args )
+Handle<Value> result_object_info( const Arguments& args )
 {
     HandleScope scope;
     Handle<Value> res;
@@ -392,7 +393,7 @@ static Handle<Value> result_object_info( const Arguments& args )
     return scope.Close(res);
 }
 
-static Handle<Value> get_result_string(Local<String> name, const AccessorInfo &info)
+Handle<Value> get_result_string(Local<String> name, const AccessorInfo &info)
 {
     HandleScope scope;
 
