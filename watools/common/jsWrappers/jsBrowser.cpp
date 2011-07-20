@@ -11,19 +11,24 @@ using namespace webEngine;
 Persistent<FunctionTemplate> jsNavigator::object_template;
 Persistent<FunctionTemplate> jsScreen::object_template;
 
-v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsNavigator>::GetTemplate()
+namespace v8_wrapper {
+template <>
+v8::Persistent<v8::FunctionTemplate> Registrator<jsNavigator>::GetTemplate()
 {
     return jsNavigator::object_template;
 }
 
-v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsScreen>::GetTemplate()
+template <>
+v8::Persistent<v8::FunctionTemplate> Registrator<jsScreen>::GetTemplate()
 {
     return jsScreen::object_template;
 }
 
-v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsBrowser>::GetTemplate()
+template <>
+v8::Persistent<v8::FunctionTemplate> Registrator<jsBrowser>::GetTemplate()
 {
     return jsBrowser::object_template;
+}
 }
 
 static Handle<Value> NavigatorJavaEnabled( const Arguments& args )
@@ -45,7 +50,7 @@ static Handle<Value> NavigatorGet(Local<String> name, const AccessorInfo &info)
     std::string key = value_to_string(name);
 
     // Look up the value if it exists using the standard STL idiom.
-    std::map<std::string, Persistent<Value>>::iterator iter = el->props.find(key);
+    std::map< std::string, Persistent<Value> >::iterator iter = el->props.find(key);
 
     // If the key is not present return an empty handle as signal.
     if (iter == el->props.end()) return Handle<Value>();
@@ -115,7 +120,7 @@ static Handle<Value> ScreenGet(Local<String> name, const AccessorInfo &info)
     std::string key = value_to_string(name);
 
     // Look up the value if it exists using the standard STL idiom.
-    std::map<std::string, Persistent<Value>>::iterator iter = el->props.find(key);
+    std::map< std::string, Persistent<Value> >::iterator iter = el->props.find(key);
 
     // If the key is not present return an empty handle as signal.
     if (iter == el->props.end()) return Handle<Value>();

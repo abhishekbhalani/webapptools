@@ -30,9 +30,13 @@
 
 using namespace v8;
 
-v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<webEngine::jsExecutor>::GetTemplate()
+namespace v8_wrapper {
+    
+template<>
+v8::Persistent<v8::FunctionTemplate> Registrator<webEngine::jsExecutor>::GetTemplate()
 {
     return webEngine::jsExecutor::object_template;
+}
 }
 
 namespace webEngine {

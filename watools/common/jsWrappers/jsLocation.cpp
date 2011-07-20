@@ -9,9 +9,12 @@ using namespace webEngine;
 Persistent<FunctionTemplate> jsLocation::object_template;
 bool jsLocation::is_init = false;
 
-v8::Persistent<v8::FunctionTemplate> v8_wrapper::Registrator<jsLocation>::GetTemplate()
+namespace v8_wrapper {
+template<>
+v8::Persistent<v8::FunctionTemplate> Registrator<jsLocation>::GetTemplate()
 {
     return jsLocation::object_template;
+}
 }
 
 static Handle<Value> GetProto(Local<String> name, const AccessorInfo& info)
