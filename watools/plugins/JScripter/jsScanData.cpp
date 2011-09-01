@@ -32,6 +32,19 @@ namespace jscripter
 Persistent<FunctionTemplate> jsScanData::object_template;
 bool jsScanData::is_init = false;
 
+}
+
+namespace v8_wrapper {
+template<>
+v8::Persistent<v8::FunctionTemplate> Registrator<jscripter::jsScanData>::GetTemplate()
+{
+    return jscripter::jsScanData::object_template;
+}
+}
+
+namespace jscripter
+{
+
 jsScanData::jsScanData(webEngine::scan_data_ptr scData)
 {
     if (!is_init) {

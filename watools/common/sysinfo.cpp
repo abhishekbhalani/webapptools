@@ -11,6 +11,14 @@
 
 using namespace std;
 
+std::string wstring_to_string(const std::wstring& s)
+{
+    std::string temp(s.length(),L' ');
+    std::copy(s.begin(), s.end(), temp.begin());
+    return temp;
+}
+
+
 #ifdef WIN32
 #define BUFSIZE 256
 
@@ -208,10 +216,17 @@ string sys_uname()
 
         // Include service pack (if any) and build number.
 
-        if( strlen(osvi.szCSDVersion) > 0 ) {
+#ifdef UNICODE
+		std::wstring tmp(osvi.szCSDVersion);
+		if (tmp.length() > 0) {
+            result += wstring_to_string(osvi.szCSDVersion);
+		}
+#else
+        if( _tcslen(osvi.szCSDVersion) > 0 ) {
             result += " ";
             result += osvi.szCSDVersion;
         }
+#endif
 
         result += " (build " + boost::lexical_cast<string>((int)osvi.dwBuildNumber) +")";
 
