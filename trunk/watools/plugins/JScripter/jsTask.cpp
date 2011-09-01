@@ -32,6 +32,19 @@ namespace jscripter
 Persistent<FunctionTemplate> jsTask::object_template;
 bool jsTask::is_init = false;
 
+}
+
+namespace v8_wrapper {
+template<>
+v8::Persistent<v8::FunctionTemplate> Registrator<jscripter::jsTask>::GetTemplate()
+{
+    return jscripter::jsTask::object_template;
+}
+}
+
+namespace jscripter
+{
+
 jsTask::jsTask(webEngine::task* tsk)
 {
     if (!is_init) {

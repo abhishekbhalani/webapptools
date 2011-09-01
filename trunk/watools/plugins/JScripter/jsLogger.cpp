@@ -32,6 +32,19 @@ namespace jscripter
 Persistent<FunctionTemplate> jsLogger::object_template;
 bool jsLogger::is_init = false;
 
+}
+
+namespace v8_wrapper {
+template<>
+v8::Persistent<v8::FunctionTemplate> Registrator<jscripter::jsLogger>::GetTemplate()
+{
+    return jscripter::jsLogger::object_template;
+}
+}
+
+namespace jscripter
+{
+
 static Handle<Value> LoggerToString(const v8::Arguments& args)
 {
     Handle<Value> retval = String::New("[object Log4cxx]");

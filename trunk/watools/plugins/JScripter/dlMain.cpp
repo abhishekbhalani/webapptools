@@ -20,6 +20,10 @@
 
 #include "JScripter.h"
 
+#ifdef WIN32
+double _HUGE;
+#endif
+
 extern "C"
 void* WePluginFactory(void* krnl)
 {
