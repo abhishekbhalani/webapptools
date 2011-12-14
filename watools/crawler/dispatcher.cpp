@@ -231,6 +231,7 @@ void save_plugin_ui(webEngine::i_storage* store)
                 rec["profile_ui.ui_icon"] = db_icon;
                 rec["profile_ui.locale"] = string("en");
                 rec.close();
+				LOG4CXX_TRACE(scan_logger, _T("Save UI for plugin ") << plgs[i].interface_name << _T("; ") << plgs[i].plugin_desc);
             } else {
                 LOG4CXX_ERROR(scan_logger, _T("Can't load plugin ") << plgs[i].plugin_id << _T("; ") << plgs[i].plugin_desc);
             }

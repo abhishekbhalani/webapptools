@@ -79,6 +79,8 @@ static Handle<Value> NavigatorSet(Local<String> name, Local<Value> value, const 
 
 jsNavigator::jsNavigator()
 {
+	HandleScope scope;
+
     props["appCodeName"] = Persistent<Value>::New(String::New("Mozilla"));
     props["appMinorVersion"] = Persistent<Value>::New(Int32::New(0));
     props["appName"] = Persistent<Value>::New(String::New("Netscape"));
@@ -145,6 +147,8 @@ static Handle<Value> ScreenSet(Local<String> name, Local<Value> value, const Acc
 
 jsScreen::jsScreen()
 {
+	HandleScope scope;
+
     props["availHeight"] = Persistent<Value>::New(Int32::New(600));
     props["availWidth"] = Persistent<Value>::New(Int32::New(800));
     props["colorDepth"] = Persistent<Value>::New(Int32::New(32));
@@ -222,6 +226,8 @@ static Handle<Value> BrowserSet(Local<String> name, Local<Value> value, const Ac
 
 jsBrowser::jsBrowser(void)
 {
+	HandleScope scope;
+
     init_globals();
 
     // assign extensions
